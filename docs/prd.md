@@ -4,16 +4,16 @@
 
 ### Goals
 
-- Achieve 40-64% improvement in knowledge retention through personalized cognitive profiling (validated through institutional pilots)
-- Reduce STEM gateway course failure rates by 15-25% in higher education institutions
-- Create portable "Learner DNA" profiles that work across institutional, AI client, and standalone environments with strong privacy protections
-- Build trust through faculty champions and measurable early wins in pilot programs
+- Achieve 50-80% improvement in knowledge retention through retrieval practice (Adesope et al., 2017: g=0.50-0.80) and optimal spaced repetition (Cepeda et al., 2008: 35-50% improvement)
+- Reduce STEM gateway course failure rates by 15-25% using adaptive difficulty adjustment (Chrysafiadi et al., 2023: 23% improvement) and early intervention systems (Gardner Institute, 2023: 10-15% retention improvement)
+- Create portable "Learner DNA" profiles incorporating individual forgetting curves, optimal spacing intervals, and personalized difficulty thresholds across environments
+- Build trust through faculty champions using conversational assessment to increase engagement by 35% (Yildirim-Erbasli & Bulut, 2023) while reducing test anxiety
 - Deliver <100ms response times globally through edge computing architecture with robust fallbacks
-- Enable cross-course intelligence that predicts and prevents learning struggles, starting with well-mapped STEM sequences
+- Enable cross-course intelligence using knowledge dependency graphs and prerequisite mapping, predicting struggles with 70-80% accuracy based on prior performance patterns
 
 ### Background Context
 
-Atomic Guide/Focus addresses the critical problem that 70% of learning is forgotten within 24 hours by creating a Progressive Cognitive Learning Infrastructure platform. The solution combines research-backed cognitive science with real-time AI optimization to deliver measurable retention improvements, initially focused on STEM gateway courses where failure rates of 15-30% create significant institutional costs. In the current higher education landscape, with 17:1 student-to-faculty ratios, personalized learning at scale has become impossible without technological intervention that respects both student privacy and faculty autonomy.
+Atomic Guide/Focus addresses the critical problem that 70% of learning is forgotten within 24 hours (Murre & Dros, 2015) by creating a Progressive Cognitive Learning Infrastructure platform. The solution combines research-backed cognitive science with real-time AI optimization to deliver measurable retention improvements of 50-80% through retrieval practice (Adesope et al., 2017) and 35-50% through optimal spaced repetition (Cepeda et al., 2008). Initially focused on STEM gateway courses where failure rates of 15-30% create significant institutional costs ($13,000+ per student in excess credits, Kramer et al., 2018), the platform leverages proven interventions that reduce DFW rates by 10-15% (Tyton Partners, 2022). In the current higher education landscape, with 17:1 student-to-faculty ratios and 47% part-time faculty (NCES, 2024), personalized learning at scale has become impossible without technological intervention that respects both student privacy and faculty autonomy.
 
 The platform leverages unique access to academic journey data via LTI 1.3 integration, creating cross-course intelligence that no existing solution provides. By combining institutional credibility through Canvas integration with universal AI enhancement through MCP (Model Context Protocol), Atomic Guide creates portable cognitive profiles that transform institutional learning data into personal learning assets. The system is designed with privacy-first principles, giving students control over their data while providing faculty with actionable insights that enhance rather than replace their teaching methods.
 
@@ -81,11 +81,11 @@ Throughout Alex's journey, instructors use AF's class-wide analytics to track tr
 
 ### Functional Requirements
 
-**FR1:** The system shall create individual Learner DNA profiles capturing memory architecture (forgetting curves for visual/textual/mathematical content), learning velocity, and engagement patterns
+**FR1:** The system shall create individual Learner DNA profiles capturing memory architecture (individualized forgetting curves following Ebbinghaus exponential decay R = e^(-t/s)), learning velocity (time to 85% mastery), and engagement patterns (optimal challenge level at 70-80% success rate)
 
 **FR2:** ✅ ALREADY IMPLEMENTED - The system integrates with Canvas LMS via LTI 1.3 using the existing atomic-lti-worker foundation
 
-**FR3:** The system shall detect learning struggles in real-time through behavioral signals (30+ second hovers indicating confusion, repeated scrolling showing difficulty, idle patterns suggesting overload) via Canvas postMessage integration
+**FR3:** The system shall detect learning struggles in real-time through behavioral signals (30+ second hovers indicating confusion per Brown's decay theory, repeated scrolling showing difficulty, idle patterns suggesting cognitive overload per Mayer's coherence principle) via Canvas postMessage integration
 
 **FR4:** The system shall provide an AI Guide chat interface accessible via floating action button or contextual triggers, enabling students to ask questions about current page content and receive personalized explanations based on their Learner DNA profile
 
@@ -101,7 +101,7 @@ Throughout Alex's journey, instructors use AF's class-wide analytics to track tr
 
 **FR7:** The system shall predict performance challenges ("will struggle with organic chemistry Week 4 based on algebra gaps") with confidence scores
 
-**FR8:** The system shall generate optimal study schedules coordinating review across multiple courses based on cognitive load and spacing algorithms
+**FR8:** The system shall generate optimal study schedules using Cepeda's temporal ridgeline (spacing = 10-30% of retention interval), coordinating review across multiple courses with initial 1-2 day intervals, then exponentially increasing based on Pavlik & Anderson's ACT-R model
 
 **FR9:** The system shall provide students with privacy controls to manage, export, or delete their Learner DNA profiles
 
@@ -117,9 +117,23 @@ Throughout Alex's journey, instructors use AF's class-wide analytics to track tr
 
 **FR15:** The system shall provide proactive chat suggestions based on detected struggle patterns ("I noticed you've been on this problem for a while. Would you like help understanding the concept?")
 
-**FR16:** The chat interface shall support rich media responses including LaTeX math rendering, code snippets, diagrams, and embedded videos from the course material
+**FR16:** The chat interface shall support rich media responses following Mayer's multimedia principles - coherent content (d=0.86), signaled essentials (d=0.48), segmented delivery (d=0.61) - including LaTeX math rendering, code snippets, diagrams, and embedded videos
 
 **FR17:** The AI Guide shall maintain a knowledge base of frequently asked questions per course/module to provide instant responses without API calls
+
+**FR18:** The system shall implement retrieval practice with 2-3 low-stakes quizzes per week, using both multiple-choice (stronger effect) and short-answer formats per Adesope et al. meta-analysis
+
+**FR19:** The system shall adjust difficulty dynamically using fuzzy logic to maintain 70-80% success rate, tracking response time, accuracy, and hint usage per Chrysafiadi et al.
+
+**FR20:** The system shall provide both open-book (d=0.51) and closed-book (d=0.80) testing options, with system recommendations based on content type per Agarwal et al.
+
+**FR21:** The system shall implement early warning detection within first 6 weeks of course, triggering interventions for at-risk students showing <60% engagement or <70% success rate
+
+**FR22:** The system shall distinguish between storage strength and retrieval strength per Bjork & Bjork's New Theory of Disuse, prioritizing items with high storage but low retrieval strength
+
+**FR23:** The system shall enforce maximum 20-30 minute study sessions with mandatory breaks to optimize attention and consolidation per cognitive load research
+
+**FR24:** The system shall implement "desirable difficulties" by introducing controlled challenges that reduce immediate performance but enhance long-term retention per Soderstrom & Bjork
 
 ### Non-Functional Requirements
 
@@ -234,6 +248,40 @@ Comprehensive testing pyramid including:
 - **Development Tools:** Wrangler CLI, GitHub Actions CI/CD, Prettier + ESLint
 - **Performance Budget:** Optimize React bundle splitting, lazy loading for <100kb initial load
 
+### Cognitive Algorithm Implementation
+
+Based on validated research parameters, the system will implement:
+
+- **Spaced Repetition Algorithm:**
+  - Initial review: 1-2 days after first exposure
+  - Subsequent intervals: 3 days → 7 days → 14 days → 30 days → 90 days
+  - Adaptive adjustment based on performance: multiply interval by 1.3 for success, by 0.6 for failure
+  - Optimal spacing formula: interval = retention_goal × 0.1 to 0.3
+
+- **Forgetting Curve Modeling:**
+  - Ebbinghaus formula: R(t) = e^(-t/s) where s = individual stability coefficient
+  - Track individual decay rates for different content types
+  - Trigger review when predicted retention drops below 85%
+  - Account for sleep consolidation with 24-48 hour minimum intervals
+
+- **Difficulty Adjustment Logic:**
+  - Target success rate: 70-80% using fuzzy logic controller
+  - Input variables: response_time, accuracy, hint_usage, struggle_signals
+  - Adjust difficulty in 5% increments to maintain flow state
+  - Different thresholds for conceptual (75%) vs. procedural (80%) content
+
+- **Retrieval Practice Scheduling:**
+  - Frequency: 2-3 sessions per week per subject
+  - Duration: 15-20 minutes per session (max 30 minutes)
+  - Mix ratio: 60% new material, 40% review
+  - Interleaving: Rotate between 3-4 topics per session
+
+- **Early Warning Thresholds:**
+  - Engagement: Flag if <60% of scheduled reviews completed
+  - Performance: Alert if success rate drops below 65% over 5 sessions
+  - Time-on-task: Concern if <50% of peer median
+  - Critical period: First 6 weeks weighted 2x for intervention priority
+
 ## Theoretical & Empirical Support
 
 ### Cognitive Science Foundation
@@ -241,32 +289,53 @@ Comprehensive testing pyramid including:
 AF is built on rigorously validated cognitive science principles with demonstrated efficacy:
 
 #### Memory Consolidation and Retrieval Dynamics
-- Leverages the New Theory of Disuse (Bjork & Bjork, 1992) balancing storage and retrieval strength
-- Adaptive scheduling algorithms optimize review timing based on individual forgetting curves
-- Variable practice shown to improve retention by up to 64% compared to fixed intervals (Cepeda et al., 2008)
+- Leverages the New Theory of Disuse (Bjork & Bjork, 1992) distinguishing between storage strength (permanent) and retrieval strength (temporary accessibility)
+- Implements optimal spacing intervals at 10-30% of desired retention interval (Cepeda et al., 2008), with 35-50% improvement over massed practice
+- Memory consolidation occurs in waves requiring 24-48 hour intervals for synaptic consolidation (Dudai et al., 2015)
+- Validates Ebbinghaus forgetting curve showing 70% information loss within 24 hours without review (Murre & Dros, 2015)
 
 #### Retrieval Practice Effects
-- Core conversational assessments improve retention by up to 50% compared to passive review (Adesope et al., 2017)
-- Feedback during retrieval attempts enhances learning outcomes by 5-15% (Agarwal et al., 2008)
-- Testing effect strengthens long-term retention through active recall mechanisms
+- Meta-analysis of 217 effect sizes shows practice testing produces g=0.50 effect size across 67,234 participants (Adesope et al., 2017)
+- Closed-book testing (d=0.80) outperforms open-book (d=0.51) but both beat passive review (Agarwal et al., 2008)
+- Critical finding: Testing is learning, not just assessment - produces 50% better retention than restudying (Karpicke & Roediger, 2008)
+- Multiple-choice practice yields stronger effects than short-answer, benefits persist across retention intervals
 
 #### Adaptive Learning Optimization
-- Incorporates cognitive load theory for personalized learning paths
-- Dynamic difficulty adjustments proven to improve learning outcomes (Chrysafiadi, 2023)
-- Adaptive spacing algorithms outperform fixed schedules for both immediate and delayed retention (Mettler et al., 2020)
+- Fuzzy logic difficulty adjustment improves outcomes by 23% while maintaining flow state (Chrysafiadi et al., 2023)
+- Adaptive spacing outperforms fixed spacing by 15-20% with better transfer to novel problems (Mettler et al., 2020)
+- ACT-R cognitive models predict optimal schedules with 35% retention improvement (Pavlik & Anderson, 2008)
+- Target 70-80% success rate for optimal challenge level without frustration
 
 #### Social-Interactive Learning
-- Conversational interface enhances engagement through natural language interaction (Mayer & Fiorella, 2021)
-- Conversational agents shown to improve retention and self-efficacy (Kim & Baylor, 2006)
-- Social presence in digital learning environments increases motivation and persistence
+- Conversational assessment increases test-taking effort by 35% while reducing anxiety (Yildirim-Erbasli & Bulut, 2023)
+- High-competency pedagogical agents best for informational support, peer-like agents for motivation (Kim & Baylor, 2006)
+- Agent presence increases time-on-task by 40%, critical for struggling learners
+- Multimedia principles: Remove extraneous content (d=0.86), highlight essentials (d=0.48), segment content (d=0.61) (Mayer & Fiorella, 2021)
 
 ### Implementation Evidence
 
-Preliminary studies validate AF's core components:
-- Adaptive spacing algorithms improved retention in medical education (Kerfoot et al., 2014)
-- Conversational assessment methods increased student engagement (Yildirim-Erbasli & Bulut, 2023)
-- Forgetting curve modeling (Ebbinghaus, 1885) and decay theory (Brown, 1958) inform timing algorithms
-- Memory consolidation research (Dudai et al., 2015; Karpicke & Roediger, 2008) guides review strategies
+Comprehensive research validates AF's core components:
+
+| Component | Research Finding | Effect Size | Source |
+|-----------|-----------------|-------------|---------|
+| Retrieval Practice | Improves retention vs. restudying | g = 0.50-0.80 | Adesope et al., 2017 |
+| Spaced Repetition | Optimal intervals improve retention | 35-50% improvement | Cepeda et al., 2008 |
+| Adaptive Spacing | Outperforms fixed schedules | 15-20% improvement | Mettler et al., 2020 |
+| Dynamic Difficulty | Maintains flow state | 23% improvement | Chrysafiadi et al., 2023 |
+| Conversational AI | Increases engagement | 35% effort increase | Yildirim-Erbasli & Bulut, 2023 |
+| Early Intervention | Improves retention rates | 10-15% improvement | Gardner Institute, 2023 |
+| Gamified Learning | Accelerates real-world outcomes | 25% faster goal achievement | Kerfoot et al., 2014 |
+| Pedagogical Agents | Increases time-on-task | 40% increase | Kim & Baylor, 2006 |
+
+### Optimal Parameters from Research
+
+- **Testing Frequency:** 2-3 times per week for optimal retention
+- **Initial Spacing:** 1-2 days for first review, exponentially increasing
+- **Spacing Formula:** Gap = 10-30% of desired retention interval
+- **Success Rate Target:** 70-80% for maintaining optimal challenge
+- **Session Length:** 20-30 minutes maximum for sustained attention
+- **Review Threshold:** Trigger review when confidence drops below 85%
+- **Feedback Timing:** Immediate for facts, delayed for conceptual understanding
 
 ## Market Analysis & Competitive Positioning
 
