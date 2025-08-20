@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Core Development
+
 - `npm run dev` - Start local development server at http://localhost:8787
 - `npm run build` - Build production bundle with TypeScript compilation and manifest injection
 - `npm run check` - Validate TypeScript, build, and do a dry-run deployment
@@ -14,11 +15,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run types` - Generate Wrangler types
 
 ### Testing
+
 - Run all tests: `npm test`
 - Run tests in watch mode: `npm test -- --watch`
 - Run a specific test file: `npm test -- path/to/test.ts`
 
 ### Code Quality
+
 - Format code: `npx prettier --write .`
 - Check formatting: `npx prettier --check .`
 - Lint code: `npx eslint .`
@@ -71,6 +74,7 @@ This is a Cloudflare Workers-based LTI 1.3 tool implementation using a serverles
 ## Initial Setup
 
 ### KV Namespace Creation
+
 If deploying manually (not using one-click deploy), create required KV namespaces:
 
 ```bash
@@ -78,12 +82,12 @@ If deploying manually (not using one-click deploy), create required KV namespace
 npx wrangler kv:namespace create KEY_SETS
 npx wrangler kv:namespace create KEY_SETS --preview
 
-# Platform JWK sets cache  
+# Platform JWK sets cache
 npx wrangler kv:namespace create REMOTE_JWKS
 npx wrangler kv:namespace create REMOTE_JWKS --preview
 
 # Client auth tokens
-npx wrangler kv:namespace create CLIENT_AUTH_TOKENS  
+npx wrangler kv:namespace create CLIENT_AUTH_TOKENS
 npx wrangler kv:namespace create CLIENT_AUTH_TOKENS --preview
 
 # Platform configurations
@@ -94,7 +98,8 @@ npx wrangler kv:namespace create PLATFORMS --preview
 Update `wrangler.jsonc` with the returned IDs.
 
 ### Dynamic Registration
-- Registration URL: `https://yourdomain.com/lti/register` 
+
+- Registration URL: `https://yourdomain.com/lti/register`
 - Tool configuration: `src/config.ts`
 - Platform response handling: `src/register.ts`
 - Tool definitions (names, URLs): `definitions.ts`
@@ -102,6 +107,7 @@ Update `wrangler.jsonc` with the returned IDs.
 ## Troubleshooting
 
 ### Common Issues
+
 - **KV namespace errors**: Ensure IDs in `wrangler.jsonc` match created namespaces
 - **JWKS endpoint failures**: Check platform configuration and network access
 - **LTI launch failures**: Verify platform JWT validation and redirect URLs
@@ -109,6 +115,7 @@ Update `wrangler.jsonc` with the returned IDs.
 - **Asset loading issues**: Check manifest.json injection and public/ directory
 
 ### Debugging
+
 - View logs: `npm run tail` or `npx wrangler tail`
 - Check deployment: `npm run check` (dry-run deploy with validation)
 - Test locally: `npm run dev` (http://localhost:8787)
