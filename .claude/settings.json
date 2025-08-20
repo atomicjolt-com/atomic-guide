@@ -34,18 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "say atomic guide done"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "say help atomic guide"
+            "command": "say atomic guide"
           }
         ]
       }
