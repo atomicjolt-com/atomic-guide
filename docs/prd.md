@@ -3,8 +3,9 @@
 ## Goals and Background Context
 
 ### Goals
+
 - Achieve 40-64% improvement in knowledge retention through personalized cognitive profiling (validated through institutional pilots)
-- Reduce STEM gateway course failure rates by 15-25% in higher education institutions  
+- Reduce STEM gateway course failure rates by 15-25% in higher education institutions
 - Create portable "Learner DNA" profiles that work across institutional, AI client, and standalone environments with strong privacy protections
 - Build trust through faculty champions and measurable early wins in pilot programs
 - Deliver <100ms response times globally through edge computing architecture with robust fallbacks
@@ -18,10 +19,11 @@ The platform leverages unique access to academic journey data via LTI 1.3 integr
 
 ### Change Log
 
-| Date | Version | Description | Author |
-|------|---------|-------------|--------|
-| 2025-08-20 | 1.0 | Initial PRD creation based on Project Brief | John (PM) |
-| 2025-08-20 | 1.1 | Updated goals and context based on stakeholder analysis and risk assessment | John (PM) |
+| Date       | Version | Description                                                                 | Author    |
+| ---------- | ------- | --------------------------------------------------------------------------- | --------- |
+| 2025-08-20 | 1.0     | Initial PRD creation based on Project Brief                                 | John (PM) |
+| 2025-08-20 | 1.1     | Updated goals and context based on stakeholder analysis and risk assessment | John (PM) |
+| 2025-08-20 | 1.2     | Added comprehensive AI Guide chat interface UX and technical requirements   | John (PM) |
 
 ## Requirements
 
@@ -33,7 +35,13 @@ The platform leverages unique access to academic journey data via LTI 1.3 integr
 
 **FR3:** The system shall detect learning struggles in real-time through behavioral signals (30+ second hovers indicating confusion, repeated scrolling showing difficulty, idle patterns suggesting overload) via Canvas postMessage integration
 
-**FR4:** The system shall provide non-intrusive intervention suggestions timed to cognitive state without disrupting the learning flow
+**FR4:** The system shall provide an AI Guide chat interface accessible via floating action button or contextual triggers, enabling students to ask questions about current page content and receive personalized explanations based on their Learner DNA profile
+
+**FR4.1:** The chat interface shall understand the current Canvas page context (course, module, assignment) to provide relevant responses without requiring students to specify context
+
+**FR4.2:** The AI Guide shall maintain conversation history within a learning session and reference previous interactions for continuity
+
+**FR4.3:** The system shall provide non-intrusive intervention suggestions timed to cognitive state without disrupting the learning flow
 
 **FR5:** The system shall implement MCP (Model Context Protocol) to deliver Learner DNA profiles to AI clients (Claude, ChatGPT, others) for enhanced personalization
 
@@ -50,6 +58,16 @@ The platform leverages unique access to academic journey data via LTI 1.3 integr
 **FR11:** The system shall store and retrieve Learner DNA profiles using Cloudflare KV namespaces for persistence
 
 **FR12:** The system shall implement deep linking capabilities to navigate directly to specific course content or assessments
+
+**FR13:** The AI Guide chat interface shall extract and understand Canvas page content via DOM scraping and postMessage API to provide contextually relevant responses
+
+**FR14:** The chat interface shall implement rate limiting and conversation token budgets to manage API costs while ensuring responsive user experience
+
+**FR15:** The system shall provide proactive chat suggestions based on detected struggle patterns ("I noticed you've been on this problem for a while. Would you like help understanding the concept?")
+
+**FR16:** The chat interface shall support rich media responses including LaTeX math rendering, code snippets, diagrams, and embedded videos from the course material
+
+**FR17:** The AI Guide shall maintain a knowledge base of frequently asked questions per course/module to provide instant responses without API calls
 
 ### Non-Functional Requirements
 
@@ -76,9 +94,13 @@ The platform leverages unique access to academic journey data via LTI 1.3 integr
 ## User Interface Design Goals
 
 ### Overall UX Vision
+
 Create an invisible intelligence layer that enhances existing learning workflows without adding cognitive burden. The interface should feel like a natural extension of Canvas, appearing only when needed with contextual, personalized interventions that respect the learner's cognitive state and privacy preferences. The system must actively communicate privacy protection and provide user control over all interventions.
 
 ### Key Interaction Paradigms
+
+- **AI Guide Chat Interface:** Persistent floating action button (FAB) that expands into conversational AI interface, positioned to avoid Canvas UI elements
+- **Context-Aware Conversations:** Chat understands current page content, allowing questions like "explain this concept" or "why is this important" without specifying what "this" is
 - **Ambient Intelligence:** UI elements appear contextually based on detected struggle patterns, not constant overlays
 - **Progressive Disclosure:** Start minimal, reveal complexity only as learners demonstrate readiness
 - **Non-Disruptive Assistance:** Interventions that enhance focus rather than breaking it with smart throttling
@@ -87,6 +109,13 @@ Create an invisible intelligence layer that enhances existing learning workflows
 - **Role-Based Experiences:** Distinct interfaces optimized for students, faculty, coaches, and administrators
 
 ### Core Screens and Views
+
+- **AI Guide Chat Interface:** 
+  - Floating action button (FAB) with pulsing animation during detected struggle
+  - Expandable chat window with message history and typing indicators
+  - Context badge showing current page/assignment being discussed
+  - Quick action buttons for common queries ("Explain this", "Give me an example", "Why is this important?")
+  - Minimize/maximize controls to continue learning while keeping chat accessible
 - **LTI Launch Landing:** Initial profile creation and onboarding flow within Canvas with privacy preferences
 - **Student Learning Dashboard:** Personal cognitive insights, progress visualization, and privacy controls
 - **Intervention Overlay:** Context-sensitive help with sensitivity slider and dismiss options
@@ -97,21 +126,27 @@ Create an invisible intelligence layer that enhances existing learning workflows
 - **Admin Configuration Panel:** Institution-wide settings and compliance audit tools
 
 ### Accessibility: WCAG AA
+
 Full compliance with WCAG AA standards including keyboard navigation, screen reader support, and cognitive accessibility features. Customizable intervention thresholds for students with disabilities, ensuring the system adapts to diverse baseline cognitive patterns without stigmatization.
 
 ### Branding
+
 Clean, academic aesthetic that complements Canvas's interface without competing for attention. Subtle use of color psychology to indicate cognitive states (green for optimal learning zone, amber for challenge, red for overload). Positive framing that celebrates growth rather than highlighting deficits. Professional appearance suitable for board presentations while remaining approachable for students.
 
 ### Target Device and Platforms: Web Responsive
+
 Desktop/laptop optimized for in-depth study sessions with full intervention capabilities. Mobile-first design for review features, schedule checking, and quick progress monitoring. Tablet-optimized for reading and review sessions. Parent portal access via mobile-friendly digest emails when applicable.
 
 ## Technical Assumptions
 
 ### Repository Structure: Monorepo
+
 Single repository containing all services and applications, following Google's proven approach for easier dependency management, atomic commits across services, and unified CI/CD. Structure includes Cloudflare Worker backend, React client application, shared TypeScript types, and cognitive algorithm libraries.
 
 ### Service Architecture
+
 **CRITICAL: Multi-tenant architecture where each institution gets its own Cloudflare D1 database instance.** This ensures complete data isolation, institution-specific performance optimization, and simplified compliance with varying regional data regulations. Architecture components:
+
 - Cloudflare Workers with up to 15-minute execution time for complex cognitive processing
 - D1 SQL databases (one per tenant) with real-time backups for relational data and complex queries
 - KV namespaces for global configuration and cache
@@ -120,7 +155,9 @@ Single repository containing all services and applications, following Google's p
 - API integration layer for external AI providers (OpenAI, Anthropic, etc.)
 
 ### Testing Requirements
+
 Comprehensive testing pyramid including:
+
 - Unit tests for cognitive algorithms and React components (Vitest + React Testing Library)
 - Integration tests for Canvas postMessage communication and D1 database operations
 - End-to-end tests for critical user journeys using Playwright
@@ -129,6 +166,7 @@ Comprehensive testing pyramid including:
 - A/B testing framework for algorithm optimization
 
 ### Additional Technical Assumptions and Requests
+
 - **Frontend Framework:** React with TypeScript for type safety and component reusability
 - **Component Library:** @atomicjolt/atomic-elements for consistent UI components
 - **State Management:** React Context + Zustand for complex client state
@@ -146,20 +184,26 @@ Comprehensive testing pyramid including:
 
 ## Epic List
 
-**Epic 1: Multi-Tenant Foundation + Basic Student & Faculty Dashboards**
-Establish multi-tenant infrastructure with D1 database provisioning, extend existing LTI 1.3 integration, and deliver immediate value through basic student learning dashboard and faculty insights panel. This ensures both technical foundation and user-facing value from Day 1.
+**Epic 1: Multi-Tenant Foundation + AI Guide Chat MVP**
+Establish multi-tenant infrastructure with D1 database provisioning, extend existing LTI 1.3 integration, and deliver immediate value through AI Guide chat interface MVP. This includes floating action button, basic chat UI, Canvas content extraction, and context-aware Q&A capabilities. This ensures both technical foundation and core user-facing value from Day 1.
 
-**Epic 2: Learner DNA Core + Privacy Controls**
+**Epic 2: Enhanced Chat Intelligence + Student Dashboard**
+Expand chat capabilities with conversation memory, personalized explanations based on learning style, proactive help suggestions, and rich media responses. Add basic student learning dashboard showing chat history, saved explanations, and personal insights. This creates sticky user engagement.
+
+**Epic 3: Learner DNA Core + Privacy Controls**
 Build the cognitive profiling system that captures memory patterns, learning velocity, and engagement DNA with comprehensive privacy controls, data management interfaces, and student consent workflows. This establishes trust while building core algorithms.
 
-**Epic 3: Struggle Detection + Simple Interventions**
-Implement Canvas postMessage monitoring, real-time struggle pattern detection via Durable Objects, and contextual intervention delivery. This proves the core concept with measurable learning improvements.
+**Epic 4: Struggle Detection + Proactive Chat Interventions**
+Implement Canvas postMessage monitoring, real-time struggle pattern detection via Durable Objects, and proactive chat interventions. Chat bot initiates conversations when struggle is detected. This proves the core concept with measurable learning improvements.
 
-**Epic 4: Cross-Course Intelligence**
-Create knowledge dependency mapping, prerequisite gap analysis, and performance prediction algorithms using Cloudflare AI models. This delivers the unique differentiation that no competitor offers.
+**Epic 5: Cross-Course Intelligence**
+Create knowledge dependency mapping, prerequisite gap analysis, and performance prediction algorithms using Cloudflare AI models. Chat interface leverages this to provide predictive help. This delivers the unique differentiation that no competitor offers.
 
-**Epic 5: MCP/AI Enhancement**
+**Epic 6: Faculty Tools + Chat Analytics**
+Build faculty dashboard showing aggregate chat interactions, common confusion points, and learning bottlenecks. Enable faculty to customize chat responses and add course-specific explanations. This creates faculty buy-in and improves content.
+
+**Epic 7: MCP/AI Enhancement**
 Implement Model Context Protocol endpoints, enable Learner DNA delivery to AI clients (Claude, ChatGPT), and create portable profile management. This expands the platform beyond institutional boundaries.
 
-**Epic 6: Advanced Analytics & Optimization**
-Build sophisticated analytics for academic success coaches, advanced faculty tools, A/B testing framework, and algorithm optimization based on real usage data. This refines and optimizes based on lessons learned.
+**Epic 8: Advanced Analytics & Optimization**
+Build sophisticated analytics for academic success coaches, advanced chat effectiveness metrics, A/B testing framework for response strategies, and algorithm optimization based on real usage data. This refines and optimizes based on lessons learned.
