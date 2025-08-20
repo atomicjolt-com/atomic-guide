@@ -18,6 +18,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Run tests in watch mode: `npm test -- --watch`
 - Run a specific test file: `npm test -- path/to/test.ts`
 
+### Code Quality
+- Format code: `npx prettier --write .`
+- Check formatting: `npx prettier --check .`
+- Lint code: `npx eslint .`
+- Type check: `tsc` or `npm run check`
+
 ## Architecture Overview
 
 This is a Cloudflare Workers-based LTI 1.3 tool implementation using a serverless edge architecture:
@@ -61,6 +67,51 @@ This is a Cloudflare Workers-based LTI 1.3 tool implementation using a serverles
 - Deep linking: Client-side handling with server JWT signing at `/lti/sign_deep_link`
 - Names and roles service: `/lti/names_and_roles` for roster retrieval
 - Asset serving: Vite-built files served from `public/` with manifest injection
+
+## Initial Setup
+
+### KV Namespace Creation
+If deploying manually (not using one-click deploy), create required KV namespaces:
+
+```bash
+# Tool key pairs
+npx wrangler kv:namespace create KEY_SETS
+npx wrangler kv:namespace create KEY_SETS --preview
+
+# Platform JWK sets cache  
+npx wrangler kv:namespace create REMOTE_JWKS
+npx wrangler kv:namespace create REMOTE_JWKS --preview
+
+# Client auth tokens
+npx wrangler kv:namespace create CLIENT_AUTH_TOKENS  
+npx wrangler kv:namespace create CLIENT_AUTH_TOKENS --preview
+
+# Platform configurations
+npx wrangler kv:namespace create PLATFORMS
+npx wrangler kv:namespace create PLATFORMS --preview
+```
+
+Update `wrangler.jsonc` with the returned IDs.
+
+### Dynamic Registration
+- Registration URL: `https://yourdomain.com/lti/register` 
+- Tool configuration: `src/config.ts`
+- Platform response handling: `src/register.ts`
+- Tool definitions (names, URLs): `definitions.ts`
+
+## Troubleshooting
+
+### Common Issues
+- **KV namespace errors**: Ensure IDs in `wrangler.jsonc` match created namespaces
+- **JWKS endpoint failures**: Check platform configuration and network access
+- **LTI launch failures**: Verify platform JWT validation and redirect URLs
+- **Build failures**: Run `tsc` to check TypeScript errors before deployment
+- **Asset loading issues**: Check manifest.json injection and public/ directory
+
+### Debugging
+- View logs: `npm run tail` or `npx wrangler tail`
+- Check deployment: `npm run check` (dry-run deploy with validation)
+- Test locally: `npm run dev` (http://localhost:8787)
 
 ## Important Context
 
