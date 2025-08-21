@@ -1,4 +1,4 @@
-# Atomic Guide/Focus Product Requirements Document (PRD)
+# Atomic Guide Product Requirements Document (PRD)
 
 ## Goals and Background Context
 
@@ -13,24 +13,25 @@
 
 ### Background Context
 
-Atomic Guide/Focus addresses the critical problem that 70% of learning is forgotten within 24 hours (Murre & Dros, 2015) by creating a Progressive Cognitive Learning Infrastructure platform. The solution combines research-backed cognitive science with real-time AI optimization to deliver measurable retention improvements of 50-80% through retrieval practice (Adesope et al., 2017) and 35-50% through optimal spaced repetition (Cepeda et al., 2008). Initially focused on STEM gateway courses where failure rates of 15-30% create significant institutional costs ($13,000+ per student in excess credits, Kramer et al., 2018), the platform leverages proven interventions that reduce DFW rates by 10-15% (Tyton Partners, 2022). In the current higher education landscape, with 17:1 student-to-faculty ratios and 47% part-time faculty (NCES, 2024), personalized learning at scale has become impossible without technological intervention that respects both student privacy and faculty autonomy.
+Atomic Guide addresses the critical problem that 70% of learning is forgotten within 24 hours (Murre & Dros, 2015) by creating a Progressive Cognitive Learning Infrastructure platform. The solution combines research-backed cognitive science with real-time AI optimization to deliver measurable retention improvements of 50-80% through retrieval practice (Adesope et al., 2017) and 35-50% through optimal spaced repetition (Cepeda et al., 2008). Initially focused on STEM gateway courses where failure rates of 15-30% create significant institutional costs ($13,000+ per student in excess credits, Kramer et al., 2018), the platform leverages proven interventions that reduce DFW rates by 10-15% (Tyton Partners, 2022). In the current higher education landscape, with 17:1 student-to-faculty ratios and 47% part-time faculty (NCES, 2024), personalized learning at scale has become impossible without technological intervention that respects both student privacy and faculty autonomy.
 
-The platform leverages unique access to academic journey data via LTI 1.3 integration, creating cross-course intelligence that no existing solution provides. By combining institutional credibility through Canvas integration with universal AI enhancement through MCP (Model Context Protocol), Atomic Guide creates portable cognitive profiles that transform institutional learning data into personal learning assets. The system is designed with privacy-first principles, giving students control over their data while providing faculty with actionable insights that enhance rather than replace their teaching methods.
+The platform leverages unique access to academic journey data via LTI 1.3 integration, creating cross-course intelligence that no existing solution provides. By combining institutional credibility through LMS integration with universal AI enhancement through MCP (Model Context Protocol), Atomic Guide creates portable cognitive profiles that transform institutional learning data into personal learning assets. The system is designed with privacy-first principles, giving students control over their data while providing faculty with actionable insights that enhance rather than replace their teaching methods.
 
 ### Change Log
 
-| Date       | Version | Description                                                                 | Author    |
-| ---------- | ------- | --------------------------------------------------------------------------- | --------- |
-| 2025-08-20 | 1.0     | Initial PRD creation based on Project Brief                                 | John (PM) |
-| 2025-08-20 | 1.1     | Updated goals and context based on stakeholder analysis and risk assessment | John (PM) |
-| 2025-08-20 | 1.2     | Added comprehensive AI Guide chat interface UX and technical requirements   | John (PM) |
+| Date       | Version | Description                                                                       | Author    |
+| ---------- | ------- | --------------------------------------------------------------------------------- | --------- |
+| 2025-08-20 | 1.0     | Initial PRD creation based on Project Brief                                       | John (PM) |
+| 2025-08-20 | 1.1     | Updated goals and context based on stakeholder analysis and risk assessment       | John (PM) |
+| 2025-08-20 | 1.2     | Added comprehensive AI Guide chat interface UX and technical requirements         | John (PM) |
 | 2025-08-20 | 1.3     | Incorporated IES SBIR grant details: implementation, use cases, empirical support | John (PM) |
+| 2025-08-21 | 1.4     | Updated project name to "Atomic Guide", generalized LMS references, added Atomic Jolt branding | John (PM) |
 
 ## Implementation and Use
 
 ### Student Engagement Model
 
-Students will engage with Atomic Focus (AF) through natural conversations about their coursework, during which the system will:
+Students will engage with Atomic Guide through natural conversations about their coursework, during which the system will:
 
 1. **Monitor comprehension** using sophisticated linguistic analysis to detect understanding patterns in real-time
 2. **Identify knowledge gaps** through real-time pattern recognition across current and prerequisite material
@@ -40,7 +41,7 @@ Students will engage with Atomic Focus (AF) through natural conversations about 
 
 ### Instructor Support Features
 
-For instructors, AF will offer:
+For instructors, Atomic Guide will offer:
 
 1. **Real-time class-wide analytics** to identify trends in student comprehension across topics and modules
 2. **Early warning indicators** for at-risk students, enabling timely interventions before failure points
@@ -48,34 +49,39 @@ For instructors, AF will offer:
 
 ## Use Case: Alex's Academic Journey
 
-Alex, a first-generation college student, uses AF across multiple courses to enhance retention and application of key concepts throughout their academic career:
+Alex, a first-generation college student, uses Atomic Guide across multiple courses to enhance retention and application of key concepts throughout their academic career:
 
 ### Freshman Year - Introductory Data Science
-- AF identifies Alex's knowledge gaps in foundational topics like regression analysis
+
+- Atomic Guide identifies Alex's knowledge gaps in foundational topics like regression analysis
 - Through adaptive conversations and targeted feedback, Alex builds confidence and comprehension
 - Spaced repetition ensures retention of statistical concepts critical for future coursework
 - Result: Alex masters concepts that would typically be forgotten within weeks
 
 ### Sophomore Year - Research Methods
-- AF reinforces knowledge from prior courses, detecting connections to freshman statistics
+
+- Atomic Guide reinforces knowledge from prior courses, detecting connections to freshman statistics
 - Helps Alex apply statistical techniques to survey design and hypothesis testing
 - Personalized review sessions ensure Alex retains and applies earlier learning effectively
 - Result: Cross-course intelligence prevents typical sophomore struggle with prerequisites
 
 ### Junior Year - Spanish for Business
-- AF adapts to Alex's progress in a non-STEM domain, offering conversational practice
+
+- Atomic Guide adapts to Alex's progress in a non-STEM domain, offering conversational practice
 - Simulated business scenarios provide contextual language learning
 - Adaptive feedback strengthens grammar and vocabulary, improving fluency and retention
-- Result: Demonstrates AF's versatility beyond STEM subjects
+- Result: Demonstrates Atomic Guide's versatility beyond STEM subjects
 
 ### Senior Year - Capstone Seminar
-- AF integrates knowledge from prior courses across all four years
+
+- Atomic Guide integrates knowledge from prior courses across all four years
 - Guides Alex through interdisciplinary analyses of environmental policy
 - Provides practice scenarios and feedback to support final presentation
 - Result: Alex graduates with retained, integrated knowledge ready for workforce application
 
 ### Institutional Impact
-Throughout Alex's journey, instructors use AF's class-wide analytics to track trends and intervene early, enhancing overall learning outcomes for the entire cohort.
+
+Throughout Alex's journey, instructors use Atomic Guide's class-wide analytics to track trends and intervene early, enhancing overall learning outcomes for the entire cohort.
 
 ## Requirements
 
@@ -83,13 +89,13 @@ Throughout Alex's journey, instructors use AF's class-wide analytics to track tr
 
 **FR1:** The system shall create individual Learner DNA profiles capturing memory architecture (individualized forgetting curves following Ebbinghaus exponential decay R = e^(-t/s)), learning velocity (time to 85% mastery), and engagement patterns (optimal challenge level at 70-80% success rate)
 
-**FR2:** ✅ ALREADY IMPLEMENTED - The system integrates with Canvas LMS via LTI 1.3 using the existing atomic-lti-worker foundation
+**FR2:** ✅ ALREADY IMPLEMENTED - The system integrates with various LMSs via LTI 1.3 using the existing atomic-lti-worker foundation
 
-**FR3:** The system shall detect learning struggles in real-time through behavioral signals (30+ second hovers indicating confusion per Brown's decay theory, repeated scrolling showing difficulty, idle patterns suggesting cognitive overload per Mayer's coherence principle) via Canvas postMessage integration
+**FR3:** The system shall detect learning struggles in real-time through behavioral signals (30+ second hovers indicating confusion per Brown's decay theory, repeated scrolling showing difficulty, idle patterns suggesting cognitive overload per Mayer's coherence principle) via LMS postMessage integration APIs
 
 **FR4:** The system shall provide an AI Guide chat interface accessible via floating action button or contextual triggers, enabling students to ask questions about current page content and receive personalized explanations based on their Learner DNA profile
 
-**FR4.1:** The chat interface shall understand the current Canvas page context (course, module, assignment) to provide relevant responses without requiring students to specify context
+**FR4.1:** The chat interface shall understand the current LMS page context (course, module, assignment) to provide relevant responses without requiring students to specify context
 
 **FR4.2:** The AI Guide shall maintain conversation history within a learning session and reference previous interactions for continuity
 
@@ -111,7 +117,7 @@ Throughout Alex's journey, instructors use AF's class-wide analytics to track tr
 
 **FR12:** The system shall implement deep linking capabilities to navigate directly to specific course content or assessments
 
-**FR13:** The AI Guide chat interface shall extract and understand Canvas page content via DOM scraping and postMessage API to provide contextually relevant responses
+**FR13:** The AI Guide chat interface shall extract and understand LMS page content via DOM scraping and postMessage API to provide contextually relevant responses
 
 **FR14:** The chat interface shall implement rate limiting and conversation token budgets to manage API costs while ensuring responsive user experience
 
@@ -161,11 +167,11 @@ Throughout Alex's journey, instructors use AF's class-wide analytics to track tr
 
 ### Overall UX Vision
 
-Create an invisible intelligence layer that enhances existing learning workflows without adding cognitive burden. The interface should feel like a natural extension of Canvas, appearing only when needed with contextual, personalized interventions that respect the learner's cognitive state and privacy preferences. The system must actively communicate privacy protection and provide user control over all interventions.
+Create an invisible intelligence layer that enhances existing learning workflows without adding cognitive burden. The interface should feel like a natural extension of the LMS, appearing only when needed with contextual, personalized interventions that respect the learner's cognitive state and privacy preferences. The system must actively communicate privacy protection and provide user control over all interventions.
 
 ### Key Interaction Paradigms
 
-- **AI Guide Chat Interface:** Persistent floating action button (FAB) that expands into conversational AI interface, positioned to avoid Canvas UI elements
+- **AI Guide Chat Interface:** Persistent floating action button (FAB) that expands into conversational AI interface, positioned to avoid LMS UI elements
 - **Context-Aware Conversations:** Chat understands current page content, allowing questions like "explain this concept" or "why is this important" without specifying what "this" is
 - **Ambient Intelligence:** UI elements appear contextually based on detected struggle patterns, not constant overlays
 - **Progressive Disclosure:** Start minimal, reveal complexity only as learners demonstrate readiness
@@ -176,13 +182,13 @@ Create an invisible intelligence layer that enhances existing learning workflows
 
 ### Core Screens and Views
 
-- **AI Guide Chat Interface:** 
+- **AI Guide Chat Interface:**
   - Floating action button (FAB) with pulsing animation during detected struggle
   - Expandable chat window with message history and typing indicators
   - Context badge showing current page/assignment being discussed
   - Quick action buttons for common queries ("Explain this", "Give me an example", "Why is this important?")
   - Minimize/maximize controls to continue learning while keeping chat accessible
-- **LTI Launch Landing:** Initial profile creation and onboarding flow within Canvas with privacy preferences
+- **LTI Launch Landing:** Initial profile creation and onboarding flow within LMS with privacy preferences
 - **Student Learning Dashboard:** Personal cognitive insights, progress visualization, and privacy controls
 - **Intervention Overlay:** Context-sensitive help with sensitivity slider and dismiss options
 - **Mobile Study Companion:** Responsive review schedules and quick progress checks
@@ -197,7 +203,23 @@ Full compliance with WCAG AA standards including keyboard navigation, screen rea
 
 ### Branding
 
-Clean, academic aesthetic that complements Canvas's interface without competing for attention. Subtle use of color psychology to indicate cognitive states (green for optimal learning zone, amber for challenge, red for overload). Positive framing that celebrates growth rather than highlighting deficits. Professional appearance suitable for board presentations while remaining approachable for students.
+Atomic Guide follows the Atomic Jolt brand identity to maintain consistency across the product portfolio:
+
+**Visual Identity:**
+- **Primary Brand Color:** Atomic Jolt Yellow (#FFDD00) for key interactive elements and CTAs
+- **Typography:** Rubik font family for all UI text, ensuring readability and modern aesthetic
+- **Color System:** 
+  - Success indicators: Green (#027A48) for achievements and progress
+  - Error/alert states: Red (#B42318) for critical warnings
+  - Neutral UI: Grays (#666666, #333333) for secondary elements
+  - Background: Off-white (#FFFDF0) for reduced eye strain during long study sessions
+
+**Design Principles:**
+- Clean, academic aesthetic that complements the LMS interface without competing for attention
+- Subtle use of color psychology to indicate cognitive states (green for optimal learning zone, yellow for engagement, red for intervention needed)
+- Positive framing that celebrates growth rather than highlighting deficits
+- Professional appearance suitable for institutional decision-makers while remaining approachable for students
+- Consistent with Atomic Jolt's established design language across all products
 
 ### Target Device and Platforms: Web Responsive
 
@@ -225,7 +247,7 @@ Single repository containing all services and applications, following Google's p
 Comprehensive testing pyramid including:
 
 - Unit tests for cognitive algorithms and React components (Vitest + React Testing Library)
-- Integration tests for Canvas postMessage communication and D1 database operations
+- Integration tests for LMS postMessage communication and D1 database operations
 - End-to-end tests for critical user journeys using Playwright
 - Multi-tenant isolation testing to ensure data separation
 - Performance testing for concurrent users per tenant
@@ -286,27 +308,31 @@ Based on validated research parameters, the system will implement:
 
 ### Cognitive Science Foundation
 
-AF is built on rigorously validated cognitive science principles with demonstrated efficacy:
+Atomic Guide is built on rigorously validated cognitive science principles with demonstrated efficacy:
 
 #### Memory Consolidation and Retrieval Dynamics
+
 - Leverages the New Theory of Disuse (Bjork & Bjork, 1992) distinguishing between storage strength (permanent) and retrieval strength (temporary accessibility)
 - Implements optimal spacing intervals at 10-30% of desired retention interval (Cepeda et al., 2008), with 35-50% improvement over massed practice
 - Memory consolidation occurs in waves requiring 24-48 hour intervals for synaptic consolidation (Dudai et al., 2015)
 - Validates Ebbinghaus forgetting curve showing 70% information loss within 24 hours without review (Murre & Dros, 2015)
 
 #### Retrieval Practice Effects
+
 - Meta-analysis of 217 effect sizes shows practice testing produces g=0.50 effect size across 67,234 participants (Adesope et al., 2017)
 - Closed-book testing (d=0.80) outperforms open-book (d=0.51) but both beat passive review (Agarwal et al., 2008)
 - Critical finding: Testing is learning, not just assessment - produces 50% better retention than restudying (Karpicke & Roediger, 2008)
 - Multiple-choice practice yields stronger effects than short-answer, benefits persist across retention intervals
 
 #### Adaptive Learning Optimization
+
 - Fuzzy logic difficulty adjustment improves outcomes by 23% while maintaining flow state (Chrysafiadi et al., 2023)
 - Adaptive spacing outperforms fixed spacing by 15-20% with better transfer to novel problems (Mettler et al., 2020)
 - ACT-R cognitive models predict optimal schedules with 35% retention improvement (Pavlik & Anderson, 2008)
 - Target 70-80% success rate for optimal challenge level without frustration
 
 #### Social-Interactive Learning
+
 - Conversational assessment increases test-taking effort by 35% while reducing anxiety (Yildirim-Erbasli & Bulut, 2023)
 - High-competency pedagogical agents best for informational support, peer-like agents for motivation (Kim & Baylor, 2006)
 - Agent presence increases time-on-task by 40%, critical for struggling learners
@@ -314,18 +340,18 @@ AF is built on rigorously validated cognitive science principles with demonstrat
 
 ### Implementation Evidence
 
-Comprehensive research validates AF's core components:
+Comprehensive research validates Atomic Guide's core components:
 
-| Component | Research Finding | Effect Size | Source |
-|-----------|-----------------|-------------|---------|
-| Retrieval Practice | Improves retention vs. restudying | g = 0.50-0.80 | Adesope et al., 2017 |
-| Spaced Repetition | Optimal intervals improve retention | 35-50% improvement | Cepeda et al., 2008 |
-| Adaptive Spacing | Outperforms fixed schedules | 15-20% improvement | Mettler et al., 2020 |
-| Dynamic Difficulty | Maintains flow state | 23% improvement | Chrysafiadi et al., 2023 |
-| Conversational AI | Increases engagement | 35% effort increase | Yildirim-Erbasli & Bulut, 2023 |
-| Early Intervention | Improves retention rates | 10-15% improvement | Gardner Institute, 2023 |
-| Gamified Learning | Accelerates real-world outcomes | 25% faster goal achievement | Kerfoot et al., 2014 |
-| Pedagogical Agents | Increases time-on-task | 40% increase | Kim & Baylor, 2006 |
+| Component          | Research Finding                    | Effect Size                 | Source                         |
+| ------------------ | ----------------------------------- | --------------------------- | ------------------------------ |
+| Retrieval Practice | Improves retention vs. restudying   | g = 0.50-0.80               | Adesope et al., 2017           |
+| Spaced Repetition  | Optimal intervals improve retention | 35-50% improvement          | Cepeda et al., 2008            |
+| Adaptive Spacing   | Outperforms fixed schedules         | 15-20% improvement          | Mettler et al., 2020           |
+| Dynamic Difficulty | Maintains flow state                | 23% improvement             | Chrysafiadi et al., 2023       |
+| Conversational AI  | Increases engagement                | 35% effort increase         | Yildirim-Erbasli & Bulut, 2023 |
+| Early Intervention | Improves retention rates            | 10-15% improvement          | Gardner Institute, 2023        |
+| Gamified Learning  | Accelerates real-world outcomes     | 25% faster goal achievement | Kerfoot et al., 2014           |
+| Pedagogical Agents | Increases time-on-task              | 40% increase                | Kim & Baylor, 2006             |
 
 ### Optimal Parameters from Research
 
@@ -341,25 +367,28 @@ Comprehensive research validates AF's core components:
 
 ### Educational Technology Landscape Gaps
 
-#### Traditional LMS Limitations (Canvas, Blackboard)
+#### Traditional LMS Limitations (e.g., Canvas, Blackboard, Moodle)
+
 - Focus on content delivery without adaptive learning capabilities
 - Lack integrated spaced repetition and retention tools
 - No cross-course intelligence or prerequisite tracking
 - Missing real-time struggle detection and intervention
 
 #### Spaced Repetition Platform Shortcomings (Anki, Quizlet)
+
 - Require manual content creation by students
 - Limited to simple fact memorization without conceptual understanding
 - No integration with institutional learning systems
 - Lack instructor visibility and curriculum alignment
 
 #### AI Tutoring Platform Constraints (Carnegie Learning, Third Space Learning)
+
 - Subject-specific implementations without cross-disciplinary support
 - High costs ($50-200 per student) limiting accessibility
 - Require significant instructor training and onboarding
 - Separate platforms creating workflow disruption
 
-### Atomic Focus Competitive Advantages
+### Atomic Guide Competitive Advantages
 
 1. **AI-Powered Adaptation**: Real-time adjustments based on individual cognitive profiles
 2. **Evidence-Based Design**: Grounded in validated cognitive science research
@@ -374,12 +403,14 @@ Comprehensive research validates AF's core components:
 ### Pricing Model
 
 #### Institutional Licensing
+
 - Annual costs: $10,000-$50,000 based on enrollment size
 - Per-student cost: $3-7 annually (dramatically lower than competitors)
 - Volume discounts for multi-year commitments
 - Pilot pricing for early adopters
 
 #### Implementation Requirements
+
 - Minimal resources leveraging existing LMS infrastructure via LTI
 - Faculty training: Self-paced, completed in 2-3 hours
 - No additional hardware or software requirements
@@ -388,6 +419,7 @@ Comprehensive research validates AF's core components:
 ### Go-to-Market Phases
 
 #### Year 1: Market Entry
+
 - Focus on higher education gateway courses (high failure rate STEM)
 - Pilot partnerships confirmed:
   - Utah State University (Center for Instructional Design and Innovation)
@@ -398,12 +430,14 @@ Comprehensive research validates AF's core components:
 - Target 10-15 institutional pilots for validation
 
 #### Years 2-3: Expansion
+
 - Adapt for K-12 market (simplified interface, parent portals)
 - Adult basic education and workforce training
 - International markets with localization
 - Corporate training partnerships
 
 #### Revenue Streams
+
 - Primary: Institutional licenses (SaaS model)
 - Secondary: Individual premium subscriptions
 - Tertiary: Certification programs and professional development
@@ -411,7 +445,7 @@ Comprehensive research validates AF's core components:
 
 ### Strategic Partnerships
 
-- **LMS Vendors**: Existing relationships with Instructure (Canvas), Brightspace, Blackboard
+- **LMS Vendors**: Existing relationships with major LMS providers including Instructure, D2L Brightspace, Blackboard, and others
 - **Academic Institutions**: Letters of support from key stakeholders
 - **Research Partners**: Collaboration opportunities for efficacy studies
 - **AI Providers**: Integration potential with OpenAI, Anthropic, Google
@@ -419,12 +453,14 @@ Comprehensive research validates AF's core components:
 ## Universal Design & Accessibility
 
 ### Compliance Standards
+
 - **ADA Title II**: Full compliance for public institutions
 - **WCAG 2.1 AA**: Exceeds minimum accessibility requirements
 - **Section 508**: Federal accessibility standards
 - **FERPA/COPPA**: Student privacy protection
 
 ### Accessibility Features
+
 - Screen reader compatibility with semantic HTML and ARIA labels
 - High-contrast modes and customizable color schemes
 - Multilingual interfaces supporting 10+ languages at launch
@@ -435,6 +471,7 @@ Comprehensive research validates AF's core components:
 - Compatible with assistive technologies (JAWS, NVDA, Dragon)
 
 ### Inclusive Design Principles
+
 - Cognitive accessibility with clear, simple language options
 - Multiple representation modes (visual, auditory, textual)
 - Customizable intervention thresholds for diverse learners
@@ -444,7 +481,7 @@ Comprehensive research validates AF's core components:
 ## Epic List
 
 **Epic 1: Multi-Tenant Foundation + AI Guide Chat MVP**
-Establish multi-tenant infrastructure with D1 database provisioning, extend existing LTI 1.3 integration, and deliver immediate value through AI Guide chat interface MVP. This includes floating action button, basic chat UI, Canvas content extraction, and context-aware Q&A capabilities. This ensures both technical foundation and core user-facing value from Day 1.
+Establish multi-tenant infrastructure with D1 database provisioning, extend existing LTI 1.3 integration, and deliver immediate value through AI Guide chat interface MVP. This includes floating action button, basic chat UI, LMS content extraction, and context-aware Q&A capabilities. This ensures both technical foundation and core user-facing value from Day 1.
 
 **Epic 2: Enhanced Chat Intelligence + Student Dashboard**
 Expand chat capabilities with conversation memory, personalized explanations based on learning style, proactive help suggestions, and rich media responses. Add basic student learning dashboard showing chat history, saved explanations, and personal insights. This creates sticky user engagement.
@@ -453,7 +490,7 @@ Expand chat capabilities with conversation memory, personalized explanations bas
 Build the cognitive profiling system that captures memory patterns, learning velocity, and engagement DNA with comprehensive privacy controls, data management interfaces, and student consent workflows. This establishes trust while building core algorithms.
 
 **Epic 4: Struggle Detection + Proactive Chat Interventions**
-Implement Canvas postMessage monitoring, real-time struggle pattern detection via Durable Objects, and proactive chat interventions. Chat bot initiates conversations when struggle is detected. This proves the core concept with measurable learning improvements.
+Implement custom postMessage monitoring, real-time struggle pattern detection via Durable Objects, and proactive chat interventions. Chat bot initiates conversations when struggle is detected. This proves the core concept with measurable learning improvements.
 
 **Epic 5: Cross-Course Intelligence**
 Create knowledge dependency mapping, prerequisite gap analysis, and performance prediction algorithms using Cloudflare AI models. Chat interface leverages this to provide predictive help. This delivers the unique differentiation that no competitor offers.
