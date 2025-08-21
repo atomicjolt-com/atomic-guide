@@ -39,11 +39,23 @@
       "preview_id": "c767398bf02d4163bc5e81fb52ed5641"
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "atomic-guide-db",
+      "database_id": "YOUR_DATABASE_ID_HERE",
+      "preview_database_id": "YOUR_PREVIEW_DATABASE_ID_HERE"
+    }
+  ],
   "durable_objects": {
     "bindings": [
       {
         "name": "OIDC_STATE",
         "class_name": "OIDCStateDurableObject"
+      },
+      {
+        "name": "CHAT_SESSIONS",
+        "class_name": "ChatSessionDurableObject"
       }
     ]
   },
@@ -53,8 +65,17 @@
       "new_sqlite_classes": [
         "OIDCStateDurableObject"
       ]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": [
+        "ChatSessionDurableObject"
+      ]
     }
   ],
+  "ai": {
+    "binding": "AI"
+  },
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
