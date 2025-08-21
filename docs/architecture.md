@@ -1688,7 +1688,7 @@ atomic-guide/
   // NEW: D1 database bindings (per tenant)
   "d1_databases": [
     {
-      "binding": "D1_PRIMARY",
+      "binding": "DB",
       "database_name": "atomic-guide-primary",
       "database_id": "uuid-here"
     }
