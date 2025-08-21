@@ -7,13 +7,14 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname),
-      'client': path.resolve(__dirname, 'client'),
-      'src': path.resolve(__dirname, 'src'),
+      client: path.resolve(__dirname, 'client'),
+      src: path.resolve(__dirname, 'src'),
     },
   },
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
+    exclude: ['**/node_modules/**'],
   },
 });
