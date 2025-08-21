@@ -6,23 +6,28 @@
 -- CORE TENANT AND USER MANAGEMENT
 -- ============================================
 
--- Institution/tenant configuration (single row per database)
-CREATE TABLE IF NOT EXISTS tenant_config (
-    id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- Ensures single row
-    tenant_id TEXT NOT NULL UNIQUE,
+-- Multi-tenant support table (required by Story 1.1)
+CREATE TABLE IF NOT EXISTS tenants (
+    id TEXT PRIMARY KEY, -- UUID for tenant
+    iss TEXT NOT NULL, -- Platform issuer URL from LTI
+    client_id TEXT NOT NULL, -- OAuth client ID for this tenant
+    deployment_ids JSON DEFAULT '[]', -- LTI deployment identifiers array
     institution_name TEXT NOT NULL,
     lms_type TEXT NOT NULL, -- 'canvas', 'blackboard', 'moodle', 'brightspace'
     lms_url TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     settings JSON DEFAULT '{}', -- Institution-specific settings
-    features JSON DEFAULT '{"chat": true, "cognitive_profiling": true, "struggle_detection": true}'
+    features JSON DEFAULT '{"chat": true, "cognitive_profiling": true, "struggle_detection": true}',
+    UNIQUE(iss, client_id)
 );
+
+CREATE INDEX idx_tenants_iss_client ON tenants(iss, client_id);
 
 -- Learner profiles with cognitive DNA
 CREATE TABLE IF NOT EXISTS learner_profiles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tenant_id TEXT NOT NULL,
+    id TEXT PRIMARY KEY, -- UUID for learner profile
+    tenant_id TEXT NOT NULL, -- Foreign key to tenants.id
     lti_user_id TEXT NOT NULL, -- From LTI launch
     lti_deployment_id TEXT NOT NULL,
     email TEXT,
@@ -48,7 +53,8 @@ CREATE TABLE IF NOT EXISTS learner_profiles (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE(tenant_id, lti_user_id, lti_deployment_id)
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    UNIQUE(tenant_id, lti_user_id)
 );
 
 CREATE INDEX idx_learner_profiles_lookup ON learner_profiles(tenant_id, lti_user_id, lti_deployment_id);

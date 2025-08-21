@@ -33,9 +33,12 @@ import { handlePlatformResponse } from './register';
 import indexHtml from './html/index_html';
 import launchHtml from './html/launch_html';
 import { getClientAssetPath } from './libs/manifest';
+import dbTestApp from './db/test-connection';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
+export { StruggleDetectorDO } from './durable-objects/StruggleDetectorDO';
+export { ChatSessionDurableObject as ChatConversationDO } from './durable-objects/ChatConversationDO';
 
 // Define context variables type
 type Variables = {
@@ -129,6 +132,9 @@ app.post(LTI_REGISTRATION_FINISH_PATH, (c) =>
 // LTI services
 app.get(LTI_NAMES_AND_ROLES_PATH, (c) => handleNamesAndRoles(c));
 app.post(LTI_SIGN_DEEP_LINK_PATH, (c) => handleSignDeepLink(c));
+
+// Mount database test routes (development only)
+app.route('/db', dbTestApp);
 
 // Error handling
 app.onError((err: Error, c) => {

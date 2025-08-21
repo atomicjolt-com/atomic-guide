@@ -126,13 +126,19 @@ main() {
     
     # Create SQL for dev tenant
     cat > /tmp/dev_tenant.sql << EOF
-INSERT INTO tenant_config (
-    tenant_id,
+INSERT INTO tenants (
+    id,
+    iss,
+    client_id,
+    deployment_ids,
     institution_name,
     lms_type,
     lms_url
 ) VALUES (
     'dev_tenant_001',
+    'https://canvas.dev.edu',
+    'dev_client_001',
+    '["dev_deployment_001"]',
     'Development University',
     'canvas',
     'https://canvas.dev.edu'
@@ -146,6 +152,26 @@ EOF
     
     # Clean up temp file
     rm /tmp/dev_tenant.sql
+    
+    # Optional: Load seed data
+    echo ""
+    echo "Step 6: Loading seed data (optional)"
+    echo "-------------------------------------"
+    
+    read -p "Do you want to load test seed data? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${YELLOW}Loading seed data into preview database...${NC}"
+        
+        if [ -f "src/db/seed.sql" ]; then
+            wrangler d1 execute atomic-guide-db-preview --file=src/db/seed.sql
+            echo -e "${GREEN}✅ Seed data loaded successfully${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Seed data file not found at src/db/seed.sql${NC}"
+        fi
+    else
+        echo "Skipping seed data load"
+    fi
     
     # Summary
     echo ""
@@ -162,10 +188,13 @@ EOF
     echo "2. Test D1 connectivity with sample queries"
     echo "3. For production deployment: 'npm run deploy'"
     echo ""
-    echo "To rollback: restore wrangler.jsonc.backup"
+    echo "Useful commands:"
+    echo "  List databases:     wrangler d1 list"
+    echo "  Query database:     wrangler d1 execute atomic-guide-db-preview --command 'SELECT * FROM learner_profiles'"
+    echo "  Delete database:    wrangler d1 delete <database-name>"
+    echo "  Load seed data:     wrangler d1 execute atomic-guide-db-preview --file=src/db/seed.sql"
     echo ""
-    echo "To list your databases: wrangler d1 list"
-    echo "To delete a database: wrangler d1 delete <database-name>"
+    echo "To rollback: restore wrangler.jsonc.backup"
 }
 
 # Run main function
