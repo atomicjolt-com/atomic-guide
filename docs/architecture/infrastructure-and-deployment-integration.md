@@ -34,11 +34,6 @@
     "binding": "AI"
   },
 
-  // NEW: Increased limits for cognitive processing
-  "limits": {
-    "cpu_ms": 50  // Increased from default 10ms
-  },
-
   // Existing Durable Objects extended
   "durable_objects": {
     "bindings": [
@@ -78,7 +73,7 @@
 **Risk Mitigation Strategies:**
 
 - **Progressive Rollout:** Start with 1-2 pilot institutions
-- **Performance Gates:** D1 must achieve <10ms query times before full adoption
+- **Performance Gates:** D1 must demonstrate performant queries with proper indexing before full adoption
 - **Hybrid Storage:** Keep critical configs in KV, learner data in D1
 - **AI Complexity Threshold:** Use Cloudflare AI for simple inference, external APIs for complex
 

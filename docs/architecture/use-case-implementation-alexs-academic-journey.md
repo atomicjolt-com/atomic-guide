@@ -61,7 +61,7 @@ This section demonstrates how the architecture supports cross-course intelligenc
 
 **Technical Implementation:**
 
-- D1 aggregates 4 years of data (optimized queries <10ms)
+- D1 aggregates 4 years of data with optimized queries and proper indexing
 - MCP OAuth allows external AI tools to access full profile
 - Faculty API provides anonymized class-wide insights
 - Export functionality for learner data portability

@@ -157,7 +157,7 @@ Throughout Alex's journey, instructors use Atomic Guide's class-wide analytics t
 
 **NFR7:** The system shall provide measurable learning outcomes within 30 days of deployment for pilot validation
 
-**NFR8:** The system shall optimize algorithms to work within Cloudflare Workers CPU limits (10ms-50ms max)
+**NFR8:** The system shall optimize algorithms to work within Cloudflare Workers CPU limits (50ms max)
 
 **NFR9:** The system shall support A/B testing frameworks for continuous algorithm improvement
 

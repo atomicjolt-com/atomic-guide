@@ -395,7 +395,7 @@ This section demonstrates how the architecture supports cross-course intelligenc
 
 **Technical Implementation:**
 
-- D1 aggregates 4 years of data (optimized queries <10ms)
+- D1 aggregates 4 years of data with optimized queries and proper indexing
 - MCP OAuth allows external AI tools to access full profile
 - Faculty API provides anonymized class-wide insights
 - Export functionality for learner data portability
@@ -1181,7 +1181,7 @@ When `prefers-reduced-motion: reduce`:
 **AI Chat Response Pipeline (<200ms target):**
 
 1. Message reception via WebSocket (5ms)
-2. Canvas context extraction (10ms)
+2. Canvas context extraction
 3. Learner DNA retrieval from cache/D1 (15ms)
 4. AI API call (100-150ms)
 5. Response streaming initiation (20ms)
@@ -1699,11 +1699,6 @@ atomic-guide/
     "binding": "AI"
   },
 
-  // NEW: Increased limits for cognitive processing
-  "limits": {
-    "cpu_ms": 50  // Increased from default 10ms
-  },
-
   // Existing Durable Objects extended
   "durable_objects": {
     "bindings": [
@@ -1743,7 +1738,7 @@ atomic-guide/
 **Risk Mitigation Strategies:**
 
 - **Progressive Rollout:** Start with 1-2 pilot institutions
-- **Performance Gates:** D1 must achieve <10ms query times before full adoption
+- **Performance Gates:** D1 must demonstrate performant queries with proper indexing before full adoption
 - **Hybrid Storage:** Keep critical configs in KV, learner data in D1
 - **AI Complexity Threshold:** Use Cloudflare AI for simple inference, external APIs for complex
 

@@ -28,7 +28,7 @@ graph TD
 ## Critical Dependency Risks 🔴
 
 ### 1. **D1 Database Performance Unknown (Epic 1)**
-**Risk**: Epic 1 establishes D1 as the foundation, but if D1 performance fails to meet <10ms query requirements, ALL subsequent epics are blocked.
+**Risk**: Epic 1 establishes D1 as the foundation, but if D1 performance fails to meet acceptable query performance requirements with proper indexing, ALL subsequent epics are blocked.
 
 **Impact**: 
 - Epic 3 (Learner DNA) requires high-performance reads/writes
@@ -179,7 +179,7 @@ Keep current sequence but:
 ## Go/No-Go Gates
 
 ### After Epic 0.5 (Technical Validation)
-- **Gate**: D1 query performance <10ms?
+- **Gate**: D1 query performance acceptable with proper indexing?
 - **Yes**: Proceed with D1
 - **No**: Implement KV-only solution
 

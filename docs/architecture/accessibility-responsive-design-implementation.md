@@ -68,7 +68,7 @@ When `prefers-reduced-motion: reduce`:
 **AI Chat Response Pipeline (<200ms target):**
 
 1. Message reception via WebSocket (5ms)
-2. Canvas context extraction (10ms)
+2. Canvas context extraction
 3. Learner DNA retrieval from cache/D1 (15ms)
 4. AI API call (100-150ms)
 5. Response streaming initiation (20ms)
