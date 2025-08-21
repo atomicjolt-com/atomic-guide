@@ -11,7 +11,7 @@ export default defineConfig({
     manifest: 'manifest.json',
     rollupOptions: {
       input: {
-        app: '/client/app.ts',
+        app: '/client/app.tsx',
         appInit: '/client/app-init.ts',
         home: '/client/home.ts',
       }

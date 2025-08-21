@@ -109,7 +109,20 @@ describe('DatabaseService - Tenant Isolation', () => {
   
   describe('Learner Profile Isolation', () => {
     it('should enforce tenant_id when creating learner profiles', async () => {
-      mockD1.mockResults.set('first', null); // No existing profile
+      // First call returns null (no existing profile)
+      // Second call returns the created profile
+      let callCount = 0;
+      mockD1.mockPreparedStatement.first.mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) {
+          return null; // No existing profile
+        }
+        return {
+          id: 'new-profile',
+          tenant_id: 'tenant-123',
+          lti_user_id: 'user-456'
+        }; // Created profile
+      });
       
       await dbService.createOrUpdateLearnerProfile(
         'tenant-123',

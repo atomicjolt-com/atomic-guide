@@ -34,6 +34,7 @@ import indexHtml from './html/index_html';
 import launchHtml from './html/launch_html';
 import { getClientAssetPath } from './libs/manifest';
 import dbTestApp from './db/test-connection';
+import { handleChatMessage } from './api/handlers/chat';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -135,6 +136,9 @@ app.post(LTI_SIGN_DEEP_LINK_PATH, (c) => handleSignDeepLink(c));
 
 // Mount database test routes (development only)
 app.route('/db', dbTestApp);
+
+// API routes
+app.post('/api/chat/message', (c) => handleChatMessage(c));
 
 // Error handling
 app.onError((err: Error, c) => {
