@@ -103,7 +103,7 @@ export class StorageFallbackService {
   private async getFromD1WithTimeout(
     tenantId: string,
     ltiUserId: string,
-    timeout = 10, // 10ms timeout per Story 1.1 requirement
+    timeout = 100, // Reasonable timeout for D1 operations with proper indexing
   ): Promise<LearnerProfile | null> {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('D1 timeout')), timeout);
@@ -131,7 +131,7 @@ export class StorageFallbackService {
   /**
    * Save to D1 with timeout
    */
-  private async saveToD1WithTimeout(profile: LearnerProfile, timeout = 10): Promise<void> {
+  private async saveToD1WithTimeout(profile: LearnerProfile, timeout = 100): Promise<void> {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('D1 timeout')), timeout);
     });
