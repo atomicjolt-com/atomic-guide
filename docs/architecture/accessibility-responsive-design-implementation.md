@@ -5,12 +5,14 @@
 Per the front-end specification, the architecture ensures accessibility through:
 
 **Visual Accessibility:**
+
 - Color contrast ratios: 4.5:1 for normal text, 3:1 for large text (18px+)
 - Focus indicators: 2px solid #FFDD00 outline with 2px offset
 - Text sizing: Support 200% zoom without horizontal scrolling
 - Minimum 14px for body text with user-adjustable preferences
 
 **Interaction Accessibility:**
+
 - All interactive elements keyboard navigable via Tab
 - Logical tab order following visual flow
 - Skip links for repetitive content
@@ -18,6 +20,7 @@ Per the front-end specification, the architecture ensures accessibility through:
 - Touch targets: Minimum 44x44px with 8px spacing
 
 **Cognitive Accessibility (AAA considerations):**
+
 - Consistent navigation across pages
 - Clear, simple language (8th grade reading level target)
 - No automatic timeouts without warning
@@ -26,18 +29,19 @@ Per the front-end specification, the architecture ensures accessibility through:
 
 ## Responsive Breakpoints
 
-| Breakpoint | Min Width | Max Width | Target Devices | Key Adaptations |
-|------------|-----------|-----------|----------------|----------------|
-| Mobile | 320px | 767px | Phones | Single column, FAB above thumb zone |
-| Tablet | 768px | 1023px | Tablets | Two column, FAB in side rail |
-| Desktop | 1024px | 1439px | Laptops | Full layout, FAB bottom-right |
-| Wide | 1440px | - | Large monitors | Maximum 1200px content width |
+| Breakpoint | Min Width | Max Width | Target Devices | Key Adaptations                     |
+| ---------- | --------- | --------- | -------------- | ----------------------------------- |
+| Mobile     | 320px     | 767px     | Phones         | Single column, FAB above thumb zone |
+| Tablet     | 768px     | 1023px    | Tablets        | Two column, FAB in side rail        |
+| Desktop    | 1024px    | 1439px    | Laptops        | Full layout, FAB bottom-right       |
+| Wide       | 1440px    | -         | Large monitors | Maximum 1200px content width        |
 
 ## Animation & Micro-interactions
 
 Following the front-end spec motion principles:
 
 **Key Animations:**
+
 - FAB pulse: 2s breathing animation (opacity 0.6 to 1.0) when struggle detected
 - Chat message appearance: 300ms slide-in with ease-out
 - Card flip: 400ms 3D rotation for flash cards
@@ -46,6 +50,7 @@ Following the front-end spec motion principles:
 
 **Reduced Motion Support:**
 When `prefers-reduced-motion: reduce`:
+
 - Replace animations with instant transitions
 - Keep only essential motion (loading indicators)
 - Disable auto-playing videos and parallax effects
@@ -84,6 +89,7 @@ When `prefers-reduced-motion: reduce`:
 - Conversation history: Last 20 messages retained in memory
 
 **Front-End Performance Goals:**
+
 - Initial Load: <3s on 3G connection
 - Time to Interactive: <5s on average hardware
 - Interaction Response: <100ms for user inputs

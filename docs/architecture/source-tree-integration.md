@@ -50,12 +50,11 @@ atomic-guide/
 │ │ │ ├── learnerSlice.ts
 │ │ │ ├── sessionSlice.ts
 │ │ │ └── jwtSlice.ts # JWT management from atomic-fuel
-│ │ └── api/ # RTK Query
-│ │ ├── cognitiveApi.ts
-│ │ └── chatApi.ts # Chat endpoints
-│ ├── apollo/ # Apollo GraphQL configuration
-│ │ ├── client.ts # Apollo client setup with JWT auth
-│ │ └── cache.ts # Apollo cache configuration
+│ │ └── api/ # RTK Query endpoints
+│ │ ├── cognitiveApi.ts # Cognitive analytics API
+│ │ ├── chatApi.ts # Chat endpoints
+│ │ ├── learnerApi.ts # Learner profile API
+│ │ └── baseApi.ts # Base API configuration with JWT
 │ ├── libs/ # Utility libraries
 │ │ ├── i18n.ts # Localization setup
 │ │ ├── datepicker.ts # Date picker initialization
@@ -121,12 +120,12 @@ atomic-guide/
   --color-error: #B42318;
   --color-warning: #FDB022;
   --color-info: #2563EB;
-  
+
   /* Text Colors */
   --color-text: #333333;
   --color-text-secondary: #666666;
   --color-text-tertiary: #999999;
-  
+
   /* Backgrounds */
   --color-bg: #FFFFFF;
   --color-bg-off-white: #FFFDF0;
@@ -171,7 +170,7 @@ atomic-guide/
   --transition-micro: 150ms ease-in-out;
   --transition-standard: 300ms ease-in-out;
   --transition-slow: 500ms ease-in-out;
-  
+
   /* Minimum Touch Targets */
   --touch-target-min: 44px;
 }

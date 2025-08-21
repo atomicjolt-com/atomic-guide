@@ -19,7 +19,7 @@
 
 **Relationships:**
 
-- **With Existing:** References LTI platform via tenant_id in KV
+- **With Existing:** References LTI platform via iss in KV
 - **With New:** One-to-many with LearningSession, StruggleEvent
 
 ## Learning Session Model
@@ -48,6 +48,7 @@
 
 **Key Attributes:**
 
+- `iss`: UUID - Platform identifier
 - `concept_id`: UUID - Unique concept identifier
 - `tenant_id`: UUID - Institution scope
 - `concept_name`: String - Human-readable name

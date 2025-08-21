@@ -3,6 +3,7 @@
 This document outlines the architectural approach for enhancing the existing LTI 1.3 starter application into **Atomic Guide/Focus** - a Progressive Cognitive Learning Infrastructure platform that achieves 50-80% improvement in knowledge retention through retrieval practice (Adesope et al., 2017) and 35-50% improvement through optimal spaced repetition (Cepeda et al., 2008). Its primary goal is to serve as the guiding architectural blueprint for AI-driven development of new features while ensuring seamless integration with the existing LTI 1.3 foundation.
 
 **Related Documentation:**
+
 - **Front-End Specification:** See `docs/front-end-spec.md` for comprehensive UI/UX design system, user flows, wireframes, and component specifications
 - **Product Requirements:** See `docs/prd.md` for complete product requirements and functional specifications
 

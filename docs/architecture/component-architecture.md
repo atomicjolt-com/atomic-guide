@@ -12,7 +12,7 @@ Based on the front-end specification, Atomic Guide operates through two distinct
 
 2. **LTI Portal UI** - Full-featured application accessed via LTI launch providing:
    - Comprehensive dashboards and analytics
-   - Privacy controls and data management  
+   - Privacy controls and data management
    - Study scheduling and progress tracking
    - Role-specific interfaces (Student/Faculty/Coach)
 
@@ -104,8 +104,8 @@ export class CognitiveEngine {
 **Key Interfaces:**
 
 - LTI launch validation via `LtiLaunchCheck` component
-- Apollo GraphQL client initialization with JWT authorization
-- Redux store configuration with initial settings
+- RTK Query API configuration with JWT authorization
+- Redux store configuration with initial settings and RTK Query middleware
 - i18n localization for multi-language support
 
 **Dependencies:**
@@ -114,14 +114,13 @@ export class CognitiveEngine {
   - `react` and `react-dom/client` for React 18 rendering
   - `@atomicjolt/atomic-fuel` for LTI settings and JWT management
   - `@atomicjolt/lti-components` for launch validation
-  - Redux Toolkit for state management
-  - Apollo Client for GraphQL communication
+  - Redux Toolkit with RTK Query for state management and API calls
 
 **Technology Stack:**
 
 - React 18 with createRoot API
 - Redux Toolkit with atomic-fuel integration
-- Apollo Client with custom network error handling
+- RTK Query with custom error handling and JWT middleware
 - i18next for internationalization
 - date-fns for locale-aware date handling
 - ReactModal for accessible modal dialogs
@@ -130,12 +129,12 @@ export class CognitiveEngine {
 
 1. Polyfill loading (ES6 promises, core-js, custom events)
 2. Extract initial settings from `window.DEFAULT_SETTINGS`
-3. Configure Redux store with settings and JWT
+3. Configure Redux store with settings, JWT, and RTK Query middleware
 4. Initialize JWT refresh mechanism for authenticated user
 5. Setup localization based on Canvas user language preferences
 6. Initialize date picker with locale-specific formatting
-7. Create Apollo GraphQL client with JWT authorization
-8. Handle Canvas reauthorization requirements via network error handler
+7. Configure RTK Query API endpoints with JWT authorization
+8. Handle Canvas reauthorization requirements via RTK Query error handler
 9. Render React app with `LtiLaunchCheck` validation wrapper
 10. Apply responsive sizing with `FixedResizeWrapper`
 
@@ -232,6 +231,7 @@ export class CognitiveEngine {
 ## Front-End Component Details
 
 For comprehensive UI/UX specifications including:
+
 - Detailed wireframes and mockups for all screens
 - Complete design system with color palette, typography, and spacing
 - User flow diagrams for all personas

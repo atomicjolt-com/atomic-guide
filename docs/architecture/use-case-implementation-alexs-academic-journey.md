@@ -8,7 +8,7 @@ This section demonstrates how the architecture supports cross-course intelligenc
 
 - Cognitive Engine identifies knowledge gaps in regression analysis through hover patterns > 30 seconds
 - AI Guide chat provides personalized explanations based on Alex's visual learning preference
-- Spaced repetition schedules reviews at 1, 3, 7, 14, 30-day intervals
+- Spaced repetition schedules reviews at 1, 3, 7, 14, 30-day intervals (default). Scheduling should be adjustable per user based on algorithm to determine optimal spacing per user.
 - D1 stores concept mastery levels in learner profile
 
 **Technical Implementation:**

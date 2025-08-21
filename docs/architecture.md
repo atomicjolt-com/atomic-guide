@@ -5,6 +5,7 @@
 This document outlines the architectural approach for enhancing the existing LTI 1.3 starter application into **Atomic Guide/Focus** - a Progressive Cognitive Learning Infrastructure platform that achieves 50-80% improvement in knowledge retention through retrieval practice (Adesope et al., 2017) and 35-50% improvement through optimal spaced repetition (Cepeda et al., 2008). Its primary goal is to serve as the guiding architectural blueprint for AI-driven development of new features while ensuring seamless integration with the existing LTI 1.3 foundation.
 
 **Related Documentation:**
+
 - **Front-End Specification:** See `docs/front-end-spec.md` for comprehensive UI/UX design system, user flows, wireframes, and component specifications
 - **Product Requirements:** See `docs/prd.md` for complete product requirements and functional specifications
 
@@ -93,6 +94,7 @@ Based on the PRD analysis, this enhancement transforms a basic LTI starter into 
 The architecture implements the Atomic Jolt design system as specified in the front-end specification:
 
 **Brand Colors:**
+
 - Primary: Atomic Yellow (#FFDD00) - CTAs, active states, progress indicators
 - Success: Green (#027A48) - Correct answers, achievements
 - Error: Red (#B42318) - Errors, urgent alerts
@@ -100,18 +102,21 @@ The architecture implements the Atomic Jolt design system as specified in the fr
 - Info: Blue (#2563EB) - Information, secondary actions
 
 **Typography:**
+
 - Primary Font: Rubik (all UI text)
 - Monospace: Rubik Mono (code snippets)
 - Type Scale: 32px (H1) down to 11px (caption)
 - Font Weights: 300 (Light), 400 (Regular), 500 (Medium)
 
 **Spacing & Layout:**
+
 - 8-point grid system for consistent spacing
 - Maximum content width: 1200px (portal UI)
 - Chat panel: 380px (desktop), 100% - 32px (mobile)
 - Minimum touch targets: 44x44px
 
 **Visual Effects:**
+
 - Shadows: 3 elevation levels for depth
 - Border radius: 6px (small), 8px (medium), 12px (large)
 - Transitions: 150ms (micro), 300ms (standard), 500ms (slow)
@@ -133,24 +138,24 @@ The architecture implements the Atomic Jolt design system as specified in the fr
 
 **New Technology Additions:**
 
-| Technology                  | Version | Purpose                      | Rationale                              | Integration Method            |
-| --------------------------- | ------- | ---------------------------- | -------------------------------------- | ----------------------------- |
-| Cloudflare D1               | Latest  | Multi-tenant relational data | Complex queries, tenant isolation      | New binding in wrangler.jsonc |
-| React                       | 18.x    | Post-launch UI components    | Rich interactions, component reuse     | Vite configuration extension  |
-| @atomicjolt/atomic-elements | Latest  | UI component library         | Consistent LTI-friendly components     | npm dependency                |
-| @atomicjolt/atomic-fuel     | Latest  | LTI state & JWT management   | Proven LTI integration patterns        | Redux middleware              |
-| @atomicjolt/lti-components  | Latest  | LTI launch validation        | Secure launch verification             | React component wrapper       |
-| Cloudflare MCP Server       | Latest  | AI client integration        | Native OAuth support, edge deployment  | New worker route at /mcp      |
-| Redux Toolkit               | 2.x     | Client state management      | Predictable state, DevTools, RTK Query | Client-side store             |
-| React Router                | 6.x     | SPA navigation               | Dashboard routing                      | Post-launch pages only        |
-| Apollo Client               | 3.x     | GraphQL client               | Efficient data fetching, caching       | Network layer with JWT auth   |
-| i18next                     | 23.x    | Internationalization         | Multi-language support                 | React context provider        |
-| date-fns                    | 3.x     | Date manipulation            | Locale-aware date formatting           | Utility functions             |
-| React Modal                 | 3.x     | Accessible modals            | WCAG compliant dialogs                 | Component library             |
-| Tippy.js                    | 6.x     | Tooltips and popovers        | Interactive help overlays              | React wrapper components      |
-| core-js                     | 3.x     | JavaScript polyfills         | Legacy browser support                 | Runtime polyfills             |
-| es6-promise                 | 4.x     | Promise polyfill             | IE11 compatibility                     | Runtime polyfill              |
-| Cloudflare AI               | Latest  | Cognitive processing         | Edge inference, low latency            | Worker AI binding             |
+| Technology                  | Version | Purpose                      | Rationale                              | Integration Method             |
+| --------------------------- | ------- | ---------------------------- | -------------------------------------- | ------------------------------ |
+| Cloudflare D1               | Latest  | Multi-tenant relational data | Complex queries, tenant isolation      | New binding in wrangler.jsonc  |
+| React                       | 18.x    | Post-launch UI components    | Rich interactions, component reuse     | Vite configuration extension   |
+| @atomicjolt/atomic-elements | Latest  | UI component library         | Consistent LTI-friendly components     | npm dependency                 |
+| @atomicjolt/atomic-fuel     | Latest  | LTI state & JWT management   | Proven LTI integration patterns        | Redux middleware               |
+| @atomicjolt/lti-components  | Latest  | LTI launch validation        | Secure launch verification             | React component wrapper        |
+| Cloudflare MCP Server       | Latest  | AI client integration        | Native OAuth support, edge deployment  | New worker route at /mcp       |
+| Redux Toolkit               | 2.x     | Client state management      | Predictable state, DevTools, RTK Query | Client-side store with API     |
+| React Router                | 6.x     | SPA navigation               | Dashboard routing                      | Post-launch pages only         |
+| RTK Query                   | 2.x     | Data fetching and caching    | Efficient REST/GraphQL API integration | Redux middleware with JWT auth |
+| i18next                     | 23.x    | Internationalization         | Multi-language support                 | React context provider         |
+| date-fns                    | 3.x     | Date manipulation            | Locale-aware date formatting           | Utility functions              |
+| React Modal                 | 3.x     | Accessible modals            | WCAG compliant dialogs                 | Component library              |
+| Tippy.js                    | 6.x     | Tooltips and popovers        | Interactive help overlays              | React wrapper components       |
+| core-js                     | 3.x     | JavaScript polyfills         | Legacy browser support                 | Runtime polyfills              |
+| es6-promise                 | 4.x     | Promise polyfill             | IE11 compatibility                     | Runtime polyfill               |
+| Cloudflare AI               | Latest  | Cognitive processing         | Edge inference, low latency            | Worker AI binding              |
 
 ## Data Models and Schema Changes
 
@@ -173,7 +178,7 @@ The architecture implements the Atomic Jolt design system as specified in the fr
 
 **Relationships:**
 
-- **With Existing:** References LTI platform via tenant_id in KV
+- **With Existing:** References LTI platform via iss in KV
 - **With New:** One-to-many with LearningSession, StruggleEvent
 
 ### Learning Session Model
@@ -202,6 +207,7 @@ The architecture implements the Atomic Jolt design system as specified in the fr
 
 **Key Attributes:**
 
+- `iss`: UUID - Platform identifier
 - `concept_id`: UUID - Unique concept identifier
 - `tenant_id`: UUID - Institution scope
 - `concept_name`: String - Human-readable name
@@ -303,6 +309,7 @@ The platform provides instructors with:
 From the front-end specification, our architecture supports three primary personas:
 
 ### 1. Struggling STEM Student (Alex)
+
 - **Demographics:** 18-22 years old, first-generation college student, 60% work part-time
 - **Tech Proficiency:** High comfort with mobile/social apps, moderate with academic tools
 - **Pain Points:** Fear of appearing "dumb," overwhelmed by course pace, unclear where to get help
@@ -310,6 +317,7 @@ From the front-end specification, our architecture supports three primary person
 - **Interface Needs:** Mobile-optimized, non-judgmental tone, progress celebration
 
 ### 2. Time-Pressed Faculty Member (Dr. Chen)
+
 - **Demographics:** Teaching 3-4 courses, 100-150 total students, limited office hours
 - **Tech Proficiency:** Varies widely, prefers minimal new tools
 - **Pain Points:** Can't identify struggling students until too late, repetitive questions consume time
@@ -317,6 +325,7 @@ From the front-end specification, our architecture supports three primary person
 - **Interface Needs:** Dashboard that loads within LMS, one-click exports, no additional logins
 
 ### 3. Academic Success Coach (Maria)
+
 - **Demographics:** Monitors 200-300 at-risk students across departments
 - **Tech Proficiency:** Comfortable with data tools and dashboards
 - **Pain Points:** Reactive vs. proactive interventions, siloed data across systems
@@ -333,7 +342,7 @@ This section demonstrates how the architecture supports cross-course intelligenc
 
 - Cognitive Engine identifies knowledge gaps in regression analysis through hover patterns > 30 seconds
 - AI Guide chat provides personalized explanations based on Alex's visual learning preference
-- Spaced repetition schedules reviews at 1, 3, 7, 14, 30-day intervals
+- Spaced repetition schedules reviews at 1, 3, 7, 14, 30-day intervals (default). Scheduling should be adjustable per user based on algorithm to determine optimal spacing per user.
 - D1 stores concept mastery levels in learner profile
 
 **Technical Implementation:**
@@ -414,7 +423,7 @@ Based on the front-end specification, Atomic Guide operates through two distinct
 
 2. **LTI Portal UI** - Full-featured application accessed via LTI launch providing:
    - Comprehensive dashboards and analytics
-   - Privacy controls and data management  
+   - Privacy controls and data management
    - Study scheduling and progress tracking
    - Role-specific interfaces (Student/Faculty/Coach)
 
@@ -506,8 +515,8 @@ export class CognitiveEngine {
 **Key Interfaces:**
 
 - LTI launch validation via `LtiLaunchCheck` component
-- Apollo GraphQL client initialization with JWT authorization
-- Redux store configuration with initial settings
+- RTK Query API configuration with JWT authorization
+- Redux store configuration with initial settings and RTK Query middleware
 - i18n localization for multi-language support
 
 **Dependencies:**
@@ -516,14 +525,13 @@ export class CognitiveEngine {
   - `react` and `react-dom/client` for React 18 rendering
   - `@atomicjolt/atomic-fuel` for LTI settings and JWT management
   - `@atomicjolt/lti-components` for launch validation
-  - Redux Toolkit for state management
-  - Apollo Client for GraphQL communication
+  - Redux Toolkit with RTK Query for state management and API calls
 
 **Technology Stack:**
 
 - React 18 with createRoot API
 - Redux Toolkit with atomic-fuel integration
-- Apollo Client with custom network error handling
+- RTK Query with custom error handling and JWT middleware
 - i18next for internationalization
 - date-fns for locale-aware date handling
 - ReactModal for accessible modal dialogs
@@ -532,12 +540,12 @@ export class CognitiveEngine {
 
 1. Polyfill loading (ES6 promises, core-js, custom events)
 2. Extract initial settings from `window.DEFAULT_SETTINGS`
-3. Configure Redux store with settings and JWT
+3. Configure Redux store with settings, JWT, and RTK Query middleware
 4. Initialize JWT refresh mechanism for authenticated user
 5. Setup localization based on Canvas user language preferences
 6. Initialize date picker with locale-specific formatting
-7. Create Apollo GraphQL client with JWT authorization
-8. Handle Canvas reauthorization requirements via network error handler
+7. Configure RTK Query API endpoints with JWT authorization
+8. Handle Canvas reauthorization requirements via RTK Query error handler
 9. Render React app with `LtiLaunchCheck` validation wrapper
 10. Apply responsive sizing with `FixedResizeWrapper`
 
@@ -634,6 +642,7 @@ export class CognitiveEngine {
 ### Front-End Component Details
 
 For comprehensive UI/UX specifications including:
+
 - Detailed wireframes and mockups for all screens
 - Complete design system with color palette, typography, and spacing
 - User flow diagrams for all personas
@@ -1109,12 +1118,14 @@ class MessageBatcher {
 Per the front-end specification, the architecture ensures accessibility through:
 
 **Visual Accessibility:**
+
 - Color contrast ratios: 4.5:1 for normal text, 3:1 for large text (18px+)
 - Focus indicators: 2px solid #FFDD00 outline with 2px offset
 - Text sizing: Support 200% zoom without horizontal scrolling
 - Minimum 14px for body text with user-adjustable preferences
 
 **Interaction Accessibility:**
+
 - All interactive elements keyboard navigable via Tab
 - Logical tab order following visual flow
 - Skip links for repetitive content
@@ -1122,6 +1133,7 @@ Per the front-end specification, the architecture ensures accessibility through:
 - Touch targets: Minimum 44x44px with 8px spacing
 
 **Cognitive Accessibility (AAA considerations):**
+
 - Consistent navigation across pages
 - Clear, simple language (8th grade reading level target)
 - No automatic timeouts without warning
@@ -1130,18 +1142,19 @@ Per the front-end specification, the architecture ensures accessibility through:
 
 ### Responsive Breakpoints
 
-| Breakpoint | Min Width | Max Width | Target Devices | Key Adaptations |
-|------------|-----------|-----------|----------------|----------------|
-| Mobile | 320px | 767px | Phones | Single column, FAB above thumb zone |
-| Tablet | 768px | 1023px | Tablets | Two column, FAB in side rail |
-| Desktop | 1024px | 1439px | Laptops | Full layout, FAB bottom-right |
-| Wide | 1440px | - | Large monitors | Maximum 1200px content width |
+| Breakpoint | Min Width | Max Width | Target Devices | Key Adaptations                     |
+| ---------- | --------- | --------- | -------------- | ----------------------------------- |
+| Mobile     | 320px     | 767px     | Phones         | Single column, FAB above thumb zone |
+| Tablet     | 768px     | 1023px    | Tablets        | Two column, FAB in side rail        |
+| Desktop    | 1024px    | 1439px    | Laptops        | Full layout, FAB bottom-right       |
+| Wide       | 1440px    | -         | Large monitors | Maximum 1200px content width        |
 
 ### Animation & Micro-interactions
 
 Following the front-end spec motion principles:
 
 **Key Animations:**
+
 - FAB pulse: 2s breathing animation (opacity 0.6 to 1.0) when struggle detected
 - Chat message appearance: 300ms slide-in with ease-out
 - Card flip: 400ms 3D rotation for flash cards
@@ -1150,6 +1163,7 @@ Following the front-end spec motion principles:
 
 **Reduced Motion Support:**
 When `prefers-reduced-motion: reduce`:
+
 - Replace animations with instant transitions
 - Keep only essential motion (loading indicators)
 - Disable auto-playing videos and parallax effects
@@ -1188,6 +1202,7 @@ When `prefers-reduced-motion: reduce`:
 - Conversation history: Last 20 messages retained in memory
 
 **Front-End Performance Goals:**
+
 - Initial Load: <3s on 3G connection
 - Time to Interactive: <5s on average hardware
 - Interaction Response: <100ms for user inputs
@@ -1508,12 +1523,11 @@ atomic-guide/
 │ │ │ ├── learnerSlice.ts
 │ │ │ ├── sessionSlice.ts
 │ │ │ └── jwtSlice.ts # JWT management from atomic-fuel
-│ │ └── api/ # RTK Query
-│ │ ├── cognitiveApi.ts
-│ │ └── chatApi.ts # Chat endpoints
-│ ├── apollo/ # Apollo GraphQL configuration
-│ │ ├── client.ts # Apollo client setup with JWT auth
-│ │ └── cache.ts # Apollo cache configuration
+│ │ └── api/ # RTK Query endpoints
+│ │ ├── cognitiveApi.ts # Cognitive analytics API
+│ │ ├── chatApi.ts # Chat endpoints
+│ │ ├── learnerApi.ts # Learner profile API
+│ │ └── baseApi.ts # Base API configuration with JWT
 │ ├── libs/ # Utility libraries
 │ │ ├── i18n.ts # Localization setup
 │ │ ├── datepicker.ts # Date picker initialization
@@ -1579,12 +1593,12 @@ atomic-guide/
   --color-error: #B42318;
   --color-warning: #FDB022;
   --color-info: #2563EB;
-  
+
   /* Text Colors */
   --color-text: #333333;
   --color-text-secondary: #666666;
   --color-text-tertiary: #999999;
-  
+
   /* Backgrounds */
   --color-bg: #FFFFFF;
   --color-bg-off-white: #FFFDF0;
@@ -1629,7 +1643,7 @@ atomic-guide/
   --transition-micro: 150ms ease-in-out;
   --transition-standard: 300ms ease-in-out;
   --transition-slow: 500ms ease-in-out;
-  
+
   /* Minimum Touch Targets */
   --touch-target-min: 44px;
 }
@@ -1770,6 +1784,93 @@ export async function processSignal(signal: BehavioralSignal): Promise<void> {
 }
 ```
 
+**RTK Query Configuration Pattern:**
+
+```typescript
+// store/api/baseApi.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { RootState } from '../index';
+
+export const baseApi = createApi({
+  reducerPath: 'api',
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/api',
+    prepareHeaders: (headers, { getState }) => {
+      // Add JWT token to all requests
+      const token = (getState() as RootState).jwt;
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  tagTypes: ['Learner', 'Session', 'Chat', 'Intervention'],
+  endpoints: () => ({}),
+});
+
+// store/api/cognitiveApi.ts
+import { baseApi } from './baseApi';
+
+export const cognitiveApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    getLearnerProfile: builder.query<LearnerProfile, string>({
+      query: (learnerId) => `learners/${learnerId}/profile`,
+      providesTags: ['Learner'],
+    }),
+    updateLearnerProfile: builder.mutation<LearnerProfile, UpdateProfileRequest>({
+      query: ({ learnerId, ...body }) => ({
+        url: `learners/${learnerId}/profile`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Learner'],
+    }),
+    sendBehavioralSignals: builder.mutation<void, BehavioralSignal>({
+      query: (signal) => ({
+        url: 'cognitive/signals',
+        method: 'POST',
+        body: signal,
+      }),
+    }),
+  }),
+});
+
+export const { useGetLearnerProfileQuery, useUpdateLearnerProfileMutation, useSendBehavioralSignalsMutation } = cognitiveApi;
+
+// store/configure_store.ts
+import { configureStore as rtkconfigureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
+import { baseApi } from './api/baseApi';
+import settingsReducer from './slices/settingsSlice';
+import jwtReducer from './slices/jwtSlice';
+
+export function configureStore({ settings, jwt, apiBaseUrl }) {
+  const store = rtkconfigureStore({
+    reducer: {
+      settings: settingsReducer,
+      jwt: jwtReducer,
+      [baseApi.reducerPath]: baseApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: {
+          // Ignore these action types
+          ignoredActions: ['jwt/refresh'],
+        },
+      }).concat(baseApi.middleware),
+    preloadedState: {
+      settings,
+      jwt,
+    },
+  });
+
+  // Setup listeners for refetch on focus/reconnect
+  setupListeners(store.dispatch);
+
+  return store;
+}
+```
+
 **React Component Patterns:**
 
 ```typescript
@@ -1783,6 +1884,10 @@ export default function LearnerDashboard({ learnerId, profile }: DashboardProps)
   // Use hooks at top level
   const dispatch = useAppDispatch();
   const session = useAppSelector(selectCurrentSession);
+
+  // RTK Query hooks for data fetching
+  const { data: learnerData, isLoading } = useGetLearnerProfileQuery(learnerId);
+  const [updateProfile] = useUpdateLearnerProfileMutation();
 
   return <div className={styles.dashboard}>...</div>;
 }
@@ -1803,6 +1908,7 @@ import i18n from 'i18next';
 import { getInitialSettings } from '@atomicjolt/atomic-fuel/libs/reducers/settings';
 import jwt from '@atomicjolt/atomic-fuel/libs/loaders/jwt';
 import { LtiLaunchCheck } from '@atomicjolt/lti-components';
+import { configureStore } from './store/configure_store';
 import DefaultRoot from './root';
 
 // Polyfill es6 promises for IE
@@ -1813,7 +1919,14 @@ ReactModal.setAppElement('#main-app');
 
 // Extract LTI settings from window
 const settings = getInitialSettings(window.DEFAULT_SETTINGS);
-const store = configureStore({ settings, jwt: window.DEFAULT_JWT });
+
+// Configure Redux store with RTK Query middleware
+const store = configureStore({
+  settings,
+  jwt: window.DEFAULT_JWT,
+  // RTK Query will be configured within the store setup
+  apiBaseUrl: settings.api_url || window.location.origin
+});
 
 // Setup JWT refresh for authenticated sessions
 if (window.DEFAULT_JWT) {
@@ -1832,33 +1945,15 @@ initLocalization(['connector', 'player'], language, defaultLanguage, settings.th
                         || language.split('-')[0];
     initReactDatePicker(dateFnsLocale);
 
-    // Setup Apollo GraphQL client
-    const cache = getCache();
-    const graphQLNetworkErrorHandler = (networkError) => {
-      if (networkError?.result?.canvas_authorization_required) {
-        // Handle Canvas reauth requirement
-        store.dispatch({
-          type: 'GRAPHQL_ERROR_DONE',
-          error: { response: { text: 'canvas_authorization_required' }}
-        });
-        return true;
-      }
-      if (networkError?.statusCode === 401) {
-        setSessionExpired(true);
-        return true;
-      }
-      return false;
-    };
-
-    const client = getClient(settings, () => store.getState().jwt,
-                            [], cache, graphQLNetworkErrorHandler);
+    // RTK Query error handling is configured in the store middleware
+    // Canvas reauthorization and 401 errors are handled by the baseApi configuration
 
     // Render React application with LTI validation
     const mainApp = document.getElementById('main-app');
     createRoot(mainApp).render(
       <FixedResizeWrapper getSize={getSize}>
         <LtiLaunchCheck stateValidation={window.DEFAULT_SETTINGS.state_validation}>
-          <DefaultRoot store={store} client={client} />
+          <DefaultRoot store={store} />
         </LtiLaunchCheck>
       </FixedResizeWrapper>
     );
