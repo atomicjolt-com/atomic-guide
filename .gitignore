@@ -30,5 +30,7 @@ dist-ssr
 .env
 /.cloudflare
 /.wrangler
-
+.dev.vars
 public/dist
+
+/tmp/
