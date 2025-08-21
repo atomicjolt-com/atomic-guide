@@ -1,12 +1,9 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { cloudflare } from "@cloudflare/vite-plugin"
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { cloudflare } from '@cloudflare/vite-plugin';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    cloudflare(),
-  ],
+  plugins: [react(), cloudflare()],
   build: {
     manifest: 'manifest.json',
     rollupOptions: {
@@ -14,10 +11,11 @@ export default defineConfig({
         app: '/client/app.tsx',
         appInit: '/client/app-init.ts',
         home: '/client/home.ts',
-      }
-    }
+      },
+    },
   },
   server: {
     allowedHosts: true,
+    port: 5988,
   },
 });
