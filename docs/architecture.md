@@ -4,6 +4,10 @@
 
 This document outlines the architectural approach for enhancing the existing LTI 1.3 starter application into **Atomic Guide/Focus** - a Progressive Cognitive Learning Infrastructure platform that achieves 50-80% improvement in knowledge retention through retrieval practice (Adesope et al., 2017) and 35-50% improvement through optimal spaced repetition (Cepeda et al., 2008). Its primary goal is to serve as the guiding architectural blueprint for AI-driven development of new features while ensuring seamless integration with the existing LTI 1.3 foundation.
 
+**Related Documentation:**
+- **Front-End Specification:** See `docs/front-end-spec.md` for comprehensive UI/UX design system, user flows, wireframes, and component specifications
+- **Product Requirements:** See `docs/prd.md` for complete product requirements and functional specifications
+
 **Target Outcomes:**
 
 - Reduce STEM gateway course failure rates by 15-25% using adaptive difficulty adjustment (Chrysafiadi et al., 2023)
@@ -27,6 +31,7 @@ This document supplements the existing LTI starter architecture by defining how 
 
 - CLAUDE.md with development commands and architecture overview
 - Comprehensive PRD defining Atomic Guide requirements
+- Front-end UI/UX Specification (docs/front-end-spec.md) with design system, user flows, and component specifications
 - Existing codebase demonstrating LTI 1.3 patterns
 
 **Identified Constraints:**
@@ -51,6 +56,7 @@ This document supplements the existing LTI starter architecture by defining how 
 | React Migration      | 2025-08-20 | 1.2     | Documented React-based LTI launch with atomic-fuel integration      | Winston (Architect) |
 | Canvas postMessage   | 2025-08-20 | 1.3     | Added Canvas postMessage integration architecture and security      | Winston (Architect) |
 | Empirical foundation | 2025-08-20 | 1.4     | Added empirical foundations, cognitive algorithms, and use cases    | Winston (Architect) |
+| Front-End Spec       | 2025-08-21 | 1.5     | Integrated UI/UX specification with design system and personas      | Winston (Architect) |
 
 ## Enhancement Scope and Integration Strategy
 
@@ -79,6 +85,36 @@ Based on the PRD analysis, this enhancement transforms a basic LTI starter into 
 - **UI/UX Consistency:** React components styled to match Canvas aesthetic; non-intrusive overlays
 - **Performance Impact:** Target <100ms response maintained via edge computing; D1 queries optimized to 10-50ms
 - **MCP OAuth Security:** Learner consent required before AI client access; token-scoped to specific learner profiles
+
+## Design System Implementation
+
+### Atomic Jolt Brand Integration
+
+The architecture implements the Atomic Jolt design system as specified in the front-end specification:
+
+**Brand Colors:**
+- Primary: Atomic Yellow (#FFDD00) - CTAs, active states, progress indicators
+- Success: Green (#027A48) - Correct answers, achievements
+- Error: Red (#B42318) - Errors, urgent alerts
+- Warning: Amber (#FDB022) - Warnings, medium priority
+- Info: Blue (#2563EB) - Information, secondary actions
+
+**Typography:**
+- Primary Font: Rubik (all UI text)
+- Monospace: Rubik Mono (code snippets)
+- Type Scale: 32px (H1) down to 11px (caption)
+- Font Weights: 300 (Light), 400 (Regular), 500 (Medium)
+
+**Spacing & Layout:**
+- 8-point grid system for consistent spacing
+- Maximum content width: 1200px (portal UI)
+- Chat panel: 380px (desktop), 100% - 32px (mobile)
+- Minimum touch targets: 44x44px
+
+**Visual Effects:**
+- Shadows: 3 elevation levels for depth
+- Border radius: 6px (small), 8px (medium), 12px (large)
+- Transitions: 150ms (micro), 300ms (standard), 500ms (slow)
 
 ## Tech Stack Alignment
 
@@ -262,6 +298,31 @@ The platform provides instructors with:
 | Early Intervention | Gardner Institute, 2023        | 10-15% retention          | 6-week detection window      |
 | Pedagogical Agents | Kim & Baylor, 2006             | 40% time-on-task increase | AI Guide presence            |
 
+## Target User Personas
+
+From the front-end specification, our architecture supports three primary personas:
+
+### 1. Struggling STEM Student (Alex)
+- **Demographics:** 18-22 years old, first-generation college student, 60% work part-time
+- **Tech Proficiency:** High comfort with mobile/social apps, moderate with academic tools
+- **Pain Points:** Fear of appearing "dumb," overwhelmed by course pace, unclear where to get help
+- **Success Metrics:** Time to first successful interaction <10 seconds, 80% return rate after first use
+- **Interface Needs:** Mobile-optimized, non-judgmental tone, progress celebration
+
+### 2. Time-Pressed Faculty Member (Dr. Chen)
+- **Demographics:** Teaching 3-4 courses, 100-150 total students, limited office hours
+- **Tech Proficiency:** Varies widely, prefers minimal new tools
+- **Pain Points:** Can't identify struggling students until too late, repetitive questions consume time
+- **Success Metrics:** <30 seconds to actionable insights, 50% reduction in repetitive questions
+- **Interface Needs:** Dashboard that loads within LMS, one-click exports, no additional logins
+
+### 3. Academic Success Coach (Maria)
+- **Demographics:** Monitors 200-300 at-risk students across departments
+- **Tech Proficiency:** Comfortable with data tools and dashboards
+- **Pain Points:** Reactive vs. proactive interventions, siloed data across systems
+- **Success Metrics:** 2-week early warning before failure points, 25% improvement in intervention success
+- **Interface Needs:** Unified view across courses, automated alerts, intervention tracking
+
 ## Use Case Implementation: Alex's Academic Journey
 
 This section demonstrates how the architecture supports cross-course intelligence through a learner's multi-year journey:
@@ -340,6 +401,22 @@ Throughout Alex's journey, the platform provides institutions with:
 - ROI metrics demonstrating $13,000+ savings per retained student
 
 ## Component Architecture
+
+### Two-UI Architecture Overview
+
+Based on the front-end specification, Atomic Guide operates through two distinct but connected user interfaces:
+
+1. **Persistent Overlay UI** - Always-visible indicator icon on LMS pages that expands to reveal:
+   - Contextual chat interface with 380px width (desktop), 100% - 32px (mobile)
+   - Inline learning activities (flash cards, quizzes, videos)
+   - Quick actions and help
+   - Minimal footprint (48x48px desktop, 40x40px mobile) with maximum accessibility
+
+2. **LTI Portal UI** - Full-featured application accessed via LTI launch providing:
+   - Comprehensive dashboards and analytics
+   - Privacy controls and data management  
+   - Study scheduling and progress tracking
+   - Role-specific interfaces (Student/Faculty/Coach)
 
 **New Components:**
 
@@ -521,16 +598,31 @@ export class CognitiveEngine {
 
 ### 6. Chat UI Components
 
-**Responsibility:** Render floating action button and expandable chat interface (FR4)
+**Responsibility:** Render floating action button and expandable chat interface per front-end spec (FR4)
 **Integration Points:** Redux state, WebSocket connection, Canvas DOM
 
 **Key Interfaces:**
 
-- Floating Action Button (FAB) with struggle detection animations
-- Expandable chat window with minimize/maximize controls (FR4)
-- Rich media message rendering (LaTeX, code, diagrams) (FR16)
-- Quick action buttons for common queries (FR4)
-- Context badge showing current page/assignment
+- **Floating Action Button (FAB):**
+  - Circular icon (48x48px desktop, 40x40px mobile) with Atomic Jolt Yellow (#FFDD00) accent
+  - State indicators: Static (60% opacity), Active (100% opacity), Pulsing (scale 1.0-1.1 animation)
+  - Badge: Red (#B42318) notification dot for urgent items
+  - ARIA label: "Atomic Guide Assistant - Click for help"
+  - Z-index management to never obstruct LMS critical functions
+
+- **Expandable Chat Panel:**
+  - Header (56px): Context badge, title "Atomic Guide", minimize/expand/close actions
+  - Chat area (max 480px height): User messages (right, #F5F5F5), AI messages (left, white with yellow border)
+  - Input area (72px): Text field, send button (#FFDD00 when active), voice input
+  - Typography: Rubik font family (14px regular, 16px medium for headers)
+  - Draggable on desktop, fixed bottom-right on mobile (16px margin)
+
+- **Rich Media Rendering:**
+  - LaTeX math with KaTeX
+  - Code snippets with syntax highlighting
+  - Diagrams and charts support
+  - Flash cards with swipe gestures
+  - Quiz questions with radio/checkbox inputs
 
 **Dependencies:**
 
@@ -538,6 +630,19 @@ export class CognitiveEngine {
 - **New Components:** Message queue, typing indicators, markdown renderer
 
 **Technology Stack:** React, CSS-in-JS for dynamic positioning, KaTeX for math rendering
+
+### Front-End Component Details
+
+For comprehensive UI/UX specifications including:
+- Detailed wireframes and mockups for all screens
+- Complete design system with color palette, typography, and spacing
+- User flow diagrams for all personas
+- Component library specifications
+- Accessibility requirements (WCAG 2.1 AA)
+- Animation and micro-interaction patterns
+- Performance optimization strategies
+
+Please refer to: **`docs/front-end-spec.md`**
 
 ### Component Interaction Diagram
 
@@ -997,9 +1102,59 @@ class MessageBatcher {
 - Debounce hover tracking to 500ms
 - Limit API calls to 100/minute per user
 
-### Performance Critical Paths
+## Accessibility & Responsive Design Implementation
 
-**Real-time Struggle Detection Pipeline (<50ms):**
+### WCAG 2.1 AA Compliance
+
+Per the front-end specification, the architecture ensures accessibility through:
+
+**Visual Accessibility:**
+- Color contrast ratios: 4.5:1 for normal text, 3:1 for large text (18px+)
+- Focus indicators: 2px solid #FFDD00 outline with 2px offset
+- Text sizing: Support 200% zoom without horizontal scrolling
+- Minimum 14px for body text with user-adjustable preferences
+
+**Interaction Accessibility:**
+- All interactive elements keyboard navigable via Tab
+- Logical tab order following visual flow
+- Skip links for repetitive content
+- Screen reader support with semantic HTML5 and ARIA labels
+- Touch targets: Minimum 44x44px with 8px spacing
+
+**Cognitive Accessibility (AAA considerations):**
+- Consistent navigation across pages
+- Clear, simple language (8th grade reading level target)
+- No automatic timeouts without warning
+- Progress indicators for multi-step processes
+- Help available on every screen via AI Guide
+
+### Responsive Breakpoints
+
+| Breakpoint | Min Width | Max Width | Target Devices | Key Adaptations |
+|------------|-----------|-----------|----------------|----------------|
+| Mobile | 320px | 767px | Phones | Single column, FAB above thumb zone |
+| Tablet | 768px | 1023px | Tablets | Two column, FAB in side rail |
+| Desktop | 1024px | 1439px | Laptops | Full layout, FAB bottom-right |
+| Wide | 1440px | - | Large monitors | Maximum 1200px content width |
+
+### Animation & Micro-interactions
+
+Following the front-end spec motion principles:
+
+**Key Animations:**
+- FAB pulse: 2s breathing animation (opacity 0.6 to 1.0) when struggle detected
+- Chat message appearance: 300ms slide-in with ease-out
+- Card flip: 400ms 3D rotation for flash cards
+- Progress milestone: Scale(1.2) pulse with spring easing
+- Success celebration: 400ms scale pulse for achievements
+
+**Reduced Motion Support:**
+When `prefers-reduced-motion: reduce`:
+- Replace animations with instant transitions
+- Keep only essential motion (loading indicators)
+- Disable auto-playing videos and parallax effects
+
+### Performance Critical Paths
 
 1. Canvas event capture via custom JS (0ms)
 2. MessageChannel communication (1ms)
@@ -1031,6 +1186,13 @@ class MessageBatcher {
 - Rate limit: 20 messages per minute per learner
 - FAQ cache hit target: 40% of queries (instant response)
 - Conversation history: Last 20 messages retained in memory
+
+**Front-End Performance Goals:**
+- Initial Load: <3s on 3G connection
+- Time to Interactive: <5s on average hardware
+- Interaction Response: <100ms for user inputs
+- Animation FPS: Consistent 60fps for all animations
+- Bundle Size: <200kb initial JavaScript bundle
 
 ### Failure Isolation & Recovery
 
@@ -1324,13 +1486,14 @@ atomic-guide/
 │ │ ├── cognitive/
 │ │ │ ├── ProfileView.tsx
 │ │ │ └── InterventionOverlay.tsx
-│ │ ├── chat/ # NEW: AI Guide chat components
-│ │ │ ├── ChatFAB.tsx # Floating action button
-│ │ │ ├── ChatWindow.tsx # Main chat interface
-│ │ │ ├── MessageList.tsx # Conversation display
-│ │ │ ├── MessageInput.tsx # Input with quick actions
-│ │ │ ├── ContextBadge.tsx # Current page indicator
-│ │ │ └── RichMessage.tsx # LaTeX/code rendering
+│ │ ├── chat/ # NEW: AI Guide chat components per front-end spec
+│ │ │ ├── ChatFAB.tsx # Floating action button (48x48px, Atomic Yellow)
+│ │ │ ├── ChatWindow.tsx # Main chat interface (380px width desktop)
+│ │ │ ├── MessageList.tsx # Conversation display with message bubbles
+│ │ │ ├── MessageInput.tsx # Input with voice & quick actions (72px height)
+│ │ │ ├── ContextBadge.tsx # Current page indicator (56px header)
+│ │ │ ├── RichMessage.tsx # LaTeX/code/media rendering
+│ │ │ └── ActivityCard.tsx # Flash cards, quizzes, practice problems
 │ │ └── privacy/
 │ │ └── PrivacyControls.tsx
 │ ├── hooks/ # NEW: React hooks
@@ -1356,11 +1519,15 @@ atomic-guide/
 │ │ ├── datepicker.ts # Date picker initialization
 │ │ ├── moment.ts # Moment.js timezone config
 │ │ └── get_size.ts # Canvas iframe sizing
-│ └── styles/ # NEW: CSS with variables
+│ └── styles/ # NEW: CSS with Atomic Jolt design system
 │ ├── base.css # Base styles & resets
-│ ├── variables.css # CSS custom properties
+│ ├── variables.css # Design tokens from front-end spec
+│ ├── typography.css # Rubik font system
+│ ├── animations.css # Micro-interactions & transitions
 │ └── components/
-│ └── dashboard.module.css
+│ ├── dashboard.module.css
+│ ├── chat.module.css # Chat-specific styles
+│ └── overlay.module.css # Persistent overlay styles
 ├── src/ # Server-side Worker
 │ ├── index.ts # Existing + new routes
 │ ├── api/ # NEW: API handlers
@@ -1403,27 +1570,68 @@ atomic-guide/
 **CSS Architecture Pattern:**
 
 ```css
-/* variables.css - Design tokens */
+/* variables.css - Design tokens from front-end spec */
 :root {
-  /* Colors */
-  --color-primary: #01579c;
+  /* Core Brand Colors */
+  --color-primary: #FFDD00; /* Atomic Yellow */
+  --color-primary-hover: #F5D000;
+  --color-success: #027A48;
+  --color-error: #B42318;
+  --color-warning: #FDB022;
+  --color-info: #2563EB;
+  
+  /* Text Colors */
   --color-text: #333333;
-  --color-text-secondary: #555555;
-  --color-bg: #ffffff;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  
+  /* Backgrounds */
+  --color-bg: #FFFFFF;
+  --color-bg-off-white: #FFFDF0;
+  --color-bg-gray: #F5F5F5;
 
-  /* Typography */
-  --font-family: 'Lato', sans-serif;
-  --font-size-base: 16px;
-  --font-weight-normal: 400;
-  --font-weight-bold: 700;
+  /* Typography - Rubik Font System */
+  --font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-mono: 'Rubik Mono', 'Courier New', monospace;
+  --font-size-h1: 32px;
+  --font-size-h2: 24px;
+  --font-size-h3: 20px;
+  --font-size-body-lg: 16px;
+  --font-size-body: 14px;
+  --font-size-small: 12px;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --line-height-base: 1.5;
 
-  /* Spacing */
+  /* Spacing - 8-point Grid System */
+  --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
-  --spacing-lg: 32px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.15);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.20);
+  --shadow-focus: 0 0 0 3px rgba(255,221,0,0.25);
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 50%;
 
   /* Transitions */
-  --transition-fast: 100ms ease;
+  --transition-micro: 150ms ease-in-out;
+  --transition-standard: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+  
+  /* Minimum Touch Targets */
+  --touch-target-min: 44px;
 }
 
 /* Component styles using CSS modules */
@@ -1794,6 +2002,32 @@ The architecture must support these confirmed pilot institutions:
 4. **Cost Efficiency:** Serverless architecture enables $3-7 per student pricing
 5. **Privacy-First:** Student-controlled data with FERPA/GDPR compliance built-in
 6. **Zero Training:** Intuitive interfaces leveraging Canvas familiarity
+
+### UI/UX Implementation Guidelines
+
+When implementing the front-end components, developers should:
+
+1. **Reference the Front-End Spec:** Always consult `docs/front-end-spec.md` for:
+   - Exact pixel dimensions and spacing
+   - Color values and usage guidelines
+   - Typography specifications
+   - Animation timings and easing functions
+   - Accessibility requirements
+
+2. **Use Design Tokens:** Implement all styles using CSS custom properties defined in `variables.css`
+
+3. **Follow Component Patterns:** Each component in the spec has:
+   - Visual hierarchy guidelines
+   - State management requirements
+   - Interaction patterns
+   - Responsive behavior
+   - Performance optimizations
+
+4. **Maintain Brand Voice:** Follow the voice and tone guidelines:
+   - Encouraging and supportive
+   - Clear and concise
+   - Academic but approachable
+   - Confident without being condescending
 
 ### Recommended Implementation Epics
 
