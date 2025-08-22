@@ -27,6 +27,7 @@ The platform leverages unique access to academic journey data via LTI 1.3 integr
 | 2025-08-20 | 1.3     | Incorporated IES SBIR grant details: implementation, use cases, empirical support              | John (PM) |
 | 2025-08-21 | 1.4     | Updated project name to "Atomic Guide", generalized LMS references, added Atomic Jolt branding | John (PM) |
 | 2025-08-22 | 1.5     | Merged deep linking assessment features from enhancement PRD                                   | John (PM) |
+| 2025-08-22 | 1.6     | Added missing features from brainstorming sessions: instructor tools, advanced activities      | John (PM) |
 
 ## Implementation and Use
 
@@ -167,6 +168,40 @@ Throughout Alex's journey, instructors use Atomic Guide's class-wide analytics t
 **FR29:** The system shall support flexible grading schemas including mastery-based (default), percentage-based, improvement tracking, and engagement scoring options
 
 **FR30:** The system shall store conversation history and assessment data in Cloudflare D1 database with proper relational structure for analytics and reporting
+
+### Instructor Productivity Tool Requirements
+
+**FR31:** The system shall provide an AI-powered syllabus builder that analyzes course content and generates comprehensive syllabi aligned with learning objectives, which instructors can edit and customize
+
+**FR32:** The system shall offer a course logistics assistant that helps instructors schedule exams and assignments using Atomic Assessments integration, optimizing for spacing and cognitive load
+
+**FR33:** The system shall implement an AI grading assistant that provides initial feedback on student submissions, flags potential issues, and suggests grading consistency improvements for instructor review
+
+**FR34:** The system shall enable cross-course content building where instructors can leverage their existing course materials to generate new content for other courses they teach
+
+**FR35:** The system shall provide anonymous question analytics showing instructors the most common student questions and confusion points to guide content improvement
+
+### Advanced Learning Enhancement Requirements
+
+**FR36:** The system shall implement smart video micro-learning that identifies specific timestamps in instructor videos relevant to student struggle points and serves them just-in-time. It will do this by integrating with Atomic Stream to be able to search, discover and suggestion the videos.
+
+**FR37:** The system shall provide crowd intelligence problem detection that aggregates struggle patterns across all students to identify systematic content issues and notify instructors
+
+**FR38:** The system shall generate interactive learning activities beyond basic assessments, including drag-and-drop concept matching, interactive timelines, student-built concept maps, and H5P-style interactive elements
+
+**FR39:** The system shall implement a template library system enabling department-wide sharing of successful assessment configurations and learning activities
+
+**FR40:** The system shall support instructor-configurable conversation personas (Encouraging, Socratic, Practical) that adapt the AI's interaction style to different pedagogical approaches
+
+**FR41:** The system shall provide an anti-cramming learning companion that proactively schedules micro-learning sessions at optimal times based on individual cognitive patterns and course demands
+
+**FR42:** The system shall implement a cognitive load optimization engine that curates learning experiences by removing decision fatigue and optimizing content presentation for individual cognitive architecture
+
+**FR43:** The system shall detect content gaps by identifying missing prerequisites across courses and alerting instructors to potential student preparation issues
+
+**FR44:** The system shall provide an instructor misconception dashboard that flags common student errors across all courses with specific remediation templates
+
+**FR45:** The system shall support bulk configuration management allowing instructors to efficiently add, edit, and delete multiple assessment items within the deep linking modal interface
 
 ### Non-Functional Requirements
 
@@ -735,9 +770,30 @@ Implement Model Context Protocol endpoints, enable Learner DNA delivery to AI cl
 **Epic 8: Advanced Analytics & Optimization**
 Build sophisticated analytics for academic success coaches, advanced chat effectiveness metrics, A/B testing framework for response strategies, and algorithm optimization based on real usage data. This refines and optimizes based on lessons learned.
 
-## Deep Linking Assessment Epic
+**Epic 9: Canvas Deep Linking Assessment Integration**
+Enable instructors to embed AI-powered conversational assessment checkpoints into Canvas assignments through deep linking, providing real-time comprehension feedback to students and learning insights to instructors. This creates seamless LMS integration.
 
-### Epic 9: Canvas Deep Linking Assessment Integration
+**Epic 10: Instructor Productivity Suite**
+Deliver comprehensive instructor support tools including AI-powered syllabus builder, course logistics assistant for exam scheduling, AI grading assistant for feedback generation, cross-course content builder, and anonymous question analytics dashboard. This dramatically reduces instructor administrative burden.
+
+**Epic 11: Advanced Interactive Learning Activities**
+Expand beyond basic assessments to include drag-and-drop concept matching, interactive timeline builders, student-built concept maps, H5P-style interactive elements, and smart video micro-learning with timestamp navigation. This creates engaging, varied learning experiences.
+
+**Epic 12: Cognitive Optimization & Anti-Cramming System**
+Implement the anti-cramming learning companion with proactive micro-learning scheduling, cognitive load optimization engine, and personalized learning curation. This transforms learning from effortful to effortless while maximizing retention.
+
+**Epic 13: Template Library & Collaboration Platform**
+Build department-wide template sharing system for successful assessment configurations, enable cross-institutional best practice sharing, and create collaborative content improvement workflows. This accelerates adoption through network effects.
+
+**Epic 14: Crowd Intelligence & Pattern Recognition**
+Implement sophisticated crowd intelligence that aggregates struggle patterns across all students, identifies systematic content issues, provides instructor misconception dashboards with remediation templates, and enables predictive content gap detection. This turns individual struggles into institutional improvements.
+
+**Epic 15: Conversation Personas & Adaptive AI**
+Develop instructor-configurable AI personalities (Encouraging, Socratic, Practical), implement persona learning based on interaction success patterns, and create adaptive conversation styles for different learning contexts. This personalizes the AI experience for diverse pedagogical approaches.
+
+## Deep Linking Assessment Epic Details
+
+### Story Details for Epic 9: Canvas Deep Linking Assessment Integration
 
 **Epic Goal**: Enable instructors to embed AI-powered conversational assessment checkpoints into Canvas assignments through deep linking, providing real-time comprehension feedback to students and learning insights to instructors
 

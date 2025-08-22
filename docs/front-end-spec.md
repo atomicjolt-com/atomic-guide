@@ -1763,7 +1763,363 @@ When `prefers-reduced-motion: reduce`:
 
 ---
 
-## 12. Checklist Results
+## 12. Missing UI Specifications (Added)
+
+### WebSocket Connection States
+
+#### Connection Status Indicator
+
+**Purpose:** Provide real-time feedback on chat connection quality and state
+
+**Visual States:**
+
+```typescript
+interface ConnectionState {
+  status: 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'error';
+  latency?: number;
+  retryCount?: number;
+  retryTime?: number;
+}
+```
+
+**UI Components:**
+
+1. **Connection Badge (Chat Header)**
+   - Connected: Green dot (8px) with "Connected" text
+   - Connecting: Pulsing yellow dot with "Connecting..." text
+   - Reconnecting: Orange dot with countdown timer
+   - Disconnected: Red dot with "Offline" text
+   - Error: Red exclamation with error message
+
+2. **Connection Toast Notifications**
+   ```
+   ┌──────────────────────────────────────┐
+   │ ⚠️ Connection lost. Reconnecting...   │
+   │ Retry 2/5 - Next attempt in 3s       │
+   └──────────────────────────────────────┘
+   ```
+
+3. **Offline Mode Banner**
+   ```
+   ┌─────────────────────────────────────────────────────┐
+   │ 🔌 Working Offline                                  │
+   │ Your responses will be saved and sent when online   │
+   └─────────────────────────────────────────────────────┘
+   ```
+
+**Interaction Patterns:**
+- Auto-reconnect with exponential backoff (1s, 2s, 4s, 8s, 16s)
+- Manual reconnect button after 5 failed attempts
+- Queue messages during disconnection
+- Show pending message count badge
+
+### Error States & Empty States
+
+#### Error State Components
+
+**1. Assessment Load Error**
+```
+┌─────────────────────────────────────────┐
+│           ⚠️ Unable to Load              │
+│                                          │
+│ We couldn't load this assessment.       │
+│ This might be due to:                   │
+│ • Network connection issues             │
+│ • Assessment configuration error        │
+│ • Permissions issue                     │
+│                                          │
+│ [Try Again]  [Contact Support]          │
+└─────────────────────────────────────────┘
+```
+
+**2. API Error Handling**
+```typescript
+interface ErrorDisplay {
+  type: 'inline' | 'toast' | 'modal' | 'page';
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  message: string;
+  actionButtons?: Array<{
+    label: string;
+    action: () => void;
+  }>;
+  autoDismiss?: number; // milliseconds
+}
+```
+
+**3. Validation Error States**
+- Input fields: Red border (2px) with error text below
+- Form submission: Scroll to first error, focus field
+- Chat input: Inline error message with shake animation
+
+#### Empty State Components
+
+**1. No Assessments Yet**
+```
+┌─────────────────────────────────────────┐
+│                                          │
+│         📚 No Assessments Yet            │
+│                                          │
+│   You haven't started any assessments   │
+│   When you do, they'll appear here.     │
+│                                          │
+│     [Browse Available Assessments]       │
+│                                          │
+└─────────────────────────────────────────┘
+```
+
+**2. Dashboard - No Student Data**
+```
+┌─────────────────────────────────────────┐
+│         📊 Waiting for Data              │
+│                                          │
+│  Students haven't started this          │
+│  assessment yet. You'll see analytics   │
+│  here once they begin.                  │
+│                                          │
+│  [Preview Student Experience]            │
+└─────────────────────────────────────────┘
+```
+
+### Expanded Dashboard Components
+
+#### Faculty Analytics Dashboard - Full Specification
+
+**Layout Grid (Desktop):**
+```
+┌──────────────────────────────────────────────────────┐
+│ Course: MATH 101 | Section: A | Students: 45         │
+├──────────────────────────────────────────────────────┤
+│                                                       │
+│  ┌─────────────────┐  ┌─────────────────────────┐   │
+│  │ Active Now       │  │ Avg Mastery             │   │
+│  │    12            │  │  ████████░░ 72%         │   │
+│  │ ↑3 from hour ago │  │  ↑5% from last week     │   │
+│  └─────────────────┘  └─────────────────────────┘   │
+│                                                       │
+│  ┌───────────────────────────────────────────────┐   │
+│  │ Confusion Heatmap                             │   │
+│  │ ┌─────┬─────┬─────┬─────┬─────┐             │   │
+│  │ │ Ch1 │ Ch2 │ Ch3 │ Ch4 │ Ch5 │  Intensity  │   │
+│  │ ├─────┼─────┼─────┼─────┼─────┤             │   │
+│  │ │ ░░░ │ ███ │ ░░░ │ ▓▓▓ │ ░░░ │  Low ░ High█│   │
+│  │ └─────┴─────┴─────┴─────┴─────┘             │   │
+│  └───────────────────────────────────────────────┘   │
+│                                                       │
+│  ┌───────────────────────────────────────────────┐   │
+│  │ Recent Struggles (Live)                       │   │
+│  │ • "How do I find the derivative?" - 2m ago    │   │
+│  │ • "What's the chain rule again?" - 5m ago     │   │
+│  │ • "Integration by parts confusing" - 8m ago   │   │
+│  │                        [View All] [Intervene]  │   │
+│  └───────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────┘
+```
+
+**Component Specifications:**
+
+1. **Metric Cards**
+   - Real-time updates via WebSocket
+   - Trend indicators with tooltips
+   - Click to drill down into details
+
+2. **Confusion Heatmap**
+   - Color scale: Green (0-25%), Yellow (26-50%), Orange (51-75%), Red (76-100%)
+   - Hover shows: Topic name, confusion %, sample questions
+   - Click opens intervention builder for that topic
+
+3. **Live Feed**
+   - Auto-scroll with pause on hover
+   - Anonymized student questions
+   - One-click response templates
+
+### Data Visualization Components
+
+#### Forgetting Curve Chart
+
+**Purpose:** Show predicted knowledge retention over time
+
+**Specification:**
+```typescript
+interface ForgettingCurveProps {
+  concepts: Array<{
+    name: string;
+    initialMastery: number;
+    currentMastery: number;
+    predictedCurve: Array<{x: Date, y: number}>;
+    reviewDates: Date[];
+  }>;
+  timeRange: 'week' | 'month' | 'semester';
+  showInterventions: boolean;
+}
+```
+
+**Visual Design:**
+- Line chart with smooth curves
+- Y-axis: Mastery (0-100%)
+- X-axis: Time
+- Review points marked with dots
+- Hover shows exact values
+- Export as PNG/CSV buttons
+
+#### Knowledge Mastery Grid
+
+**Purpose:** Visual overview of concept mastery across class
+
+**Layout:**
+```
+Students ↓  Concepts →
+         C1   C2   C3   C4   C5
+Alex     ███  ░░░  ▓▓▓  ███  ░░░
+Beth     ▓▓▓  ███  ███  ▓▓▓  ███
+Carl     ░░░  ▓▓▓  ░░░  ░░░  ▓▓▓
+
+Legend: ░ <50%  ▓ 50-79%  █ 80-100%
+```
+
+**Interactions:**
+- Click cell for individual details
+- Sort by student or concept
+- Filter by mastery level
+- Bulk intervention selection
+
+### Mobile-Specific Layouts
+
+#### Mobile Navigation Pattern
+
+**Bottom Tab Bar (iOS/Android):**
+```
+┌─────────────────────────┐
+│    Content Area         │
+│                         │
+│                         │
+├─────────────────────────┤
+│  📚   💬   📊   👤      │
+│ Learn Chat Stats Profile│
+└─────────────────────────┘
+```
+
+**Gesture Support:**
+- Swipe right: Previous assessment
+- Swipe left: Next assessment
+- Swipe down: Minimize chat
+- Pull to refresh: Update data
+- Long press: Context menu
+
+#### Mobile Chat Optimization
+
+**Collapsed State:**
+```
+┌─────────────────────────┐
+│ ▼ AI Guide (tap to expand)│
+└─────────────────────────┘
+```
+
+**Expanded State (Full Screen):**
+```
+┌─────────────────────────┐
+│ ← Back   AI Guide    ⋮  │
+├─────────────────────────┤
+│                         │
+│  [Chat messages]        │
+│                         │
+├─────────────────────────┤
+│ [Input]          [Send] │
+└─────────────────────────┘
+```
+
+### MCP OAuth Authentication UI
+
+**Purpose:** Authenticate AI model clients via OAuth flow
+
+**Flow Screens:**
+
+1. **Initial Connection:**
+```
+┌─────────────────────────────────┐
+│   Connect AI Assistant          │
+│                                  │
+│   🤖 Claude                      │
+│   Advanced reasoning model       │
+│                                  │
+│   🧠 GPT-4                       │
+│   General purpose AI             │
+│                                  │
+│   [Connect Claude]               │
+└─────────────────────────────────┘
+```
+
+2. **OAuth Consent:**
+```
+┌─────────────────────────────────┐
+│  Authorize Atomic Guide          │
+│                                  │
+│  Atomic Guide wants to:          │
+│  ✓ Access your course content   │
+│  ✓ Create assessments            │
+│  ✓ Track learning progress      │
+│                                  │
+│  [Deny]        [Allow]           │
+└─────────────────────────────────┘
+```
+
+3. **Success State:**
+```
+┌─────────────────────────────────┐
+│     ✅ Connected!                │
+│                                  │
+│  AI Assistant ready              │
+│  Model: Claude 3.5               │
+│                                  │
+│  [Start Assessment]              │
+└─────────────────────────────────┘
+```
+
+### AGS Grade Passback Components
+
+**Grade Sync Status:**
+```
+┌──────────────────────────────────┐
+│ Grade Sync Status                │
+│                                   │
+│ ✅ Synced with Canvas             │
+│ Last update: 2 minutes ago       │
+│                                   │
+│ Manual Override: [Edit Grade]    │
+└──────────────────────────────────┘
+```
+
+**Grade Configuration:**
+```typescript
+interface GradePassbackConfig {
+  enabled: boolean;
+  strategy: 'immediate' | 'batch' | 'manual';
+  scoreType: 'percentage' | 'points' | 'mastery';
+  includePartial: boolean;
+}
+```
+
+### Multi-Tenant Institution Switcher
+
+**Institution Selection UI:**
+```
+┌─────────────────────────────────┐
+│ Current: State University       │
+│ ▼─────────────────────────────  │
+│ • State University (Current)    │
+│ • Community College              │
+│ • Technical Institute            │
+│ ─────────────────────────────   │
+│ + Add Institution                │
+└─────────────────────────────────┘
+```
+
+**Tenant Context Indicator:**
+- Always visible in header
+- Shows institution logo/name
+- Color-coded for different institutions
+- Keyboard shortcut for quick switch (Ctrl+I)
+
+## 13. Checklist Results
 
 ### Overall Validation Score: 92% PASS ✅
 
