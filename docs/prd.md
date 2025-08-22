@@ -157,13 +157,13 @@ Throughout Alex's journey, instructors use Atomic Guide's class-wide analytics t
 
 ### Deep Linking Assessment Functional Requirements
 
-**FR25:** The system shall implement Canvas deep linking 2.0 to enable instructors to embed assessment checkpoints at strategic locations within assignments, leveraging the existing LTI 1.3 authentication
+**FR25:** The system shall implement LTI deep linking 2.0 to enable instructors to embed assessment checkpoints at strategic locations within assignments, leveraging the existing LTI 1.3 authentication
 
 **FR26:** The system shall generate dynamic assessment activities including AI-created flashcards, fill-in-the-blank exercises, and contextual discussion prompts based on current page content
 
 **FR27:** The system shall provide an instructor approval workflow allowing review and modification of AI-generated questions before student deployment, maintaining pedagogical control
 
-**FR28:** The system shall integrate with Canvas Assignment and Grade Service (AGS) for automatic grade passback of assessment results to the gradebook
+**FR28:** The system shall integrate with LTI Assignment and Grade Service (AGS) for automatic grade passback of assessment results to the gradebook
 
 **FR29:** The system shall support flexible grading schemas including mastery-based (default), percentage-based, improvement tracking, and engagement scoring options
 

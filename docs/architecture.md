@@ -9,6 +9,7 @@
 This document provides the complete unified architecture for Atomic Guide Deep Linking Assessment Features, merging the comprehensive fullstack implementation details with the brownfield enhancement strategy. It serves as the single source of truth for AI-driven development, ensuring consistency across the entire technology stack while maintaining seamless integration with the existing LTI 1.3 foundation.
 
 This architecture document combines:
+
 - Complete fullstack technical specifications for deep linking assessment features
 - Brownfield enhancement patterns for Progressive Cognitive Learning Infrastructure
 - Proven research foundations achieving 50-80% improvement in knowledge retention
@@ -28,6 +29,7 @@ This architecture document combines:
   - Build upon current Vite bundling configuration
 
 **Target Outcomes:**
+
 - Reduce STEM gateway course failure rates by 15-25% using adaptive difficulty adjustment
 - Create portable "Learner DNA" profiles with individualized forgetting curves
 - Increase engagement by 35% through conversational assessment
@@ -130,7 +132,7 @@ graph TB
     AssessAPI --> AIService
     AssessAPI --> CogEngine
     AIService --> OpenAI
-    
+
     CogEngine --> D1
     CogEngine --> DO
 
@@ -159,15 +161,17 @@ graph TB
 | -------------------- | ----------------------------------- | -------- | ---------------------------------- | ----------------------------------------------------- |
 | Frontend Language    | TypeScript                          | 5.3+     | Type-safe frontend development     | Existing codebase standard, prevents runtime errors   |
 | Frontend Framework   | React (new) / Vanilla JS (existing) | 18.2+    | UI component development           | Progressive migration path documented in architecture |
-| UI Component Library | @atomicjolt/atomic-elements        | Latest   | LTI-friendly components            | Consistent LTI integration patterns                   |
-| State Management     | Redux Toolkit + Zustand             | 2.x/4.4+ | Global state + chat state          | Redux for app state, Zustand for chat components      |
+| UI Component Library | @atomicjolt/atomic-elements         | Latest   | LTI-friendly components            | Consistent LTI integration patterns                   |
+| State Management     | Redux Toolkit                       | 2.x      | Global state + chat state          | Redux for app state and for chat components           |
+| React API            | RTK Query                           | 2.x      | API requests                       | Integrates with Redux Toolkit                         |
 | Backend Language     | TypeScript                          | 5.3+     | Type-safe backend development      | Existing Worker codebase standard                     |
 | Backend Framework    | Hono                                | 3.11+    | HTTP routing and middleware        | Already integrated with LTI endpoints                 |
 | API Style            | REST + WebSocket                    | -        | API communication + real-time chat | REST for CRUD, WebSocket for conversations            |
 | Database             | Cloudflare D1 (new) + KV (existing) | latest   | Relational + key-value storage     | D1 for assessment data, KV for LTI config             |
+| Search               | Cloudflare Vectorize                | latest   | Semantic search                    | Vectorize for any data that needs to be searched      |
 | Cache                | Cloudflare KV + Worker Cache API    | latest   | Response caching                   | Existing caching infrastructure                       |
-| File Storage         | Cloudflare R2 (if needed)           | latest   | Assessment media storage           | Cost-effective for generated content                  |
-| Authentication       | LTI 1.3 JWT                         | existing | User authentication                | Existing OAuth2/JWT implementation                    |
+| File Storage         | Cloudflare R2                       | latest   | Assessment media storage           | Cost-effective for generated content                  |
+| Authentication       | JWT                                 | existing | User authentication                | Existing OAuth2/JWT implementation                    |
 | Frontend Testing     | Vitest                              | 1.0+     | Unit/integration testing           | Existing test framework                               |
 | Backend Testing      | Vitest                              | 1.0+     | Worker testing                     | Consistent with frontend                              |
 | E2E Testing          | Playwright                          | 1.40+    | End-to-end testing                 | Canvas iframe testing support                         |
@@ -177,7 +181,7 @@ graph TB
 | CI/CD                | GitHub Actions                      | -        | Automated deployment               | Existing CI/CD pipeline                               |
 | Monitoring           | Cloudflare Analytics + Tail logs    | latest   | Performance monitoring             | Built-in Worker monitoring                            |
 | Logging              | Cloudflare Logpush                  | latest   | Centralized logging                | Production log aggregation                            |
-| CSS Framework        | CSS Modules + Tailwind (optional)   | 3.3+     | Component styling                  | Scoped styles with utility classes                    |
+| CSS Framework        | CSS Modules                         | 3.3+     | Component styling                  | Scoped styles with utility classes                    |
 | AI Integration       | Cloudflare AI + OpenAI/Anthropic    | latest   | Cognitive processing & chat        | Edge inference + advanced AI capabilities             |
 | MCP Server           | Cloudflare MCP                      | latest   | AI client integration              | Native OAuth support, edge deployment                 |
 | Internationalization | i18next                             | 23.x     | Multi-language support             | Comprehensive i18n solution                           |
@@ -223,6 +227,7 @@ interface Conversation {
 ```
 
 **Relationships:**
+
 - Has many ConversationMessages
 - Belongs to AssessmentConfig
 - Has one StudentProgress
@@ -327,6 +332,7 @@ interface LearnerProfile {
 ```
 
 **Relationships:**
+
 - References LTI platform via iss in KV
 - One-to-many with LearningSession, StruggleEvent
 
@@ -601,6 +607,7 @@ components:
 - **Integration:** Validates JWT from LTI session
 
 Response:
+
 ```json
 {
   "learner_id": "uuid",
@@ -626,6 +633,7 @@ Response:
 - **Integration:** WebSocket upgrade for real-time stream
 
 Request:
+
 ```json
 {
   "session_id": "uuid",
@@ -649,6 +657,7 @@ Request:
 - **Integration:** Validates session, extracts Canvas context, applies Learner DNA
 
 Request:
+
 ```json
 {
   "session_id": "uuid",
@@ -664,6 +673,7 @@ Request:
 ```
 
 Response:
+
 ```json
 {
   "response": "Based on your learning style...",
@@ -688,6 +698,7 @@ Response:
 - **Protocol:** JSON messages over WebSocket
 
 Message Types:
+
 ```typescript
 type ChatMessage =
   | { type: 'user_message'; content: string; context: PageContext }
@@ -804,18 +815,14 @@ export class CognitiveEngine {
   }
 
   // Anti-Cramming Learning Companion
-  private scheduleOptimalLearning(
-    content: LearningContent,
-    learnerProfile: LearnerProfile,
-    deadline: Date
-  ): LearningSchedule {
+  private scheduleOptimalLearning(content: LearningContent, learnerProfile: LearnerProfile, deadline: Date): LearningSchedule {
     const now = new Date();
     const daysUntilDeadline = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    
+
     // Calculate optimal session distribution
     const sessionCount = Math.ceil(content.estimatedHours / learnerProfile.optimalSessionLength);
     const spacing = this.calculateOptimalSpacing(daysUntilDeadline, sessionCount);
-    
+
     // Schedule micro-learning sessions
     const sessions: LearningSession[] = [];
     for (let i = 0; i < sessionCount; i++) {
@@ -823,51 +830,47 @@ export class CognitiveEngine {
         scheduledTime: this.findOptimalTimeSlot(learnerProfile, spacing[i]),
         duration: Math.min(learnerProfile.optimalSessionLength, 25), // Max 25 minutes per session
         content: this.chunkContent(content, i, sessionCount),
-        reminderType: this.selectReminderStrategy(learnerProfile)
+        reminderType: this.selectReminderStrategy(learnerProfile),
       });
     }
-    
+
     return { sessions, adaptiveTriggers: this.createAdaptiveTriggers(learnerProfile) };
   }
 
   // Cognitive Load Optimization Engine
-  private optimizeCognitiveLoad(
-    learningTasks: Task[],
-    learnerState: LearnerState,
-    context: LearningContext
-  ): OptimizedPlan {
+  private optimizeCognitiveLoad(learningTasks: Task[], learnerState: LearnerState, context: LearningContext): OptimizedPlan {
     // Measure current cognitive load
     const currentLoad = this.assessCognitiveLoad(learnerState);
-    
+
     // Prioritize tasks based on importance and cognitive demand
     const prioritizedTasks = learningTasks
-      .map(task => ({
+      .map((task) => ({
         ...task,
         cognitiveWeight: this.calculateCognitiveWeight(task, learnerState),
         importance: this.calculateImportance(task, context),
-        enjoymentScore: this.predictEnjoyment(task, learnerState.preferences)
+        enjoymentScore: this.predictEnjoyment(task, learnerState.preferences),
       }))
       .sort((a, b) => {
         // Balance importance with cognitive efficiency
-        const scoreA = (a.importance * 0.5) + (a.enjoymentScore * 0.3) - (a.cognitiveWeight * 0.2);
-        const scoreB = (b.importance * 0.5) + (b.enjoymentScore * 0.3) - (b.cognitiveWeight * 0.2);
+        const scoreA = a.importance * 0.5 + a.enjoymentScore * 0.3 - a.cognitiveWeight * 0.2;
+        const scoreB = b.importance * 0.5 + b.enjoymentScore * 0.3 - b.cognitiveWeight * 0.2;
         return scoreB - scoreA;
       });
-    
+
     // Remove decision fatigue
     const streamlinedPlan = {
       primaryFocus: prioritizedTasks[0],
       secondaryTasks: prioritizedTasks.slice(1, 3),
       deferredTasks: prioritizedTasks.slice(3),
       breaks: this.scheduleOptimalBreaks(currentLoad),
-      modeSwitches: this.planModalitySwitches(learnerState.preferences)
+      modeSwitches: this.planModalitySwitches(learnerState.preferences),
     };
-    
+
     // Create frictionless learning flow
     return {
       ...streamlinedPlan,
       transitions: this.createSmoothTransitions(streamlinedPlan),
-      adaptiveTriggers: this.createLoadBalancingTriggers(currentLoad)
+      adaptiveTriggers: this.createLoadBalancingTriggers(currentLoad),
     };
   }
 
@@ -875,13 +878,13 @@ export class CognitiveEngine {
   private calculateOptimalSpacing(days: number, sessions: number): number[] {
     const spacing: number[] = [];
     const optimalInterval = days / sessions;
-    
+
     for (let i = 0; i < sessions; i++) {
       // Use expanding intervals (closer together at start, further apart later)
       const expandFactor = Math.pow(1.15, i);
       spacing.push(Math.min(optimalInterval * expandFactor, days - 1));
     }
-    
+
     return spacing;
   }
 
@@ -892,7 +895,7 @@ export class CognitiveEngine {
       attention: this.measureAttentionalResources(state),
       fatigue: this.estimateMentalFatigue(state),
       stress: this.detectStressIndicators(state),
-      overall: this.computeOverallLoad(state)
+      overall: this.computeOverallLoad(state),
     };
   }
 }
@@ -968,9 +971,9 @@ class PersonaManager {
   private personas: Map<string, ConversationPersona> = new Map([
     ['encouraging', {
       type: 'encouraging',
-      systemPrompt: `You are a supportive and encouraging tutor. Celebrate small victories, 
-                     provide positive reinforcement, and help build student confidence. 
-                     Use phrases like "Great progress!", "You're getting closer!", 
+      systemPrompt: `You are a supportive and encouraging tutor. Celebrate small victories,
+                     provide positive reinforcement, and help build student confidence.
+                     Use phrases like "Great progress!", "You're getting closer!",
                      "Let's work through this together."`,
       toneAdjustments: {
         formality: 0.3, // Casual and friendly
@@ -985,8 +988,8 @@ class PersonaManager {
     }],
     ['socratic', {
       type: 'socratic',
-      systemPrompt: `You are a Socratic tutor who guides through questioning. 
-                     Rather than providing direct answers, ask thought-provoking questions 
+      systemPrompt: `You are a Socratic tutor who guides through questioning.
+                     Rather than providing direct answers, ask thought-provoking questions
                      that lead students to discover solutions themselves.`,
       toneAdjustments: {
         formality: 0.7, // More formal
@@ -1042,17 +1045,17 @@ class PersonaManager {
 
   // Select and apply persona to conversation
   applyPersona(
-    conversationId: string, 
-    personaType: string, 
+    conversationId: string,
+    personaType: string,
     studentProfile?: LearnerProfile
   ): ConversationContext {
     const persona = this.personas.get(personaType) || this.personas.get('adaptive');
-    
+
     // Adapt based on student profile if available
     if (studentProfile && persona.type === 'adaptive') {
       return this.createAdaptiveContext(persona, studentProfile);
     }
-    
+
     return {
       systemPrompt: persona.systemPrompt,
       toneSettings: persona.toneAdjustments,
@@ -1066,17 +1069,17 @@ class PersonaManager {
     profile: LearnerProfile
   ): ConversationContext {
     const adjustedTone = { ...persona.toneAdjustments };
-    
+
     // Apply learning style preferences
     if (profile.cognitive_profile.engagement_patterns.includes('visual_learner')) {
       adjustedTone.detail_level = Math.min(adjustedTone.detail_level + 0.2, 1.0);
     }
-    
+
     // Apply historical performance adjustments
     if (profile.average_confidence < 0.5) {
       adjustedTone.encouragement = Math.min(adjustedTone.encouragement + 0.3, 1.0);
     }
-    
+
     return {
       systemPrompt: this.personalizePrompt(persona.systemPrompt, profile),
       toneSettings: adjustedTone,
@@ -1152,11 +1155,11 @@ interface VideoService {
   extractTimestamps(videoUrl: string): Promise<TimestampMap>;
   findRelevantSegment(concept: string, videoId: string): Promise<VideoSegment>;
   generateClip(start: number, end: number, videoId: string): Promise<string>;
-  
+
   // AI-powered analysis
   analyzeTranscript(videoUrl: string): Promise<ConceptMap>;
   correlateWithStruggle(struggleContext: StruggleContext, availableVideos: Video[]): VideoRecommendation[];
-  
+
   // Caching and optimization
   cacheTimestamps(videoId: string, timestamps: TimestampMap): Promise<void>;
   getVideoMetadata(videoUrl: string): Promise<VideoMetadata>;
@@ -1202,19 +1205,19 @@ interface ApprovalService {
   // Submission and review
   submitForApproval(activity: GeneratedActivity, metadata: ApprovalMetadata): Promise<ApprovalRequest>;
   reviewActivity(requestId: string, decision: ApprovalDecision): Promise<void>;
-  
+
   // Queue management
   getApprovalQueue(instructorId: string, filters?: QueueFilters): Promise<ApprovalRequest[]>;
   getPendingCount(instructorId: string): Promise<number>;
-  
+
   // Batch operations
   bulkApprove(requestIds: string[], template?: ApprovalTemplate): Promise<BatchResult>;
   bulkReject(requestIds: string[], reason: string): Promise<BatchResult>;
-  
+
   // Templates and patterns
   createApprovalTemplate(template: ApprovalTemplate): Promise<void>;
   applyTemplate(templateId: string, activityIds: string[]): Promise<void>;
-  
+
   // Auto-approval rules
   setAutoApprovalRules(rules: AutoApprovalRule[]): Promise<void>;
   processAutoApprovals(): Promise<AutoApprovalResult>;
@@ -3311,18 +3314,21 @@ This section outlines advanced features and moonshot concepts from the brainstor
 #### Advanced Interactive Activities
 
 **Timeline Builders & Concept Mapping:**
+
 - Interactive timeline creation for historical/sequential content
 - Student-guided concept map construction with AI validation
 - Drag-and-drop interfaces for kinesthetic learners
 - **Technical Requirements:** Advanced React DnD, Canvas API for drawing, D1 for storing relationships
 
 **Image Hotspot Exploration:**
+
 - Click-to-explore diagrams with contextual AI explanations
 - Annotation layers for collaborative learning
 - Integration with course image libraries
 - **Technical Requirements:** SVG manipulation, overlay rendering, coordinate mapping to concepts
 
 **Embedded Video Questions:**
+
 - In-video pause points for comprehension checks
 - Timestamp-linked assessments
 - Automatic caption analysis for question generation
@@ -3333,30 +3339,22 @@ This section outlines advanced features and moonshot concepts from the brainstor
 #### Predictive Learning Path Optimization
 
 **Cross-Institutional Knowledge Graph:**
+
 ```typescript
 interface PredictiveLearningSystem {
   // Analyze patterns across all institutions
-  predictStrugglePoints(
-    studentProfile: LearnerProfile,
-    upcomingContent: Content[],
-    institutionalData: AggregateData
-  ): PredictionResult[];
-  
+  predictStrugglePoints(studentProfile: LearnerProfile, upcomingContent: Content[], institutionalData: AggregateData): PredictionResult[];
+
   // Generate preventive interventions
-  createPreemptiveSupport(
-    predictions: PredictionResult[],
-    availableResources: Resource[]
-  ): InterventionPlan;
-  
+  createPreemptiveSupport(predictions: PredictionResult[], availableResources: Resource[]): InterventionPlan;
+
   // Optimize entire degree pathways
-  suggestCourseSequencing(
-    degreeRequirements: Requirements,
-    studentStrengths: StrengthProfile
-  ): OptimalPathway;
+  suggestCourseSequencing(degreeRequirements: Requirements, studentStrengths: StrengthProfile): OptimalPathway;
 }
 ```
 
 **Implementation Challenges:**
+
 - Privacy-preserving federated learning across institutions
 - Handling diverse curriculum structures
 - Ensuring algorithmic fairness across demographics
@@ -3366,32 +3364,28 @@ interface PredictiveLearningSystem {
 #### Visual Understanding Assessment
 
 **Sketch-Based Concept Evaluation:**
+
 - Students draw diagrams/formulas for AI analysis
 - Computer vision evaluation of spatial reasoning
 - Particularly valuable for STEM fields (chemistry structures, physics diagrams, math proofs)
 
 **Technical Architecture:**
+
 ```typescript
 interface VisualAssessmentEngine {
   // Capture and process drawings
   captureSketch(canvas: HTMLCanvasElement): SketchData;
-  
+
   // Analyze conceptual understanding
-  evaluateDrawing(
-    sketch: SketchData,
-    expectedConcept: Concept,
-    rubric: VisualRubric
-  ): AssessmentResult;
-  
+  evaluateDrawing(sketch: SketchData, expectedConcept: Concept, rubric: VisualRubric): AssessmentResult;
+
   // Provide visual feedback
-  annotateSketch(
-    sketch: SketchData,
-    feedback: VisualFeedback[]
-  ): AnnotatedCanvas;
+  annotateSketch(sketch: SketchData, feedback: VisualFeedback[]): AnnotatedCanvas;
 }
 ```
 
 **Implementation Requirements:**
+
 - TensorFlow.js for client-side ML inference
 - Custom training on educational sketches dataset
 - Fallback to server-side processing for complex evaluations
@@ -3400,25 +3394,28 @@ interface VisualAssessmentEngine {
 #### Portable Learning DNA
 
 **Lifelong Cognitive Companion:**
+
 - Blockchain-based learner credentials
 - Cross-platform cognitive profile portability
 - Career-long learning optimization
 
 **Standards & Protocols:**
+
 ```typescript
 interface LearningDNAProtocol {
   // Export learner profile to portable format
   exportProfile(format: 'W3C_VC' | 'IMS_CLR' | 'OpenBadges'): PortableCredential;
-  
+
   // Import from other platforms
   importProfile(credential: PortableCredential): LearnerProfile;
-  
+
   // Federated profile updates
   syncAcrossPlatforms(platforms: Platform[]): SyncResult;
 }
 ```
 
 **Key Partnerships Required:**
+
 - W3C Verifiable Credentials working group
 - IMS Global Learning Consortium
 - Major LMS vendors for interoperability
@@ -3426,11 +3423,13 @@ interface LearningDNAProtocol {
 #### Cognitive Load Optimization Engine (Advanced)
 
 **Neural Adaptation System:**
+
 - Real-time EEG integration (future wearables)
 - Biometric-based cognitive load measurement
 - Automatic content difficulty adjustment based on physiological signals
 
 **Ethical Considerations:**
+
 - Explicit consent for biometric data collection
 - Right to cognitive privacy
 - Transparent algorithmic decision-making
