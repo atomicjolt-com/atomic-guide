@@ -408,6 +408,93 @@ interface StudentProgress {
 }
 ```
 
+### Redux State Models
+
+#### Global Application State
+
+**Purpose:** Centralized state management using Redux Toolkit
+**Storage:** In-memory Redux store with persistence to sessionStorage for critical data
+
+**TypeScript Interface:**
+
+```typescript
+// Redux Store Shape
+interface RootState {
+  auth: AuthState;
+  assessment: AssessmentState;
+  chat: ChatState;
+  ui: UIState;
+  // RTK Query API slices
+  api: {
+    assessmentApi: AssessmentApiState;
+    chatApi: ChatApiState;
+    canvasApi: CanvasApiState;
+  };
+}
+
+interface AuthState {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    roles: string[];
+  } | null;
+  ltiClaims: Record<string, any>;
+  isAuthenticated: boolean;
+}
+
+interface AssessmentState {
+  activeConfig: AssessmentConfig | null;
+  activeConversation: Conversation | null;
+  progress: StudentProgress | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface ChatState {
+  messages: ConversationMessage[];
+  isTyping: boolean;
+  connectionStatus: 'connected' | 'disconnected' | 'reconnecting';
+  streamingMessage: string | null;
+}
+```
+
+#### Vectorize Search Models
+
+**Purpose:** Semantic search data structures for Cloudflare Vectorize V2
+**Integration:** Powers content discovery and similarity matching
+
+**TypeScript Interface:**
+
+```typescript
+interface VectorizeVector {
+  id: string;
+  values: number[] | Float32Array | Float64Array; // Embedding dimensions must match index config
+  metadata?: Record<string, any>; // Max 10KiB per vector
+  namespace?: string; // Optional namespace for segmentation (max 1000 per index)
+}
+
+interface VectorizeQueryOptions {
+  topK?: number; // Number of results to return (default: 5)
+  returnValues?: boolean; // true = high precision scoring, higher latency
+  returnMetadata?: 'none' | 'indexed' | 'all'; // Metadata to return
+  namespace?: string; // Query within specific namespace
+  filter?: Record<string, any>; // Metadata filters (requires metadata indexes)
+}
+
+interface VectorizeMatch {
+  id: string;
+  score: number; // Distance based on metric (cosine: -1 to 1, euclidean: 0+, dot: negative better)
+  values?: number[]; // Only if returnValues: true
+  metadata?: Record<string, any>;
+}
+
+interface SearchResult {
+  count: number;
+  matches: VectorizeMatch[];
+}
+```
+
 ## 5. API Specification
 
 ### REST API Specification
@@ -706,6 +793,102 @@ type ChatMessage =
   | { type: 'suggestion'; content: string; trigger: 'struggle' | 'idle' }
   | { type: 'typing_indicator'; isTyping: boolean }
   | { type: 'rate_limit'; remaining: number; resetAt: number };
+```
+
+### RTK Query API Implementation
+
+#### API Slice Configuration
+
+**Purpose:** Centralized API management with caching, invalidation, and optimistic updates
+**Integration:** Automatic integration with Redux store
+
+```typescript
+// Assessment API Slice
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export const assessmentApi = createApi({
+  reducerPath: 'assessmentApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/api/assessment',
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
+      if (token) headers.set('authorization', `Bearer ${token}`);
+      return headers;
+    },
+  }),
+  tagTypes: ['Assessment', 'Conversation', 'Progress'],
+  endpoints: (builder) => ({
+    getAssessmentConfig: builder.query<AssessmentConfig, string>({
+      query: (id) => `/config/${id}`,
+      providesTags: ['Assessment'],
+    }),
+    createConversation: builder.mutation<Conversation, CreateConversationDto>({
+      query: (data) => ({
+        url: '/conversation',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Conversation'],
+    }),
+    streamChat: builder.mutation<void, ChatMessage>({
+      queryFn: async (message, api, extraOptions, baseQuery) => {
+        // WebSocket streaming implementation
+        const ws = new WebSocket(`${WS_URL}/chat`);
+        // Handle streaming responses
+        return { data: undefined };
+      },
+    }),
+  }),
+});
+
+// Canvas API Integration
+export const canvasApi = createApi({
+  reducerPath: 'canvasApi',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api/canvas' }),
+  endpoints: (builder) => ({
+    getNamesAndRoles: builder.query<CanvasRoster, void>({
+      query: () => '/names_and_roles',
+      transformResponse: (response: any) => response.members,
+    }),
+    submitGrade: builder.mutation<void, GradeSubmission>({
+      query: (grade) => ({
+        url: '/grade',
+        method: 'POST',
+        body: grade,
+      }),
+    }),
+  }),
+});
+```
+
+#### Real-time WebSocket Integration
+
+```typescript
+// Chat WebSocket middleware for Redux
+export const chatWebSocketMiddleware: Middleware = (store) => {
+  let socket: WebSocket | null = null;
+
+  return (next) => (action) => {
+    if (startConversation.match(action)) {
+      socket = new WebSocket(action.payload.websocketUrl);
+
+      socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        store.dispatch(addChatMessage(message));
+      };
+
+      socket.onerror = () => {
+        store.dispatch(setChatConnectionStatus('disconnected'));
+      };
+    }
+
+    if (sendMessage.match(action) && socket) {
+      socket.send(JSON.stringify(action.payload));
+    }
+
+    return next(action);
+  };
+};
 ```
 
 ### MCP Protocol Implementation
@@ -1130,6 +1313,127 @@ class PersonaManager {
 **Dependencies:** WebSocket client, Canvas postMessage API, React hooks
 
 **Technology Stack:** React 18, TypeScript, Zustand for state, Tailwind CSS
+
+### Cloudflare AI Service
+
+**Responsibility:** Manages edge AI inference using Cloudflare Workers AI
+**Key Interfaces:**
+
+- `generateEmbedding(text: string): Promise<number[]>` - Create vector embeddings for semantic search
+- `classifyIntent(message: string): Promise<IntentClassification>` - Determine student query intent
+- `summarizeContent(text: string, maxTokens: number): Promise<string>` - Generate concise summaries
+- `detectLanguage(text: string): Promise<LanguageCode>` - Identify language for i18n support
+
+**Implementation:**
+
+```typescript
+interface CloudflareAIService {
+  // Text embeddings for Vectorize
+  async generateEmbedding(text: string): Promise<number[]> {
+    const response = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
+      text: [text]
+    });
+    return response.data[0];
+  }
+
+  // Intent classification for chat routing
+  async classifyIntent(message: string): Promise<IntentClassification> {
+    const response = await env.AI.run('@cf/huggingface/distilbert-sst-2-int8', {
+      text: message
+    });
+    return {
+      intent: response.label,
+      confidence: response.score
+    };
+  }
+
+  // Content summarization
+  async summarizeContent(text: string): Promise<string> {
+    const response = await env.AI.run('@cf/facebook/bart-large-cnn', {
+      input_text: text,
+      max_length: 150
+    });
+    return response.summary;
+  }
+}
+```
+
+### Vectorize Search Service
+
+**Responsibility:** Semantic search and content discovery using Cloudflare Vectorize V2
+**Key Interfaces:**
+
+- `indexContent(content: string, metadata: any): Promise<void>` - Add content to vector index (fails if ID exists)
+- `upsertContent(id: string, content: string, metadata: any): Promise<void>` - Update or insert vectors
+- `searchSimilar(query: string, options: QueryOptions): Promise<SearchResult[]>` - Find semantically similar content
+- `searchByNamespace(query: string, namespace: string): Promise<SearchResult[]>` - Search within namespaces
+- `queryById(vectorId: string, options?: QueryOptions): Promise<SearchResult[]>` - Find similar to existing vector
+
+**Implementation:**
+
+```typescript
+interface VectorizeService {
+  private vectorIndex: Vectorize;
+
+  // Insert new vectors (fails if ID already exists)
+  async indexContent(content: string, metadata: DocumentMetadata): Promise<void> {
+    const embedding = await aiService.generateEmbedding(content);
+    const result = await this.vectorIndex.insert([{
+      id: crypto.randomUUID(),
+      values: embedding, // Must match index dimensions (e.g., 768 for bge-base-en-v1.5)
+      metadata: {
+        url: metadata.url,
+        course_id: metadata.course_id,
+        created_at: new Date().toISOString()
+        // Max 10KiB total metadata per vector
+      },
+      namespace: metadata.namespace // Optional: segment by course/user (max 1000 namespaces)
+    }]);
+    
+    // Track mutation ID for async processing
+    console.log(`Indexed with mutation: ${result.mutationId}`);
+  }
+  
+  // Upsert vectors (overwrites if ID exists)
+  async upsertContent(id: string, content: string, metadata: any): Promise<void> {
+    const embedding = await aiService.generateEmbedding(content);
+    await this.vectorIndex.upsert([{
+      id,
+      values: embedding,
+      metadata
+    }]);
+  }
+
+  // Query with high precision or approximate scoring
+  async searchSimilar(query: string, options: QueryOptions = {}): Promise<SearchResult[]> {
+    const queryEmbedding = await aiService.generateEmbedding(query);
+    
+    const results = await this.vectorIndex.query(queryEmbedding, {
+      topK: options.limit || 10,
+      returnValues: options.highPrecision || false, // true = exact scores, higher latency
+      returnMetadata: 'all',
+      namespace: options.namespace,
+      filter: options.metadataFilter // Requires metadata indexes created before insert
+    });
+
+    return results.matches.map(match => ({
+      id: match.id,
+      score: match.score, // Interpretation depends on metric (cosine/euclidean/dot-product)
+      metadata: match.metadata,
+      values: match.values // Only if returnValues: true
+    }));
+  }
+  
+  // Query by existing vector ID (combines getById + query)
+  async findSimilarById(vectorId: string, topK = 10): Promise<SearchResult[]> {
+    const results = await this.vectorIndex.queryById(vectorId, { 
+      topK,
+      returnMetadata: 'all'
+    });
+    return results.matches;
+  }
+}
+```
 
 ### Video Micro-Learning Service
 
@@ -1664,37 +1968,124 @@ export const ChatAssessment: React.FC<ChatAssessmentProps> = ({
 
 ```typescript
 // store/configure_store.ts
-import { configureStore as rtkconfigureStore } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { baseApi } from './api/baseApi';
-import settingsReducer from './slices/settingsSlice';
-import jwtReducer from './slices/jwtSlice';
+import authReducer from './slices/authSlice';
+import assessmentReducer from './slices/assessmentSlice';
+import chatReducer from './slices/chatSlice';
+import uiReducer from './slices/uiSlice';
+import { assessmentApi } from './api/assessmentApi';
+import { canvasApi } from './api/canvasApi';
+import { chatApi } from './api/chatApi';
+import { chatWebSocketMiddleware } from './middleware/chatWebSocket';
 
-export function configureStore({ settings, jwt, apiBaseUrl }) {
-  const store = rtkconfigureStore({
+export function configureStore() {
+  const store = configureStore({
     reducer: {
-      settings: settingsReducer,
-      jwt: jwtReducer,
-      [baseApi.reducerPath]: baseApi.reducer,
+      // Core feature slices
+      auth: authReducer,
+      assessment: assessmentReducer,
+      chat: chatReducer,
+      ui: uiReducer,
+      // RTK Query API slices
+      [assessmentApi.reducerPath]: assessmentApi.reducer,
+      [canvasApi.reducerPath]: canvasApi.reducer,
+      [chatApi.reducerPath]: chatApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: {
-          ignoredActions: ['jwt/refresh'],
+          ignoredActions: ['chat/messageReceived', 'auth/tokenRefresh'],
+          ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
         },
-      }).concat(baseApi.middleware),
-    preloadedState: {
-      settings,
-      jwt,
-    },
+      })
+        .concat(assessmentApi.middleware)
+        .concat(canvasApi.middleware)
+        .concat(chatApi.middleware)
+        .concat(chatWebSocketMiddleware),
   });
 
   setupListeners(store.dispatch);
   return store;
 }
+
+// Type exports for TypeScript
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+
+// Typed hooks
+import { useDispatch, useSelector } from 'react-redux';
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 ```
 
-#### Zustand Store for Chat State
+#### Feature Slice Example with Redux Toolkit
+
+```typescript
+// store/slices/assessmentSlice.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+
+interface AssessmentState {
+  activeConfig: AssessmentConfig | null;
+  activeConversation: Conversation | null;
+  progress: StudentProgress | null;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: AssessmentState = {
+  activeConfig: null,
+  activeConversation: null,
+  progress: null,
+  loading: false,
+  error: null,
+};
+
+// Async thunks for complex operations
+export const initializeAssessment = createAsyncThunk('assessment/initialize', async (configId: string, { dispatch, extra }) => {
+  // Load config, create conversation, setup WebSocket
+  const config = await api.getAssessmentConfig(configId);
+  const conversation = await api.createConversation(config.id);
+  return { config, conversation };
+});
+
+const assessmentSlice = createSlice({
+  name: 'assessment',
+  initialState,
+  reducers: {
+    setActiveConfig: (state, action: PayloadAction<AssessmentConfig>) => {
+      state.activeConfig = action.payload;
+    },
+    updateProgress: (state, action: PayloadAction<Partial<StudentProgress>>) => {
+      state.progress = { ...state.progress, ...action.payload };
+    },
+    clearAssessment: (state) => {
+      return initialState;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(initializeAssessment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(initializeAssessment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.activeConfig = action.payload.config;
+        state.activeConversation = action.payload.conversation;
+      })
+      .addCase(initializeAssessment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to initialize assessment';
+      });
+  },
+});
+
+export const { setActiveConfig, updateProgress, clearAssessment } = assessmentSlice.actions;
+export default assessmentSlice.reducer;
+```
+
+#### Chat State Management with Redux Toolkit
 
 ```typescript
 // Zustand store for conversation state
@@ -1824,7 +2215,333 @@ apiClient.interceptors.response.use(
 );
 ```
 
-## 11. Backend Architecture
+## 11. LTI Architecture
+
+### Overview
+
+This application implements Learning Tools Interoperability (LTI) 1.3 Core and Advantage services using the `@atomicjolt/lti-endpoints` package. All LTI protocol handling is abstracted through this package to ensure standards compliance and code reuse.
+
+### LTI Standards Implementation
+
+**CRITICAL:** All LTI functionality MUST use `@atomicjolt/lti-endpoints` to ensure proper interaction with the standards.
+
+#### Core LTI 1.3 Support
+
+- **OpenID Connect Authentication:** Third-party initiated login flow with JWT-based security
+- **Resource Link Launch:** Primary workflow for launching tool from Canvas/LMS
+- **Platform Registration:** Dynamic registration support for automatic platform setup
+- **Multi-tenancy:** Deployment IDs for supporting multiple institutions
+- **Security:** RSA key pairs, JWT validation, HTTPS-only communication
+
+#### LTI Advantage Services
+
+##### Deep Linking 2.0
+
+**Purpose:** Content selection and embedding into Canvas courses
+**Implementation:**
+
+```typescript
+import { DeepLinkingService } from '@atomicjolt/lti-endpoints';
+
+// Deep linking request handler
+export async function handleDeepLinkingRequest(c: Context) {
+  const service = new DeepLinkingService(c.env);
+  const deeplinkRequest = await service.validateRequest(c.req);
+
+  // Present content selection UI
+  const selectedContent = await presentContentSelector(deeplinkRequest);
+
+  // Create deep linking response
+  const response = await service.createResponse({
+    content_items: [
+      {
+        type: 'ltiResourceLink',
+        title: selectedContent.title,
+        custom: { assessment_config_id: selectedContent.id },
+      },
+    ],
+  });
+
+  return c.redirect(response.redirect_url);
+}
+```
+
+##### Assignment and Grade Services (AGS) 2.0
+
+**Purpose:** Gradebook integration and score submission
+**Implementation:**
+
+```typescript
+import { AssignmentGradeService } from '@atomicjolt/lti-endpoints';
+
+export async function submitGrade(conversation: Conversation) {
+  const ags = new AssignmentGradeService(env);
+
+  // Create or update line item
+  const lineItem = await ags.createLineItem({
+    scoreMaximum: 100,
+    label: 'AI Assessment',
+    resourceLinkId: conversation.resource_link_id,
+  });
+
+  // Submit score
+  await ags.submitScore({
+    userId: conversation.user_id,
+    scoreGiven: conversation.mastery_score,
+    scoreMaximum: 100,
+    activityProgress: 'Completed',
+    gradingProgress: 'FullyGraded',
+    timestamp: new Date().toISOString(),
+  });
+}
+```
+
+##### Names and Role Provisioning Services (NRPS) 2.0
+
+**Purpose:** Retrieve course roster and user roles
+**Implementation:**
+
+```typescript
+import { NamesRolesService } from '@atomicjolt/lti-endpoints';
+
+export async function getCourseRoster(contextId: string) {
+  const nrps = new NamesRolesService(env);
+
+  const membership = await nrps.getMembership({
+    contextId,
+    role: 'Learner',
+    limit: 100,
+  });
+
+  return membership.members.map((member) => ({
+    id: member.user_id,
+    name: member.name,
+    email: member.email,
+    roles: member.roles,
+  }));
+}
+```
+
+### LTI Message Flow Architecture
+
+#### 1. OIDC Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Canvas
+    participant Worker
+    participant Client
+
+    Canvas->>Worker: POST /lti/init (login initiation)
+    Worker->>Worker: Generate state & nonce
+    Worker->>Canvas: Redirect to auth endpoint
+    Canvas->>Worker: POST /lti/redirect (with ID token)
+    Worker->>Worker: Validate JWT & claims
+    Worker->>Client: Redirect to /lti/launch with state
+    Client->>Worker: Validate launch & load app
+```
+
+#### 2. Deep Linking Flow
+
+```mermaid
+sequenceDiagram
+    participant Instructor
+    participant Canvas
+    participant Worker
+    participant UI
+
+    Instructor->>Canvas: Click "Add Assessment"
+    Canvas->>Worker: Deep linking request
+    Worker->>UI: Load content selector
+    Instructor->>UI: Select assessment type
+    UI->>Worker: Selected content
+    Worker->>Canvas: Deep linking response
+    Canvas->>Canvas: Save resource link
+```
+
+### LTI Claims and Context
+
+#### Required Claims Processing
+
+```typescript
+interface LTIClaims {
+  // Core claims
+  sub: string; // User ID
+  iss: string; // Platform issuer
+  aud: string | string[]; // Client ID(s)
+  exp: number; // Expiration time
+  iat: number; // Issued at time
+  nonce: string; // Unique value
+
+  // LTI-specific claims
+  'https://purl.imsglobal.org/spec/lti/claim/message_type': string;
+  'https://purl.imsglobal.org/spec/lti/claim/version': string;
+  'https://purl.imsglobal.org/spec/lti/claim/deployment_id': string;
+  'https://purl.imsglobal.org/spec/lti/claim/target_link_uri': string;
+
+  // Context claims
+  'https://purl.imsglobal.org/spec/lti/claim/context': {
+    id: string;
+    label: string;
+    title: string;
+    type: string[];
+  };
+
+  // User claims
+  'https://purl.imsglobal.org/spec/lti/claim/roles': string[];
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  email?: string;
+
+  // Resource link
+  'https://purl.imsglobal.org/spec/lti/claim/resource_link': {
+    id: string;
+    title?: string;
+    description?: string;
+  };
+
+  // LTI Advantage service endpoints
+  'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'?: {
+    scope: string[];
+    lineitems: string;
+    lineitem?: string;
+  };
+
+  'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice'?: {
+    context_memberships_url: string;
+    service_versions: string[];
+  };
+
+  'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'?: {
+    deep_link_return_url: string;
+    accept_types: string[];
+    accept_presentation_document_targets: string[];
+  };
+}
+```
+
+### Platform Registration and Configuration
+
+#### Dynamic Registration Support
+
+```typescript
+// Platform registration handler using @atomicjolt/lti-endpoints
+import { DynamicRegistration } from '@atomicjolt/lti-endpoints';
+
+export async function registerPlatform(c: Context) {
+  const registration = new DynamicRegistration(c.env);
+
+  const config = await registration.register({
+    platform_url: c.req.query('platform_url'),
+    registration_token: c.req.query('registration_token'),
+    tool_config: {
+      title: 'Atomic Guide',
+      description: 'AI-powered assessment tool',
+      oidc_initiation_url: `${TOOL_URL}/lti/init`,
+      target_link_uri: `${TOOL_URL}/lti/launch`,
+      custom_parameters: {
+        tool_mode: 'assessment',
+      },
+      scopes: [
+        'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+        'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
+        'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+        'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly',
+      ],
+      messages: [
+        {
+          type: 'LtiResourceLinkRequest',
+          target_link_uri: `${TOOL_URL}/lti/launch`,
+        },
+        {
+          type: 'LtiDeepLinkingRequest',
+          target_link_uri: `${TOOL_URL}/lti/deep_link`,
+        },
+      ],
+    },
+  });
+
+  // Store platform configuration
+  await c.env.PLATFORMS.put(config.client_id, JSON.stringify(config));
+
+  return c.json(config);
+}
+```
+
+### Security Model
+
+#### JWT Validation and Key Management
+
+```typescript
+// Key rotation and JWKS endpoint using @atomicjolt/lti-endpoints
+import { JWKSHandler, KeyManager } from '@atomicjolt/lti-endpoints';
+
+export class LTISecurityService {
+  private keyManager: KeyManager;
+
+  constructor(env: Env) {
+    this.keyManager = new KeyManager(env.KEY_SETS);
+  }
+
+  async validateIDToken(token: string, platform: Platform): Promise<LTIClaims> {
+    // Fetch platform public keys
+    const platformKeys = await this.fetchPlatformJWKS(platform.jwks_uri);
+
+    // Validate token using @atomicjolt/lti-endpoints
+    return await this.keyManager.validateToken(token, platformKeys);
+  }
+
+  async rotateKeys(): Promise<void> {
+    // Automatic key rotation every 90 days
+    await this.keyManager.rotateKeys();
+  }
+}
+```
+
+### Error Handling and Compliance
+
+#### LTI Error Responses
+
+```typescript
+// Standardized LTI error handling
+export class LTIErrorHandler {
+  static handleError(error: any, c: Context) {
+    if (error.code === 'INVALID_JWT') {
+      return c.json(
+        {
+          error: 'invalid_request',
+          error_description: 'JWT validation failed',
+        },
+        401,
+      );
+    }
+
+    if (error.code === 'MISSING_CLAIM') {
+      return c.json(
+        {
+          error: 'invalid_request',
+          error_description: `Missing required claim: ${error.claim}`,
+        },
+        400,
+      );
+    }
+
+    // Log to monitoring
+    console.error('[LTI Error]', error);
+
+    return c.json(
+      {
+        error: 'server_error',
+        error_description: 'An internal error occurred',
+      },
+      500,
+    );
+  }
+}
+```
+
+## 12. Backend Architecture
 
 ### Service Architecture
 
@@ -1973,6 +2690,293 @@ export class ConversationRepository {
   }
 }
 ```
+
+### Cloudflare AI Integration
+
+#### Edge AI Inference
+
+```typescript
+// AI Service leveraging Cloudflare Workers AI
+export class EdgeAIService {
+  constructor(private env: Env) {}
+
+  // Text generation using Llama or similar models
+  async generateResponse(prompt: string, context: AssessmentContext): Promise<string> {
+    const response = await this.env.AI.run('@cf/meta/llama-2-7b-chat-int8', {
+      messages: [
+        { role: 'system', content: context.systemPrompt },
+        { role: 'user', content: prompt },
+      ],
+      temperature: context.temperature || 0.7,
+      max_tokens: context.maxTokens || 500,
+    });
+
+    return response.response;
+  }
+
+  // Embedding generation for semantic search
+  async generateEmbedding(text: string): Promise<number[]> {
+    const response = await this.env.AI.run('@cf/baai/bge-base-en-v1.5', {
+      text: [text],
+    });
+    return response.data[0];
+  }
+
+  // Intent classification for routing
+  async classifyIntent(message: string): Promise<IntentClassification> {
+    const response = await this.env.AI.run('@cf/huggingface/distilbert-sst-2-int8', {
+      text: message,
+    });
+    return {
+      intent: this.mapToIntent(response.label),
+      confidence: response.score,
+    };
+  }
+}
+```
+
+### Vectorize Integration
+
+#### Semantic Search and Content Discovery
+
+```typescript
+// Vectorize V2 service for semantic search
+export class VectorSearchService {
+  private vectorIndex: Vectorize;
+
+  constructor(env: Env) {
+    this.vectorIndex = env.VECTORIZE_INDEX; // Bound via wrangler.jsonc
+  }
+
+  // Index assessment content with namespace support
+  async indexAssessmentContent(assessment: AssessmentConfig, courseId: string): Promise<void> {
+    const aiService = new EdgeAIService(this.env);
+
+    // Generate embeddings (768 dimensions for bge-base-en-v1.5)
+    const embedding = await aiService.generateEmbedding(
+      `${assessment.title} ${assessment.description} ${assessment.learning_objectives?.join(' ') || ''}`,
+    );
+
+    // Store in Vectorize with namespace
+    const result = await this.vectorIndex.insert([
+      {
+        id: assessment.id,
+        values: embedding, // Float32Array or number[]
+        metadata: {
+          type: 'assessment',
+          course_id: courseId,
+          title: assessment.title.substring(0, 64), // String metadata indexed up to 64B
+          created_at: new Date().toISOString(),
+        },
+        namespace: courseId, // Segment by course (max 1000 namespaces)
+      },
+    ]);
+    
+    console.log(`Assessment indexed: ${result.mutationId}`);
+  }
+
+  // Query with metadata filtering and precision control
+  async findSimilarContent(query: string, options: {
+    namespace?: string;
+    courseId?: string;
+    limit?: number;
+    highPrecision?: boolean;
+  } = {}): Promise<SearchResult[]> {
+    const aiService = new EdgeAIService(this.env);
+    const queryEmbedding = await aiService.generateEmbedding(query);
+
+    // Build metadata filter (requires metadata indexes)
+    const filter: any = {};
+    if (options.courseId) filter.course_id = { $eq: options.courseId };
+    filter.type = { $eq: 'assessment' };
+
+    const results = await this.vectorIndex.query(queryEmbedding, {
+      topK: options.limit || 10,
+      returnValues: options.highPrecision || false, // true = exact scores but higher latency
+      returnMetadata: 'all',
+      namespace: options.namespace,
+      filter,
+    });
+
+    return results.matches.map((match) => ({
+      id: match.id,
+      score: match.score, // Cosine: -1 to 1, Euclidean: 0+, Dot: negative is better
+      metadata: match.metadata,
+      values: match.values, // Only if returnValues: true
+    }));
+  }
+
+  // Upsert conversation for knowledge base
+  async upsertConversation(conversation: Conversation, messages: ConversationMessage[]): Promise<void> {
+    const aiService = new EdgeAIService(this.env);
+
+    // Summarize for semantic search
+    const summary = await aiService.generateResponse(
+      `Summarize key learning points: ${messages.slice(-10).map((m) => m.content).join(' ')}`,
+      { systemPrompt: 'Extract main concepts and learning outcomes.' },
+    );
+
+    const embedding = await aiService.generateEmbedding(summary);
+
+    // Upsert to update existing or insert new
+    await this.vectorIndex.upsert([
+      {
+        id: conversation.id,
+        values: embedding,
+        metadata: {
+          type: 'conversation',
+          user_id: conversation.user_id,
+          course_id: conversation.course_id,
+          mastery_score: conversation.mastery_score,
+          summary: summary.substring(0, 500),
+          created_at: conversation.started_at,
+        },
+        namespace: conversation.course_id,
+      },
+    ]);
+  }
+}
+```
+
+### Hybrid Storage Architecture
+
+#### Combining D1, KV, R2, and Vectorize
+
+```typescript
+export class HybridStorageService {
+  constructor(
+    private d1: D1Database,
+    private kv: KVNamespace,
+    private r2: R2Bucket,
+    private vectorize: VectorizeIndex,
+  ) {}
+
+  // Store structured data in D1
+  async storeStructuredData(table: string, data: any): Promise<void> {
+    await this.d1
+      .prepare(`INSERT INTO ${table} ...`)
+      .bind(...values)
+      .run();
+  }
+
+  // Cache frequently accessed data in KV
+  async cacheData(key: string, data: any, ttl = 3600): Promise<void> {
+    await this.kv.put(key, JSON.stringify(data), {
+      expirationTtl: ttl,
+    });
+  }
+
+  // Store media files in R2
+  async storeMedia(file: File): Promise<string> {
+    const key = `media/${crypto.randomUUID()}/${file.name}`;
+    await this.r2.put(key, file.stream());
+    return key;
+  }
+
+  // Index searchable content in Vectorize
+  async indexContent(content: string, metadata: any): Promise<void> {
+    const aiService = new EdgeAIService(this.env);
+    const embedding = await aiService.generateEmbedding(content);
+    await this.vectorize.insert([
+      {
+        id: crypto.randomUUID(),
+        values: embedding,
+        metadata,
+      },
+    ]);
+  }
+}
+```
+
+### Vectorize Performance Best Practices
+
+#### Batch Operations for Improved Throughput
+```typescript
+export class VectorizeOptimizer {
+  // Batch inserts for better performance (up to 1000 vectors per request)
+  async batchInsert(vectors: VectorizeVector[]): Promise<void> {
+    const BATCH_SIZE = 1000; // Vectorize limit
+    
+    for (let i = 0; i < vectors.length; i += BATCH_SIZE) {
+      const batch = vectors.slice(i, i + BATCH_SIZE);
+      await this.vectorIndex.insert(batch);
+    }
+  }
+  
+  // Use upsert for updates to avoid duplicate ID errors
+  async updateVectors(updates: VectorizeVector[]): Promise<void> {
+    // Upsert overwrites existing vectors with same ID
+    await this.vectorIndex.upsert(updates);
+  }
+}
+```
+
+#### Query Optimization Strategies
+```typescript
+interface QueryStrategy {
+  // High-precision scoring for accuracy-critical searches
+  async preciseSearch(query: number[]): Promise<SearchResult[]> {
+    return await this.vectorIndex.query(query, {
+      topK: 10,
+      returnValues: true, // Enables exact scoring but increases latency
+      returnMetadata: 'all'
+    });
+  }
+  
+  // Approximate scoring for faster response times
+  async fastSearch(query: number[]): Promise<SearchResult[]> {
+    return await this.vectorIndex.query(query, {
+      topK: 10,
+      returnValues: false, // Default: approximate scoring for speed
+      returnMetadata: 'indexed' // Only return indexed metadata
+    });
+  }
+  
+  // Namespace isolation for multi-tenant queries
+  async tenantSearch(query: number[], tenantId: string): Promise<SearchResult[]> {
+    return await this.vectorIndex.query(query, {
+      namespace: tenantId, // Search only within tenant's vectors
+      topK: 10
+    });
+  }
+}
+```
+
+#### Metadata Index Design
+```typescript
+// Best practices for metadata filtering
+export class MetadataDesign {
+  // Low cardinality for efficient filtering
+  goodMetadata = {
+    type: 'assessment', // Few unique values
+    status: 'active', // Limited set
+    difficulty: 'medium' // Enumerated values
+  };
+  
+  // Avoid high cardinality in metadata filters
+  avoidMetadata = {
+    uuid: 'unique-id-per-vector', // Too many unique values
+    timestamp_ms: Date.now(), // High cardinality
+    random_score: Math.random() // Continuous values
+  };
+  
+  // Bucket high-cardinality data for better performance
+  optimizedMetadata = {
+    created_date: '2024-01-15', // Date without time
+    score_bucket: Math.floor(score / 10) * 10, // 0, 10, 20, etc.
+    time_window: Math.floor(Date.now() / 300000) * 300000 // 5-min windows
+  };
+}
+```
+
+#### Index Configuration Considerations
+- **Dimensions**: Cannot be changed after creation, must match embedding model
+- **Distance Metrics**: 
+  - `cosine`: Best for normalized embeddings (most common)
+  - `euclidean`: Good for dense embeddings where magnitude matters
+  - `dot-product`: Efficient but requires careful normalization
+- **Namespaces**: Use for tenant isolation (max 1000 per index)
+- **Metadata Indexes**: Create before inserting vectors (max 10 per index)
 
 ### Authentication and Authorization
 
@@ -2523,12 +3527,45 @@ npm install
 # Create D1 database
 npx wrangler d1 create atomic-guide-assessment
 
+# Create Vectorize V2 index for semantic search
+# Dimensions must match your embedding model (768 for bge-base-en-v1.5, 1536 for OpenAI ada-002)
+npx wrangler vectorize create atomic-guide-vectors \
+  --dimensions 768 \
+  --metric cosine
+
+# Create metadata indexes for filtering (must be done before inserting vectors)
+npx wrangler vectorize create-metadata-index atomic-guide-vectors --property-name=course_id --type=string
+npx wrangler vectorize create-metadata-index atomic-guide-vectors --property-name=type --type=string
+npx wrangler vectorize create-metadata-index atomic-guide-vectors --property-name=user_id --type=string
+npx wrangler vectorize create-metadata-index atomic-guide-vectors --property-name=mastery_score --type=number
+
+# Verify metadata indexes
+npx wrangler vectorize list-metadata-index atomic-guide-vectors
+
+# Create R2 bucket for media storage
+npx wrangler r2 bucket create atomic-guide-media
+
 # Run migrations
 npx wrangler d1 execute atomic-guide-assessment --file=./migrations/001_initial_schema.sql
 
 # Copy environment variables
 cp .env.example .env.local
 # Edit .env.local with your API keys
+
+# Install Redux DevTools Extension for development
+# Chrome: https://chrome.google.com/webstore/detail/redux-devtools
+# Firefox: https://addons.mozilla.org/en-US/firefox/addon/reduxdevtools/
+
+# Update wrangler.jsonc with Vectorize binding
+# Add to wrangler.jsonc:
+# {
+#   "vectorize": [
+#     {
+#       "binding": "VECTORIZE_INDEX",
+#       "index_name": "atomic-guide-vectors"
+#     }
+#   ]
+# }
 ```
 
 #### Development Commands
@@ -3031,6 +4068,82 @@ export class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+
+// RTK Query Error Handling
+export const assessmentApi = createApi({
+  baseQuery: async (args, api, extraOptions) => {
+    const result = await baseQuery(args, api, extraOptions);
+    
+    // Global error handling for RTK Query
+    if (result.error) {
+      // Handle specific error codes
+      if (result.error.status === 401) {
+        // Token expired, refresh
+        api.dispatch(refreshAuth());
+      } else if (result.error.status === 429) {
+        // Rate limited, show notification
+        api.dispatch(showRateLimitNotification());
+      }
+      
+      // Log to monitoring
+      console.error('[RTK Query Error]', result.error);
+    }
+    
+    return result;
+  },
+  endpoints: (builder) => ({
+    createConversation: builder.mutation({
+      query: (data) => ({ url: '/conversation', method: 'POST', body: data }),
+      // Transform error responses
+      transformErrorResponse: (response: { status: string | number }, meta, arg) => {
+        return {
+          status: response.status,
+          message: response.data?.error?.message || 'An error occurred',
+          code: response.data?.error?.code
+        };
+      },
+      // Optimistic updates with rollback on error
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          assessmentApi.util.updateQueryData('getConversations', undefined, (draft) => {
+            draft.push({ ...arg, id: 'temp-id', status: 'pending' });
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo(); // Rollback on error
+        }
+      }
+    })
+  })
+});
+
+// Redux Error Middleware
+export const errorMiddleware: Middleware = (store) => (next) => (action) => {
+  // Catch RTK Query errors
+  if (action.type.endsWith('/rejected')) {
+    const error = action.payload || action.error;
+    
+    // Dispatch error notification
+    store.dispatch(showErrorNotification({
+      message: error.message || 'Operation failed',
+      code: error.code,
+      retryAction: action.meta?.arg?.originalAction
+    }));
+    
+    // Log to Cloudflare Analytics
+    if (typeof window !== 'undefined' && window.zaraz) {
+      window.zaraz.track('api_error', {
+        endpoint: action.meta?.arg?.endpointName,
+        error_code: error.code,
+        status: error.status
+      });
+    }
+  }
+  
+  return next(action);
+};
 ```
 
 ### Backend Error Handling
@@ -3086,6 +4199,110 @@ export function errorHandler(err: Error, c: Context) {
 - **Backend Monitoring:** Cloudflare Analytics Dashboard + Tail logs
 - **Error Tracking:** Sentry integration for production errors
 - **Performance Monitoring:** Cloudflare Observatory for performance insights
+- **AI Usage Tracking:** Cloudflare AI Analytics for model usage and costs
+- **Search Analytics:** Vectorize query performance and relevance metrics
+
+### Cloudflare Analytics Integration
+
+```typescript
+// Frontend Analytics with Zaraz
+export class AnalyticsService {
+  // Track user events
+  trackEvent(eventName: string, properties?: Record<string, any>) {
+    if (typeof window !== 'undefined' && window.zaraz) {
+      window.zaraz.track(eventName, {
+        ...properties,
+        timestamp: new Date().toISOString(),
+        user_id: store.getState().auth.user?.id,
+        session_id: store.getState().session.id
+      });
+    }
+  }
+  
+  // Track page views
+  trackPageView(path: string) {
+    this.trackEvent('page_view', { path });
+  }
+  
+  // Track API performance
+  trackApiCall(endpoint: string, duration: number, status: number) {
+    this.trackEvent('api_call', {
+      endpoint,
+      duration_ms: duration,
+      status_code: status,
+      success: status < 400
+    });
+  }
+}
+
+// Backend Analytics with Workers Analytics Engine
+export class WorkerAnalytics {
+  constructor(private env: Env) {}
+  
+  // Log request metrics
+  async logRequest(request: Request, response: Response, duration: number) {
+    await this.env.ANALYTICS.writeDataPoint({
+      blobs: [request.url, request.method],
+      doubles: [duration, response.status],
+      indexes: ['endpoint', 'status_code']
+    });
+  }
+  
+  // Track AI usage
+  async trackAIUsage(model: string, tokens: number, latency: number) {
+    await this.env.ANALYTICS.writeDataPoint({
+      blobs: [model],
+      doubles: [tokens, latency],
+      indexes: ['ai_model']
+    });
+  }
+  
+  // Monitor Vectorize performance
+  async trackVectorSearch(query: string, resultCount: number, latency: number) {
+    await this.env.ANALYTICS.writeDataPoint({
+      blobs: ['vector_search'],
+      doubles: [resultCount, latency],
+      indexes: ['search_type']
+    });
+  }
+}
+```
+
+### Real-time Monitoring Dashboard
+
+```typescript
+// Custom metrics aggregation
+export class MetricsAggregator {
+  async getMetrics(timeRange: string): Promise<DashboardMetrics> {
+    const analytics = await this.env.ANALYTICS.query({
+      timeRange,
+      aggregations: {
+        requestCount: { type: 'count' },
+        avgLatency: { type: 'avg', field: 'duration' },
+        errorRate: { 
+          type: 'percentage',
+          filter: { field: 'status', operator: '>=', value: 400 }
+        },
+        aiTokensUsed: { 
+          type: 'sum',
+          field: 'tokens',
+          filter: { index: 'ai_model' }
+        }
+      }
+    });
+    
+    return {
+      requests: analytics.requestCount,
+      latency: analytics.avgLatency,
+      errorRate: analytics.errorRate,
+      aiUsage: {
+        tokens: analytics.aiTokensUsed,
+        cost: this.calculateAICost(analytics.aiTokensUsed)
+      }
+    };
+  }
+}
+```
 
 ### Key Metrics
 
@@ -3093,18 +4310,28 @@ export function errorHandler(err: Error, c: Context) {
 
 - Core Web Vitals (LCP, FID, CLS)
 - JavaScript error rate
-- API response times
+- API response times via RTK Query middleware
 - WebSocket connection stability
-- User interaction events (chat messages sent, assessments completed)
+- Redux action performance
+- User interaction events (chat messages, assessments)
 
 **Backend Metrics:**
 
 - Request rate and latency (p50, p95, p99)
 - Error rate by endpoint
-- AI API response times and token usage
+- Cloudflare AI token usage and costs
+- Vectorize query performance
 - D1 query performance
 - WebSocket connection count
 - Grade passback success rate
+
+**AI/ML Metrics:**
+
+- Model inference latency
+- Token consumption by model
+- Embedding generation performance
+- Vector search relevance scores
+- Intent classification accuracy
 
 ## 24. Implementation Roadmap
 
