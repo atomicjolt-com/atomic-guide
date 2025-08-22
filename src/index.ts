@@ -15,9 +15,7 @@ import {
   validateLaunchRequest,
 } from '@atomicjolt/lti-endpoints';
 import { dynamicRegistrationHtml } from './html/dynamic_registration_html';
-import {
-  getToolConfiguration
-} from './config';
+import { getToolConfiguration } from './config';
 import {
   LTI_INIT_PATH,
   LTI_REDIRECT_PATH,
@@ -46,12 +44,12 @@ type Variables = {
   requestId: string;
 };
 
-const app = new Hono<{ Bindings: Env; Variables: Variables }>()
+const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Initialize asset paths once at startup
-const homeScriptName = getClientAssetPath("client/home.ts");
-const initScriptName = getClientAssetPath("client/app-init.ts");
-const launchScriptName = getClientAssetPath("client/app.ts");
+const homeScriptName = getClientAssetPath('client/home.ts');
+const initScriptName = getClientAssetPath('client/app-init.ts');
+const launchScriptName = getClientAssetPath('client/app.ts');
 
 // Request logging middleware
 app.use('/*', logger());
@@ -60,14 +58,17 @@ app.use('/*', logger());
 app.use('/*', etag());
 
 // CORS configuration for LTI services
-app.use('/lti/*', cors({
-  origin: '*', // LTI tools need to work across different LMS domains
-  allowMethods: ['GET', 'POST', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-  exposeHeaders: ['Content-Length', 'X-Request-Id'],
-  maxAge: 86400,
-  credentials: true,
-}));
+app.use(
+  '/lti/*',
+  cors({
+    origin: '*', // LTI tools need to work across different LMS domains
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    exposeHeaders: ['Content-Length', 'X-Request-Id'],
+    maxAge: 86400,
+    credentials: true,
+  }),
+);
 
 // Security headers middleware
 app.use('/*', async (c: Context, next: Next) => {
@@ -92,7 +93,7 @@ app.use('/*', async (c: Context, next: Next) => {
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     "connect-src 'self'",
-    "frame-ancestors *" // Allow embedding in any domain for LTI
+    'frame-ancestors *', // Allow embedding in any domain for LTI
   ].join('; ');
   c.header('Content-Security-Policy', csp);
 });
@@ -123,12 +124,9 @@ app.post(LTI_LAUNCH_PATH, async (c) => {
   return c.html(launchHtml(launchSettings, launchScriptName));
 });
 
-
 // LTI Dynamic Registration routes
 app.get(LTI_REGISTRATION_PATH, (c) => handleDynamicRegistrationInit(c, dynamicRegistrationHtml));
-app.post(LTI_REGISTRATION_FINISH_PATH, (c) =>
-  handleDynamicRegistrationFinish(c, getToolConfiguration, handlePlatformResponse)
-);
+app.post(LTI_REGISTRATION_FINISH_PATH, (c) => handleDynamicRegistrationFinish(c, getToolConfiguration, handlePlatformResponse));
 
 // LTI services
 app.get(LTI_NAMES_AND_ROLES_PATH, (c) => handleNamesAndRoles(c));
@@ -154,8 +152,8 @@ app.onError((err: Error, c) => {
     error: {
       name: err.name,
       message: err.message,
-      stack: err.stack
-    }
+      stack: err.stack,
+    },
   };
 
   console.error('Request error:', JSON.stringify(errorLog));
@@ -165,27 +163,31 @@ app.onError((err: Error, c) => {
   }
 
   // Determine if it's a client or server error
-  const isClientError = err.message.includes('validation') ||
-    err.message.includes('invalid') ||
-    err.message.includes('required');
+  const isClientError = err.message.includes('validation') || err.message.includes('invalid') || err.message.includes('required');
 
   const statusCode = isClientError ? 400 : 500;
   const errorMessage = isClientError ? err.message : 'Internal server error';
 
-  return c.json({
-    error: errorMessage,
-    requestId,
-    timestamp
-  }, statusCode);
+  return c.json(
+    {
+      error: errorMessage,
+      requestId,
+      timestamp,
+    },
+    statusCode,
+  );
 });
 
 app.notFound((c) => {
   const requestId = c.get('requestId') || 'unknown';
-  return c.json({
-    error: 'Not found',
-    path: c.req.path,
-    requestId
-  }, 404);
+  return c.json(
+    {
+      error: 'Not found',
+      path: c.req.path,
+      requestId,
+    },
+    404,
+  );
 });
 
 export default app;
