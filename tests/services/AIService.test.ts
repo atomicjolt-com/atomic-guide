@@ -40,7 +40,8 @@ describe('AIService', () => {
           max_tokens: 2048,
           temperature: 0.7,
           stream: false
-        })
+        }),
+        expect.any(Object)
       );
     });
 
@@ -79,6 +80,7 @@ describe('AIService', () => {
 
       expect(mockAIBinding.run).toHaveBeenCalledWith(
         '@cf/meta/llama-3.1-8b-instruct',
+        expect.any(Object),
         expect.any(Object)
       );
     });
@@ -158,7 +160,8 @@ describe('AIService', () => {
       expect(result).toEqual([0.1, 0.2, 0.3, 0.4, 0.5]);
       expect(mockAIBinding.run).toHaveBeenCalledWith(
         '@cf/baai/bge-base-en-v1.5',
-        { text: ['Test text'] }
+        { text: ['Test text'] },
+        expect.any(Object)
       );
     });
 
@@ -191,7 +194,8 @@ describe('AIService', () => {
         expect.objectContaining({
           messages: [{ role: 'user', content: 'test' }],
           max_tokens: 1
-        })
+        }),
+        expect.any(Object)
       );
     });
 
