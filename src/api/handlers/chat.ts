@@ -1,5 +1,11 @@
 import { Context } from 'hono';
 import { verify } from 'hono/jwt';
+import { AIService } from '../../services/AIService';
+import { ModelRegistry } from '../../services/ModelRegistry';
+import { PromptBuilder } from '../../services/PromptBuilder';
+import { ContextEnricher } from '../../services/ContextEnricher';
+import { FAQKnowledgeBase } from '../../services/FAQKnowledgeBase';
+import { SuggestionEngine } from '../../services/SuggestionEngine';
 
 // HTML escape function to prevent XSS
 function escapeHtml(text: string): string {
@@ -30,6 +36,15 @@ interface ChatMessageResponse {
   content: string;
   timestamp: string;
   conversation_id: string;
+  suggestions?: string[];
+  media_attachments?: Array<{
+    type: 'latex' | 'code' | 'diagram';
+    content: string;
+  }>;
+  token_usage?: {
+    used: number;
+    remaining: number;
+  };
 }
 
 export async function handleChatMessage(c: Context): Promise<Response> {
@@ -54,6 +69,7 @@ export async function handleChatMessage(c: Context): Promise<Response> {
     }
 
     const tenantId = payload.tenant_id || payload.sub;
+    const userId = payload.sub || payload.user_id;
     if (!tenantId) {
       return c.json({ error: 'Missing tenant ID' }, 400);
     }
@@ -75,48 +91,254 @@ export async function handleChatMessage(c: Context): Promise<Response> {
     const conversationId = body.conversation_id || `conv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    let responseContent = generatePlaceholderResponse(sanitizedMessage, body.page_context);
+    // Get or create conversation from Durable Object
+    const doId = c.env.CHAT_CONVERSATIONS.idFromName(conversationId);
+    const chatDO = c.env.CHAT_CONVERSATIONS.get(doId);
+
+    // Store user message in conversation
+    await chatDO.fetch(new Request('https://do/add-message', {
+      method: 'POST',
+      body: JSON.stringify({
+        role: 'user',
+        content: sanitizedMessage,
+        timestamp: new Date().toISOString()
+      })
+    }));
+
+    // Initialize AI services
+    const aiService = new AIService(c.env.AI);
+    const modelRegistry = new ModelRegistry();
+    const promptBuilder = new PromptBuilder();
+    const contextEnricher = new ContextEnricher();
+    const faqKnowledgeBase = new FAQKnowledgeBase(
+      aiService,
+      c.env.FAQ_INDEX,
+      c.env.CLIENT_AUTH_TOKENS,
+      c.env.DB
+    );
+    const suggestionEngine = new SuggestionEngine();
+
+    // Get AI configuration for tenant
+    const aiConfig = await getAIConfig(c.env.DB, tenantId);
+    
+    // Check FAQ first for quick responses
+    const faqs = await faqKnowledgeBase.searchSimilarFAQs(
+      sanitizedMessage,
+      tenantId,
+      body.page_context.course_id || undefined,
+      3
+    );
+
+    let responseContent: string;
+    let tokensUsed = 0;
+    let suggestions: string[] = [];
+
+    // If high confidence FAQ match, use it
+    if (faqs.length > 0 && faqs[0].similarity && faqs[0].similarity > 0.9) {
+      responseContent = faqs[0].answer;
+      tokensUsed = 0; // No AI tokens used for FAQ
+    } else {
+      // Get conversation history from Durable Object
+      const historyResponse = await chatDO.fetch(new Request('https://do/get-history'));
+      const conversationHistory = await historyResponse.json() as Array<{ role: string; content: string }>;
+
+      // Get learner profile if available
+      const learnerProfile = await getLearnerProfile(c.env.DB, userId, tenantId);
+
+      // Enrich context
+      const pageContext = {
+        courseId: body.page_context.course_id || '',
+        moduleId: body.page_context.module_id || undefined,
+        pageContent: body.page_context.page_content || undefined,
+        currentElement: body.page_context.current_element || undefined,
+        timestamp: Date.now()
+      };
+
+      const enrichedContext = await contextEnricher.enrichContext(
+        pageContext,
+        payload, // LTI claims
+        learnerProfile,
+        { sessionId: body.session_id }
+      );
+
+      // Build prompt
+      const promptContext = {
+        courseName: enrichedContext.page.courseName,
+        moduleName: enrichedContext.page.moduleName,
+        assignmentTitle: enrichedContext.page.assignmentTitle,
+        pageContent: enrichedContext.extractedContent,
+        learnerProfile: learnerProfile,
+        conversationHistory: conversationHistory.slice(-10), // Last 10 messages
+        currentQuestion: sanitizedMessage
+      };
+
+      const templateId = promptBuilder.selectTemplateForContext(promptContext);
+      const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(promptContext, templateId);
+
+      // Generate AI response
+      const aiResponse = await aiService.generateResponse(
+        userPrompt,
+        systemPrompt,
+        {
+          modelName: aiConfig.modelName,
+          maxTokens: Math.min(2048, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday),
+          temperature: 0.7
+        }
+      );
+
+      responseContent = aiResponse.response;
+      tokensUsed = aiResponse.tokensUsed || 0;
+
+      // Generate suggestions
+      const suggestionsData = await suggestionEngine.generateSuggestions(
+        conversationHistory,
+        enrichedContext,
+        learnerProfile
+      );
+      suggestions = suggestionsData.map(s => s.description);
+    }
+
+    // Store AI response in conversation
+    await chatDO.fetch(new Request('https://do/add-message', {
+      method: 'POST',
+      body: JSON.stringify({
+        role: 'assistant',
+        content: responseContent,
+        timestamp: new Date().toISOString()
+      })
+    }));
+
+    // Track token usage
+    if (tokensUsed > 0) {
+      await trackTokenUsage(c.env.DB, tenantId, userId, conversationId, tokensUsed, aiConfig.modelName);
+    }
 
     const response: ChatMessageResponse = {
       message_id: messageId,
       content: responseContent,
       timestamp: new Date().toISOString(),
       conversation_id: conversationId,
+      suggestions: suggestions.length > 0 ? suggestions : undefined,
+      token_usage: {
+        used: tokensUsed,
+        remaining: Math.max(0, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday - tokensUsed)
+      }
     };
 
     return c.json(response, 200);
   } catch (error) {
     console.error('Chat message error:', error);
-    return c.json({ error: 'Internal server error' }, 500);
+    
+    // Provide user-friendly error messages
+    if (error instanceof Error) {
+      if (error.message.includes('rate limit')) {
+        return c.json({ 
+          error: 'Too many requests. Please wait a moment before sending another message.',
+          retryAfter: 60
+        }, 429);
+      }
+      
+      if (error.message.includes('token limit')) {
+        return c.json({ 
+          error: 'Conversation has reached the token limit. Please start a new conversation.',
+          code: 'TOKEN_LIMIT_EXCEEDED'
+        }, 403);
+      }
+      
+      if (error.message.includes('AI service')) {
+        // Fallback to helpful message when AI fails
+        return c.json({
+          message_id: `msg-${Date.now()}`,
+          content: "I'm experiencing technical difficulties at the moment. While I work on resolving this, you might want to:\n\n• Review your course materials\n• Check the discussion forums\n• Contact your instructor directly\n\nPlease try again in a few moments.",
+          timestamp: new Date().toISOString(),
+          conversation_id: body.conversation_id || '',
+          fallback: true
+        }, 200);
+      }
+    }
+    
+    return c.json({ error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }
 
-function generatePlaceholderResponse(message: string, context: ChatMessageRequest['page_context']): string {
-  const lowerMessage = message.toLowerCase();
+// Helper function to get AI config for tenant
+async function getAIConfig(db: any, tenantId: string): Promise<any> {
+  const result = await db.prepare(
+    'SELECT * FROM ai_config WHERE tenant_id = ?'
+  ).bind(tenantId).first();
 
-  if (lowerMessage.includes('help') || lowerMessage.includes('what')) {
-    if (context.course_id) {
-      return `I'm here to help you with course ${context.course_id}. I can assist with understanding concepts, answering questions about assignments, and providing study guidance. What specific topic would you like help with?`;
-    }
-    return "I'm your Atomic Guide assistant. I can help you understand course materials, answer questions about assignments, and provide study guidance. What would you like to know?";
+  if (result) {
+    // Get today's token usage
+    const today = new Date().toISOString().split('T')[0];
+    const usageResult = await db.prepare(`
+      SELECT SUM(tokens_used) as total 
+      FROM token_usage 
+      WHERE tenant_id = ? AND DATE(created_at) = ?
+    `).bind(tenantId, today).first();
+
+    return {
+      modelName: result.model_name || '@cf/meta/llama-3.1-8b-instruct',
+      tokenLimitPerSession: result.token_limit_per_session || 10000,
+      tokenLimitPerDay: result.token_limit_per_day || 100000,
+      rateLimitPerMinute: result.rate_limit_per_minute || 10,
+      rateLimitBurst: result.rate_limit_burst || 3,
+      enabled: result.enabled !== false,
+      tokensUsedToday: usageResult?.total || 0
+    };
   }
 
-  if (lowerMessage.includes('how') || lowerMessage.includes('explain')) {
-    return "I'd be happy to explain that concept in more detail. Let me break it down for you step by step. [This is a placeholder response - actual AI integration will provide detailed explanations based on your course content]";
+  // Return defaults if no config exists
+  return {
+    modelName: '@cf/meta/llama-3.1-8b-instruct',
+    tokenLimitPerSession: 10000,
+    tokenLimitPerDay: 100000,
+    rateLimitPerMinute: 10,
+    rateLimitBurst: 3,
+    enabled: true,
+    tokensUsedToday: 0
+  };
+}
+
+// Helper function to get learner profile
+async function getLearnerProfile(db: any, userId: string, tenantId: string): Promise<any> {
+  const result = await db.prepare(`
+    SELECT * FROM learner_profiles 
+    WHERE user_id = ? AND tenant_id = ?
+  `).bind(userId, tenantId).first();
+
+  if (result) {
+    return {
+      learningStyle: result.learning_style,
+      performanceLevel: result.performance_level,
+      struggleAreas: result.struggle_areas ? JSON.parse(result.struggle_areas) : [],
+      preferredLanguage: result.preferred_language || 'en'
+    };
   }
 
-  if (lowerMessage.includes('assignment') || lowerMessage.includes('homework')) {
-    return "I can help you understand the assignment requirements. Remember, I'm here to guide your learning, not provide direct answers. What part of the assignment are you finding challenging?";
-  }
+  return null;
+}
 
-  if (lowerMessage.includes('quiz') || lowerMessage.includes('test') || lowerMessage.includes('exam')) {
-    return 'I can help you prepare for assessments by reviewing key concepts and practice problems. What topics would you like to review?';
-  }
-
-  if (context.module_id) {
-    return `I see you're working on module ${context.module_id}. I'm here to help you understand the material. Feel free to ask me any questions about the concepts covered in this module.`;
-  }
-
-  // Message is already sanitized, safe to include
-  return `I understand you're asking about: "${message}". I'm here to help! [This is a placeholder response - the actual AI integration will provide contextual assistance based on your course materials and learning needs]`;
+// Helper function to track token usage
+async function trackTokenUsage(
+  db: any,
+  tenantId: string,
+  userId: string,
+  conversationId: string,
+  tokensUsed: number,
+  modelName: string
+): Promise<void> {
+  const id = `usage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  await db.prepare(`
+    INSERT INTO token_usage (id, tenant_id, user_id, conversation_id, tokens_used, model_name, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    id,
+    tenantId,
+    userId,
+    conversationId,
+    tokensUsed,
+    modelName,
+    new Date().toISOString()
+  ).run();
 }

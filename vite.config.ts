@@ -12,6 +12,7 @@ export default defineConfig({
         appInit: '/client/app-init.ts',
         home: '/client/home.ts',
       },
+      external: ['@cloudflare/ai'],
     },
   },
   server: {

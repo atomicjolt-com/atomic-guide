@@ -13,7 +13,7 @@ This architecture document combines:
 - Complete fullstack technical specifications for deep linking assessment features
 - Brownfield enhancement patterns for Progressive Cognitive Learning Infrastructure
 - Proven research foundations achieving 50-80% improvement in knowledge retention
-- Integration strategies preserving all existing LTI 1.3 functionality
+- Integration strategies preserving all existing LTI 1.3 functionality (detailed in [LTI Developer Guide](./lti-developer-guide.md))
 
 ### Project Context
 
@@ -161,7 +161,7 @@ graph TB
 | -------------------- | ----------------------------------- | -------- | ---------------------------------- | ----------------------------------------------------- |
 | Frontend Language    | TypeScript                          | 5.3+     | Type-safe frontend development     | Existing codebase standard, prevents runtime errors   |
 | Frontend Framework   | React (new) / Vanilla JS (existing) | 18.2+    | UI component development           | Progressive migration path documented in architecture |
-| UI Component Library | @atomicjolt/atomic-elements         | Latest   | LTI-friendly components            | Consistent LTI integration patterns                   |
+| UI Component Library | @atomicjolt/atomic-elements         | Latest   | LTI-friendly components            | Consistent LTI integration patterns (see [LTI Developer Guide](./lti-developer-guide.md)) |
 | State Management     | Redux Toolkit                       | 2.x      | Global state + chat state          | Redux for app state and for chat components           |
 | React API            | RTK Query                           | 2.x      | API requests                       | Integrates with Redux Toolkit                         |
 | Backend Language     | TypeScript                          | 5.3+     | Type-safe backend development      | Existing Worker codebase standard                     |
@@ -1096,7 +1096,7 @@ export class CognitiveEngine {
 
 **Dependencies:** LTI service, Canvas API client, OAuth token management
 
-**Technology Stack:** TypeScript, @atomicjolt/lti-endpoints, Canvas REST API
+**Technology Stack:** TypeScript, @atomicjolt/lti-endpoints, Canvas REST API (see [LTI Developer Guide](./lti-developer-guide.md) for implementation details)
 
 ### Canvas Monitor Client
 
@@ -2221,9 +2221,11 @@ apiClient.interceptors.response.use(
 
 This application implements Learning Tools Interoperability (LTI) 1.3 Core and Advantage services using the `@atomicjolt/lti-endpoints` package. All LTI protocol handling is abstracted through this package to ensure standards compliance and code reuse.
 
+**📚 Reference:** For comprehensive LTI 1.3 implementation guidance and detailed documentation of the Atomic Jolt libraries, see [LTI Developer Guide](./lti-developer-guide.md). This guide provides complete technical specifications, implementation patterns, and best practices for AI developers working with LTI integrations.
+
 ### LTI Standards Implementation
 
-**CRITICAL:** All LTI functionality MUST use `@atomicjolt/lti-endpoints` to ensure proper interaction with the standards.
+**CRITICAL:** All LTI functionality MUST use `@atomicjolt/lti-endpoints` to ensure proper interaction with the standards. For detailed implementation guidance and library usage patterns, refer to the [LTI Developer Guide](./lti-developer-guide.md).
 
 #### Core LTI 1.3 Support
 
@@ -2238,6 +2240,7 @@ This application implements Learning Tools Interoperability (LTI) 1.3 Core and A
 ##### Deep Linking 2.0
 
 **Purpose:** Content selection and embedding into Canvas courses
+**📚 Reference:** See [LTI Developer Guide - Deep Linking](./lti-developer-guide.md#deep-linking-implementation) for complete implementation patterns and troubleshooting.
 **Implementation:**
 
 ```typescript
@@ -2269,6 +2272,7 @@ export async function handleDeepLinkingRequest(c: Context) {
 ##### Assignment and Grade Services (AGS) 2.0
 
 **Purpose:** Gradebook integration and score submission
+**📚 Reference:** See [LTI Developer Guide - Assignment and Grade Services](./lti-developer-guide.md#assignment-and-grade-services) for complete AGS implementation patterns, error handling, and line item management.
 **Implementation:**
 
 ```typescript
@@ -2299,6 +2303,7 @@ export async function submitGrade(conversation: Conversation) {
 ##### Names and Role Provisioning Services (NRPS) 2.0
 
 **Purpose:** Retrieve course roster and user roles
+**📚 Reference:** See [LTI Developer Guide - Names and Roles Provisioning Services](./lti-developer-guide.md#names-and-roles-service) for complete NRPS implementation, pagination handling, and privacy considerations.
 **Implementation:**
 
 ```typescript

@@ -33,11 +33,12 @@ import launchHtml from './html/launch_html';
 import { getClientAssetPath } from './libs/manifest';
 import dbTestApp from './db/test-connection';
 import { handleChatMessage } from './api/handlers/chat';
+import { handleChatStream } from './api/handlers/chatStream';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
 export { StruggleDetectorDO } from './durable-objects/StruggleDetectorDO';
-export { ChatSessionDurableObject as ChatConversationDO } from './durable-objects/ChatConversationDO';
+export { ChatConversationDO } from './durable-objects/ChatConversationDO';
 
 // Define context variables type
 type Variables = {
@@ -137,6 +138,7 @@ app.route('/db', dbTestApp);
 
 // API routes
 app.post('/api/chat/message', (c) => handleChatMessage(c));
+app.post('/api/chat/stream', (c) => handleChatStream(c));
 
 // Error handling
 app.onError((err: Error, c) => {

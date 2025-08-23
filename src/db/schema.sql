@@ -385,3 +385,54 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 -- Insert initial migration
 INSERT INTO schema_migrations (version, name) VALUES (1, 'initial_schema');
+
+-- ============================================
+-- AI CHAT ENHANCEMENTS (Story 1.3)
+-- ============================================
+
+-- FAQ Knowledge Base
+CREATE TABLE IF NOT EXISTS faq_entries (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    course_id TEXT,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    vector_id TEXT, -- Reference to Cloudflare Vectorize entry
+    usage_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_faq_tenant_course ON faq_entries(tenant_id, course_id);
+CREATE INDEX idx_faq_vector ON faq_entries(vector_id);
+
+-- Token usage tracking
+CREATE TABLE IF NOT EXISTS token_usage (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    conversation_id TEXT,
+    tokens_used INTEGER NOT NULL,
+    model_name TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_token_usage_user ON token_usage(tenant_id, user_id);
+CREATE INDEX idx_token_usage_date ON token_usage(tenant_id, created_at);
+
+-- AI Configuration per tenant
+CREATE TABLE IF NOT EXISTS ai_config (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL UNIQUE,
+    model_name TEXT NOT NULL DEFAULT '@cf/meta/llama-3.1-8b-instruct',
+    token_limit_per_session INTEGER DEFAULT 10000,
+    token_limit_per_day INTEGER DEFAULT 100000,
+    rate_limit_per_minute INTEGER DEFAULT 10,
+    rate_limit_burst INTEGER DEFAULT 3,
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by TEXT -- admin user ID
+);
+
+CREATE INDEX idx_ai_config_tenant ON ai_config(tenant_id);
