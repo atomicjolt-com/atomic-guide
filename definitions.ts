@@ -1,15 +1,15 @@
 // This needs to be changed per project
-export const APPLICATION_NAME = "Atomic Worker LTI Tool";
+export const APPLICATION_NAME = 'Atomic Guide';
 
 // Most of the defaults below should work fine.
-export const LTI_INIT_PATH = "lti/init";
-export const LTI_REDIRECT_PATH = "lti/redirect";
-export const LTI_JWKS_PATH = "lti/jwks";
-export const LTI_LAUNCH_PATH = "lti/launch";
-export const LOGO_PATH = "assets/images/logo.png";
-export const POLICY_URL = "https://www.atomicjolt.com/privacy";
-export const TOS_URL = "https://www.atomicjolt.com/tos";
-export const SUPPORT_EMAIL = "support@atomicjolt.com";
+export const LTI_INIT_PATH = 'lti/init';
+export const LTI_REDIRECT_PATH = 'lti/redirect';
+export const LTI_JWKS_PATH = 'lti/jwks';
+export const LTI_LAUNCH_PATH = 'lti/launch';
+export const LOGO_PATH = 'assets/images/logo.png';
+export const POLICY_URL = 'https://www.atomicjolt.com/privacy';
+export const TOS_URL = 'https://www.atomicjolt.com/tos';
+export const SUPPORT_EMAIL = 'support@atomicjolt.com';
 
 // Dynamic registration
 export const LTI_REGISTRATION_PATH: string = 'lti/register';
