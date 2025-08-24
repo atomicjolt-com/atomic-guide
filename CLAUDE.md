@@ -70,6 +70,8 @@ This is a Cloudflare Workers-based LTI 1.3 tool implementation using a serverles
 - Deep linking: Client-side handling with server JWT signing at `/lti/sign_deep_link`
 - Names and roles service: `/lti/names_and_roles` for roster retrieval
 - Asset serving: Vite-built files served from `public/` with manifest injection
+- The entry point for the front end, React application that is launched via LTI can be found in client/app.tsx
+- The entry point for the application home page is client/home.ts
 
 ## Initial Setup
 
@@ -126,3 +128,35 @@ Update `wrangler.jsonc` with the returned IDs.
 - Client scripts are injected dynamically based on manifest.json for cache busting
 - Frame options are set to ALLOWALL for LMS iframe embedding
 - TypeScript strict mode enforced - run `tsc` before deploying
+
+## QA
+
+## Visual Development
+
+### Design Principles
+
+- Comprehensive design checklist in `/context/design-principles.md`
+- Brand style guide in `/context/style-guide.md`
+- When making visual (front-end, UI/UX) changes, always refer to these files for guidance
+
+### Quick Visual Check
+
+IMMEDIATELY after implementing any front-end change:
+
+1. **Identify what changed** - Review the modified components/pages
+2. **Navigate to affected pages** - Use `mcp__playwright__browser_navigate` to visit each changed view
+3. **Verify design compliance** - Compare against `/docs/branding/design-principles.md` and `/docs/branding/style-guide.md`
+4. **Validate feature implementation** - Ensure the change fulfills the user's specific request
+5. **Check acceptance criteria** - Review any provided context files or requirements
+6. **Capture evidence** - Take full page screenshot at desktop viewport (1440px) of each changed view
+7. **Check for errors** - Run `mcp__playwright__browser_console_messages`
+
+This verification ensures changes meet design standards and user requirements.
+
+### Comprehensive Design Review
+
+Invoke the `@agent-design-review` subagent for thorough design validation when:
+
+- Completing significant UI/UX features
+- Before finalizing PRs with visual changes
+- Needing comprehensive accessibility and responsiveness testing

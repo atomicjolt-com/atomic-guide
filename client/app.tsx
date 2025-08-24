@@ -10,7 +10,7 @@ import { LTI_NAMES_AND_ROLES_PATH, LTI_SIGN_DEEP_LINK_PATH } from '../definition
 
 declare global {
   interface Window {
-    LAUNCH_SETTINGS: LaunchSettings & { jwt?: string };
+    LAUNCH_SETTINGS: LaunchSettings;
   }
 }
 
@@ -31,17 +31,17 @@ const launchSettings: LaunchSettings = window.LAUNCH_SETTINGS;
 ltiLaunch(launchSettings).then((valid) => {
   if (valid) {
     const mainApp = document.getElementById('main-app');
-    
+
     if (!mainApp) {
       console.error('Main app element not found');
       return;
     }
 
     const jwt = launchSettings.jwt;
-    
-    const store = configureStore({ 
+
+    const store = configureStore({
       jwt,
-      settings: launchSettings 
+      settings: launchSettings,
     });
 
     if (jwt) {
@@ -52,7 +52,7 @@ ltiLaunch(launchSettings).then((valid) => {
     root.render(
       <Provider store={store}>
         <App jwt={jwt} />
-      </Provider>
+      </Provider>,
     );
 
     if (launchSettings.deepLinking) {
@@ -89,11 +89,11 @@ ltiLaunch(launchSettings).then((valid) => {
               method: 'POST',
               body: JSON.stringify([deepLink]),
               headers: {
-                'Authorization': `Bearer ${jwt}`,
-                'Content-Type': 'application/json'
-              }
+                Authorization: `Bearer ${jwt}`,
+                'Content-Type': 'application/json',
+              },
             })
-              .then(response => response.json())
+              .then((response) => response.json())
               .then((d: any) => {
                 const data = JSON.parse(d);
                 const form = document.getElementById('deep-linking-form') as HTMLFormElement;
@@ -115,16 +115,15 @@ ltiLaunch(launchSettings).then((valid) => {
     fetch(`/${LTI_NAMES_AND_ROLES_PATH}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${jwt}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
     })
-      .then(response => response.json())
-      .then(data => console.log(data))
+      .then((response) => response.json())
+      .then((data) => console.log(data))
       .catch((error) => {
         console.error('Error:', error);
       });
-
   } else {
     document.body.innerHTML = 'Failed to launch';
   }
