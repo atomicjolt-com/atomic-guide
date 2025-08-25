@@ -1,10 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { RichMediaContent, MediaPreferences } from '../../types';
 
 export interface ChatMessage {
   id: string;
   content: string;
   sender: 'user' | 'ai';
   timestamp: string;
+  rich_media?: RichMediaContent[];
+  from_faq?: {
+    faq_id: string;
+    confidence: number;
+  };
+  media_load_time_ms?: number;
 }
 
 export interface ChatState {
@@ -14,6 +21,7 @@ export interface ChatState {
   conversationId: string | null;
   isLoading: boolean;
   error: string | null;
+  mediaPreferences: MediaPreferences;
 }
 
 const initialState: ChatState = {
@@ -23,6 +31,13 @@ const initialState: ChatState = {
   conversationId: null,
   isLoading: false,
   error: null,
+  mediaPreferences: {
+    prefers_visual: true,
+    math_notation_style: 'latex',
+    code_highlight_theme: 'light',
+    diagram_complexity: 'detailed',
+    bandwidth_preference: 'high'
+  }
 };
 
 const chatSlice = createSlice({
@@ -65,6 +80,9 @@ const chatSlice = createSlice({
       state.messages = [];
       state.conversationId = null;
     },
+    setMediaPreferences: (state, action: PayloadAction<MediaPreferences>) => {
+      state.mediaPreferences = action.payload;
+    },
   },
 });
 
@@ -79,6 +97,7 @@ export const {
   setLoading,
   setError,
   clearMessages,
+  setMediaPreferences,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

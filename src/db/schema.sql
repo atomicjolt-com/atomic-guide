@@ -491,3 +491,94 @@ CREATE INDEX idx_privacy_settings_learner ON privacy_settings(learner_id);
 -- Update chat_messages table to include learner_id for better isolation
 ALTER TABLE chat_messages ADD COLUMN learner_id TEXT;
 CREATE INDEX idx_chat_messages_learner ON chat_messages(tenant_id, learner_id);
+
+-- ============================================
+-- STORY 2.2: RICH MEDIA CHAT RESPONSES AND KNOWLEDGE BASE
+-- ============================================
+
+-- Enhanced FAQ knowledge base with rich media support
+ALTER TABLE faq_entries ADD COLUMN module_id TEXT;
+ALTER TABLE faq_entries ADD COLUMN question_hash TEXT;
+ALTER TABLE faq_entries ADD COLUMN rich_media_content JSON DEFAULT '{}';
+ALTER TABLE faq_entries ADD COLUMN effectiveness_score REAL DEFAULT 0.5;
+
+-- Create new indexes for enhanced FAQ functionality
+CREATE INDEX idx_faq_course_hash ON faq_entries(tenant_id, course_id, question_hash);
+CREATE INDEX idx_faq_search ON faq_entries(tenant_id, course_id);
+CREATE INDEX idx_faq_usage ON faq_entries(usage_count DESC);
+
+-- Media effectiveness tracking for personalized learning
+CREATE TABLE IF NOT EXISTS media_effectiveness (
+    id TEXT PRIMARY KEY,
+    learner_id TEXT NOT NULL,
+    media_type TEXT NOT NULL, -- 'latex', 'code', 'diagram', 'video'
+    content_context TEXT,
+    shown_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    interaction_score REAL, -- 0-1 based on engagement
+    comprehension_followup BOOLEAN, -- Did they ask follow-up questions?
+    engagement_time_seconds INTEGER DEFAULT 0,
+    copy_clipboard_count INTEGER DEFAULT 0,
+    fullscreen_activated BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (learner_id) REFERENCES learner_profiles(id)
+);
+
+CREATE INDEX idx_media_effectiveness_learner ON media_effectiveness(learner_id, media_type);
+CREATE INDEX idx_media_effectiveness_context ON media_effectiveness(content_context, shown_at);
+
+-- Add media preferences to learner_profiles
+ALTER TABLE learner_profiles ADD COLUMN media_preferences JSON DEFAULT '{"prefers_visual": true, "math_notation_style": "latex", "code_highlight_theme": "light", "diagram_complexity": "detailed", "bandwidth_preference": "high"}';
+
+-- Enhanced chat_messages for rich media content
+ALTER TABLE chat_messages ADD COLUMN rich_media_content JSON DEFAULT '{}';
+ALTER TABLE chat_messages ADD COLUMN from_faq_id TEXT;
+ALTER TABLE chat_messages ADD COLUMN media_load_time_ms INTEGER DEFAULT 0;
+
+-- FAQ usage analytics for auto-generation
+CREATE TABLE IF NOT EXISTS faq_usage_analytics (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    course_id TEXT NOT NULL,
+    question_pattern TEXT NOT NULL, -- Normalized question pattern
+    occurrence_count INTEGER DEFAULT 1,
+    last_asked TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    generated_faq_id TEXT, -- Reference to auto-generated FAQ
+    manual_review_needed BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (generated_faq_id) REFERENCES faq_entries(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_faq_usage_pattern ON faq_usage_analytics(tenant_id, course_id, question_pattern);
+CREATE INDEX idx_faq_usage_count ON faq_usage_analytics(occurrence_count DESC);
+
+-- Instructor FAQ management tracking
+CREATE TABLE IF NOT EXISTS faq_management_log (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    instructor_id TEXT NOT NULL,
+    faq_id TEXT NOT NULL,
+    action TEXT NOT NULL, -- 'created', 'updated', 'deleted', 'approved', 'rejected'
+    changes_made JSON DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (faq_id) REFERENCES faq_entries(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_faq_mgmt_instructor ON faq_management_log(tenant_id, instructor_id);
+CREATE INDEX idx_faq_mgmt_faq ON faq_management_log(faq_id, created_at);
+
+-- Rich media cache for performance optimization
+CREATE TABLE IF NOT EXISTS rich_media_cache (
+    id TEXT PRIMARY KEY,
+    content_hash TEXT NOT NULL UNIQUE, -- SHA-256 of content
+    media_type TEXT NOT NULL,
+    content_data TEXT NOT NULL, -- Rendered/processed content
+    original_content TEXT NOT NULL,
+    cache_metadata JSON DEFAULT '{}',
+    access_count INTEGER DEFAULT 0,
+    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP -- Optional expiration
+);
+
+CREATE INDEX idx_rich_media_cache_hash ON rich_media_cache(content_hash);
+CREATE INDEX idx_rich_media_cache_type ON rich_media_cache(media_type, last_accessed);
+CREATE INDEX idx_rich_media_cache_expires ON rich_media_cache(expires_at);

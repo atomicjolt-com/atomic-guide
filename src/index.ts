@@ -35,6 +35,8 @@ import dbTestApp from './db/test-connection';
 import { handleChatMessage, searchChatHistory, getChatConversation, deleteChatConversation, exportUserData } from './api/handlers/chat';
 import { handleChatStream } from './api/handlers/chatStream';
 import { getConversations, getLearningInsights, updateLearningStyle, getConversationSummary } from './api/handlers/dashboard';
+import faqHandler from './api/handlers/faq';
+import richMediaHandler from './api/handlers/richMedia';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -150,6 +152,12 @@ app.get('/api/dashboard/conversations', (c) => getConversations(c));
 app.get('/api/dashboard/insights', (c) => getLearningInsights(c));
 app.post('/api/learner/learning-style', (c) => updateLearningStyle(c));
 app.get('/api/dashboard/summary/:conversationId', (c) => getConversationSummary(c));
+
+// Rich Media and FAQ API routes (Story 2.2)
+app.route('/api/chat/faq', faqHandler);
+app.route('/api/dashboard/faq', faqHandler); 
+app.route('/api/chat/media', richMediaHandler);
+app.route('/api/learner/media', richMediaHandler);
 
 // Error handling
 app.onError((err: Error, c) => {
