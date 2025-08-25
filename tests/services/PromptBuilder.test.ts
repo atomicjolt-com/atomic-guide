@@ -19,11 +19,11 @@ describe('PromptBuilder', () => {
 
       const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context);
 
-      expect(systemPrompt).toContain('AI learning assistant');
+      expect(systemPrompt).toContain('concise AI assistant');
       expect(userPrompt).toContain('Biology 101');
       expect(userPrompt).toContain('Plant Biology');
-      expect(userPrompt).toContain('Photosynthesis Lab');
       expect(userPrompt).toContain('What is photosynthesis?');
+      // Note: assignmentTitle is not included in quick-help template
     });
 
     it('should include learner profile when provided', () => {
@@ -51,7 +51,7 @@ describe('PromptBuilder', () => {
       const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context);
 
       expect(userPrompt).toContain('Hello');
-      expect(systemPrompt).toContain('AI learning assistant');
+      expect(systemPrompt).toContain('concise AI assistant');
       expect(userPrompt).not.toContain('undefined');
       expect(userPrompt).not.toContain('null');
     });

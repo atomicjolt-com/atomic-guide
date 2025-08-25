@@ -1,0 +1,393 @@
+.learningInsights {
+  padding: var(--spacing-lg, 24px);
+  background: var(--color-bg, #FFFFFF);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.header {
+  margin-bottom: var(--spacing-xl, 32px);
+}
+
+.header h2 {
+  margin: 0 0 var(--spacing-sm, 8px) 0;
+  font-size: var(--font-size-h2, 24px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-text-secondary, #666666);
+  font-size: var(--font-size-body, 14px);
+}
+
+.learningStyleCard {
+  background: linear-gradient(135deg, var(--color-primary, #FFDD00) 0%, #F5D000 100%);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--spacing-lg, 24px);
+  margin-bottom: var(--spacing-xl, 32px);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0,0,0,0.15));
+}
+
+.styleHeader {
+  display: flex;
+  gap: var(--spacing-md, 16px);
+  align-items: flex-start;
+}
+
+.styleIcon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.styleHeader h3 {
+  margin: 0 0 var(--spacing-sm, 8px) 0;
+  font-size: var(--font-size-h3, 20px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.styleDescription {
+  margin: 0 0 var(--spacing-md, 16px) 0;
+  color: var(--color-text, #333333);
+  font-size: var(--font-size-body, 14px);
+  opacity: 0.9;
+}
+
+.confidenceBar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+}
+
+.confidenceLabel {
+  font-size: var(--font-size-small, 12px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+  min-width: 100px;
+}
+
+.confidenceTrack {
+  flex: 1;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-sm, 6px);
+  overflow: hidden;
+}
+
+.confidenceFill {
+  height: 100%;
+  background: var(--color-bg, #FFFFFF);
+  border-radius: var(--radius-sm, 6px);
+  transition: width var(--transition-standard, 300ms ease-in-out);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md, 16px);
+  margin-bottom: var(--spacing-xl, 32px);
+}
+
+.metricCard {
+  background: var(--color-bg-off-white, #FFFDF0);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-md, 16px);
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.metricCard:hover {
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  transform: translateY(-2px);
+}
+
+.metricHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm, 8px);
+}
+
+.metricLabel {
+  font-size: var(--font-size-small, 12px);
+  color: var(--color-text-secondary, #666666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trend {
+  font-size: var(--font-size-small, 12px);
+  font-weight: var(--font-weight-medium, 500);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.trend.up {
+  color: var(--color-success, #027A48);
+}
+
+.trend.down {
+  color: var(--color-error, #B42318);
+}
+
+.trend.neutral {
+  color: var(--color-text-tertiary, #999999);
+}
+
+.metricValue {
+  font-size: var(--font-size-h2, 24px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.insightsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl, 32px);
+  margin-bottom: var(--spacing-xl, 32px);
+}
+
+.insightSection {
+  background: var(--color-bg-off-white, #FFFDF0);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--spacing-lg, 24px);
+}
+
+.insightSection h3 {
+  margin: 0 0 var(--spacing-xs, 4px) 0;
+  font-size: var(--font-size-body-lg, 16px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.sectionSubtitle {
+  margin: 0 0 var(--spacing-md, 16px) 0;
+  font-size: var(--font-size-small, 12px);
+  color: var(--color-text-secondary, #666666);
+}
+
+.timeline {
+  padding: var(--spacing-md, 16px) 0;
+}
+
+.timelineChart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 120px;
+  gap: var(--spacing-sm, 8px);
+}
+
+.timelineDay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs, 4px);
+}
+
+.barWrapper {
+  height: 100px;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.timelineBar {
+  width: 100%;
+  background: linear-gradient(to top, var(--color-primary, #FFDD00), #F5D000);
+  border-radius: var(--radius-sm, 6px) var(--radius-sm, 6px) 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: var(--spacing-xs, 4px);
+  transition: all var(--transition-micro, 150ms ease-in-out);
+  cursor: pointer;
+  min-height: 4px;
+}
+
+.timelineBar:hover {
+  transform: scaleY(1.05);
+  box-shadow: 0 -2px 8px rgba(255, 221, 0, 0.3);
+}
+
+.barValue {
+  font-size: var(--font-size-small, 12px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.dayLabel {
+  font-size: 10px;
+  color: var(--color-text-secondary, #666666);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.topicsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 8px);
+}
+
+.topicBar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 4px);
+}
+
+.topicHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-small, 12px);
+}
+
+.topicName {
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.topicCount {
+  color: var(--color-text-secondary, #666666);
+}
+
+.barContainer {
+  height: 24px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-sm, 6px);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary, #FFDD00), #F5D000);
+  border-radius: var(--radius-sm, 6px);
+  transition: width var(--transition-standard, 300ms ease-in-out);
+}
+
+.patternsSummary {
+  background: var(--color-bg-gray, #F5F5F5);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--spacing-lg, 24px);
+}
+
+.patternsSummary h3 {
+  margin: 0 0 var(--spacing-md, 16px) 0;
+  font-size: var(--font-size-body-lg, 16px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.patternsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md, 16px);
+}
+
+.patternCard {
+  background: white;
+  border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-md, 16px);
+  display: flex;
+  gap: var(--spacing-md, 16px);
+  align-items: center;
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.patternCard:hover {
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  transform: translateY(-2px);
+}
+
+.patternIcon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.patternCard h4 {
+  margin: 0 0 var(--spacing-xs, 4px) 0;
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.patternCard p {
+  margin: 0;
+  font-size: var(--font-size-small, 12px);
+  color: var(--color-text-secondary, #666666);
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl, 32px);
+  text-align: center;
+  color: var(--color-text-tertiary, #999999);
+  font-size: var(--font-size-body, 14px);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl, 64px);
+  color: var(--color-text-secondary, #666666);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--color-primary, #FFDD00);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1024px) {
+  .insightsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .learningInsights {
+    padding: var(--spacing-md, 16px);
+  }
+
+  .metricsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .patternsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .styleHeader {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .timelineChart {
+    height: 80px;
+  }
+
+  .barWrapper {
+    height: 60px;
+  }
+
+  .dayLabel {
+    font-size: 9px;
+  }
+}

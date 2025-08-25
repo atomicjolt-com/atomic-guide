@@ -32,8 +32,9 @@ import indexHtml from './html/index_html';
 import launchHtml from './html/launch_html';
 import { getClientAssetPath } from './libs/manifest';
 import dbTestApp from './db/test-connection';
-import { handleChatMessage } from './api/handlers/chat';
+import { handleChatMessage, searchChatHistory, getChatConversation, deleteChatConversation, exportUserData } from './api/handlers/chat';
 import { handleChatStream } from './api/handlers/chatStream';
+import { getConversations, getLearningInsights, updateLearningStyle, getConversationSummary } from './api/handlers/dashboard';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -139,6 +140,16 @@ app.route('/db', dbTestApp);
 // API routes
 app.post('/api/chat/message', (c) => handleChatMessage(c));
 app.post('/api/chat/stream', (c) => handleChatStream(c));
+app.get('/api/chat/search', (c) => searchChatHistory(c));
+app.get('/api/chat/conversation/:conversationId', (c) => getChatConversation(c));
+app.delete('/api/chat/conversation/:conversationId', (c) => deleteChatConversation(c));
+app.get('/api/user/export', (c) => exportUserData(c));
+
+// Dashboard API routes
+app.get('/api/dashboard/conversations', (c) => getConversations(c));
+app.get('/api/dashboard/insights', (c) => getLearningInsights(c));
+app.post('/api/learner/learning-style', (c) => updateLearningStyle(c));
+app.get('/api/dashboard/summary/:conversationId', (c) => getConversationSummary(c));
 
 // Error handling
 app.onError((err: Error, c) => {

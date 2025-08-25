@@ -1,5 +1,6 @@
 import { Context } from 'hono';
 import { verify } from 'hono/jwt';
+import { z } from 'zod';
 import { AIService } from '../../services/AIService';
 import { ModelRegistry } from '../../services/ModelRegistry';
 import { PromptBuilder } from '../../services/PromptBuilder';
@@ -341,4 +342,412 @@ async function trackTokenUsage(
     modelName,
     new Date().toISOString()
   ).run();
+}
+
+// Search endpoint schemas
+const searchQuerySchema = z.object({
+  query: z.string().min(1).max(500).optional(), // Add length constraints
+  topic: z.string().min(1).max(100).optional(), // Add length constraints
+  limit: z.coerce.number().min(1).max(100).default(20),
+  offset: z.coerce.number().min(0).default(0),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional()
+});
+
+export async function searchChatHistory(c: Context) {
+  try {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const secret = c.env.JWT_SECRET;
+    if (!secret) {
+      console.error('JWT_SECRET environment variable is not set');
+      return c.json({ error: 'Server configuration error' }, 500);
+    }
+
+    let payload;
+    try {
+      payload = await verify(token, secret);
+    } catch (error) {
+      return c.json({ error: 'Invalid token' }, 401);
+    }
+
+    const queryParams = c.req.query();
+    const params = searchQuerySchema.parse(queryParams);
+
+    const { DB } = c.env;
+    const tenantId = payload.tenant_id || payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+    const learnerId = payload.sub || payload.user_id;
+
+    let query = `
+      SELECT 
+        cs.id,
+        cs.conversation_id,
+        cs.summary AS title,
+        cs.summary,
+        cs.topics,
+        cs.created_at AS started_at,
+        cs.updated_at AS last_message_at,
+        COUNT(DISTINCT cm.id) AS message_count
+      FROM conversation_summaries cs
+      LEFT JOIN chat_messages cm ON cm.conversation_id = cs.conversation_id
+      WHERE cs.tenant_id = ? AND cs.learner_id = ?
+    `;
+
+    const queryParts: string[] = [];
+    const queryValues: any[] = [tenantId, learnerId];
+
+    if (params.query) {
+      // Sanitize query to prevent SQL injection through LIKE patterns
+      const sanitizedQuery = params.query.replace(/[%_\\]/g, '\\$&');
+      queryParts.push(`(cs.summary LIKE ? OR cs.topics LIKE ?)`);
+      const searchPattern = `%${sanitizedQuery}%`;
+      queryValues.push(searchPattern, searchPattern);
+    }
+
+    if (params.topic) {
+      // Sanitize topic to prevent SQL injection through LIKE patterns
+      const sanitizedTopic = params.topic.replace(/[%_\\]/g, '\\$&');
+      queryParts.push(`cs.topics LIKE ?`);
+      queryValues.push(`%${sanitizedTopic}%`);
+    }
+
+    if (params.startDate) {
+      queryParts.push(`cs.created_at >= ?`);
+      queryValues.push(params.startDate);
+    }
+
+    if (params.endDate) {
+      queryParts.push(`cs.created_at <= ?`);
+      queryValues.push(params.endDate);
+    }
+
+    if (queryParts.length > 0) {
+      query += ` AND ${queryParts.join(' AND ')}`;
+    }
+
+    query += `
+      GROUP BY cs.id
+      ORDER BY cs.updated_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    queryValues.push(params.limit, params.offset);
+
+    const result = await DB.prepare(query)
+      .bind(...queryValues)
+      .all();
+
+    const conversations = result.results.map((row: any) => ({
+      id: row.id,
+      conversationId: row.conversation_id,
+      title: row.title || 'Untitled Conversation',
+      summary: row.summary,
+      topics: row.topics ? JSON.parse(row.topics) : [],
+      messageCount: row.message_count || 0,
+      startedAt: row.started_at,
+      lastMessageAt: row.last_message_at
+    }));
+
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM conversation_summaries cs
+      WHERE cs.tenant_id = ? AND cs.learner_id = ?
+      ${queryParts.length > 0 ? `AND ${queryParts.join(' AND ')}` : ''}
+    `;
+
+    const countResult = await DB.prepare(countQuery)
+      .bind(...queryValues.slice(0, -2))
+      .first();
+
+    return c.json({
+      conversations,
+      total: countResult?.total || 0,
+      limit: params.limit,
+      offset: params.offset
+    });
+  } catch (error) {
+    console.error('Error searching chat history:', error);
+    return c.json({ error: 'Failed to search chat history' }, 500);
+  }
+}
+
+export async function getChatConversation(c: Context) {
+  try {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const secret = c.env.JWT_SECRET;
+    if (!secret) {
+      console.error('JWT_SECRET environment variable is not set');
+      return c.json({ error: 'Server configuration error' }, 500);
+    }
+
+    let payload;
+    try {
+      payload = await verify(token, secret);
+    } catch (error) {
+      return c.json({ error: 'Invalid token' }, 401);
+    }
+
+    const conversationId = c.req.param('conversationId');
+    if (!conversationId) {
+      return c.json({ error: 'Conversation ID required' }, 400);
+    }
+
+    const { DB, CHAT_CONVERSATIONS } = c.env;
+    const tenantId = payload.tenant_id || payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+    const learnerId = payload.sub || payload.user_id;
+
+    const summaryResult = await DB.prepare(`
+      SELECT 
+        id,
+        conversation_id,
+        summary,
+        topics,
+        created_at AS started_at,
+        updated_at AS last_message_at
+      FROM conversation_summaries
+      WHERE tenant_id = ? AND learner_id = ? AND conversation_id = ?
+    `).bind(tenantId, learnerId, conversationId).first();
+
+    if (!summaryResult) {
+      return c.json({ error: 'Conversation not found' }, 404);
+    }
+
+    const doId = CHAT_CONVERSATIONS.idFromName(`${tenantId}:${conversationId}`);
+    const stub = CHAT_CONVERSATIONS.get(doId);
+
+    const response = await stub.fetch(new Request('https://do/messages', {
+      method: 'GET'
+    }));
+
+    const messages = await response.json();
+
+    return c.json({
+      id: summaryResult.id,
+      conversationId: summaryResult.conversation_id,
+      title: summaryResult.summary?.split('.')[0] || 'Untitled Conversation',
+      summary: summaryResult.summary,
+      topics: summaryResult.topics ? JSON.parse(summaryResult.topics) : [],
+      startedAt: summaryResult.started_at,
+      lastMessageAt: summaryResult.last_message_at,
+      messages: messages || []
+    });
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
+    return c.json({ error: 'Failed to fetch conversation' }, 500);
+  }
+}
+
+export async function exportUserData(c: Context) {
+  try {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const secret = c.env.JWT_SECRET;
+    if (!secret) {
+      console.error('JWT_SECRET environment variable is not set');
+      return c.json({ error: 'Server configuration error' }, 500);
+    }
+
+    let payload;
+    try {
+      payload = await verify(token, secret);
+    } catch (error) {
+      return c.json({ error: 'Invalid token' }, 401);
+    }
+
+    const format = c.req.query('format') || 'json';
+    const { DB } = c.env;
+    const tenantId = payload.tenant_id || payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+    const learnerId = payload.sub || payload.user_id;
+
+    // Get all conversations
+    const conversationsResult = await DB.prepare(`
+      SELECT 
+        cs.*,
+        COUNT(cm.id) as message_count
+      FROM conversation_summaries cs
+      LEFT JOIN chat_messages cm ON cm.conversation_id = cs.conversation_id
+      WHERE cs.tenant_id = ? AND cs.learner_id = ?
+      GROUP BY cs.id
+      ORDER BY cs.created_at DESC
+    `).bind(tenantId, learnerId).all();
+
+    // Get all messages
+    const messagesResult = await DB.prepare(`
+      SELECT * FROM chat_messages
+      WHERE tenant_id = ? AND learner_id = ?
+      ORDER BY created_at DESC
+    `).bind(tenantId, learnerId).all();
+
+    // Get learner profile
+    const profileResult = await DB.prepare(`
+      SELECT * FROM learner_profiles
+      WHERE tenant_id = ? AND user_id = ?
+    `).bind(tenantId, learnerId).first();
+
+    // Get learning style
+    const learningStyleResult = await DB.prepare(`
+      SELECT * FROM learning_styles
+      WHERE learner_id = ?
+    `).bind(learnerId).first();
+
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      userId: learnerId,
+      tenantId: tenantId,
+      profile: profileResult || null,
+      learningStyle: learningStyleResult || null,
+      conversations: conversationsResult.results.map((conv: any) => ({
+        ...conv,
+        topics: conv.topics ? JSON.parse(conv.topics) : []
+      })),
+      messages: messagesResult.results,
+      statistics: {
+        totalConversations: conversationsResult.results.length,
+        totalMessages: messagesResult.results.length,
+        dateRange: {
+          earliest: messagesResult.results[messagesResult.results.length - 1]?.created_at || null,
+          latest: messagesResult.results[0]?.created_at || null
+        }
+      }
+    };
+
+    if (format === 'csv') {
+      // Convert to CSV format
+      const csvData = convertToCSV(exportData);
+      return new Response(csvData, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="atomic-guide-export-${Date.now()}.csv"`
+        }
+      });
+    } else {
+      // Return JSON format
+      return new Response(JSON.stringify(exportData, null, 2), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Disposition': `attachment; filename="atomic-guide-export-${Date.now()}.json"`
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error exporting user data:', error);
+    return c.json({ error: 'Failed to export user data' }, 500);
+  }
+}
+
+function convertToCSV(data: any): string {
+  const csvRows: string[] = [];
+  
+  // Add header section
+  csvRows.push('Export Information');
+  csvRows.push(`Export Date,${data.exportDate}`);
+  csvRows.push(`User ID,${data.userId}`);
+  csvRows.push(`Tenant ID,${data.tenantId}`);
+  csvRows.push('');
+  
+  // Add statistics
+  csvRows.push('Statistics');
+  csvRows.push(`Total Conversations,${data.statistics.totalConversations}`);
+  csvRows.push(`Total Messages,${data.statistics.totalMessages}`);
+  csvRows.push(`Earliest Message,${data.statistics.dateRange.earliest || 'N/A'}`);
+  csvRows.push(`Latest Message,${data.statistics.dateRange.latest || 'N/A'}`);
+  csvRows.push('');
+  
+  // Add conversations
+  csvRows.push('Conversations');
+  csvRows.push('ID,Summary,Topics,Created At,Updated At,Message Count');
+  data.conversations.forEach((conv: any) => {
+    csvRows.push([
+      conv.id,
+      `"${conv.summary?.replace(/"/g, '""') || ''}"`,
+      `"${conv.topics?.join(', ') || ''}"`,
+      conv.created_at,
+      conv.updated_at,
+      conv.message_count
+    ].join(','));
+  });
+  csvRows.push('');
+  
+  // Add messages
+  csvRows.push('Messages');
+  csvRows.push('ID,Conversation ID,Role,Content,Created At');
+  data.messages.forEach((msg: any) => {
+    csvRows.push([
+      msg.id,
+      msg.conversation_id,
+      msg.role,
+      `"${msg.content?.replace(/"/g, '""') || ''}"`,
+      msg.created_at
+    ].join(','));
+  });
+  
+  return csvRows.join('\n');
+}
+
+export async function deleteChatConversation(c: Context) {
+  try {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const secret = c.env.JWT_SECRET;
+    if (!secret) {
+      console.error('JWT_SECRET environment variable is not set');
+      return c.json({ error: 'Server configuration error' }, 500);
+    }
+
+    let payload;
+    try {
+      payload = await verify(token, secret);
+    } catch (error) {
+      return c.json({ error: 'Invalid token' }, 401);
+    }
+
+    const conversationId = c.req.param('conversationId');
+    if (!conversationId) {
+      return c.json({ error: 'Conversation ID required' }, 400);
+    }
+
+    const { DB } = c.env;
+    const tenantId = payload.tenant_id || payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+    const learnerId = payload.sub || payload.user_id;
+
+    const verifyResult = await DB.prepare(`
+      SELECT id FROM conversation_summaries
+      WHERE tenant_id = ? AND learner_id = ? AND conversation_id = ?
+    `).bind(tenantId, learnerId, conversationId).first();
+
+    if (!verifyResult) {
+      return c.json({ error: 'Conversation not found or unauthorized' }, 404);
+    }
+
+    await DB.prepare(`
+      DELETE FROM chat_messages
+      WHERE tenant_id = ? AND conversation_id = ?
+    `).bind(tenantId, conversationId).run();
+
+    await DB.prepare(`
+      DELETE FROM conversation_summaries
+      WHERE tenant_id = ? AND learner_id = ? AND conversation_id = ?
+    `).bind(tenantId, learnerId, conversationId).run();
+
+    return c.json({ success: true, message: 'Conversation deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
+    return c.json({ error: 'Failed to delete conversation' }, 500);
+  }
 }

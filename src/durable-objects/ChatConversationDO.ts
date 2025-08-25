@@ -3,6 +3,22 @@
  */
 
 import type { DurableObjectState } from '@cloudflare/workers-types';
+import { z } from 'zod';
+
+// Zod schemas for input validation
+const ConversationMessageSchema = z.object({
+  id: z.string().optional(),
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1).max(50000), // Prevent extremely large messages
+  timestamp: z.string().optional(),
+  metadata: z.object({
+    tokensUsed: z.number().min(0).optional(),
+    modelUsed: z.string().max(100).optional(),
+    cached: z.boolean().optional(),
+    learningStyle: z.enum(['visual', 'auditory', 'kinesthetic', 'reading_writing', 'mixed']).optional(),
+    topics: z.array(z.string().max(100)).max(20).optional() // Limit topics array
+  }).optional()
+});
 
 export interface ConversationMessage {
   id: string;
@@ -13,6 +29,8 @@ export interface ConversationMessage {
     tokensUsed?: number;
     modelUsed?: string;
     cached?: boolean;
+    learningStyle?: string;
+    topics?: string[];
   };
 }
 
@@ -25,6 +43,21 @@ export interface ConversationSession {
   messageCount: number;
   totalTokensUsed: number;
   context?: Record<string, any>;
+  learningStyle?: string;
+  topics?: string[];
+  summaryGenerated?: boolean;
+  lastSummaryAt?: string;
+}
+
+export interface ConversationSummary {
+  conversationId: string;
+  summary: string;
+  keyTopics: string[];
+  totalMessages: number;
+  startTime: string;
+  endTime: string;
+  learningStyleDetected?: string;
+  tokensUsed: number;
 }
 
 export interface RateLimitInfo {
@@ -41,6 +74,8 @@ export class ChatConversationDO {
   private rateLimitMap: Map<string, RateLimitInfo>;
   private maxHistorySize: number = 100;
   private conversationWindowSize: number = 10;
+  private conversationSummaries: ConversationSummary[];
+  private retentionDays: number = 90;
 
   constructor(state: DurableObjectState) {
     this.state = state;
@@ -48,6 +83,7 @@ export class ChatConversationDO {
     this.conversationHistory = [];
     this.sessionInfo = null;
     this.rateLimitMap = new Map();
+    this.conversationSummaries = [];
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -64,8 +100,18 @@ export class ChatConversationDO {
         return this.handleGetContext(request);
       case '/summarize':
         return this.handleSummarize(request);
+      case '/generate-summary':
+        return this.handleGenerateSummary(request);
+      case '/get-summaries':
+        return this.handleGetSummaries(request);
       case '/check-rate-limit':
         return this.handleCheckRateLimit(request);
+      case '/persist-state':
+        return this.handlePersistState(request);
+      case '/restore-state':
+        return this.handleRestoreState(request);
+      case '/cleanup-old-data':
+        return this.handleCleanupOldData(request);
       case '/stats':
         return this.handleStats();
       case '/reset':
@@ -100,20 +146,28 @@ export class ChatConversationDO {
 
   private async handleAddMessage(request: Request): Promise<Response> {
     try {
-      const body = await request.json() as ConversationMessage;
+      const rawBody = await request.json();
       
-      if (!body.role || !body.content) {
-        return new Response(JSON.stringify({ error: 'Invalid message format' }), { 
+      // Validate input using Zod schema
+      const validationResult = ConversationMessageSchema.safeParse(rawBody);
+      if (!validationResult.success) {
+        console.error('Message validation failed:', validationResult.error.issues);
+        return new Response(JSON.stringify({ 
+          error: 'Invalid message format', 
+          details: validationResult.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`)
+        }), { 
           status: 400,
           headers: { 'Content-Type': 'application/json' }
         });
       }
+      
+      const body = validationResult.data;
 
-      // Create message with ID and timestamp
+      // Create message with ID and timestamp, sanitizing content
       const message: ConversationMessage = {
-        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: body.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         role: body.role,
-        content: body.content,
+        content: this.sanitizeContent(body.content),
         timestamp: body.timestamp || new Date().toISOString(),
         metadata: body.metadata
       };
@@ -211,8 +265,8 @@ export class ChatConversationDO {
 
   private async handleSummarize(request: Request): Promise<Response> {
     try {
-      // Create a summary of the conversation for long chats
-      if (this.conversationHistory.length < 20) {
+      // Return existing summary or key points from conversation
+      if (this.conversationHistory.length < 5) {
         return new Response(JSON.stringify({ 
           summary: null,
           message: 'Conversation too short for summarization'
@@ -220,6 +274,14 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' }
         });
       }
+
+      // Extract topics from conversation
+      const topics = new Set<string>();
+      this.conversationHistory.forEach(msg => {
+        if (msg.metadata?.topics) {
+          msg.metadata.topics.forEach(topic => topics.add(topic));
+        }
+      });
 
       // Simple summarization - extract key points
       const keyMessages = this.conversationHistory
@@ -238,9 +300,11 @@ export class ChatConversationDO {
           role: msg.role,
           snippet: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
         })),
+        topics: Array.from(topics),
         startTime: this.sessionInfo?.startedAt,
         lastActivity: this.sessionInfo?.lastActivityAt,
-        tokensUsed: this.sessionInfo?.totalTokensUsed || 0
+        tokensUsed: this.sessionInfo?.totalTokensUsed || 0,
+        learningStyle: this.sessionInfo?.learningStyle
       };
 
       return new Response(JSON.stringify(summary), {
@@ -249,6 +313,293 @@ export class ChatConversationDO {
     } catch (error) {
       console.error('Error summarizing:', error);
       return new Response(JSON.stringify({ error: 'Failed to summarize' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async handleGenerateSummary(request: Request): Promise<Response> {
+    try {
+      if (!this.sessionInfo || this.conversationHistory.length < 5) {
+        return new Response(JSON.stringify({ 
+          error: 'Insufficient conversation data for summary generation'
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Extract key topics from conversation
+      const topics = new Set<string>();
+      const learningPatterns = new Map<string, number>();
+      
+      this.conversationHistory.forEach(msg => {
+        if (msg.metadata?.topics) {
+          msg.metadata.topics.forEach(topic => topics.add(topic));
+        }
+        if (msg.metadata?.learningStyle) {
+          const count = learningPatterns.get(msg.metadata.learningStyle) || 0;
+          learningPatterns.set(msg.metadata.learningStyle, count + 1);
+        }
+      });
+
+      // Determine dominant learning style
+      let dominantStyle = this.sessionInfo.learningStyle;
+      if (learningPatterns.size > 0) {
+        dominantStyle = Array.from(learningPatterns.entries())
+          .sort((a, b) => b[1] - a[1])[0][0];
+      }
+
+      // Create comprehensive summary
+      const summary: ConversationSummary = {
+        conversationId: this.sessionInfo.conversationId,
+        summary: this.generateTextSummary(),
+        keyTopics: Array.from(topics),
+        totalMessages: this.conversationHistory.length,
+        startTime: this.sessionInfo.startedAt,
+        endTime: this.sessionInfo.lastActivityAt,
+        learningStyleDetected: dominantStyle,
+        tokensUsed: this.sessionInfo.totalTokensUsed
+      };
+
+      // Store summary
+      this.conversationSummaries.push(summary);
+      await this.state.storage.put(
+        `summary:${this.sessionInfo.conversationId}:${Date.now()}`,
+        summary
+      );
+
+      // Update session info
+      this.sessionInfo.summaryGenerated = true;
+      this.sessionInfo.lastSummaryAt = new Date().toISOString();
+      await this.state.storage.put(
+        `session:${this.sessionInfo.conversationId}`,
+        this.sessionInfo
+      );
+
+      return new Response(JSON.stringify(summary), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      return new Response(JSON.stringify({ error: 'Failed to generate summary' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private generateTextSummary(): string {
+    // Extract main topics and questions from conversation
+    const questions = this.conversationHistory
+      .filter(msg => msg.role === 'user' && msg.content.includes('?'))
+      .map(msg => msg.content.substring(0, 100));
+    
+    const concepts = this.conversationHistory
+      .filter(msg => msg.role === 'assistant')
+      .map(msg => {
+        // Extract key concepts (simplified - in production would use NLP)
+        const words = msg.content.split(' ');
+        return words.filter(word => word.length > 7).slice(0, 3);
+      })
+      .flat();
+
+    const uniqueConcepts = [...new Set(concepts)].slice(0, 5);
+    
+    return `This conversation covered ${questions.length} questions focusing on: ${uniqueConcepts.join(', ')}. ` +
+           `The discussion included ${this.conversationHistory.length} messages over ` +
+           `${this.calculateDuration()} with a focus on ${this.sessionInfo?.topics?.join(', ') || 'general topics'}.`;
+  }
+
+  private calculateDuration(): string {
+    if (!this.sessionInfo) return 'unknown duration';
+    
+    const start = new Date(this.sessionInfo.startedAt).getTime();
+    const end = new Date(this.sessionInfo.lastActivityAt).getTime();
+    const durationMs = end - start;
+    
+    if (durationMs < 60000) return `${Math.round(durationMs / 1000)} seconds`;
+    if (durationMs < 3600000) return `${Math.round(durationMs / 60000)} minutes`;
+    return `${Math.round(durationMs / 3600000)} hours`;
+  }
+
+  private async handleGetSummaries(request: Request): Promise<Response> {
+    try {
+      const url = new URL(request.url);
+      const limit = parseInt(url.searchParams.get('limit') || '10');
+      
+      // Get stored summaries
+      const summaryKeys = await this.state.storage.list({ prefix: 'summary:' });
+      const summaries: ConversationSummary[] = [];
+      
+      for (const [key, value] of summaryKeys) {
+        if (value && typeof value === 'object') {
+          summaries.push(value as ConversationSummary);
+        }
+      }
+
+      // Sort by end time (most recent first)
+      summaries.sort((a, b) => 
+        new Date(b.endTime).getTime() - new Date(a.endTime).getTime()
+      );
+
+      return new Response(JSON.stringify({
+        summaries: summaries.slice(0, limit),
+        total: summaries.length
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error getting summaries:', error);
+      return new Response(JSON.stringify({ error: 'Failed to get summaries' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async handlePersistState(request: Request): Promise<Response> {
+    try {
+      if (!this.sessionInfo) {
+        return new Response(JSON.stringify({ error: 'No active session' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      const conversationId = this.sessionInfo.conversationId;
+      
+      // Persist conversation history
+      await this.state.storage.put(`history:${conversationId}`, this.conversationHistory);
+      
+      // Persist session info
+      await this.state.storage.put(`session:${conversationId}`, this.sessionInfo);
+      
+      // Persist summaries if any
+      if (this.conversationSummaries.length > 0) {
+        await this.state.storage.put(
+          `summaries:${conversationId}`,
+          this.conversationSummaries
+        );
+      }
+
+      // Store state snapshot for recovery
+      const stateSnapshot = {
+        conversationId,
+        timestamp: new Date().toISOString(),
+        messageCount: this.conversationHistory.length,
+        lastMessageId: this.conversationHistory[this.conversationHistory.length - 1]?.id
+      };
+      
+      await this.state.storage.put(`snapshot:${conversationId}`, stateSnapshot);
+
+      return new Response(JSON.stringify({ 
+        success: true,
+        persisted: {
+          messages: this.conversationHistory.length,
+          summaries: this.conversationSummaries.length
+        }
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error persisting state:', error);
+      return new Response(JSON.stringify({ error: 'Failed to persist state' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async handleRestoreState(request: Request): Promise<Response> {
+    try {
+      const body = await request.json() as { conversationId: string };
+      const { conversationId } = body;
+
+      // Restore session info
+      const storedSession = await this.state.storage.get<ConversationSession>(
+        `session:${conversationId}`
+      );
+      
+      if (!storedSession) {
+        return new Response(JSON.stringify({ error: 'Session not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      this.sessionInfo = storedSession;
+
+      // Restore conversation history
+      const storedHistory = await this.state.storage.get<ConversationMessage[]>(
+        `history:${conversationId}`
+      );
+      this.conversationHistory = storedHistory || [];
+
+      // Restore summaries
+      const storedSummaries = await this.state.storage.get<ConversationSummary[]>(
+        `summaries:${conversationId}`
+      );
+      this.conversationSummaries = storedSummaries || [];
+
+      return new Response(JSON.stringify({ 
+        success: true,
+        restored: {
+          messages: this.conversationHistory.length,
+          summaries: this.conversationSummaries.length,
+          sessionInfo: this.sessionInfo
+        }
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error restoring state:', error);
+      return new Response(JSON.stringify({ error: 'Failed to restore state' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async handleCleanupOldData(request: Request): Promise<Response> {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - this.retentionDays);
+      
+      let deletedCount = 0;
+      
+      // List all stored items
+      const allKeys = await this.state.storage.list();
+      
+      for (const [key, value] of allKeys) {
+        if (value && typeof value === 'object') {
+          const item = value as any;
+          
+          // Check if item has a timestamp and is older than retention period
+          if (item.timestamp || item.lastActivityAt || item.endTime) {
+            const itemDate = new Date(
+              item.timestamp || item.lastActivityAt || item.endTime
+            );
+            
+            if (itemDate < cutoffDate) {
+              await this.state.storage.delete(key);
+              deletedCount++;
+            }
+          }
+        }
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true,
+        deletedItems: deletedCount,
+        retentionDays: this.retentionDays
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error cleaning up old data:', error);
+      return new Response(JSON.stringify({ error: 'Failed to cleanup old data' }), { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -375,13 +726,17 @@ export class ChatConversationDO {
     // Handle different message types
     switch (message.type) {
       case 'chat':
-        // Add message to history
+        // Add message to history with metadata
         await this.handleAddMessage(new Request('https://do/add-message', {
           method: 'POST',
           body: JSON.stringify({
             role: 'user',
             content: message.content,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            metadata: {
+              learningStyle: message.learningStyle,
+              topics: message.topics
+            }
           })
         }));
         break;
@@ -391,6 +746,42 @@ export class ChatConversationDO {
         sender.send(JSON.stringify({
           type: 'history',
           messages: history
+        }));
+        break;
+
+      case 'get-context':
+        const context = {
+          sessionInfo: this.sessionInfo,
+          recentMessages: this.conversationHistory.slice(-this.conversationWindowSize),
+          messageCount: this.conversationHistory.length
+        };
+        sender.send(JSON.stringify({
+          type: 'context',
+          data: context
+        }));
+        break;
+
+      case 'restore-state':
+        if (message.conversationId) {
+          await this.handleRestoreState(new Request('https://do/restore-state', {
+            method: 'POST',
+            body: JSON.stringify({ conversationId: message.conversationId })
+          }));
+          sender.send(JSON.stringify({
+            type: 'state-restored',
+            conversationId: message.conversationId,
+            messageCount: this.conversationHistory.length
+          }));
+        }
+        break;
+
+      case 'persist-state':
+        await this.handlePersistState(new Request('https://do/persist-state', {
+          method: 'POST'
+        }));
+        sender.send(JSON.stringify({
+          type: 'state-persisted',
+          messageCount: this.conversationHistory.length
         }));
         break;
 
@@ -408,6 +799,16 @@ export class ChatConversationDO {
         this.sessions.delete(client);
       }
     }
+  }
+
+  private sanitizeContent(content: string): string {
+    // Basic content sanitization to prevent malicious content
+    return content
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframe tags
+      .replace(/javascript:/gi, '') // Remove javascript: protocols
+      .replace(/on\w+\s*=/gi, '') // Remove event handlers
+      .trim();
   }
 
   private handleStats(): Response {

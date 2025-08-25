@@ -436,3 +436,58 @@ CREATE TABLE IF NOT EXISTS ai_config (
 );
 
 CREATE INDEX idx_ai_config_tenant ON ai_config(tenant_id);
+
+-- ============================================
+-- STORY 2.1: CONVERSATION MEMORY & PERSONALIZED LEARNING
+-- ============================================
+
+-- Conversation summaries for quick history access
+CREATE TABLE IF NOT EXISTS conversation_summaries (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    learner_id TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    topics JSON DEFAULT '[]', -- Array of detected topics
+    message_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (conversation_id) REFERENCES chat_conversations(conversation_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_summaries_learner ON conversation_summaries(tenant_id, learner_id);
+CREATE INDEX idx_summaries_conversation ON conversation_summaries(conversation_id);
+CREATE INDEX idx_summaries_updated ON conversation_summaries(updated_at DESC);
+
+-- Learning styles preferences
+CREATE TABLE IF NOT EXISTS learning_styles (
+    id TEXT PRIMARY KEY,
+    learner_id TEXT NOT NULL UNIQUE,
+    style_type TEXT NOT NULL, -- 'visual', 'auditory', 'kinesthetic', 'reading_writing'
+    confidence_score REAL DEFAULT 0.5,
+    detected_patterns JSON DEFAULT '{}', -- Pattern analysis data
+    manual_override BOOLEAN DEFAULT FALSE, -- If learner manually set preference
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_learning_style_learner ON learning_styles(learner_id);
+
+-- Privacy settings per learner
+CREATE TABLE IF NOT EXISTS privacy_settings (
+    id TEXT PRIMARY KEY,
+    learner_id TEXT NOT NULL UNIQUE,
+    conversation_retention BOOLEAN DEFAULT TRUE,
+    data_sharing BOOLEAN DEFAULT FALSE,
+    analytics_tracking BOOLEAN DEFAULT TRUE,
+    personalized_learning BOOLEAN DEFAULT TRUE,
+    deletion_requested_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_privacy_settings_learner ON privacy_settings(learner_id);
+
+-- Update chat_messages table to include learner_id for better isolation
+ALTER TABLE chat_messages ADD COLUMN learner_id TEXT;
+CREATE INDEX idx_chat_messages_learner ON chat_messages(tenant_id, learner_id);

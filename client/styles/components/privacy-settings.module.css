@@ -1,0 +1,476 @@
+.privacySettings {
+  padding: var(--spacing-lg, 24px);
+  background: var(--color-bg, #FFFFFF);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.header {
+  margin-bottom: var(--spacing-xl, 32px);
+}
+
+.header h2 {
+  margin: 0 0 var(--spacing-sm, 8px) 0;
+  font-size: var(--font-size-h2, 24px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-text-secondary, #666666);
+  font-size: var(--font-size-body, 14px);
+}
+
+.section {
+  margin-bottom: var(--spacing-2xl, 48px);
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 var(--spacing-lg, 24px) 0;
+  font-size: var(--font-size-h3, 20px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.settingsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 16px);
+}
+
+.settingItem {
+  display: flex;
+  gap: var(--spacing-md, 16px);
+  padding: var(--spacing-md, 16px);
+  background: var(--color-bg-off-white, #FFFDF0);
+  border-radius: var(--radius-md, 8px);
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.settingItem:hover {
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+}
+
+.settingIcon {
+  font-size: 24px;
+  line-height: 1;
+  padding-top: var(--spacing-xs, 4px);
+}
+
+.settingContent {
+  flex: 1;
+}
+
+.settingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm, 8px);
+}
+
+.settingHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-body-lg, 16px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.settingDescription {
+  margin: 0;
+  font-size: var(--font-size-body, 14px);
+  color: var(--color-text-secondary, #666666);
+  line-height: var(--line-height-base, 1.5);
+}
+
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.15);
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background var(--transition-micro, 150ms ease-in-out);
+}
+
+.toggle.active {
+  background: var(--color-primary, #FFDD00);
+}
+
+.toggleSlider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-micro, 150ms ease-in-out);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle.active .toggleSlider {
+  transform: translateX(24px);
+}
+
+.dataActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg, 24px);
+}
+
+.actionCard {
+  display: flex;
+  gap: var(--spacing-md, 16px);
+  padding: var(--spacing-lg, 24px);
+  background: var(--color-bg-off-white, #FFFDF0);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.actionIcon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.actionContent {
+  flex: 1;
+}
+
+.actionContent h4 {
+  margin: 0 0 var(--spacing-sm, 8px) 0;
+  font-size: var(--font-size-body-lg, 16px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.actionContent p {
+  margin: 0 0 var(--spacing-md, 16px) 0;
+  font-size: var(--font-size-body, 14px);
+  color: var(--color-text-secondary, #666666);
+}
+
+.exportButtons {
+  display: flex;
+  gap: var(--spacing-sm, 8px);
+}
+
+.exportButton {
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  background: var(--color-primary, #FFDD00);
+  color: var(--color-text, #333333);
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.exportButton:hover {
+  background: var(--color-primary-hover, #F5D000);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+}
+
+.deleteAllButton {
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  background: var(--color-error, #B42318);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.deleteAllButton:hover {
+  background: #9A1E14;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+}
+
+.conversationsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg, 24px);
+}
+
+.bulkActions {
+  display: flex;
+  gap: var(--spacing-sm, 8px);
+}
+
+.selectAllButton {
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  background: transparent;
+  color: var(--color-text, #333333);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-body, 14px);
+  cursor: pointer;
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.selectAllButton:hover {
+  background: var(--color-bg-off-white, #FFFDF0);
+  border-color: var(--color-primary, #FFDD00);
+}
+
+.deleteSelectedButton {
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  background: var(--color-error, #B42318);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.deleteSelectedButton:hover {
+  background: #9A1E14;
+}
+
+.conversationsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 8px);
+  max-height: 400px;
+  overflow-y: auto;
+  padding: var(--spacing-xs, 4px);
+}
+
+.conversationItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md, 16px);
+  padding: var(--spacing-md, 16px);
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md, 8px);
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.conversationItem:hover {
+  background: var(--color-bg-off-white, #FFFDF0);
+}
+
+.conversationItem.selected {
+  background: rgba(255, 221, 0, 0.1);
+  border-color: var(--color-primary, #FFDD00);
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.conversationInfo {
+  flex: 1;
+}
+
+.conversationInfo h4 {
+  margin: 0 0 var(--spacing-xs, 4px) 0;
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.conversationMeta {
+  display: flex;
+  gap: var(--spacing-md, 16px);
+  font-size: var(--font-size-small, 12px);
+  color: var(--color-text-secondary, #666666);
+}
+
+.policyInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md, 16px);
+}
+
+.policyItem {
+  display: flex;
+  gap: var(--spacing-md, 16px);
+  padding: var(--spacing-md, 16px);
+  background: var(--color-bg-gray, #F5F5F5);
+  border-radius: var(--radius-md, 8px);
+}
+
+.policyIcon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.policyItem h4 {
+  margin: 0 0 var(--spacing-xs, 4px) 0;
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.policyItem p {
+  margin: 0;
+  font-size: var(--font-size-small, 12px);
+  color: var(--color-text-secondary, #666666);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--spacing-xl, 32px);
+  max-width: 500px;
+  width: 90%;
+  box-shadow: var(--shadow-lg, 0 10px 20px rgba(0,0,0,0.20));
+}
+
+.modalContent h3 {
+  margin: 0 0 var(--spacing-md, 16px) 0;
+  font-size: var(--font-size-h3, 20px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #333333);
+}
+
+.modalContent p {
+  margin: 0 0 var(--spacing-lg, 24px) 0;
+  font-size: var(--font-size-body, 14px);
+  color: var(--color-text-secondary, #666666);
+  line-height: var(--line-height-base, 1.5);
+}
+
+.warningText {
+  color: var(--color-error, #B42318);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.confirmInput {
+  width: 100%;
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-body, 14px);
+  margin-bottom: var(--spacing-lg, 24px);
+  transition: border-color var(--transition-micro, 150ms ease-in-out);
+}
+
+.confirmInput:focus {
+  outline: none;
+  border-color: var(--color-error, #B42318);
+}
+
+.confirmInput.valid {
+  border-color: var(--color-success, #027A48);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm, 8px);
+}
+
+.cancelButton {
+  padding: var(--spacing-sm, 8px) var(--spacing-lg, 24px);
+  background: transparent;
+  color: var(--color-text, #333333);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.cancelButton:hover {
+  background: var(--color-bg-off-white, #FFFDF0);
+}
+
+.confirmDeleteButton {
+  padding: var(--spacing-sm, 8px) var(--spacing-lg, 24px);
+  background: var(--color-error, #B42318);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-body, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: all var(--transition-micro, 150ms ease-in-out);
+}
+
+.confirmDeleteButton:hover {
+  background: #9A1E14;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl, 64px);
+  color: var(--color-text-secondary, #666666);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--color-primary, #FFDD00);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .privacySettings {
+    padding: var(--spacing-md, 16px);
+  }
+
+  .dataActions {
+    grid-template-columns: 1fr;
+  }
+
+  .policyInfo {
+    grid-template-columns: 1fr;
+  }
+
+  .conversationsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md, 16px);
+  }
+
+  .exportButtons {
+    flex-direction: column;
+  }
+
+  .exportButton {
+    width: 100%;
+  }
+}
