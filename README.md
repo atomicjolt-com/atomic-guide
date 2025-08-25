@@ -1,6 +1,6 @@
-# Atomic LTI Worker
+# Atomic Guide
 
-A Cloudflare Workers-based solution for handling LTI 1.3 launches on the Tool side.
+AI for your classroom
 
 ## Demo
 
@@ -69,7 +69,7 @@ After creating the namespaces, copy the returned IDs into your `wrangler.jsonc` 
 
 #### For Dynamic Registration
 
-Atomic LTI worker supports dynamic registration which makes installing the tool into your platform simple. Change the tool configuration to meet your needs which will include changing the tool name, support email, etc:
+Atomic Guide supports dynamic registration which makes installing the tool into your platform simple. Change the tool configuration to meet your needs which will include changing the tool name, support email, etc:
 
 - Modify `definitions.ts` to match your tool's configuration requirements
 - A default tool configuration for dynamic registration is already setup but can be modified in src/config.ts as needed.

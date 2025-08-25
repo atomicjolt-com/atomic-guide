@@ -1,5 +1,5 @@
 {
-  "title": "Atomic LTI Worker",
+  "title": "Atomic Guide",
   "scopes": [
     "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
     "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
@@ -10,14 +10,14 @@
   "extensions": [
     {
       "domain": "https://atomic-lti-worker.atomicjolt.win",
-      "tool_id": "Atomic LTI Worker",
+      "tool_id": "Atomic Guide",
       "platform": "canvas.instructure.com",
       "settings": {
-        "text": "Atomic LTI Worker",
+        "text": "Atomic Guide",
         "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
         "placements": [
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "editor_button",
@@ -27,7 +27,7 @@
             "canvas_icon_class": "icon-lti"
           },
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "course_navigation",
@@ -37,7 +37,7 @@
             "canvas_icon_class": "icon-lti"
           },
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "user_navigation",
@@ -45,7 +45,7 @@
             "target_link_uri": "https://atomic-lti-worker.atomicjolt.win/lti/launch"
           },
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "migration_selection",
@@ -55,7 +55,7 @@
             "selection_height": 800
           },
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "link_selection",
@@ -65,7 +65,7 @@
             "selection_height": 800
           },
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "homework_submission",
@@ -75,7 +75,7 @@
             "selection_height": 800
           },
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "assignment_selection",
@@ -85,7 +85,7 @@
             "selection_height": 800
           },
           {
-            "text": "Atomic LTI Worker",
+            "text": "Atomic Guide",
             "enabled": true,
             "icon_url": "https://atomic-lti-worker.atomicjolt.win/atomicjolt.png",
             "placement": "account_navigation",
@@ -103,7 +103,7 @@
       "privacy_level": "public"
     }
   ],
-  "description": "Atomic LTI Worker",
+  "description": "Atomic Guide",
   "custom_fields": {
     "canvas_sis_id": "$Canvas.user.sisid",
     "canvas_user_id": "$Canvas.user.id",
