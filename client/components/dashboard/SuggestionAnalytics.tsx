@@ -3,7 +3,7 @@
  * Dashboard component showing suggestion effectiveness, patterns, and learning progress
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 export interface SuggestionStats {
   total_shown: number;
@@ -68,9 +68,9 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({
 
   useEffect(() => {
     fetchAnalytics();
-  }, [selectedTimeframe, role]);
+  }, [fetchAnalytics]);
 
-  const fetchAnalytics = async() => {
+  const fetchAnalytics = useCallback(async() => {
     setIsLoading(true);
     setError(null);
     
@@ -94,7 +94,7 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedTimeframe, role]);
 
   const getTenantId = (): string => {
     return localStorage.getItem('tenantId') || '';

@@ -3,7 +3,7 @@
  * Manages suggestion display positioning, timing, and mobile responsiveness
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import SuggestionCard, { Suggestion, SuggestionAction } from './SuggestionCard';
 
 export interface SuggestionOverlayProps {
@@ -43,7 +43,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     if (isVisible && !currentSuggestion) {
       fetchNextSuggestion();
     }
-  }, [isVisible]);
+  }, [isVisible, currentSuggestion, fetchNextSuggestion]);
 
   // Handle click outside to close (desktop only)
   useEffect(() => {
@@ -57,7 +57,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isVisible, isMobile]);
+  }, [isVisible, isMobile, handleClose]);
 
   // Prevent body scroll when mobile overlay is open
   useEffect(() => {
@@ -105,9 +105,9 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
         element.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isMobile, isVisible]);
+  }, [isMobile, isVisible, handleClose]);
 
-  const fetchNextSuggestion = async() => {
+  const fetchNextSuggestion = useCallback(async() => {
     setIsLoading(true);
     
     try {
@@ -127,7 +127,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const handleAccept = async(action: SuggestionAction) => {
     if (!currentSuggestion) return;
@@ -211,10 +211,10 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setCurrentSuggestion(null);
     onClose();
-  };
+  }, [onClose]);
 
   const executeAction = async(action: SuggestionAction) => {
     switch (action.type) {

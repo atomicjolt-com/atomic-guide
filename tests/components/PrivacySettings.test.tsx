@@ -162,7 +162,7 @@ describe('PrivacySettings', () => {
   });
 
   describe('Privacy Toggle Functionality', () => {
-    it('should toggle conversation retention setting', async () => {
+    it('should toggle conversation retention setting', async() => {
       const user = userEvent.setup();
 
       render(
@@ -203,7 +203,7 @@ describe('PrivacySettings', () => {
   });
 
   describe('Data Export Functionality', () => {
-    it('should call onExportData with JSON format', async () => {
+    it('should call onExportData with JSON format', async() => {
       const user = userEvent.setup();
 
       render(
@@ -220,7 +220,7 @@ describe('PrivacySettings', () => {
       expect(mockOnExportData).toHaveBeenCalledWith('json');
     });
 
-    it('should call onExportData with CSV format', async () => {
+    it('should call onExportData with CSV format', async() => {
       const user = userEvent.setup();
 
       render(
@@ -271,7 +271,7 @@ describe('PrivacySettings', () => {
       expect(screen.queryByText('Manage Conversations')).not.toBeInTheDocument();
     });
 
-    it('should handle conversation selection', async () => {
+    it('should handle conversation selection', async() => {
       const user = userEvent.setup();
 
       render(
@@ -291,7 +291,7 @@ describe('PrivacySettings', () => {
       expect(checkbox).toBeChecked();
     });
 
-    it('should handle select all functionality', async () => {
+    it('should handle select all functionality', async() => {
       const user = userEvent.setup();
 
       render(
@@ -318,7 +318,7 @@ describe('PrivacySettings', () => {
   });
 
   describe('Delete Functionality', () => {
-    it('should show delete all confirmation modal', async () => {
+    it('should show delete all confirmation modal', async() => {
       const user = userEvent.setup();
 
       render(
@@ -337,7 +337,7 @@ describe('PrivacySettings', () => {
       expect(screen.getByText(/This will permanently delete ALL/)).toBeInTheDocument();
     });
 
-    it('should handle delete all with confirmation', async () => {
+    it('should handle delete all with confirmation', async() => {
       const user = userEvent.setup();
 
       render(
@@ -363,7 +363,7 @@ describe('PrivacySettings', () => {
       expect(mockOnDeleteAllData).toHaveBeenCalled();
     });
 
-    it('should show delete selected conversations modal', async () => {
+    it('should show delete selected conversations modal', async() => {
       const user = userEvent.setup();
 
       render(
@@ -387,7 +387,7 @@ describe('PrivacySettings', () => {
       expect(screen.getByText(/Are you sure you want to delete 1 selected conversation/)).toBeInTheDocument();
     });
 
-    it('should handle delete selected conversations', async () => {
+    it('should handle delete selected conversations', async() => {
       const user = userEvent.setup();
 
       render(
@@ -413,7 +413,7 @@ describe('PrivacySettings', () => {
       expect(mockOnDeleteConversations).toHaveBeenCalledWith(['conv1']);
     });
 
-    it('should allow canceling deletion', async () => {
+    it('should allow canceling deletion', async() => {
       const user = userEvent.setup();
 
       render(
@@ -566,7 +566,7 @@ describe('PrivacySettings', () => {
       }).not.toThrow();
     });
 
-    it('should handle callback errors gracefully', async () => {
+    it('should handle callback errors gracefully', async() => {
       const user = userEvent.setup();
       const errorCallback = vi.fn().mockImplementation(() => {
         throw new Error('Test error');
@@ -583,7 +583,7 @@ describe('PrivacySettings', () => {
       );
 
       // Should not crash the component
-      expect(async () => {
+      expect(async() => {
         await user.click(screen.getByRole('switch', { name: /Conversation History/i }));
       }).not.toThrow();
     });

@@ -3,7 +3,7 @@
  * Interactive suggestion display with accessibility support and mobile optimization
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface SuggestionAction {
   type: 'prompt' | 'resource' | 'escalation' | 'practice' | 'break';
@@ -79,7 +79,7 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
       clearTimeout(timer);
       if (autoDismissTimer) clearTimeout(autoDismissTimer);
     };
-  }, [suggestion]);
+  }, [suggestion, handleDismiss]);
 
   // Focus management for accessibility
   useEffect(() => {
@@ -107,7 +107,7 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isVisible, suggestion.displaySettings.allowDismiss]);
+  }, [isVisible, suggestion.displaySettings.allowDismiss, handleDismiss]);
 
   const handleAccept = (action: SuggestionAction) => {
     onAccept(action);
@@ -116,12 +116,12 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
     }
   };
 
-  const handleDismiss = (reason: string) => {
+  const handleDismiss = useCallback((reason: string) => {
     setIsVisible(false);
     setTimeout(() => {
       onDismiss(reason);
     }, 200); // Wait for exit animation
-  };
+  }, [onDismiss]);
 
   const handleFeedback = (feedback: 'helpful' | 'not_helpful' | 'too_frequent' | 'wrong_timing' | 'irrelevant') => {
     onFeedback(feedback);
