@@ -30,8 +30,8 @@ tests output and provide fixes until all the tests are passing.
 2. Review the test output and find any failing tests.
 3. If tests are failing determine why they are failing. You might need to add debugging output to
    the application code to determine why the tests are failing.
-4. Determine if the test failure is due to failures in the test that need to be fixed or if the
-   application code needs to be fixed.
-5. Make a plan for fixing the failing tests.
-6. Implement the fixes.
-7. Cycling back to #1. Repeat this process until all tests are fixed.
+4. Examine the test failure careful as well as the code that it tests. You will need to carefully examine the output and think deeply before making the following choice:
+   1. If the test failure is due to problems with the code then make a plan and fix the code. Output your findings and think deeply about how to properly fix the error.
+   2. If the test failure is due to failures in the test then focus on fixing the tests.
+5. Implement the fixes.
+6. Cycling back to #1. Repeat this process until all tests are fixed.
