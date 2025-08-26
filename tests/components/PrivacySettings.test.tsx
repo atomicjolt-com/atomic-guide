@@ -349,12 +349,15 @@ describe('PrivacySettings', () => {
         />
       );
 
-      await user.click(screen.getByText('Delete Everything'));
+      // Click the initial delete button
+      await user.click(screen.getAllByText('Delete Everything')[0]);
       
       const confirmInput = screen.getByPlaceholderText('Type DELETE to confirm');
       await user.type(confirmInput, 'DELETE');
       
-      await user.click(screen.getByText('Delete Everything'));
+      // Get the second button (the one in the modal)
+      const allDeleteButtons = screen.getAllByText('Delete Everything');
+      await user.click(allDeleteButtons[1]);
       
       expect(mockOnDeleteAllData).toHaveBeenCalled();
     });
