@@ -22,28 +22,28 @@ const createMockSuggestion = (type: string = 'confusion', urgency: 'low' | 'medi
     pageType: 'general',
     topic: 'mathematics',
     conversationLength: 5,
-    userEngagementScore: 0.7
+    userEngagementScore: 0.7,
   },
   actions: [
     {
       type: 'prompt',
       label: 'Explain simply',
       data: 'Can you explain this in simpler terms?',
-      icon: '💡'
+      icon: '💡',
     },
     {
       type: 'resource',
       label: 'See examples',
       data: '/examples/mathematics',
-      icon: '📚'
-    }
+      icon: '📚',
+    },
   ],
   displaySettings: {
     urgency,
     displayDurationSeconds: 30,
     allowDismiss: true,
-    requireFeedback: urgency === 'high' || urgency === 'critical'
-  }
+    requireFeedback: urgency === 'high' || urgency === 'critical',
+  },
 });
 
 describe('SuggestionCard', () => {
@@ -60,15 +60,8 @@ describe('SuggestionCard', () => {
   describe('Basic Rendering', () => {
     it('should render suggestion with title and description', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByText('Need clarification?')).toBeInTheDocument();
@@ -78,15 +71,8 @@ describe('SuggestionCard', () => {
 
     it('should render action buttons', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /explain simply/i })).toBeInTheDocument();
@@ -96,15 +82,8 @@ describe('SuggestionCard', () => {
 
     it('should show dismiss button when allowed', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /dismiss suggestion/i })).toBeInTheDocument();
@@ -114,21 +93,14 @@ describe('SuggestionCard', () => {
     it('should not show dismiss button when not allowed', async () => {
       const suggestion = createMockSuggestion('frustration', 'critical');
       suggestion.displaySettings.allowDismiss = false;
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       // Wait for component to render
       await waitFor(() => {
         expect(screen.getByText('Test Suggestion')).toBeInTheDocument();
       });
-      
+
       expect(screen.queryByRole('button', { name: /dismiss suggestion/i })).not.toBeInTheDocument();
     });
   });
@@ -136,15 +108,8 @@ describe('SuggestionCard', () => {
   describe('Accessibility', () => {
     it('should have proper ARIA attributes', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         const dialog = screen.getByRole('dialog');
@@ -156,15 +121,8 @@ describe('SuggestionCard', () => {
 
     it('should focus primary action button on mount', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         const primaryButton = screen.getByRole('button', { name: /explain simply/i });
@@ -175,15 +133,8 @@ describe('SuggestionCard', () => {
     it('should handle keyboard navigation', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /explain simply/i })).toHaveFocus();
@@ -197,7 +148,7 @@ describe('SuggestionCard', () => {
       await user.keyboard('{Tab}');
       await user.keyboard('{Tab}');
       await user.keyboard('{Tab}');
-      
+
       // Eventually the checkbox should be focused
       const checkbox = screen.getByRole('checkbox');
       expect(checkbox).toBeInTheDocument();
@@ -206,39 +157,30 @@ describe('SuggestionCard', () => {
     it('should dismiss on Escape key', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       // Wait for component to be visible before testing escape key
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
-      
+
       await user.keyboard('{Escape}');
-      
+
       // Wait for the dismiss animation before checking the callback
-      await waitFor(() => {
-        expect(mockOnDismiss).toHaveBeenCalledWith('user_dismissed');
-      }, { timeout: 1000 });
+      await waitFor(
+        () => {
+          expect(mockOnDismiss).toHaveBeenCalledWith('user_dismissed');
+        },
+        { timeout: 1000 },
+      );
     });
 
     it('should have proper color contrast for urgency levels', async () => {
       const criticalSuggestion = createMockSuggestion('frustration', 'critical');
-      
+
       const { container } = render(
-        <SuggestionCard
-          suggestion={criticalSuggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
+        <SuggestionCard suggestion={criticalSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
       );
 
       await waitFor(() => {
@@ -249,15 +191,8 @@ describe('SuggestionCard', () => {
 
     it('should include screen reader only content', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         const srOnlyContent = screen.getByText(/suggestion confidence: 85%/i);
@@ -270,20 +205,13 @@ describe('SuggestionCard', () => {
     it('should call onAccept when action button is clicked', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /explain simply/i })).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByRole('button', { name: /explain simply/i }));
 
       expect(mockOnAccept).toHaveBeenCalledWith(suggestion.actions[0]);
@@ -292,20 +220,13 @@ describe('SuggestionCard', () => {
     it('should call onDismiss when dismiss button is clicked', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /dismiss suggestion/i })).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByRole('button', { name: /dismiss suggestion/i }));
 
       await waitFor(() => {
@@ -316,20 +237,13 @@ describe('SuggestionCard', () => {
     it('should show feedback form for high-priority suggestions', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('frustration', 'high');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /explain simply/i })).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByRole('button', { name: /explain simply/i }));
 
       await waitFor(() => {
@@ -340,20 +254,13 @@ describe('SuggestionCard', () => {
     it('should handle feedback submission', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('frustration', 'high');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /explain simply/i })).toBeInTheDocument();
       });
-      
+
       // Accept suggestion to show feedback
       await user.click(screen.getByRole('button', { name: /explain simply/i }));
 
@@ -371,20 +278,13 @@ describe('SuggestionCard', () => {
     it('should handle "don\'t show again" checkbox', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('checkbox', { name: /don't show suggestions like this/i })).toBeInTheDocument();
       });
-      
+
       const checkbox = screen.getByRole('checkbox', { name: /don't show suggestions like this/i });
       await user.click(checkbox);
 
@@ -395,7 +295,7 @@ describe('SuggestionCard', () => {
   describe('Mobile Responsive Design', () => {
     it('should apply mobile-specific styles', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
+
       const { container } = render(
         <SuggestionCard
           suggestion={suggestion}
@@ -403,7 +303,7 @@ describe('SuggestionCard', () => {
           onDismiss={mockOnDismiss}
           onFeedback={mockOnFeedback}
           mobile={true}
-        />
+        />,
       );
 
       await waitFor(() => {
@@ -414,7 +314,7 @@ describe('SuggestionCard', () => {
 
     it('should have proper touch target sizes on mobile', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
+
       render(
         <SuggestionCard
           suggestion={suggestion}
@@ -422,18 +322,18 @@ describe('SuggestionCard', () => {
           onDismiss={mockOnDismiss}
           onFeedback={mockOnFeedback}
           mobile={true}
-        />
+        />,
       );
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /explain simply/i })).toBeInTheDocument();
       });
-      
+
       const actionButtons = screen.getAllByRole('button');
       // In jsdom environment, getBoundingClientRect returns 0
       // So we just verify buttons are rendered in mobile mode
       expect(actionButtons.length).toBeGreaterThan(0);
-      actionButtons.forEach(button => {
+      actionButtons.forEach((button) => {
         // Verify button is rendered and has some class indicating it's styled
         expect(button.className).toBeTruthy();
       });
@@ -443,14 +343,9 @@ describe('SuggestionCard', () => {
   describe('Visual States and Animations', () => {
     it('should show confidence indicator', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
+
       const { container } = render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
+        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
       );
 
       await waitFor(() => {
@@ -461,14 +356,9 @@ describe('SuggestionCard', () => {
 
     it('should show appropriate pattern icon', async () => {
       const confusionSuggestion = createMockSuggestion('confusion');
-      
+
       render(
-        <SuggestionCard
-          suggestion={confusionSuggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
+        <SuggestionCard suggestion={confusionSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
       );
 
       await waitFor(() => {
@@ -479,20 +369,13 @@ describe('SuggestionCard', () => {
     it('should expand/collapse trigger reason', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /why now?/i })).toBeInTheDocument();
       });
-      
+
       const expandButton = screen.getByRole('button', { name: /why now?/i });
       expect(expandButton).toHaveAttribute('aria-expanded', 'false');
 
@@ -506,22 +389,15 @@ describe('SuggestionCard', () => {
   describe('Auto-dismiss Behavior', () => {
     it('should auto-dismiss after display duration', async () => {
       vi.useFakeTimers();
-      
+
       const suggestion = createMockSuggestion('confusion');
       suggestion.displaySettings.displayDurationSeconds = 1; // Shorter for faster tests
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       // Advance time past the auto-dismiss delay
       await vi.runAllTimersAsync();
-      
+
       expect(mockOnDismiss).toHaveBeenCalledWith('timeout');
 
       vi.useRealTimers();
@@ -529,17 +405,12 @@ describe('SuggestionCard', () => {
 
     it('should not auto-dismiss critical suggestions', () => {
       vi.useFakeTimers();
-      
+
       const criticalSuggestion = createMockSuggestion('frustration', 'critical');
       criticalSuggestion.displaySettings.allowDismiss = false;
-      
+
       render(
-        <SuggestionCard
-          suggestion={criticalSuggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
+        <SuggestionCard suggestion={criticalSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
       );
 
       // Fast-forward time beyond display duration
@@ -556,7 +427,7 @@ describe('SuggestionCard', () => {
       // Mock dark mode preference
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: vi.fn().mockImplementation(query => ({
+        value: vi.fn().mockImplementation((query) => ({
           matches: query === '(prefers-color-scheme: dark)',
           media: query,
           onchange: null,
@@ -569,21 +440,16 @@ describe('SuggestionCard', () => {
       });
 
       const suggestion = createMockSuggestion('confusion');
-      
+
       const { container } = render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
+        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
       );
 
       await waitFor(() => {
         // Check that the component rendered and contains dark mode utility classes in its children
         const card = container.querySelector('.suggestion-card');
         expect(card).toBeInTheDocument();
-        
+
         // Check that dark mode classes are present in the rendered HTML
         const titleElement = screen.getByText('Need clarification?');
         expect(titleElement).toHaveClass('dark:text-white');
@@ -595,36 +461,22 @@ describe('SuggestionCard', () => {
     it('should handle missing action data gracefully', () => {
       const suggestion = createMockSuggestion('confusion');
       suggestion.actions = []; // No actions
-      
+
       expect(() => {
-        render(
-          <SuggestionCard
-            suggestion={suggestion}
-            onAccept={mockOnAccept}
-            onDismiss={mockOnDismiss}
-            onFeedback={mockOnFeedback}
-          />
-        );
+        render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
       }).not.toThrow();
     });
 
     it('should handle undefined callback functions gracefully', async () => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
-      
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
 
       // Wait for the component to become visible (100ms delay)
       const button = await screen.findByRole('button', { name: /explain simply/i });
       expect(button).toBeInTheDocument();
-      
+
       // Click should not throw
       await user.click(button);
       expect(mockOnAccept).toHaveBeenCalled();
@@ -634,40 +486,28 @@ describe('SuggestionCard', () => {
   describe('Performance', () => {
     it('should render within acceptable time limits', async () => {
       const suggestion = createMockSuggestion('confusion');
-      
+
       const startTime = performance.now();
-      render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
-      );
+      render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
       const endTime = performance.now();
-      
+
       const renderTime = endTime - startTime;
       expect(renderTime).toBeLessThan(100); // Should render quickly
     });
 
     it('should cleanup event listeners on unmount', () => {
       const suggestion = createMockSuggestion('confusion');
-      
+
       const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
-      
+
       const { unmount } = render(
-        <SuggestionCard
-          suggestion={suggestion}
-          onAccept={mockOnAccept}
-          onDismiss={mockOnDismiss}
-          onFeedback={mockOnFeedback}
-        />
+        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
       );
 
       unmount();
 
       expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
-      
+
       removeEventListenerSpy.mockRestore();
     });
   });

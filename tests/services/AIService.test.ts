@@ -7,7 +7,7 @@ describe('AIService', () => {
 
   beforeEach(() => {
     mockAIBinding = {
-      run: vi.fn()
+      run: vi.fn(),
     };
     aiService = new AIService(mockAIBinding);
   });
@@ -15,33 +15,31 @@ describe('AIService', () => {
   describe('generateResponse', () => {
     it('should generate a response successfully', async () => {
       const mockResponse = {
-        response: 'This is a test response from the AI model.'
+        response: 'This is a test response from the AI model.',
       };
       mockAIBinding.run.mockResolvedValue(mockResponse);
 
-      const result = await aiService.generateResponse(
-        'What is the capital of France?',
-        'You are a helpful assistant.',
-        { modelName: '@cf/meta/llama-3.1-8b-instruct' }
-      );
+      const result = await aiService.generateResponse('What is the capital of France?', 'You are a helpful assistant.', {
+        modelName: '@cf/meta/llama-3.1-8b-instruct',
+      });
 
       expect(result.response).toBe('This is a test response from the AI model.');
       expect(result.model).toBe('@cf/meta/llama-3.1-8b-instruct');
       expect(result.cached).toBe(false);
       expect(result.tokensUsed).toBeGreaterThan(0);
-      
+
       expect(mockAIBinding.run).toHaveBeenCalledWith(
         '@cf/meta/llama-3.1-8b-instruct',
         expect.objectContaining({
           messages: expect.arrayContaining([
             { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: 'What is the capital of France?' }
+            { role: 'user', content: 'What is the capital of France?' },
           ]),
           max_tokens: 2048,
           temperature: 0.7,
-          stream: false
+          stream: false,
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -51,10 +49,7 @@ describe('AIService', () => {
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({ response: 'Success after retries' });
 
-      const result = await aiService.generateResponse(
-        'Test prompt',
-        'System prompt'
-      );
+      const result = await aiService.generateResponse('Test prompt', 'System prompt');
 
       expect(result.response).toBe('Success after retries');
       expect(mockAIBinding.run).toHaveBeenCalledTimes(3);
@@ -63,9 +58,7 @@ describe('AIService', () => {
     it('should throw error after max retries', async () => {
       mockAIBinding.run.mockRejectedValue(new Error('Persistent error'));
 
-      await expect(
-        aiService.generateResponse('Test prompt', 'System prompt')
-      ).rejects.toThrow('AI generation failed after 3 attempts');
+      await expect(aiService.generateResponse('Test prompt', 'System prompt')).rejects.toThrow('AI generation failed after 3 attempts');
 
       expect(mockAIBinding.run).toHaveBeenCalledTimes(3);
     });
@@ -73,16 +66,9 @@ describe('AIService', () => {
     it('should use default model when not specified', async () => {
       mockAIBinding.run.mockResolvedValue({ response: 'Default model response' });
 
-      const result = await aiService.generateResponse(
-        'Test prompt',
-        'System prompt'
-      );
+      const result = await aiService.generateResponse('Test prompt', 'System prompt');
 
-      expect(mockAIBinding.run).toHaveBeenCalledWith(
-        '@cf/meta/llama-3.1-8b-instruct',
-        expect.any(Object),
-        expect.any(Object)
-      );
+      expect(mockAIBinding.run).toHaveBeenCalledWith('@cf/meta/llama-3.1-8b-instruct', expect.any(Object), expect.any(Object));
     });
   });
 
@@ -93,15 +79,12 @@ describe('AIService', () => {
           yield { response: 'Hello ' };
           yield { response: 'world' };
           yield { response: '!' };
-        }
+        },
       };
       mockAIBinding.run.mockResolvedValue(mockStream);
 
       const chunks: any[] = [];
-      const stream = aiService.generateStreamingResponse(
-        'Test prompt',
-        'System prompt'
-      );
+      const stream = aiService.generateStreamingResponse('Test prompt', 'System prompt');
 
       for await (const chunk of stream) {
         chunks.push(chunk);
@@ -118,10 +101,7 @@ describe('AIService', () => {
       mockAIBinding.run.mockResolvedValue({ response: 'Non-streaming response' });
 
       const chunks: any[] = [];
-      const stream = aiService.generateStreamingResponse(
-        'Test prompt',
-        'System prompt'
-      );
+      const stream = aiService.generateStreamingResponse('Test prompt', 'System prompt');
 
       for await (const chunk of stream) {
         chunks.push(chunk);
@@ -135,10 +115,7 @@ describe('AIService', () => {
     it('should handle streaming errors', async () => {
       mockAIBinding.run.mockRejectedValue(new Error('Stream error'));
 
-      const stream = aiService.generateStreamingResponse(
-        'Test prompt',
-        'System prompt'
-      );
+      const stream = aiService.generateStreamingResponse('Test prompt', 'System prompt');
 
       await expect(async () => {
         for await (const chunk of stream) {
@@ -151,34 +128,26 @@ describe('AIService', () => {
   describe('generateEmbedding', () => {
     it('should generate embeddings successfully', async () => {
       const mockEmbedding = {
-        data: [[0.1, 0.2, 0.3, 0.4, 0.5]]
+        data: [[0.1, 0.2, 0.3, 0.4, 0.5]],
       };
       mockAIBinding.run.mockResolvedValue(mockEmbedding);
 
       const result = await aiService.generateEmbedding('Test text');
 
       expect(result).toEqual([0.1, 0.2, 0.3, 0.4, 0.5]);
-      expect(mockAIBinding.run).toHaveBeenCalledWith(
-        '@cf/baai/bge-base-en-v1.5',
-        { text: ['Test text'] },
-        expect.any(Object)
-      );
+      expect(mockAIBinding.run).toHaveBeenCalledWith('@cf/baai/bge-base-en-v1.5', { text: ['Test text'] }, expect.any(Object));
     });
 
     it('should handle embedding generation errors', async () => {
       mockAIBinding.run.mockRejectedValue(new Error('Embedding error'));
 
-      await expect(
-        aiService.generateEmbedding('Test text')
-      ).rejects.toThrow('Embedding generation failed: Embedding error');
+      await expect(aiService.generateEmbedding('Test text')).rejects.toThrow('Embedding generation failed: Embedding error');
     });
 
     it('should handle invalid embedding response format', async () => {
       mockAIBinding.run.mockResolvedValue({ invalid: 'response' });
 
-      await expect(
-        aiService.generateEmbedding('Test text')
-      ).rejects.toThrow('Invalid embedding response format');
+      await expect(aiService.generateEmbedding('Test text')).rejects.toThrow('Invalid embedding response format');
     });
   });
 
@@ -193,9 +162,9 @@ describe('AIService', () => {
         '@cf/meta/llama-3.1-8b-instruct',
         expect.objectContaining({
           messages: [{ role: 'user', content: 'test' }],
-          max_tokens: 1
+          max_tokens: 1,
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -211,15 +180,12 @@ describe('AIService', () => {
   describe('token estimation', () => {
     it('should estimate tokens correctly', () => {
       const service = new AIService(mockAIBinding);
-      
+
       // Test internal token estimation (would need to expose for testing)
       // For now, we test it indirectly through generateResponse
       mockAIBinding.run.mockResolvedValue({ response: 'Short response' });
 
-      aiService.generateResponse(
-        'This is a test prompt',
-        'System prompt'
-      ).then(result => {
+      aiService.generateResponse('This is a test prompt', 'System prompt').then((result) => {
         expect(result.tokensUsed).toBeGreaterThan(0);
         expect(result.tokensUsed).toBeLessThan(50); // Reasonable for short text
       });

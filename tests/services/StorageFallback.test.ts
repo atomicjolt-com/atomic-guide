@@ -127,13 +127,13 @@ describe('StorageFallbackService', () => {
       // Create a new mock D1 that succeeds for half-open test
       const workingD1 = createMockD1(false);
       service = new StorageFallbackService(mockKV.kv, workingD1.db);
-      
+
       // Manually set the circuit state based on previous failures
       const metrics = service.getMetrics();
       metrics.circuitState = 'open';
       metrics.failures = 5;
       metrics.lastFailureTimestamp = Date.now() - 61000;
-      
+
       // Next request should move to half-open then succeed
       await service.getLearnerProfile('tenant-123', 'user-456');
 
@@ -194,10 +194,10 @@ describe('StorageFallbackService', () => {
 
       // Get profile - should timeout and fallback to KV
       const resultPromise = service.getLearnerProfile('tenant-123', 'user-456');
-      
+
       // Advance timers to trigger timeout
       vi.advanceTimersByTime(100);
-      
+
       const result = await resultPromise;
 
       expect(result).toBeDefined();
@@ -215,10 +215,10 @@ describe('StorageFallbackService', () => {
 
       const startTime = Date.now();
       const resultPromise = service.getLearnerProfile('tenant-123', 'user-456');
-      
+
       // Advance timers to trigger timeout
       vi.advanceTimersByTime(100);
-      
+
       await resultPromise;
       const endTime = Date.now();
 

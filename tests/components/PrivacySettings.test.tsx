@@ -54,15 +54,15 @@ vi.mock('../../client/styles/components/privacy-settings.module.css', () => ({
     confirmDeleteButton: 'confirmDeleteButton',
     warningText: 'warningText',
     confirmInput: 'confirmInput',
-    valid: 'valid'
-  }
+    valid: 'valid',
+  },
 }));
 
 const mockSettings = {
   conversationRetention: true,
   dataSharing: false,
   analyticsTracking: true,
-  personalizedLearning: true
+  personalizedLearning: true,
 };
 
 const mockConversations = [
@@ -70,14 +70,14 @@ const mockConversations = [
     id: 'conv1',
     title: 'Math help session',
     date: '2024-08-20',
-    messageCount: 15
+    messageCount: 15,
   },
   {
     id: 'conv2',
     title: 'Chemistry questions',
     date: '2024-08-19',
-    messageCount: 8
-  }
+    messageCount: 8,
+  },
 ];
 
 describe('PrivacySettings', () => {
@@ -102,7 +102,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       expect(screen.getByText('Privacy & Data Management')).toBeInTheDocument();
@@ -118,7 +118,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           isLoading={true}
-        />
+        />,
       );
 
       expect(screen.getByText('Loading privacy settings...')).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       expect(screen.getByText('Conversation History')).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       expect(screen.getByText('Export Your Data')).toBeInTheDocument();
@@ -163,7 +163,7 @@ describe('PrivacySettings', () => {
   describe('Privacy Toggle Functionality', () => {
     it('should toggle conversation retention setting', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -171,7 +171,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       const toggle = screen.getByRole('switch', { name: /Conversation History: Enabled/i });
@@ -179,7 +179,7 @@ describe('PrivacySettings', () => {
 
       expect(mockOnSettingsChange).toHaveBeenCalledWith({
         ...mockSettings,
-        conversationRetention: false
+        conversationRetention: false,
       });
     });
 
@@ -191,11 +191,11 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       const toggles = screen.getAllByRole('switch');
-      toggles.forEach(toggle => {
+      toggles.forEach((toggle) => {
         expect(toggle).toHaveAttribute('aria-checked');
       });
     });
@@ -204,7 +204,7 @@ describe('PrivacySettings', () => {
   describe('Data Export Functionality', () => {
     it('should call onExportData with JSON format', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -212,7 +212,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       await user.click(screen.getByText('Export as JSON'));
@@ -221,7 +221,7 @@ describe('PrivacySettings', () => {
 
     it('should call onExportData with CSV format', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -229,7 +229,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       await user.click(screen.getByText('Export as CSV'));
@@ -247,7 +247,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />
+        />,
       );
 
       expect(screen.getByText('Manage Conversations')).toBeInTheDocument();
@@ -264,7 +264,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={[]}
-        />
+        />,
       );
 
       expect(screen.queryByText('Manage Conversations')).not.toBeInTheDocument();
@@ -272,7 +272,7 @@ describe('PrivacySettings', () => {
 
     it('should handle conversation selection', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -281,7 +281,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />
+        />,
       );
 
       const checkbox = screen.getByRole('checkbox', { name: /Select Math help session/i });
@@ -292,7 +292,7 @@ describe('PrivacySettings', () => {
 
     it('should handle select all functionality', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -301,14 +301,14 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />
+        />,
       );
 
       const selectAllButton = screen.getByText('Select All');
       await user.click(selectAllButton);
 
       const checkboxes = screen.getAllByRole('checkbox');
-      checkboxes.forEach(checkbox => {
+      checkboxes.forEach((checkbox) => {
         expect(checkbox).toBeChecked();
       });
 
@@ -319,7 +319,7 @@ describe('PrivacySettings', () => {
   describe('Delete Functionality', () => {
     it('should show delete all confirmation modal', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -327,18 +327,18 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       await user.click(screen.getByText('Delete Everything'));
-      
+
       expect(screen.getByText('⚠️ Delete All Data')).toBeInTheDocument();
       expect(screen.getByText(/This will permanently delete ALL/)).toBeInTheDocument();
     });
 
     it('should handle delete all with confirmation', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -346,25 +346,25 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       // Click the initial delete button
       await user.click(screen.getAllByText('Delete Everything')[0]);
-      
+
       const confirmInput = screen.getByPlaceholderText('Type DELETE to confirm');
       await user.type(confirmInput, 'DELETE');
-      
+
       // Get the second button (the one in the modal)
       const allDeleteButtons = screen.getAllByText('Delete Everything');
       await user.click(allDeleteButtons[1]);
-      
+
       expect(mockOnDeleteAllData).toHaveBeenCalled();
     });
 
     it('should show delete selected conversations modal', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -373,22 +373,22 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />
+        />,
       );
 
       // Select a conversation
       await user.click(screen.getByRole('checkbox', { name: /Select Math help session/i }));
-      
+
       // Click delete selected
       await user.click(screen.getByText('Delete Selected (1)'));
-      
+
       expect(screen.getByText('Confirm Deletion')).toBeInTheDocument();
       expect(screen.getByText(/Are you sure you want to delete 1 selected conversation/)).toBeInTheDocument();
     });
 
     it('should handle delete selected conversations', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -397,24 +397,24 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />
+        />,
       );
 
       // Select a conversation
       await user.click(screen.getByRole('checkbox', { name: /Select Math help session/i }));
-      
+
       // Click delete selected
       await user.click(screen.getByText('Delete Selected (1)'));
-      
+
       // Confirm deletion
       await user.click(screen.getByText('Delete'));
-      
+
       expect(mockOnDeleteConversations).toHaveBeenCalledWith(['conv1']);
     });
 
     it('should allow canceling deletion', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -422,12 +422,12 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       await user.click(screen.getByText('Delete Everything'));
       await user.click(screen.getByText('Cancel'));
-      
+
       expect(screen.queryByText('⚠️ Delete All Data')).not.toBeInTheDocument();
       expect(mockOnDeleteAllData).not.toHaveBeenCalled();
     });
@@ -442,7 +442,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       expect(screen.getByText('Data Retention Policy')).toBeInTheDocument();
@@ -462,11 +462,11 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       const switches = screen.getAllByRole('switch');
-      switches.forEach(switchElement => {
+      switches.forEach((switchElement) => {
         expect(switchElement).toHaveAttribute('aria-label');
       });
     });
@@ -479,7 +479,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       expect(screen.getByRole('heading', { level: 2, name: 'Privacy & Data Management' })).toBeInTheDocument();
@@ -496,11 +496,11 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />
+        />,
       );
 
       const checkboxes = screen.getAllByRole('checkbox');
-      checkboxes.forEach(checkbox => {
+      checkboxes.forEach((checkbox) => {
         expect(checkbox).toHaveAttribute('aria-label');
       });
     });
@@ -509,7 +509,7 @@ describe('PrivacySettings', () => {
   describe('Performance', () => {
     it('should render within acceptable time limits', () => {
       const startTime = performance.now();
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -518,12 +518,12 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />
+        />,
       );
-      
+
       const endTime = performance.now();
       const renderTime = endTime - startTime;
-      
+
       expect(renderTime).toBeLessThan(100); // Should render quickly
     });
 
@@ -532,7 +532,7 @@ describe('PrivacySettings', () => {
         id: `conv${i}`,
         title: `Conversation ${i}`,
         date: '2024-08-20',
-        messageCount: 10 + i
+        messageCount: 10 + i,
       }));
 
       expect(() => {
@@ -544,7 +544,7 @@ describe('PrivacySettings', () => {
             onExportData={mockOnExportData}
             onDeleteConversations={mockOnDeleteConversations}
             conversations={largeConversationList}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -560,7 +560,7 @@ describe('PrivacySettings', () => {
             onDeleteAllData={mockOnDeleteAllData}
             onExportData={mockOnExportData}
             onDeleteConversations={mockOnDeleteConversations}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -570,7 +570,7 @@ describe('PrivacySettings', () => {
       const errorCallback = vi.fn().mockImplementation(() => {
         throw new Error('Test error');
       });
-      
+
       render(
         <PrivacySettings
           settings={mockSettings}
@@ -578,7 +578,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />
+        />,
       );
 
       // Should not crash the component
