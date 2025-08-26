@@ -99,7 +99,7 @@ export class CognitiveEngine {
 ## 2a. React-Based LTI Launch Entry Point
 
 **Responsibility:** Initialize React application after successful LTI authentication, manage JWT refresh, configure localization and client-side state
-**Integration Points:** Replaces vanilla JS app.ts with React-based initialization, integrates with Atomic Fuel for settings and JWT management
+**Integration Points:** app.tsx React application. Uses a JWT for user identity and security
 
 **Key Interfaces:**
 

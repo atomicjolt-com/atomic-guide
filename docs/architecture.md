@@ -157,36 +157,36 @@ graph TB
 
 ## 3. Tech Stack
 
-| Category             | Technology                          | Version  | Purpose                            | Rationale                                             |
-| -------------------- | ----------------------------------- | -------- | ---------------------------------- | ----------------------------------------------------- |
-| Frontend Language    | TypeScript                          | 5.3+     | Type-safe frontend development     | Existing codebase standard, prevents runtime errors   |
-| Frontend Framework   | React (new) / Vanilla JS (existing) | 18.2+    | UI component development           | Progressive migration path documented in architecture |
+| Category             | Technology                          | Version  | Purpose                            | Rationale                                                                                 |
+| -------------------- | ----------------------------------- | -------- | ---------------------------------- | ----------------------------------------------------------------------------------------- |
+| Frontend Language    | TypeScript                          | 5.3+     | Type-safe frontend development     | Existing codebase standard, prevents runtime errors                                       |
+| Frontend Framework   | React (new) / Vanilla JS (existing) | 18.2+    | UI component development           | Progressive migration path documented in architecture                                     |
 | UI Component Library | @atomicjolt/atomic-elements         | Latest   | LTI-friendly components            | Consistent LTI integration patterns (see [LTI Developer Guide](./lti-developer-guide.md)) |
-| State Management     | Redux Toolkit                       | 2.x      | Global state + chat state          | Redux for app state and for chat components           |
-| React API            | RTK Query                           | 2.x      | API requests                       | Integrates with Redux Toolkit                         |
-| Backend Language     | TypeScript                          | 5.3+     | Type-safe backend development      | Existing Worker codebase standard                     |
-| Backend Framework    | Hono                                | 3.11+    | HTTP routing and middleware        | Already integrated with LTI endpoints                 |
-| API Style            | REST + WebSocket                    | -        | API communication + real-time chat | REST for CRUD, WebSocket for conversations            |
-| Database             | Cloudflare D1 (new) + KV (existing) | latest   | Relational + key-value storage     | D1 for assessment data, KV for LTI config             |
-| Search               | Cloudflare Vectorize                | latest   | Semantic search                    | Vectorize for any data that needs to be searched      |
-| Cache                | Cloudflare KV + Worker Cache API    | latest   | Response caching                   | Existing caching infrastructure                       |
-| File Storage         | Cloudflare R2                       | latest   | Assessment media storage           | Cost-effective for generated content                  |
-| Authentication       | JWT                                 | existing | User authentication                | Existing OAuth2/JWT implementation                    |
-| Frontend Testing     | Vitest                              | 1.0+     | Unit/integration testing           | Existing test framework                               |
-| Backend Testing      | Vitest                              | 1.0+     | Worker testing                     | Consistent with frontend                              |
-| E2E Testing          | Playwright                          | 1.40+    | End-to-end testing                 | Canvas iframe testing support                         |
-| Build Tool           | Vite                                | 5.0+     | Asset bundling                     | Existing build configuration                          |
-| Bundler              | Vite/Rollup                         | 5.0+     | Module bundling                    | Part of Vite toolchain                                |
-| IaC Tool             | Wrangler                            | 3.22+    | Cloudflare deployment              | Existing deployment tool                              |
-| CI/CD                | GitHub Actions                      | -        | Automated deployment               | Existing CI/CD pipeline                               |
-| Monitoring           | Cloudflare Analytics + Tail logs    | latest   | Performance monitoring             | Built-in Worker monitoring                            |
-| Logging              | Cloudflare Logpush                  | latest   | Centralized logging                | Production log aggregation                            |
-| CSS Framework        | CSS Modules                         | 3.3+     | Component styling                  | Scoped styles with utility classes                    |
-| AI Integration       | Cloudflare AI + OpenAI/Anthropic    | latest   | Cognitive processing & chat        | Edge inference + advanced AI capabilities             |
-| MCP Server           | Cloudflare MCP                      | latest   | AI client integration              | Native OAuth support, edge deployment                 |
-| Internationalization | i18next                             | 23.x     | Multi-language support             | Comprehensive i18n solution                           |
-| Date Handling        | date-fns                            | 3.x      | Date manipulation                  | Locale-aware date formatting                          |
-| Accessibility        | React Modal + Tippy.js              | 3.x/6.x  | WCAG compliant UI                  | Accessible modals and tooltips                        |
+| State Management     | Redux Toolkit                       | 2.x      | Global state + chat state          | Redux for app state and for chat components                                               |
+| React API            | RTK Query                           | 2.x      | API requests                       | Integrates with Redux Toolkit                                                             |
+| Backend Language     | TypeScript                          | 5.3+     | Type-safe backend development      | Existing Worker codebase standard                                                         |
+| Backend Framework    | Hono                                | 3.11+    | HTTP routing and middleware        | Already integrated with LTI endpoints                                                     |
+| API Style            | REST + WebSocket                    | -        | API communication + real-time chat | REST for CRUD, WebSocket for conversations                                                |
+| Database             | Cloudflare D1 (new) + KV (existing) | latest   | Relational + key-value storage     | D1 for assessment data, KV for LTI config                                                 |
+| Search               | Cloudflare Vectorize                | latest   | Semantic search                    | Vectorize for any data that needs to be searched                                          |
+| Cache                | Cloudflare KV + Worker Cache API    | latest   | Response caching                   | Existing caching infrastructure                                                           |
+| File Storage         | Cloudflare R2                       | latest   | Assessment media storage           | Cost-effective for generated content                                                      |
+| Authentication       | JWT                                 | existing | User authentication                | Existing OAuth2/JWT implementation                                                        |
+| Frontend Testing     | Vitest                              | 1.0+     | Unit/integration testing           | Existing test framework                                                                   |
+| Backend Testing      | Vitest                              | 1.0+     | Worker testing                     | Consistent with frontend                                                                  |
+| E2E Testing          | Playwright                          | 1.40+    | End-to-end testing                 | Canvas iframe testing support                                                             |
+| Build Tool           | Vite                                | 5.0+     | Asset bundling                     | Existing build configuration                                                              |
+| Bundler              | Vite/Rollup                         | 5.0+     | Module bundling                    | Part of Vite toolchain                                                                    |
+| IaC Tool             | Wrangler                            | 3.22+    | Cloudflare deployment              | Existing deployment tool                                                                  |
+| CI/CD                | GitHub Actions                      | -        | Automated deployment               | Existing CI/CD pipeline                                                                   |
+| Monitoring           | Cloudflare Analytics + Tail logs    | latest   | Performance monitoring             | Built-in Worker monitoring                                                                |
+| Logging              | Cloudflare Logpush                  | latest   | Centralized logging                | Production log aggregation                                                                |
+| CSS Framework        | CSS Modules                         | 3.3+     | Component styling                  | Scoped styles with utility classes                                                        |
+| AI Integration       | Cloudflare AI + OpenAI/Anthropic    | latest   | Cognitive processing & chat        | Edge inference + advanced AI capabilities                                                 |
+| MCP Server           | Cloudflare MCP                      | latest   | AI client integration              | Native OAuth support, edge deployment                                                     |
+| Internationalization | i18next                             | 23.x     | Multi-language support             | Comprehensive i18n solution                                                               |
+| Date Handling        | date-fns                            | 3.x      | Date manipulation                  | Locale-aware date formatting                                                              |
+| Accessibility        | React Modal + Tippy.js              | 3.x/6.x  | WCAG compliant UI                  | Accessible modals and tooltips                                                            |
 
 ## 4. Data Models
 
@@ -1389,11 +1389,11 @@ interface VectorizeService {
       },
       namespace: metadata.namespace // Optional: segment by course/user (max 1000 namespaces)
     }]);
-    
+
     // Track mutation ID for async processing
     console.log(`Indexed with mutation: ${result.mutationId}`);
   }
-  
+
   // Upsert vectors (overwrites if ID exists)
   async upsertContent(id: string, content: string, metadata: any): Promise<void> {
     const embedding = await aiService.generateEmbedding(content);
@@ -1407,7 +1407,7 @@ interface VectorizeService {
   // Query with high precision or approximate scoring
   async searchSimilar(query: string, options: QueryOptions = {}): Promise<SearchResult[]> {
     const queryEmbedding = await aiService.generateEmbedding(query);
-    
+
     const results = await this.vectorIndex.query(queryEmbedding, {
       topK: options.limit || 10,
       returnValues: options.highPrecision || false, // true = exact scores, higher latency
@@ -1423,10 +1423,10 @@ interface VectorizeService {
       values: match.values // Only if returnValues: true
     }));
   }
-  
+
   // Query by existing vector ID (combines getById + query)
   async findSimilarById(vectorId: string, topK = 10): Promise<SearchResult[]> {
-    const results = await this.vectorIndex.queryById(vectorId, { 
+    const results = await this.vectorIndex.queryById(vectorId, {
       topK,
       returnMetadata: 'all'
     });
@@ -2776,17 +2776,20 @@ export class VectorSearchService {
         namespace: courseId, // Segment by course (max 1000 namespaces)
       },
     ]);
-    
+
     console.log(`Assessment indexed: ${result.mutationId}`);
   }
 
   // Query with metadata filtering and precision control
-  async findSimilarContent(query: string, options: {
-    namespace?: string;
-    courseId?: string;
-    limit?: number;
-    highPrecision?: boolean;
-  } = {}): Promise<SearchResult[]> {
+  async findSimilarContent(
+    query: string,
+    options: {
+      namespace?: string;
+      courseId?: string;
+      limit?: number;
+      highPrecision?: boolean;
+    } = {},
+  ): Promise<SearchResult[]> {
     const aiService = new EdgeAIService(this.env);
     const queryEmbedding = await aiService.generateEmbedding(query);
 
@@ -2817,7 +2820,10 @@ export class VectorSearchService {
 
     // Summarize for semantic search
     const summary = await aiService.generateResponse(
-      `Summarize key learning points: ${messages.slice(-10).map((m) => m.content).join(' ')}`,
+      `Summarize key learning points: ${messages
+        .slice(-10)
+        .map((m) => m.content)
+        .join(' ')}`,
       { systemPrompt: 'Extract main concepts and learning outcomes.' },
     );
 
@@ -2896,18 +2902,19 @@ export class HybridStorageService {
 ### Vectorize Performance Best Practices
 
 #### Batch Operations for Improved Throughput
+
 ```typescript
 export class VectorizeOptimizer {
   // Batch inserts for better performance (up to 1000 vectors per request)
   async batchInsert(vectors: VectorizeVector[]): Promise<void> {
     const BATCH_SIZE = 1000; // Vectorize limit
-    
+
     for (let i = 0; i < vectors.length; i += BATCH_SIZE) {
       const batch = vectors.slice(i, i + BATCH_SIZE);
       await this.vectorIndex.insert(batch);
     }
   }
-  
+
   // Use upsert for updates to avoid duplicate ID errors
   async updateVectors(updates: VectorizeVector[]): Promise<void> {
     // Upsert overwrites existing vectors with same ID
@@ -2917,6 +2924,7 @@ export class VectorizeOptimizer {
 ```
 
 #### Query Optimization Strategies
+
 ```typescript
 interface QueryStrategy {
   // High-precision scoring for accuracy-critical searches
@@ -2927,7 +2935,7 @@ interface QueryStrategy {
       returnMetadata: 'all'
     });
   }
-  
+
   // Approximate scoring for faster response times
   async fastSearch(query: number[]): Promise<SearchResult[]> {
     return await this.vectorIndex.query(query, {
@@ -2936,7 +2944,7 @@ interface QueryStrategy {
       returnMetadata: 'indexed' // Only return indexed metadata
     });
   }
-  
+
   // Namespace isolation for multi-tenant queries
   async tenantSearch(query: number[], tenantId: string): Promise<SearchResult[]> {
     return await this.vectorIndex.query(query, {
@@ -2948,6 +2956,7 @@ interface QueryStrategy {
 ```
 
 #### Metadata Index Design
+
 ```typescript
 // Best practices for metadata filtering
 export class MetadataDesign {
@@ -2955,28 +2964,29 @@ export class MetadataDesign {
   goodMetadata = {
     type: 'assessment', // Few unique values
     status: 'active', // Limited set
-    difficulty: 'medium' // Enumerated values
+    difficulty: 'medium', // Enumerated values
   };
-  
+
   // Avoid high cardinality in metadata filters
   avoidMetadata = {
     uuid: 'unique-id-per-vector', // Too many unique values
     timestamp_ms: Date.now(), // High cardinality
-    random_score: Math.random() // Continuous values
+    random_score: Math.random(), // Continuous values
   };
-  
+
   // Bucket high-cardinality data for better performance
   optimizedMetadata = {
     created_date: '2024-01-15', // Date without time
     score_bucket: Math.floor(score / 10) * 10, // 0, 10, 20, etc.
-    time_window: Math.floor(Date.now() / 300000) * 300000 // 5-min windows
+    time_window: Math.floor(Date.now() / 300000) * 300000, // 5-min windows
   };
 }
 ```
 
 #### Index Configuration Considerations
+
 - **Dimensions**: Cannot be changed after creation, must match embedding model
-- **Distance Metrics**: 
+- **Distance Metrics**:
   - `cosine`: Best for normalized embeddings (most common)
   - `euclidean`: Good for dense embeddings where magnitude matters
   - `dot-product`: Efficient but requires careful normalization
@@ -3473,8 +3483,7 @@ atomic-guide/
 │   │   ├── animations.css
 │   │   └── components/
 │   ├── utils/
-│   ├── app.ts                  # Existing entry
-│   ├── app.tsx                 # React entry
+│   ├── app.tsx                 # Main application entry point
 │   ├── app-init.ts             # Existing OIDC
 │   └── assessment.tsx          # New assessment entry
 ├── packages/                   # Shared packages (new)
@@ -4078,7 +4087,7 @@ export class ErrorBoundary extends Component {
 export const assessmentApi = createApi({
   baseQuery: async (args, api, extraOptions) => {
     const result = await baseQuery(args, api, extraOptions);
-    
+
     // Global error handling for RTK Query
     if (result.error) {
       // Handle specific error codes
@@ -4089,11 +4098,11 @@ export const assessmentApi = createApi({
         // Rate limited, show notification
         api.dispatch(showRateLimitNotification());
       }
-      
+
       // Log to monitoring
       console.error('[RTK Query Error]', result.error);
     }
-    
+
     return result;
   },
   endpoints: (builder) => ({
@@ -4129,14 +4138,14 @@ export const errorMiddleware: Middleware = (store) => (next) => (action) => {
   // Catch RTK Query errors
   if (action.type.endsWith('/rejected')) {
     const error = action.payload || action.error;
-    
+
     // Dispatch error notification
     store.dispatch(showErrorNotification({
       message: error.message || 'Operation failed',
       code: error.code,
       retryAction: action.meta?.arg?.originalAction
     }));
-    
+
     // Log to Cloudflare Analytics
     if (typeof window !== 'undefined' && window.zaraz) {
       window.zaraz.track('api_error', {
@@ -4146,7 +4155,7 @@ export const errorMiddleware: Middleware = (store) => (next) => (action) => {
       });
     }
   }
-  
+
   return next(action);
 };
 ```
@@ -4219,23 +4228,23 @@ export class AnalyticsService {
         ...properties,
         timestamp: new Date().toISOString(),
         user_id: store.getState().auth.user?.id,
-        session_id: store.getState().session.id
+        session_id: store.getState().session.id,
       });
     }
   }
-  
+
   // Track page views
   trackPageView(path: string) {
     this.trackEvent('page_view', { path });
   }
-  
+
   // Track API performance
   trackApiCall(endpoint: string, duration: number, status: number) {
     this.trackEvent('api_call', {
       endpoint,
       duration_ms: duration,
       status_code: status,
-      success: status < 400
+      success: status < 400,
     });
   }
 }
@@ -4243,31 +4252,31 @@ export class AnalyticsService {
 // Backend Analytics with Workers Analytics Engine
 export class WorkerAnalytics {
   constructor(private env: Env) {}
-  
+
   // Log request metrics
   async logRequest(request: Request, response: Response, duration: number) {
     await this.env.ANALYTICS.writeDataPoint({
       blobs: [request.url, request.method],
       doubles: [duration, response.status],
-      indexes: ['endpoint', 'status_code']
+      indexes: ['endpoint', 'status_code'],
     });
   }
-  
+
   // Track AI usage
   async trackAIUsage(model: string, tokens: number, latency: number) {
     await this.env.ANALYTICS.writeDataPoint({
       blobs: [model],
       doubles: [tokens, latency],
-      indexes: ['ai_model']
+      indexes: ['ai_model'],
     });
   }
-  
+
   // Monitor Vectorize performance
   async trackVectorSearch(query: string, resultCount: number, latency: number) {
     await this.env.ANALYTICS.writeDataPoint({
       blobs: ['vector_search'],
       doubles: [resultCount, latency],
-      indexes: ['search_type']
+      indexes: ['search_type'],
     });
   }
 }
@@ -4284,26 +4293,26 @@ export class MetricsAggregator {
       aggregations: {
         requestCount: { type: 'count' },
         avgLatency: { type: 'avg', field: 'duration' },
-        errorRate: { 
+        errorRate: {
           type: 'percentage',
-          filter: { field: 'status', operator: '>=', value: 400 }
+          filter: { field: 'status', operator: '>=', value: 400 },
         },
-        aiTokensUsed: { 
+        aiTokensUsed: {
           type: 'sum',
           field: 'tokens',
-          filter: { index: 'ai_model' }
-        }
-      }
+          filter: { index: 'ai_model' },
+        },
+      },
     });
-    
+
     return {
       requests: analytics.requestCount,
       latency: analytics.avgLatency,
       errorRate: analytics.errorRate,
       aiUsage: {
         tokens: analytics.aiTokensUsed,
-        cost: this.calculateAICost(analytics.aiTokensUsed)
-      }
+        cost: this.calculateAICost(analytics.aiTokensUsed),
+      },
     };
   }
 }

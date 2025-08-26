@@ -14,7 +14,7 @@ let manifestData: Record<string, ManifestEntry> = {};
 
 /**
  * Get the file path for a client asset from the manifest
- * @param entryName - The name of the entry file (e.g. 'client/app.ts')
+ * @param entryName - The name of the entry file (e.g. 'client/app.tsx')
  * @returns The hashed file path from the manifest or a fallback path for development
  */
 export function getClientAssetPath(entryName: string): string {

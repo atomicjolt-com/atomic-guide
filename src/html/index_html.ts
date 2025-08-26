@@ -221,34 +221,11 @@ export default function indexHtml(scriptName: string) {
         <div class="hero-content">
           <h1 class="hero-title">${APPLICATION_NAME}</h1>
           <p class="hero-description">
-            A powerful LTI tool built with modern web technologies and deployed on Cloudflare Workers.
+            A powerful AI Guide for your LMS.
           </p>
           <div id="main-content"></div>
         </div>
       </section>
-
-      <section class="content-section">
-        <div class="info-section">
-          <div class="info-card">
-            <h2>Open Source</h2>
-            <p>MIT licensed open source project that you can freely use, modify, and distribute.</p>
-            <p>
-              <a href="https://github.com/atomicjolt-com/atomic-guide" class="aj-btn" target="_blank" rel="noopener">
-                View on GitHub
-              </a>
-            </p>
-          </div>
-          <div class="info-card">
-            <h2>Modern Stack</h2>
-            <p>Built with TypeScript, Hono, and Cloudflare Workers for maximum performance and scalability.</p>
-          </div>
-          <div class="info-card">
-            <h2>LTI 1.3</h2>
-            <p>Full support for the latest Learning Tools Interoperability standard with secure authentication.</p>
-          </div>
-        </div>
-      </section>
-    </main>
 
     <footer class="footer">
       <p>

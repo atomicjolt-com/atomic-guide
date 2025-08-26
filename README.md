@@ -92,7 +92,7 @@ If you need/want to make changes to the code that handles the LTI launch or if y
 `src/index.ts`
 
 The client code can be found in:
-`client/app.ts`
+`client/app.tsx`
 
 This is where you will want to build out your application.
 

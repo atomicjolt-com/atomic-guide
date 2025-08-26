@@ -40,7 +40,7 @@ This is a Cloudflare Workers-based LTI 1.3 tool implementation using a serverles
    - Dynamic registration support with configurable tool settings
 
 2. **Client-Side (SPA)**
-   - Entry points: `client/app.ts` (LTI launch), `client/home.ts` (home page), `client/app-init.ts` (OIDC init)
+   - Entry points: `client/app.tsx` (LTI launch), `client/home.ts` (home page), `client/app-init.ts` (OIDC init)
    - Built with Vite, deployed as static assets
    - Handles post-launch interactions including deep linking and names/roles services
 
