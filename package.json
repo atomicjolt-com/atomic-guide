@@ -11,6 +11,7 @@
     "test": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint-fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "tail": "wrangler tail --format pretty",
     "types": "wrangler types",
     "db:setup": "chmod +x scripts/setup-d1.sh && ./scripts/setup-d1.sh",
@@ -18,9 +19,10 @@
     "db:query": "wrangler d1 execute atomic-guide-db-preview --command"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.11.7",
-    "@cloudflare/vitest-pool-workers": "^0.8.66",
-    "@cloudflare/workers-types": "^4.20250823.0",
+    "@cloudflare/vite-plugin": "^1.12.0",
+    "@cloudflare/vitest-pool-workers": "^0.8.67",
+    "@cloudflare/workers-types": "^4.20250826.0",
+    "@eslint/js": "^9.34.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -33,6 +35,8 @@
     "abort-controller": "^3.0.0",
     "eslint": "^9.34.0",
     "eslint-config-typescript": "^3.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^26.1.0",
     "msw": "^2.10.5",
     "mustache": "^4.2.0",
@@ -40,7 +44,7 @@
     "typescript": "^5.9.2",
     "vitest": "3.1.4",
     "vitest-fetch-mock": "^0.4.5",
-    "wrangler": "^4.32.0"
+    "wrangler": "^4.33.0"
   },
   "dependencies": {
     "@atomicjolt/lti-client": "^2.7.0",
@@ -50,7 +54,7 @@
     "@cloudflare/ai": "^1.2.2",
     "@reduxjs/toolkit": "^2.8.2",
     "@types/react": "^19.1.11",
-    "@types/react-dom": "^19.1.7",
+    "@types/react-dom": "^19.1.8",
     "dompurify": "^3.2.2",
     "hono": "^4.9.4",
     "i18next": "^25.4.2",
