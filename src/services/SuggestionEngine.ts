@@ -11,6 +11,22 @@ export interface Suggestion {
   context?: string;
 }
 
+export interface ProactiveSuggestionRequest {
+  conversationId: string;
+  tenantId: string;
+  learnerId: string;
+  messages: Array<{ role: string; content: string; timestamp: Date; responseTime?: number }>;
+  context: {
+    pageType?: string;
+    topic?: string;
+    difficulty?: number;
+    userFocusScore?: number;
+    sessionDuration?: number;
+  };
+  learnerProfile?: any;
+  preferences?: any;
+}
+
 export interface ConversationPattern {
   confusion: number;
   frustration: number;
@@ -28,7 +44,28 @@ export class SuggestionEngine {
     lowSuccess: 0.3
   };
 
-  constructor() {}
+  private learningPatternAnalyzer: any;
+  private suggestionOrchestrator: any;
+
+  constructor() {
+    // Lazy load to avoid circular dependencies
+  }
+
+  private async getLearningPatternAnalyzer() {
+    if (!this.learningPatternAnalyzer) {
+      const { LearningPatternAnalyzer } = await import('./LearningPatternAnalyzer');
+      this.learningPatternAnalyzer = new LearningPatternAnalyzer();
+    }
+    return this.learningPatternAnalyzer;
+  }
+
+  private async getSuggestionOrchestrator(db: any) {
+    if (!this.suggestionOrchestrator) {
+      const { SuggestionOrchestrator } = await import('./SuggestionOrchestrator');
+      this.suggestionOrchestrator = new SuggestionOrchestrator(db);
+    }
+    return this.suggestionOrchestrator;
+  }
 
   async generateSuggestions(
     conversationHistory: Array<{ role: string; content: string }>,
@@ -404,6 +441,135 @@ export class SuggestionEngine {
     }
     
     return unique;
+  }
+
+  /**
+   * Generate proactive suggestions using advanced pattern analysis
+   */
+  async generateProactiveSuggestions(
+    request: ProactiveSuggestionRequest,
+    db: any
+  ): Promise<any[]> {
+    const startTime = Date.now();
+
+    try {
+      // Get required services
+      const patternAnalyzer = await this.getLearningPatternAnalyzer();
+      const orchestrator = await this.getSuggestionOrchestrator(db);
+
+      // Analyze conversation for patterns
+      const analysis = await patternAnalyzer.analyzeConversation(
+        request.messages,
+        request.learnerProfile,
+        request.context
+      );
+
+      // Get learner profile and preferences
+      const learnerProfile = request.learnerProfile || this.getDefaultLearnerProfile(request.learnerId);
+      const preferences = request.preferences || this.getDefaultPreferences();
+
+      // Create suggestion context
+      const suggestionContext = {
+        pageType: request.context.pageType,
+        topic: request.context.topic,
+        difficulty: request.context.difficulty || 0.5,
+        userFocusScore: request.context.userFocusScore || 0.5,
+        conversationFlowState: this.determineConversationFlow(request.messages),
+        timeOfDay: this.getTimeOfDay(),
+        sessionDuration: request.context.sessionDuration || 0
+      };
+
+      // Process through orchestrator for timing and prioritization
+      const suggestions = await orchestrator.processSuggestions(
+        analysis,
+        learnerProfile,
+        preferences,
+        suggestionContext,
+        request.tenantId,
+        request.learnerId,
+        request.conversationId
+      );
+
+      // Log performance
+      const processingTime = Date.now() - startTime;
+      if (processingTime > 200) {
+        console.warn(`Proactive suggestion generation took ${processingTime}ms, exceeding 200ms target`);
+      }
+
+      return suggestions;
+
+    } catch (error) {
+      console.error('Error generating proactive suggestions:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get next ready suggestion for immediate display
+   */
+  async getNextReadySuggestion(tenantId: string, learnerId: string, db: any): Promise<any | null> {
+    const orchestrator = await this.getSuggestionOrchestrator(db);
+    return orchestrator.getNextSuggestion(tenantId, learnerId);
+  }
+
+  /**
+   * Record feedback on suggestion effectiveness
+   */
+  async recordSuggestionFeedback(
+    suggestionId: string,
+    action: 'accepted' | 'dismissed' | 'ignored' | 'timeout',
+    feedback?: string,
+    followupBehavior?: string,
+    db?: any
+  ): Promise<void> {
+    if (!db) return;
+    
+    const orchestrator = await this.getSuggestionOrchestrator(db);
+    await orchestrator.recordFeedback(suggestionId, action, feedback, followupBehavior);
+  }
+
+  private getDefaultLearnerProfile(learnerId: string): any {
+    return {
+      learnerId,
+      confusionTendency: 0.5,
+      frustrationTolerance: 0.7,
+      helpSeekingBehavior: 'reactive',
+      optimalInterventionTiming: 30,
+      patternConfidence: 0,
+      lastAnalyzed: new Date(),
+      conversationsAnalyzed: 0
+    };
+  }
+
+  private getDefaultPreferences(): any {
+    return {
+      frequency: 'medium',
+      patternTrackingEnabled: true,
+      preferredSuggestionTypes: ['confusion', 'frustration', 'success_opportunity'],
+      interruptionThreshold: 0.7,
+      escalationConsent: false,
+      cooldownMinutes: 2
+    };
+  }
+
+  private determineConversationFlow(messages: Array<{ role: string; content: string }>): string {
+    if (messages.length <= 2) return 'starting';
+    if (messages.length >= 15) return 'concluding';
+    
+    // Simple heuristic based on user engagement
+    const recentUserMessages = messages.filter(m => m.role === 'user').slice(-3);
+    const avgLength = recentUserMessages.reduce((sum, m) => sum + m.content.length, 0) / recentUserMessages.length;
+    
+    if (avgLength < 20) return 'struggling';
+    return 'engaged';
+  }
+
+  private getTimeOfDay(): string {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) return 'morning';
+    if (hour >= 12 && hour < 17) return 'afternoon';
+    if (hour >= 17 && hour < 22) return 'evening';
+    return 'night';
   }
 
   formatSuggestionsForDisplay(suggestions: Suggestion[]): string {

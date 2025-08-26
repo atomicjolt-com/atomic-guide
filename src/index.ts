@@ -37,6 +37,7 @@ import { handleChatStream } from './api/handlers/chatStream';
 import { getConversations, getLearningInsights, updateLearningStyle, getConversationSummary } from './api/handlers/dashboard';
 import faqHandler from './api/handlers/faq';
 import richMediaHandler from './api/handlers/richMedia';
+import suggestionHandler from './api/handlers/suggestions';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -158,6 +159,11 @@ app.route('/api/chat/faq', faqHandler);
 app.route('/api/dashboard/faq', faqHandler); 
 app.route('/api/chat/media', richMediaHandler);
 app.route('/api/learner/media', richMediaHandler);
+
+// Proactive Suggestion API routes (Story 2.3)
+app.route('/api/chat/suggestions', suggestionHandler);
+app.route('/api/learner/suggestion-preferences', suggestionHandler);
+app.route('/api/dashboard/suggestions', suggestionHandler);
 
 // Error handling
 app.onError((err: Error, c) => {

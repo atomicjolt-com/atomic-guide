@@ -582,3 +582,126 @@ CREATE TABLE IF NOT EXISTS rich_media_cache (
 CREATE INDEX idx_rich_media_cache_hash ON rich_media_cache(content_hash);
 CREATE INDEX idx_rich_media_cache_type ON rich_media_cache(media_type, last_accessed);
 CREATE INDEX idx_rich_media_cache_expires ON rich_media_cache(expires_at);
+
+-- ============================================
+-- STORY 2.3: PROACTIVE HELP SUGGESTIONS AND LEARNING PATTERN RECOGNITION
+-- ============================================
+
+-- Suggestion tracking and analytics
+CREATE TABLE IF NOT EXISTS suggestion_logs (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    learner_id TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    suggestion_type TEXT NOT NULL, -- 'confusion', 'frustration', 'repetition', 'success_opportunity'
+    suggestion_content JSON NOT NULL, -- Full suggestion data including actions
+    triggered_by_pattern TEXT NOT NULL, -- Pattern that triggered suggestion
+    confidence_score REAL NOT NULL, -- 0-1 confidence in suggestion relevance
+    shown_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_action TEXT, -- 'accepted', 'dismissed', 'ignored', 'timeout'
+    user_feedback TEXT, -- 'helpful', 'not_helpful', 'too_frequent', 'wrong_timing'
+    effectiveness_score REAL, -- Calculated effectiveness metric based on outcome
+    response_time_ms INTEGER, -- Time from trigger to display
+    context_data JSON DEFAULT '{}', -- Page context and LMS data
+    FOREIGN KEY (learner_id) REFERENCES learner_profiles(id)
+);
+
+CREATE INDEX idx_suggestion_logs_learner ON suggestion_logs(tenant_id, learner_id);
+CREATE INDEX idx_suggestion_logs_pattern ON suggestion_logs(suggestion_type, triggered_by_pattern);
+CREATE INDEX idx_suggestion_logs_effectiveness ON suggestion_logs(effectiveness_score DESC);
+CREATE INDEX idx_suggestion_logs_conversation ON suggestion_logs(conversation_id);
+
+-- Learning pattern analysis and trend tracking
+CREATE TABLE IF NOT EXISTS learning_pattern_analysis (
+    id TEXT PRIMARY KEY,
+    learner_id TEXT NOT NULL,
+    pattern_type TEXT NOT NULL, -- 'confusion_trend', 'success_rate', 'topic_mastery', 'engagement_decline'
+    pattern_data JSON NOT NULL, -- Detailed pattern analysis including confidence intervals
+    confidence_level REAL NOT NULL,
+    analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    conversations_analyzed INTEGER NOT NULL,
+    pattern_strength REAL NOT NULL, -- 0-1 strength of detected pattern
+    trend_direction TEXT, -- 'improving', 'declining', 'stable'
+    intervention_recommended BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (learner_id) REFERENCES learner_profiles(id)
+);
+
+CREATE INDEX idx_pattern_analysis_learner ON learning_pattern_analysis(learner_id, pattern_type);
+CREATE INDEX idx_pattern_analysis_strength ON learning_pattern_analysis(pattern_strength DESC);
+CREATE INDEX idx_pattern_analysis_intervention ON learning_pattern_analysis(intervention_recommended, analyzed_at);
+
+-- Suggestion feedback and improvement tracking
+CREATE TABLE IF NOT EXISTS suggestion_feedback (
+    id TEXT PRIMARY KEY,
+    suggestion_log_id TEXT NOT NULL,
+    feedback_type TEXT NOT NULL, -- 'helpful', 'not_helpful', 'too_frequent', 'wrong_timing', 'irrelevant'
+    feedback_details TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    follow_up_behavior TEXT, -- What the learner did after the suggestion
+    learning_outcome_improved BOOLEAN,
+    FOREIGN KEY (suggestion_log_id) REFERENCES suggestion_logs(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_suggestion_feedback_log ON suggestion_feedback(suggestion_log_id);
+CREATE INDEX idx_suggestion_feedback_type ON suggestion_feedback(feedback_type, submitted_at);
+
+-- Enhanced learner profiles with suggestion preferences
+ALTER TABLE learner_profiles ADD COLUMN suggestion_preferences JSON DEFAULT '{
+    "frequency": "medium",
+    "pattern_tracking_enabled": true,
+    "preferred_suggestion_types": ["confusion", "frustration", "success_opportunity"],
+    "interruption_threshold": 0.7,
+    "escalation_consent": false,
+    "cooldown_minutes": 2
+}';
+
+ALTER TABLE learner_profiles ADD COLUMN learning_patterns JSON DEFAULT '{
+    "confusion_tendency": 0.5,
+    "frustration_tolerance": 0.7,
+    "help_seeking_behavior": "reactive",
+    "optimal_intervention_timing": 30,
+    "pattern_confidence": 0
+}';
+
+-- Suggestion queue management for preventing spam
+CREATE TABLE IF NOT EXISTS suggestion_queue (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    learner_id TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    suggestion_data JSON NOT NULL,
+    priority_score REAL NOT NULL,
+    scheduled_for TIMESTAMP NOT NULL,
+    status TEXT DEFAULT 'pending', -- 'pending', 'shown', 'dismissed', 'expired'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP,
+    FOREIGN KEY (learner_id) REFERENCES learner_profiles(id)
+);
+
+CREATE INDEX idx_suggestion_queue_learner ON suggestion_queue(tenant_id, learner_id, status);
+CREATE INDEX idx_suggestion_queue_scheduled ON suggestion_queue(scheduled_for, status);
+CREATE INDEX idx_suggestion_queue_priority ON suggestion_queue(priority_score DESC, scheduled_for);
+
+-- Academic support escalation tracking
+CREATE TABLE IF NOT EXISTS academic_support_escalations (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    learner_id TEXT NOT NULL,
+    pattern_analysis_id TEXT,
+    escalation_type TEXT NOT NULL, -- 'severe_struggle', 'repeated_failure', 'extended_confusion'
+    severity_score REAL NOT NULL, -- 0-1 severity assessment
+    triggered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    instructor_notified_at TIMESTAMP,
+    instructor_response TEXT,
+    resolution_status TEXT DEFAULT 'open', -- 'open', 'addressed', 'no_action_needed', 'closed'
+    resolution_notes TEXT,
+    student_consent_given BOOLEAN DEFAULT FALSE,
+    privacy_level TEXT DEFAULT 'anonymized', -- 'full_detail', 'summary_only', 'anonymized'
+    FOREIGN KEY (learner_id) REFERENCES learner_profiles(id),
+    FOREIGN KEY (pattern_analysis_id) REFERENCES learning_pattern_analysis(id)
+);
+
+CREATE INDEX idx_escalations_learner ON academic_support_escalations(tenant_id, learner_id);
+CREATE INDEX idx_escalations_instructor ON academic_support_escalations(tenant_id, instructor_notified_at);
+CREATE INDEX idx_escalations_severity ON academic_support_escalations(severity_score DESC, triggered_at);
+CREATE INDEX idx_escalations_status ON academic_support_escalations(resolution_status, triggered_at);

@@ -119,6 +119,12 @@ export class ChatConversationDO {
         return this.handleStats();
       case '/reset':
         return this.handleReset();
+      case '/analyze-patterns':
+        return this.handleAnalyzePatterns(request);
+      case '/suggest-proactive':
+        return this.handleSuggestProactive(request);
+      case '/update-suggestion-state':
+        return this.handleUpdateSuggestionState(request);
       default:
         return new Response('Not found', { status: 404 });
     }
@@ -857,6 +863,248 @@ export class ChatConversationDO {
     });
   }
 
+  /**
+   * Analyze conversation patterns for proactive suggestions
+   */
+  private async handleAnalyzePatterns(request: Request): Promise<Response> {
+    try {
+      if (!this.sessionInfo || this.conversationHistory.length < 3) {
+        return new Response(JSON.stringify({ 
+          patterns: [],
+          message: 'Insufficient conversation data for pattern analysis'
+        }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const body = await request.json();
+      const { includeContext = true } = body;
+
+      // Prepare messages with timestamps and response times
+      const messagesForAnalysis = this.conversationHistory.map((msg, index) => {
+        const previousMsg = this.conversationHistory[index - 1];
+        const responseTime = previousMsg 
+          ? new Date(msg.timestamp).getTime() - new Date(previousMsg.timestamp).getTime()
+          : 0;
+
+        return {
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+          responseTime: responseTime > 0 ? responseTime : undefined
+        };
+      });
+
+      // Extract context information
+      const context = includeContext ? {
+        pageType: this.sessionInfo.context?.pageType,
+        topic: this.sessionInfo.topics?.[0],
+        difficulty: this.sessionInfo.context?.difficulty || 0.5,
+        userFocusScore: this.calculateUserFocusScore(),
+        sessionDuration: this.calculateSessionDuration()
+      } : {};
+
+      // Return data for analysis by the suggestion engine
+      return new Response(JSON.stringify({
+        conversationId: this.sessionInfo.conversationId,
+        tenantId: this.sessionInfo.tenantId,
+        learnerId: this.sessionInfo.userId,
+        messages: messagesForAnalysis,
+        context,
+        sessionInfo: {
+          messageCount: this.conversationHistory.length,
+          totalTokensUsed: this.sessionInfo.totalTokensUsed,
+          startedAt: this.sessionInfo.startedAt,
+          lastActivityAt: this.sessionInfo.lastActivityAt
+        }
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+    } catch (error) {
+      console.error('Error analyzing patterns:', error);
+      return new Response(JSON.stringify({ error: 'Failed to analyze patterns' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  /**
+   * Handle proactive suggestion requests
+   */
+  private async handleSuggestProactive(request: Request): Promise<Response> {
+    try {
+      const body = await request.json();
+      const { triggerContext, learnerProfile, preferences } = body;
+
+      if (!this.sessionInfo) {
+        return new Response(JSON.stringify({ error: 'No active session' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Store trigger context for suggestion orchestration
+      const suggestionContext = {
+        conversationId: this.sessionInfo.conversationId,
+        tenantId: this.sessionInfo.tenantId,
+        learnerId: this.sessionInfo.userId,
+        triggeredAt: new Date().toISOString(),
+        triggerContext,
+        conversationState: {
+          messageCount: this.conversationHistory.length,
+          lastActivity: this.sessionInfo.lastActivityAt,
+          topics: this.sessionInfo.topics || [],
+          sessionDuration: this.calculateSessionDuration()
+        }
+      };
+
+      // Store in durable object state for persistence
+      await this.state.storage.put(
+        `suggestion_context:${this.sessionInfo.conversationId}:${Date.now()}`,
+        suggestionContext
+      );
+
+      return new Response(JSON.stringify({
+        success: true,
+        suggestionContext,
+        readyForProcessing: true
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+    } catch (error) {
+      console.error('Error handling proactive suggestion:', error);
+      return new Response(JSON.stringify({ error: 'Failed to handle suggestion request' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  /**
+   * Update suggestion state (shown, dismissed, accepted)
+   */
+  private async handleUpdateSuggestionState(request: Request): Promise<Response> {
+    try {
+      const body = await request.json();
+      const { suggestionId, state, feedback, timestamp } = body;
+
+      if (!suggestionId || !state) {
+        return new Response(JSON.stringify({ error: 'Missing suggestionId or state' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Store suggestion state update
+      const stateUpdate = {
+        suggestionId,
+        state,
+        feedback,
+        timestamp: timestamp || new Date().toISOString(),
+        conversationId: this.sessionInfo?.conversationId,
+        contextAtTime: {
+          messageCount: this.conversationHistory.length,
+          lastMessage: this.conversationHistory[this.conversationHistory.length - 1]?.content?.substring(0, 100),
+          sessionDuration: this.calculateSessionDuration()
+        }
+      };
+
+      await this.state.storage.put(
+        `suggestion_state:${suggestionId}`,
+        stateUpdate
+      );
+
+      // Broadcast to connected clients
+      this.broadcastMessage({
+        type: 'suggestion-state-updated',
+        suggestionId,
+        state,
+        feedback
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        updated: stateUpdate
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+    } catch (error) {
+      console.error('Error updating suggestion state:', error);
+      return new Response(JSON.stringify({ error: 'Failed to update suggestion state' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  /**
+   * Calculate user focus score based on recent activity
+   */
+  private calculateUserFocusScore(): number {
+    if (this.conversationHistory.length < 3) return 0.5;
+
+    const recentMessages = this.conversationHistory.slice(-5);
+    const userMessages = recentMessages.filter(m => m.role === 'user');
+    
+    if (userMessages.length === 0) return 0.3;
+
+    // Calculate focus based on message quality and consistency
+    let focusScore = 0;
+    
+    // Message length consistency (focused users have consistent message lengths)
+    const avgLength = userMessages.reduce((sum, m) => sum + m.content.length, 0) / userMessages.length;
+    const lengthVariance = userMessages.reduce((sum, m) => sum + Math.pow(m.content.length - avgLength, 2), 0) / userMessages.length;
+    const lengthConsistency = Math.max(0, 1 - (lengthVariance / (avgLength * avgLength)));
+    focusScore += lengthConsistency * 0.3;
+
+    // Response time consistency (focused users respond at consistent intervals)
+    if (userMessages.length >= 2) {
+      const responseTimes: number[] = [];
+      for (let i = 1; i < userMessages.length; i++) {
+        const prevTime = new Date(userMessages[i-1].timestamp).getTime();
+        const currTime = new Date(userMessages[i].timestamp).getTime();
+        responseTimes.push(currTime - prevTime);
+      }
+      
+      const avgResponseTime = responseTimes.reduce((sum, t) => sum + t, 0) / responseTimes.length;
+      const timeVariance = responseTimes.reduce((sum, t) => sum + Math.pow(t - avgResponseTime, 2), 0) / responseTimes.length;
+      const timeConsistency = Math.max(0, 1 - (timeVariance / (avgResponseTime * avgResponseTime)));
+      focusScore += timeConsistency * 0.3;
+    }
+
+    // Message quality (focused users ask detailed questions)
+    const questionCount = userMessages.filter(m => m.content.includes('?')).length;
+    const questionRatio = questionCount / userMessages.length;
+    focusScore += Math.min(questionRatio * 2, 1) * 0.2;
+
+    // Topic consistency (focused users stay on topic)
+    const topics = new Set<string>();
+    userMessages.forEach(m => {
+      if (m.metadata?.topics) {
+        m.metadata.topics.forEach(t => topics.add(t));
+      }
+    });
+    const topicConsistency = topics.size <= 2 ? 1 : Math.max(0, 1 - (topics.size - 2) * 0.2);
+    focusScore += topicConsistency * 0.2;
+
+    return Math.min(Math.max(focusScore, 0), 1);
+  }
+
+  /**
+   * Calculate session duration in minutes
+   */
+  private calculateSessionDuration(): number {
+    if (!this.sessionInfo) return 0;
+    
+    const start = new Date(this.sessionInfo.startedAt).getTime();
+    const end = new Date(this.sessionInfo.lastActivityAt).getTime();
+    return Math.round((end - start) / (1000 * 60));
+  }
+
   private async handleReset(): Promise<Response> {
     // Clear conversation history
     this.conversationHistory = [];
@@ -866,6 +1114,18 @@ export class ChatConversationDO {
       const conversationId = this.sessionInfo.conversationId;
       await this.state.storage.delete(`history:${conversationId}`);
       await this.state.storage.delete(`session:${conversationId}`);
+      
+      // Clean up suggestion-related data
+      const suggestionKeys = await this.state.storage.list({ prefix: `suggestion_context:${conversationId}` });
+      for (const [key] of suggestionKeys) {
+        await this.state.storage.delete(key);
+      }
+      
+      const stateKeys = await this.state.storage.list({ prefix: 'suggestion_state:' });
+      for (const [key] of stateKeys) {
+        await this.state.storage.delete(key);
+      }
+      
       this.sessionInfo = null;
     }
 
