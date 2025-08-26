@@ -17,9 +17,7 @@ declare global {
 const App: React.FC<{ jwt?: string }> = ({ jwt }) => {
   return (
     <>
-      <div id="main-content">
-        <h1>Hello World</h1>
-      </div>
+      <h1>Chat</h1>
       <ChatFAB />
       <ChatWindow />
     </>
@@ -30,10 +28,10 @@ const launchSettings: LaunchSettings = window.LAUNCH_SETTINGS;
 
 ltiLaunch(launchSettings).then((valid) => {
   if (valid) {
-    const mainApp = document.getElementById('main-app');
+    const mainContent = document.getElementById('main-content');
 
-    if (!mainApp) {
-      console.error('Main app element not found');
+    if (!mainContent) {
+      console.error('Main content element not found');
       return;
     }
 
@@ -48,7 +46,7 @@ ltiLaunch(launchSettings).then((valid) => {
       store.dispatch(setJwt({ token: jwt }));
     }
 
-    const root = createRoot(mainApp);
+    const root = createRoot(mainContent);
     root.render(
       <Provider store={store}>
         <App jwt={jwt} />

@@ -54,7 +54,7 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Initialize asset paths once at startup
 const homeScriptName = getClientAssetPath('client/home.ts');
 const initScriptName = getClientAssetPath('client/app-init.ts');
-const launchScriptName = getClientAssetPath('client/app.ts');
+const launchScriptName = getClientAssetPath('client/app.tsx');
 
 // Request logging middleware
 app.use('/*', logger());
@@ -156,7 +156,7 @@ app.get('/api/dashboard/summary/:conversationId', (c) => getConversationSummary(
 
 // Rich Media and FAQ API routes (Story 2.2)
 app.route('/api/chat/faq', faqHandler);
-app.route('/api/dashboard/faq', faqHandler); 
+app.route('/api/dashboard/faq', faqHandler);
 app.route('/api/chat/media', richMediaHandler);
 app.route('/api/learner/media', richMediaHandler);
 
