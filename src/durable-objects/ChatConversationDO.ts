@@ -69,6 +69,53 @@ export interface RateLimitInfo {
   windowStart: number;
 }
 
+// Request body interfaces
+export interface RestoreStateRequestBody {
+  conversationId: string;
+}
+
+export interface CheckRateLimitRequestBody {
+  userId: string;
+  limit?: number;
+  windowMs?: number;
+}
+
+export interface AnalyzePatternsRequestBody {
+  includeContext?: boolean;
+}
+
+export interface SuggestProactiveRequestBody {
+  triggerContext?: {
+    triggerType?: string;
+    pageType?: string;
+    topic?: string;
+    confidence?: number;
+    timestamp?: string;
+  };
+  learnerProfile?: {
+    learningStyle?: string;
+    secondaryStyle?: string;
+    struggleAreas?: string[];
+    preferredLanguage?: string;
+    learningVelocity?: number;
+    topics?: string[];
+    mediaPreferences?: {
+      prefers_visual?: boolean;
+      math_notation_style?: string;
+      code_highlight_theme?: string;
+      bandwidth_preference?: string;
+    };
+  };
+  preferences?: Record<string, any>;
+}
+
+export interface UpdateSuggestionStateRequestBody {
+  suggestionId: string;
+  state: 'shown' | 'dismissed' | 'accepted' | 'acted_upon';
+  feedback?: string;
+  timestamp?: string;
+}
+
 export class ChatConversationDO {
   private state: DurableObjectState;
   private sessions: Map<WebSocket, SessionInfo>;
@@ -533,7 +580,7 @@ export class ChatConversationDO {
 
   private async handleRestoreState(request: Request): Promise<Response> {
     try {
-      const body = (await request.json()) as { conversationId: string };
+      const body = (await request.json()) as RestoreStateRequestBody;
       const { conversationId } = body;
 
       // Restore session info
@@ -625,8 +672,15 @@ export class ChatConversationDO {
 
   private async handleCheckRateLimit(request: Request): Promise<Response> {
     try {
-      const body = (await request.json()) as { userId: string; limit: number; windowMs: number };
+      const body = (await request.json()) as CheckRateLimitRequestBody;
       const { userId, limit = 10, windowMs = 60000 } = body;
+
+      if (!userId) {
+        return new Response(JSON.stringify({ error: 'userId is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       const now = Date.now();
       const rateLimitInfo = this.rateLimitMap.get(userId);
@@ -869,58 +923,63 @@ export class ChatConversationDO {
   private async handleAnalyzePatterns(request: Request): Promise<Response> {
     try {
       if (!this.sessionInfo || this.conversationHistory.length < 3) {
-        return new Response(JSON.stringify({ 
-          patterns: [],
-          message: 'Insufficient conversation data for pattern analysis'
-        }), {
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(
+          JSON.stringify({
+            patterns: [],
+            message: 'Insufficient conversation data for pattern analysis',
+          }),
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
       }
 
-      const body = await request.json();
+      const body = (await request.json()) as AnalyzePatternsRequestBody;
       const { includeContext = true } = body;
 
       // Prepare messages with timestamps and response times
       const messagesForAnalysis = this.conversationHistory.map((msg, index) => {
         const previousMsg = this.conversationHistory[index - 1];
-        const responseTime = previousMsg 
-          ? new Date(msg.timestamp).getTime() - new Date(previousMsg.timestamp).getTime()
-          : 0;
+        const responseTime = previousMsg ? new Date(msg.timestamp).getTime() - new Date(previousMsg.timestamp).getTime() : 0;
 
         return {
           role: msg.role,
           content: msg.content,
           timestamp: new Date(msg.timestamp),
-          responseTime: responseTime > 0 ? responseTime : undefined
+          responseTime: responseTime > 0 ? responseTime : undefined,
         };
       });
 
       // Extract context information
-      const context = includeContext ? {
-        pageType: this.sessionInfo.context?.pageType,
-        topic: this.sessionInfo.topics?.[0],
-        difficulty: this.sessionInfo.context?.difficulty || 0.5,
-        userFocusScore: this.calculateUserFocusScore(),
-        sessionDuration: this.calculateSessionDuration()
-      } : {};
+      const context = includeContext
+        ? {
+            pageType: this.sessionInfo.context?.pageType,
+            topic: this.sessionInfo.topics?.[0],
+            difficulty: this.sessionInfo.context?.difficulty || 0.5,
+            userFocusScore: this.calculateUserFocusScore(),
+            sessionDuration: this.calculateSessionDuration(),
+          }
+        : {};
 
       // Return data for analysis by the suggestion engine
-      return new Response(JSON.stringify({
-        conversationId: this.sessionInfo.conversationId,
-        tenantId: this.sessionInfo.tenantId,
-        learnerId: this.sessionInfo.userId,
-        messages: messagesForAnalysis,
-        context,
-        sessionInfo: {
-          messageCount: this.conversationHistory.length,
-          totalTokensUsed: this.sessionInfo.totalTokensUsed,
-          startedAt: this.sessionInfo.startedAt,
-          lastActivityAt: this.sessionInfo.lastActivityAt
-        }
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
+      return new Response(
+        JSON.stringify({
+          conversationId: this.sessionInfo.conversationId,
+          tenantId: this.sessionInfo.tenantId,
+          learnerId: this.sessionInfo.userId,
+          messages: messagesForAnalysis,
+          context,
+          sessionInfo: {
+            messageCount: this.conversationHistory.length,
+            totalTokensUsed: this.sessionInfo.totalTokensUsed,
+            startedAt: this.sessionInfo.startedAt,
+            lastActivityAt: this.sessionInfo.lastActivityAt,
+          },
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error analyzing patterns:', error);
       return new Response(JSON.stringify({ error: 'Failed to analyze patterns' }), {
@@ -935,7 +994,7 @@ export class ChatConversationDO {
    */
   private async handleSuggestProactive(request: Request): Promise<Response> {
     try {
-      const body = await request.json();
+      const body = (await request.json()) as SuggestProactiveRequestBody;
       const { triggerContext, learnerProfile, preferences } = body;
 
       if (!this.sessionInfo) {
@@ -956,24 +1015,23 @@ export class ChatConversationDO {
           messageCount: this.conversationHistory.length,
           lastActivity: this.sessionInfo.lastActivityAt,
           topics: this.sessionInfo.topics || [],
-          sessionDuration: this.calculateSessionDuration()
-        }
+          sessionDuration: this.calculateSessionDuration(),
+        },
       };
 
       // Store in durable object state for persistence
-      await this.state.storage.put(
-        `suggestion_context:${this.sessionInfo.conversationId}:${Date.now()}`,
-        suggestionContext
+      await this.state.storage.put(`suggestion_context:${this.sessionInfo.conversationId}:${Date.now()}`, suggestionContext);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          suggestionContext,
+          readyForProcessing: true,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
       );
-
-      return new Response(JSON.stringify({
-        success: true,
-        suggestionContext,
-        readyForProcessing: true
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
     } catch (error) {
       console.error('Error handling proactive suggestion:', error);
       return new Response(JSON.stringify({ error: 'Failed to handle suggestion request' }), {
@@ -988,7 +1046,7 @@ export class ChatConversationDO {
    */
   private async handleUpdateSuggestionState(request: Request): Promise<Response> {
     try {
-      const body = await request.json();
+      const body = (await request.json()) as UpdateSuggestionStateRequestBody;
       const { suggestionId, state, feedback, timestamp } = body;
 
       if (!suggestionId || !state) {
@@ -1008,30 +1066,29 @@ export class ChatConversationDO {
         contextAtTime: {
           messageCount: this.conversationHistory.length,
           lastMessage: this.conversationHistory[this.conversationHistory.length - 1]?.content?.substring(0, 100),
-          sessionDuration: this.calculateSessionDuration()
-        }
+          sessionDuration: this.calculateSessionDuration(),
+        },
       };
 
-      await this.state.storage.put(
-        `suggestion_state:${suggestionId}`,
-        stateUpdate
-      );
+      await this.state.storage.put(`suggestion_state:${suggestionId}`, stateUpdate);
 
       // Broadcast to connected clients
       this.broadcastMessage({
         type: 'suggestion-state-updated',
         suggestionId,
         state,
-        feedback
+        feedback,
       });
 
-      return new Response(JSON.stringify({
-        success: true,
-        updated: stateUpdate
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
+      return new Response(
+        JSON.stringify({
+          success: true,
+          updated: stateUpdate,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error updating suggestion state:', error);
       return new Response(JSON.stringify({ error: 'Failed to update suggestion state' }), {
@@ -1048,44 +1105,44 @@ export class ChatConversationDO {
     if (this.conversationHistory.length < 3) return 0.5;
 
     const recentMessages = this.conversationHistory.slice(-5);
-    const userMessages = recentMessages.filter(m => m.role === 'user');
-    
+    const userMessages = recentMessages.filter((m) => m.role === 'user');
+
     if (userMessages.length === 0) return 0.3;
 
     // Calculate focus based on message quality and consistency
     let focusScore = 0;
-    
+
     // Message length consistency (focused users have consistent message lengths)
     const avgLength = userMessages.reduce((sum, m) => sum + m.content.length, 0) / userMessages.length;
     const lengthVariance = userMessages.reduce((sum, m) => sum + Math.pow(m.content.length - avgLength, 2), 0) / userMessages.length;
-    const lengthConsistency = Math.max(0, 1 - (lengthVariance / (avgLength * avgLength)));
+    const lengthConsistency = Math.max(0, 1 - lengthVariance / (avgLength * avgLength));
     focusScore += lengthConsistency * 0.3;
 
     // Response time consistency (focused users respond at consistent intervals)
     if (userMessages.length >= 2) {
       const responseTimes: number[] = [];
       for (let i = 1; i < userMessages.length; i++) {
-        const prevTime = new Date(userMessages[i-1].timestamp).getTime();
+        const prevTime = new Date(userMessages[i - 1].timestamp).getTime();
         const currTime = new Date(userMessages[i].timestamp).getTime();
         responseTimes.push(currTime - prevTime);
       }
-      
+
       const avgResponseTime = responseTimes.reduce((sum, t) => sum + t, 0) / responseTimes.length;
       const timeVariance = responseTimes.reduce((sum, t) => sum + Math.pow(t - avgResponseTime, 2), 0) / responseTimes.length;
-      const timeConsistency = Math.max(0, 1 - (timeVariance / (avgResponseTime * avgResponseTime)));
+      const timeConsistency = Math.max(0, 1 - timeVariance / (avgResponseTime * avgResponseTime));
       focusScore += timeConsistency * 0.3;
     }
 
     // Message quality (focused users ask detailed questions)
-    const questionCount = userMessages.filter(m => m.content.includes('?')).length;
+    const questionCount = userMessages.filter((m) => m.content.includes('?')).length;
     const questionRatio = questionCount / userMessages.length;
     focusScore += Math.min(questionRatio * 2, 1) * 0.2;
 
     // Topic consistency (focused users stay on topic)
     const topics = new Set<string>();
-    userMessages.forEach(m => {
+    userMessages.forEach((m) => {
       if (m.metadata?.topics) {
-        m.metadata.topics.forEach(t => topics.add(t));
+        m.metadata.topics.forEach((t) => topics.add(t));
       }
     });
     const topicConsistency = topics.size <= 2 ? 1 : Math.max(0, 1 - (topics.size - 2) * 0.2);
@@ -1099,7 +1156,7 @@ export class ChatConversationDO {
    */
   private calculateSessionDuration(): number {
     if (!this.sessionInfo) return 0;
-    
+
     const start = new Date(this.sessionInfo.startedAt).getTime();
     const end = new Date(this.sessionInfo.lastActivityAt).getTime();
     return Math.round((end - start) / (1000 * 60));
@@ -1114,18 +1171,18 @@ export class ChatConversationDO {
       const conversationId = this.sessionInfo.conversationId;
       await this.state.storage.delete(`history:${conversationId}`);
       await this.state.storage.delete(`session:${conversationId}`);
-      
+
       // Clean up suggestion-related data
       const suggestionKeys = await this.state.storage.list({ prefix: `suggestion_context:${conversationId}` });
       for (const [key] of suggestionKeys) {
         await this.state.storage.delete(key);
       }
-      
+
       const stateKeys = await this.state.storage.list({ prefix: 'suggestion_state:' });
       for (const [key] of stateKeys) {
         await this.state.storage.delete(key);
       }
-      
+
       this.sessionInfo = null;
     }
 
