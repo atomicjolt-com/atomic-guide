@@ -18,9 +18,9 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>
+      </Provider>,
     );
-    
+
     expect(screen.queryByText('Atomic Guide')).not.toBeInTheDocument();
   });
 
@@ -29,9 +29,9 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>
+      </Provider>,
     );
-    
+
     expect(screen.getByText('Atomic Guide')).toBeInTheDocument();
   });
 
@@ -40,12 +40,12 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>
+      </Provider>,
     );
-    
+
     const minimizeButton = screen.getByLabelText('Minimize chat');
     fireEvent.click(minimizeButton);
-    
+
     const state = store.getState();
     expect(state.chat.isMinimized).toBe(true);
   });
@@ -53,16 +53,16 @@ describe('ChatWindow', () => {
   it('maximizes chat when maximize button is clicked', () => {
     const store = createMockStore(true);
     store.dispatch({ type: 'chat/minimizeChat' });
-    
+
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>
+      </Provider>,
     );
-    
+
     const maximizeButton = screen.getByLabelText('Maximize chat');
     fireEvent.click(maximizeButton);
-    
+
     const state = store.getState();
     expect(state.chat.isMinimized).toBe(false);
   });
@@ -72,12 +72,12 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>
+      </Provider>,
     );
-    
+
     const closeButton = screen.getByLabelText('Close chat');
     fireEvent.click(closeButton);
-    
+
     const state = store.getState();
     expect(state.chat.isOpen).toBe(false);
   });
@@ -85,13 +85,13 @@ describe('ChatWindow', () => {
   it('hides body content when minimized', () => {
     const store = createMockStore(true);
     store.dispatch({ type: 'chat/minimizeChat' });
-    
+
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>
+      </Provider>,
     );
-    
+
     expect(screen.queryByRole('log')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Message input')).not.toBeInTheDocument();
   });
@@ -101,9 +101,9 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>
+      </Provider>,
     );
-    
+
     expect(screen.getByRole('log')).toBeInTheDocument();
     expect(screen.getByLabelText('Message input')).toBeInTheDocument();
   });
