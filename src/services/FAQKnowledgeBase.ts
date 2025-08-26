@@ -401,7 +401,7 @@ export class FAQKnowledgeBase {
     }
   }
 
-  private async invalidateCache(tenantId: string, courseId?: string): Promise<void> {
+  private async invalidateCache(_tenantId: string, _courseId?: string): Promise<void> {
     // In production, implement more sophisticated cache invalidation
     // For now, we'll rely on TTL expiration
   }

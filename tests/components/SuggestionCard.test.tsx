@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SuggestionCard } from '../../client/components/chat/SuggestionCard';
-import type { Suggestion, SuggestionAction } from '../../client/components/chat/SuggestionCard';
+import type { Suggestion } from '../../client/components/chat/SuggestionCard';
 
 // Mock suggestion data
 const createMockSuggestion = (type: string = 'confusion', urgency: 'low' | 'medium' | 'high' | 'critical' = 'medium'): Suggestion => ({
@@ -58,7 +58,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('Basic Rendering', () => {
-    it('should render suggestion with title and description', async () => {
+    it('should render suggestion with title and description', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
@@ -69,7 +69,7 @@ describe('SuggestionCard', () => {
       expect(screen.getByText(/This is a test confusion suggestion/)).toBeInTheDocument();
     });
 
-    it('should render action buttons', async () => {
+    it('should render action buttons', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
@@ -80,7 +80,7 @@ describe('SuggestionCard', () => {
       expect(screen.getByRole('button', { name: /see examples/i })).toBeInTheDocument();
     });
 
-    it('should show dismiss button when allowed', async () => {
+    it('should show dismiss button when allowed', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
@@ -90,7 +90,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should not show dismiss button when not allowed', async () => {
+    it('should not show dismiss button when not allowed', async() => {
       const suggestion = createMockSuggestion('frustration', 'critical');
       suggestion.displaySettings.allowDismiss = false;
 
@@ -106,7 +106,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have proper ARIA attributes', async () => {
+    it('should have proper ARIA attributes', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
@@ -119,7 +119,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should focus primary action button on mount', async () => {
+    it('should focus primary action button on mount', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
@@ -130,7 +130,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should handle keyboard navigation', async () => {
+    it('should handle keyboard navigation', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
 
@@ -154,7 +154,7 @@ describe('SuggestionCard', () => {
       expect(checkbox).toBeInTheDocument();
     });
 
-    it('should dismiss on Escape key', async () => {
+    it('should dismiss on Escape key', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
 
@@ -176,7 +176,7 @@ describe('SuggestionCard', () => {
       );
     });
 
-    it('should have proper color contrast for urgency levels', async () => {
+    it('should have proper color contrast for urgency levels', async() => {
       const criticalSuggestion = createMockSuggestion('frustration', 'critical');
 
       const { container } = render(
@@ -189,7 +189,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should include screen reader only content', async () => {
+    it('should include screen reader only content', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       render(<SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />);
@@ -202,7 +202,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('User Interactions', () => {
-    it('should call onAccept when action button is clicked', async () => {
+    it('should call onAccept when action button is clicked', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
 
@@ -217,7 +217,7 @@ describe('SuggestionCard', () => {
       expect(mockOnAccept).toHaveBeenCalledWith(suggestion.actions[0]);
     });
 
-    it('should call onDismiss when dismiss button is clicked', async () => {
+    it('should call onDismiss when dismiss button is clicked', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
 
@@ -234,7 +234,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should show feedback form for high-priority suggestions', async () => {
+    it('should show feedback form for high-priority suggestions', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('frustration', 'high');
 
@@ -251,7 +251,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should handle feedback submission', async () => {
+    it('should handle feedback submission', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('frustration', 'high');
 
@@ -275,7 +275,7 @@ describe('SuggestionCard', () => {
       expect(mockOnFeedback).toHaveBeenCalledWith('helpful');
     });
 
-    it('should handle "don\'t show again" checkbox', async () => {
+    it('should handle "don\'t show again" checkbox', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
 
@@ -293,7 +293,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('Mobile Responsive Design', () => {
-    it('should apply mobile-specific styles', async () => {
+    it('should apply mobile-specific styles', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       const { container } = render(
@@ -312,7 +312,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should have proper touch target sizes on mobile', async () => {
+    it('should have proper touch target sizes on mobile', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       render(
@@ -341,7 +341,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('Visual States and Animations', () => {
-    it('should show confidence indicator', async () => {
+    it('should show confidence indicator', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       const { container } = render(
@@ -354,7 +354,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should show appropriate pattern icon', async () => {
+    it('should show appropriate pattern icon', async() => {
       const confusionSuggestion = createMockSuggestion('confusion');
 
       render(
@@ -366,7 +366,7 @@ describe('SuggestionCard', () => {
       });
     });
 
-    it('should expand/collapse trigger reason', async () => {
+    it('should expand/collapse trigger reason', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
 
@@ -387,7 +387,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('Auto-dismiss Behavior', () => {
-    it('should auto-dismiss after display duration', async () => {
+    it('should auto-dismiss after display duration', async() => {
       vi.useFakeTimers();
 
       const suggestion = createMockSuggestion('confusion');
@@ -423,7 +423,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('Dark Mode Support', () => {
-    it('should apply dark mode classes when system preference is dark', async () => {
+    it('should apply dark mode classes when system preference is dark', async() => {
       // Mock dark mode preference
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
@@ -467,7 +467,7 @@ describe('SuggestionCard', () => {
       }).not.toThrow();
     });
 
-    it('should handle undefined callback functions gracefully', async () => {
+    it('should handle undefined callback functions gracefully', async() => {
       const user = userEvent.setup();
       const suggestion = createMockSuggestion('confusion');
 
@@ -484,7 +484,7 @@ describe('SuggestionCard', () => {
   });
 
   describe('Performance', () => {
-    it('should render within acceptable time limits', async () => {
+    it('should render within acceptable time limits', async() => {
       const suggestion = createMockSuggestion('confusion');
 
       const startTime = performance.now();

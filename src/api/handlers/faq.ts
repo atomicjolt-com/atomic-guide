@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { FAQKnowledgeBase, type FAQEntry, type FAQSearchOptions } from '../../services/FAQKnowledgeBase';
+import { FAQKnowledgeBase, type FAQSearchOptions } from '../../services/FAQKnowledgeBase';
 import { AIService } from '../../services/AIService';
 import { sanitizeInput, sanitizeRichContent } from '../../utils/sanitizer';
 
@@ -18,7 +18,7 @@ type Variables = {
 const faq = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Middleware to extract tenant and user information
-faq.use('*', async (c, next) => {
+faq.use('*', async(c, next) => {
   // Extract tenant/user from headers or JWT (simplified for now)
   const tenantId = c.req.header('x-tenant-id') || 'default';
   const userId = c.req.header('x-user-id') || 'anonymous';
@@ -30,7 +30,7 @@ faq.use('*', async (c, next) => {
 });
 
 // GET /api/chat/faq/search - Search FAQ database
-faq.get('/search', async (c) => {
+faq.get('/search', async(c) => {
   const startTime = Date.now();
 
   try {
@@ -84,7 +84,7 @@ faq.get('/search', async (c) => {
       total_results: matches.length,
       search_options: options,
     });
-  } catch (error) {
+  } catch {
     console.error('FAQ search error:', error);
     const responseTime = Date.now() - startTime;
 
@@ -100,7 +100,7 @@ faq.get('/search', async (c) => {
 });
 
 // POST /api/chat/faq - Create new FAQ entry
-faq.post('/', async (c) => {
+faq.post('/', async(c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;
@@ -169,14 +169,14 @@ faq.post('/', async (c) => {
       },
       201,
     );
-  } catch (error) {
+  } catch {
     console.error('FAQ creation error:', error);
     return c.json({ error: 'Failed to create FAQ entry' }, 500);
   }
 });
 
 // PUT /api/chat/faq/:id - Update FAQ entry
-faq.put('/:id', async (c) => {
+faq.put('/:id', async(c) => {
   try {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
@@ -234,14 +234,14 @@ faq.put('/:id', async (c) => {
         updated_at: updatedFAQ.updatedAt.toISOString(),
       },
     });
-  } catch (error) {
+  } catch {
     console.error('FAQ update error:', error);
     return c.json({ error: 'Failed to update FAQ entry' }, 500);
   }
 });
 
 // DELETE /api/chat/faq/:id - Delete FAQ entry
-faq.delete('/:id', async (c) => {
+faq.delete('/:id', async(c) => {
   try {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
@@ -271,7 +271,7 @@ faq.delete('/:id', async (c) => {
       .run();
 
     return c.json({ success: true, message: 'FAQ deleted successfully' });
-  } catch (error) {
+  } catch {
     console.error('FAQ deletion error:', error);
     if (error instanceof Error && error.message === 'FAQ not found') {
       return c.json({ error: 'FAQ not found' }, 404);
@@ -281,7 +281,7 @@ faq.delete('/:id', async (c) => {
 });
 
 // POST /api/chat/faq/:id/effectiveness - Update FAQ effectiveness based on user feedback
-faq.post('/:id/effectiveness', async (c) => {
+faq.post('/:id/effectiveness', async(c) => {
   try {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
@@ -300,14 +300,14 @@ faq.post('/:id/effectiveness', async (c) => {
     });
 
     return c.json({ success: true, message: 'FAQ effectiveness updated' });
-  } catch (error) {
+  } catch {
     console.error('FAQ effectiveness update error:', error);
     return c.json({ error: 'Failed to update FAQ effectiveness' }, 500);
   }
 });
 
 // GET /api/dashboard/faq - FAQ management interface for instructors
-faq.get('/management', async (c) => {
+faq.get('/management', async(c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const courseId = c.req.query('course');
@@ -363,14 +363,14 @@ faq.get('/management', async (c) => {
         has_previous: page > 1,
       },
     });
-  } catch (error) {
+  } catch {
     console.error('FAQ management retrieval error:', error);
     return c.json({ error: 'Failed to retrieve FAQ management data' }, 500);
   }
 });
 
 // GET /api/dashboard/faq/analytics - FAQ usage analytics
-faq.get('/analytics', async (c) => {
+faq.get('/analytics', async(c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const courseId = c.req.query('course');
@@ -457,7 +457,7 @@ faq.get('/analytics', async (c) => {
         analysis_period_days: days,
       },
     });
-  } catch (error) {
+  } catch {
     console.error('FAQ analytics error:', error);
     return c.json({ error: 'Failed to retrieve FAQ analytics' }, 500);
   }

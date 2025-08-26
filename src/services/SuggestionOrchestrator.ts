@@ -584,7 +584,7 @@ export class SuggestionOrchestrator {
   private recalculatePriority(
     suggestion: EnhancedSuggestion,
     preferences: SuggestionPreferences,
-    context: SuggestionContext
+    _context: SuggestionContext
   ): number {
     let priority = suggestion.priority;
 
@@ -721,10 +721,10 @@ export class SuggestionOrchestrator {
     suggestionId: string,
     action: 'accepted' | 'dismissed' | 'ignored' | 'timeout',
     feedback?: string,
-    followupBehavior?: string
+    _followupBehavior?: string
   ): Promise<void> {
     // This would integrate with the suggestion_logs table
-    const now = new Date();
+    // const now = new Date();
     
     const logQuery = `
       INSERT INTO suggestion_logs 

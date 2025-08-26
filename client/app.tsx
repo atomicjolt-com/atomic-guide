@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-const App: React.FC<{ jwt?: string }> = ({ jwt }) => {
+const App: React.FC<{ jwt?: string }> = () => {
   return (
     <>
       <h1>Chat</h1>

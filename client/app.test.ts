@@ -59,7 +59,7 @@ describe('app.ts', () => {
     vi.unstubAllGlobals();
   });
 
-  test('should render hello world when LTI launch is valid', async () => {
+  test('should render hello world when LTI launch is valid', async() => {
     // Mock successful LTI launch
     (ltiLaunch as any).mockResolvedValue(true);
     (fetch as any).mockResolvedValue({
@@ -79,7 +79,7 @@ describe('app.ts', () => {
     expect(ltiLaunch).toHaveBeenCalledWith(mockLaunchSettings);
   });
 
-  test('should show failure message when LTI launch fails', async () => {
+  test('should show failure message when LTI launch fails', async() => {
     // Mock failed LTI launch
     (ltiLaunch as any).mockResolvedValue(false);
 
@@ -92,7 +92,7 @@ describe('app.ts', () => {
     });
   });
 
-  test('should render deep linking UI when deepLinking is available', async () => {
+  test('should render deep linking UI when deepLinking is available', async() => {
     // Mock successful LTI launch
     (ltiLaunch as any).mockResolvedValue(true);
     (fetch as any).mockResolvedValue({
@@ -108,7 +108,7 @@ describe('app.ts', () => {
     });
   });
 
-  test('should handle deep linking button click', async () => {
+  test('should handle deep linking button click', async() => {
     // Mock successful LTI launch
     (ltiLaunch as any).mockResolvedValue(true);
 
@@ -165,7 +165,7 @@ describe('app.ts', () => {
     expect(mockFormSubmit).toHaveBeenCalled();
   });
 
-  test('should call names and roles service', async () => {
+  test('should call names and roles service', async() => {
     // Mock successful LTI launch
     (ltiLaunch as any).mockResolvedValue(true);
     (fetch as any).mockImplementation((url: string) => {

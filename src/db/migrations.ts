@@ -17,7 +17,7 @@ export const migrations: Migration[] = [
   {
     version: 1,
     name: 'initial_schema',
-    up: `-- Initial schema is created from schema.sql`,
+    up: '-- Initial schema is created from schema.sql',
     down: `-- Drop all tables for complete rollback
       DROP TABLE IF EXISTS audit_logs;
       DROP TABLE IF EXISTS instructor_preferences;
@@ -98,7 +98,7 @@ export async function initializeTenantDatabase(
  */
 export async function runMigrations(
   db: D1Database,
-  fromVersion: number = 0
+  _fromVersion: number = 0
 ): Promise<void> {
   // Get current version
   const currentVersion = await getCurrentVersion(db);
@@ -125,7 +125,7 @@ export async function runMigrations(
       `).bind(migration.version, migration.name).run();
       
       console.log(`Migration ${migration.version} completed`);
-    } catch (error) {
+    } catch {
       console.error(`Migration ${migration.version} failed:`, error);
       throw new Error(`Migration failed at version ${migration.version}: ${error}`);
     }
@@ -163,7 +163,7 @@ export async function rollbackToVersion(
       `).bind(migration.version).run();
       
       console.log(`Rollback of ${migration.version} completed`);
-    } catch (error) {
+    } catch {
       console.error(`Rollback of ${migration.version} failed:`, error);
       throw new Error(`Rollback failed at version ${migration.version}: ${error}`);
     }
@@ -180,7 +180,7 @@ async function getCurrentVersion(db: D1Database): Promise<number> {
     `).first();
     
     return result?.version || 0;
-  } catch (error) {
+  } catch {
     // Table doesn't exist yet
     return 0;
   }
@@ -216,7 +216,7 @@ export async function validateTenantDatabase(db: D1Database): Promise<boolean> {
     `).first();
     
     return !!config?.tenant_id;
-  } catch (error) {
+  } catch {
     console.error('Tenant database validation failed:', error);
     return false;
   }

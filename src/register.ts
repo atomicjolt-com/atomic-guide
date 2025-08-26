@@ -1,13 +1,13 @@
-import { HandlePlatformResponse } from "@atomicjolt/lti-endpoints/dist/handlers/dynamic_registration_finish";
-import { RegistrationConfiguration, LTI_TOOL_CONFIGURATION } from "@atomicjolt/lti-types";
-import { DatabaseService } from "./services/database";
+import { HandlePlatformResponse } from '@atomicjolt/lti-endpoints/dist/handlers/dynamic_registration_finish';
+import { RegistrationConfiguration, LTI_TOOL_CONFIGURATION } from '@atomicjolt/lti-types';
+import { DatabaseService } from './services/database';
 import type { D1Database } from '@cloudflare/workers-types';
 
 /**
  * Handle platform response from dynamic registration
  * Creates or updates tenant record in D1 database
  */
-export const handlePlatformResponse: HandlePlatformResponse = async (
+export const handlePlatformResponse: HandlePlatformResponse = async(
   registrationConfiguration: RegistrationConfiguration,
   env?: any
 ) => {

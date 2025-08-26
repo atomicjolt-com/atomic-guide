@@ -13,16 +13,16 @@ const createMockD1 = () => {
 
   const mockPreparedStatement = {
     bind: vi.fn().mockReturnThis(),
-    first: vi.fn(async () => mockResults.get('first')),
-    all: vi.fn(async () => ({ results: mockResults.get('all') || [] })),
-    run: vi.fn(async () => ({ success: true })),
+    first: vi.fn(async() => mockResults.get('first')),
+    all: vi.fn(async() => ({ results: mockResults.get('all') || [] })),
+    run: vi.fn(async() => ({ success: true })),
   };
 
   const mockD1: Partial<D1Database> = {
     prepare: vi.fn(() => mockPreparedStatement as any),
-    batch: vi.fn(async (statements) => []),
-    dump: vi.fn(async () => new ArrayBuffer(0)),
-    exec: vi.fn(async () => ({ count: 0, duration: 0 })),
+    batch: vi.fn(async(_statements) => []),
+    dump: vi.fn(async() => new ArrayBuffer(0)),
+    exec: vi.fn(async() => ({ count: 0, duration: 0 })),
   };
 
   return {
@@ -42,7 +42,7 @@ describe('DatabaseService - Tenant Isolation', () => {
   });
 
   describe('Tenant Creation', () => {
-    it('should create a new tenant with unique ISS and client ID', async () => {
+    it('should create a new tenant with unique ISS and client ID', async() => {
       mockD1.mockResults.set('first', {
         id: 'tenant-123',
         iss: 'https://canvas.example.edu',
@@ -72,7 +72,7 @@ describe('DatabaseService - Tenant Isolation', () => {
       expect(mockD1.mockPreparedStatement.bind).toHaveBeenCalled();
     });
 
-    it('should enforce unique constraint on ISS and client ID', async () => {
+    it('should enforce unique constraint on ISS and client ID', async() => {
       // First call fails with unique constraint error
       mockD1.mockPreparedStatement.first.mockRejectedValueOnce(new Error('UNIQUE constraint failed'));
 
@@ -106,11 +106,11 @@ describe('DatabaseService - Tenant Isolation', () => {
   });
 
   describe('Learner Profile Isolation', () => {
-    it('should enforce tenant_id when creating learner profiles', async () => {
+    it('should enforce tenant_id when creating learner profiles', async() => {
       // First call returns null (no existing profile)
       // Second call returns the created profile
       let callCount = 0;
-      mockD1.mockPreparedStatement.first.mockImplementation(async () => {
+      mockD1.mockPreparedStatement.first.mockImplementation(async() => {
         callCount++;
         if (callCount === 1) {
           return null; // No existing profile
@@ -130,7 +130,7 @@ describe('DatabaseService - Tenant Isolation', () => {
       expect(bindCalls[1]).toContain('tenant-123'); // Check insert query
     });
 
-    it('should not allow access to profiles from different tenants', async () => {
+    it('should not allow access to profiles from different tenants', async() => {
       // Setup: Profile exists for tenant-123
       mockD1.mockResults.set('first', {
         id: 'profile-1',
@@ -157,7 +157,7 @@ describe('DatabaseService - Tenant Isolation', () => {
       expect(bindCalls[1]).toEqual(['tenant-999', 'user-456']);
     });
 
-    it('should only return profiles for the specified tenant', async () => {
+    it('should only return profiles for the specified tenant', async() => {
       mockD1.mockResults.set('all', [
         {
           id: 'profile-1',
@@ -184,7 +184,7 @@ describe('DatabaseService - Tenant Isolation', () => {
   });
 
   describe('Cross-Tenant Protection', () => {
-    it('should fail when trying to update profile without tenant_id', async () => {
+    it('should fail when trying to update profile without tenant_id', async() => {
       // Profile doesn't exist for wrong tenant
       mockD1.mockResults.set('first', null);
 
@@ -193,7 +193,7 @@ describe('DatabaseService - Tenant Isolation', () => {
       );
     });
 
-    it('should fail when trying to update privacy settings without proper tenant', async () => {
+    it('should fail when trying to update privacy settings without proper tenant', async() => {
       // Profile doesn't exist for wrong tenant
       mockD1.mockResults.set('first', null);
 
@@ -204,8 +204,8 @@ describe('DatabaseService - Tenant Isolation', () => {
   });
 
   describe('Transaction Support', () => {
-    it('should support atomic operations through transaction helper', async () => {
-      const result = await dbService.transaction(async () => {
+    it('should support atomic operations through transaction helper', async() => {
+      const result = await dbService.transaction(async() => {
         return 'test-result';
       });
 
@@ -214,14 +214,14 @@ describe('DatabaseService - Tenant Isolation', () => {
   });
 
   describe('Health Check', () => {
-    it('should return true when database is healthy', async () => {
+    it('should return true when database is healthy', async() => {
       mockD1.mockResults.set('first', { healthy: 1 });
 
       const isHealthy = await dbService.healthCheck();
       expect(isHealthy).toBe(true);
     });
 
-    it('should return false when database is unhealthy', async () => {
+    it('should return false when database is unhealthy', async() => {
       mockD1.mockPreparedStatement.first.mockRejectedValueOnce(new Error('Database error'));
 
       const isHealthy = await dbService.healthCheck();
@@ -230,7 +230,7 @@ describe('DatabaseService - Tenant Isolation', () => {
   });
 
   describe('Statistics', () => {
-    it('should return tenant-specific statistics', async () => {
+    it('should return tenant-specific statistics', async() => {
       mockD1.mockResults.set('first', {
         learner_count: 50,
         session_count: 200,
@@ -247,7 +247,7 @@ describe('DatabaseService - Tenant Isolation', () => {
       expect(mockD1.mockPreparedStatement.bind).toHaveBeenCalledWith('tenant-123', 'tenant-123', 'tenant-123');
     });
 
-    it('should return global statistics when no tenant specified', async () => {
+    it('should return global statistics when no tenant specified', async() => {
       mockD1.mockResults.set('first', {
         tenant_count: 10,
         total_learners: 500,
@@ -266,7 +266,7 @@ describe('DatabaseService - Tenant Isolation', () => {
 describe('DatabaseService - Query Isolation', () => {
   it('should always include tenant_id in prepared statements', () => {
     const { db } = createMockD1();
-    const dbService = new DatabaseService(db);
+    const _dbService = new DatabaseService(db);
 
     // Check that prepared statements are initialized with tenant_id parameters
     expect(db.prepare).toHaveBeenCalledWith(expect.stringContaining('WHERE tenant_id = ? AND lti_user_id = ?'));
@@ -274,7 +274,7 @@ describe('DatabaseService - Query Isolation', () => {
     expect(db.prepare).toHaveBeenCalledWith(expect.stringContaining('WHERE iss = ? AND client_id = ?'));
   });
 
-  it('should fail queries without tenant_id parameter', async () => {
+  it('should fail queries without tenant_id parameter', async() => {
     const { db, mockPreparedStatement } = createMockD1();
     const dbService = new DatabaseService(db);
 

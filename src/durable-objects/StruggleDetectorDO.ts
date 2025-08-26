@@ -42,7 +42,7 @@ export class StruggleDetectorDO {
     this.sessions = new Map();
 
     // Initialize alarm for periodic cleanup
-    this.state.blockConcurrencyWhile(async () => {
+    this.state.blockConcurrencyWhile(async() => {
       const currentAlarm = await this.storage.getAlarm();
       if (!currentAlarm) {
         await this.storage.setAlarm(Date.now() + 300000); // 5 minutes

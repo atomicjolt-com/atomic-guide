@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { verify } from 'hono/jwt';
 import { AIService } from '../../services/AIService';
-import { ModelRegistry } from '../../services/ModelRegistry';
+// import { ModelRegistry } from '../../services/ModelRegistry';
 import { PromptBuilder } from '../../services/PromptBuilder';
 import { ContextEnricher } from '../../services/ContextEnricher';
 import { FAQKnowledgeBase } from '../../services/FAQKnowledgeBase';
@@ -14,7 +14,7 @@ function escapeHtml(text: string): string {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#039;',
+    '\'': '&#039;',
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
@@ -48,7 +48,7 @@ export async function handleChatStream(c: Context): Promise<Response> {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -171,7 +171,7 @@ export async function handleChatStream(c: Context): Promise<Response> {
     const encoder = new TextEncoder();
 
     // Start streaming in background
-    (async () => {
+    (async() => {
       let fullResponse = '';
       let tokensUsed = 0;
 
@@ -240,7 +240,7 @@ export async function handleChatStream(c: Context): Promise<Response> {
           tokensRemaining: Math.max(0, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday - tokensUsed)
         })));
 
-      } catch (error) {
+      } catch {
         console.error('Streaming error:', error);
         await writer.write(encoder.encode(createSSEMessage({
           type: 'error',
@@ -260,7 +260,7 @@ export async function handleChatStream(c: Context): Promise<Response> {
       }
     });
 
-  } catch (error) {
+  } catch {
     console.error('Chat stream error:', error);
     return c.json({ error: 'Internal server error' }, 500);
   }

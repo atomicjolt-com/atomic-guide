@@ -275,7 +275,7 @@ export class ResponseFormatter {
     }
 
     // Check for excessive special characters that might indicate an attack
-    const specialCharRatio = (input.match(/[<>{}()\[\]]/g) || []).length / input.length;
+    const specialCharRatio = (input.match(/[<>{}()[\]]/g) || []).length / input.length;
     if (specialCharRatio > 0.3) {
       issues.push('Message contains excessive special characters');
     }

@@ -65,7 +65,7 @@ describe('PromptBuilder', () => {
         pageContent: 'The American Revolution began in 1776...',
       };
 
-      const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context, 'contextual');
+      const { userPrompt } = promptBuilder.buildPrompt(context, 'contextual');
 
       expect(userPrompt).toContain('The American Revolution began in 1776');
     });
@@ -80,7 +80,7 @@ describe('PromptBuilder', () => {
         ],
       };
 
-      const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context);
+      const { userPrompt } = promptBuilder.buildPrompt(context);
 
       expect(userPrompt).toContain('Previous conversation');
       expect(userPrompt).toContain('What is H2O?');
@@ -134,7 +134,7 @@ describe('PromptBuilder', () => {
 
     it('should default to default template', () => {
       const context: PromptContext = {
-        currentQuestion: "This is a longer question that doesn't fit specific patterns",
+        currentQuestion: 'This is a longer question that doesn\'t fit specific patterns',
       };
 
       const templateId = promptBuilder.selectTemplateForContext(context);
@@ -167,20 +167,20 @@ describe('PromptBuilder', () => {
       const context: PromptContext = {
         courseName: 'Physics 101',
         moduleName: 'Mechanics',
-        assignmentTitle: "Newton's Laws",
+        assignmentTitle: 'Newton\'s Laws',
         currentQuestion: 'What is F = ma?',
         learnerProfile: {
           learningStyle: 'visual',
           struggleAreas: ['equations'],
         },
-        pageContent: "Newton's second law states that force equals mass times acceleration.",
+        pageContent: 'Newton\'s second law states that force equals mass times acceleration.',
       };
 
-      const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context, 'contextual');
+      const { userPrompt } = promptBuilder.buildPrompt(context, 'contextual');
 
       expect(userPrompt).toContain('Physics 101');
       expect(userPrompt).toContain('Mechanics');
-      expect(userPrompt).toContain("Newton's Laws");
+      expect(userPrompt).toContain('Newton\'s Laws');
       expect(userPrompt).toContain('visual');
       expect(userPrompt).toContain('equations');
       expect(userPrompt).toContain('force equals mass times acceleration');
@@ -240,7 +240,7 @@ describe('PromptBuilder', () => {
         pageContent: longContent,
       };
 
-      const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context, 'contextual');
+      const { userPrompt } = promptBuilder.buildPrompt(context, 'contextual');
 
       expect(userPrompt.length).toBeLessThan(4000);
       expect(userPrompt).toContain('[truncated]');
@@ -257,7 +257,7 @@ describe('PromptBuilder', () => {
         conversationHistory: longHistory as any,
       };
 
-      const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context);
+      const { userPrompt } = promptBuilder.buildPrompt(context);
 
       // Should limit the conversation history
       const messageCount = (userPrompt.match(/Message \d+:/g) || []).length;
@@ -272,7 +272,7 @@ describe('PromptBuilder', () => {
         },
       };
 
-      const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(context);
+      const { systemPrompt } = promptBuilder.buildPrompt(context);
 
       expect(systemPrompt).toContain('Spanish');
     });

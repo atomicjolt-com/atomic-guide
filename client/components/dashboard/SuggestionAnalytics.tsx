@@ -70,7 +70,7 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({
     fetchAnalytics();
   }, [selectedTimeframe, role]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async() => {
     setIsLoading(true);
     setError(null);
     

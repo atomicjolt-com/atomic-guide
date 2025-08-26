@@ -122,15 +122,15 @@ export class SuggestionEngine {
     
     // Detect confusion indicators
     const confusionPhrases = [
-      "i don't understand", "confused", "what do you mean", "can you explain",
-      "i'm lost", "doesn't make sense", "huh", "what?", "i don't get it"
+      'i don\'t understand', 'confused', 'what do you mean', 'can you explain',
+      'i\'m lost', 'doesn\'t make sense', 'huh', 'what?', 'i don\'t get it'
     ];
     patterns.confusion = this.calculatePatternScore(userMessages, confusionPhrases);
     
     // Detect frustration
     const frustrationPhrases = [
-      "this is hard", "frustrated", "giving up", "can't do this", "too difficult",
-      "annoying", "stuck", "nothing works", "tried everything"
+      'this is hard', 'frustrated', 'giving up', 'can\'t do this', 'too difficult',
+      'annoying', 'stuck', 'nothing works', 'tried everything'
     ];
     patterns.frustration = this.calculatePatternScore(userMessages, frustrationPhrases);
     
@@ -206,8 +206,8 @@ export class SuggestionEngine {
     const userMessages = history.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
     
     const successPhrases = [
-      "thank you", "thanks", "got it", "understand now", "makes sense",
-      "perfect", "great", "helpful", "solved", "working now"
+      'thank you', 'thanks', 'got it', 'understand now', 'makes sense',
+      'perfect', 'great', 'helpful', 'solved', 'working now'
     ];
     
     const successScore = this.calculatePatternScore(userMessages, successPhrases);
@@ -267,7 +267,7 @@ export class SuggestionEngine {
         id: 'frustration-1',
         type: 'help',
         title: 'Take a different approach',
-        description: "Let's try solving this step by step together",
+        description: 'Let\'s try solving this step by step together',
         action: {
           type: 'prompt',
           data: 'Can we work through this problem together step by step?'
@@ -290,7 +290,7 @@ export class SuggestionEngine {
     ];
   }
 
-  private generateRepetitionSuggestions(history: Array<{ role: string; content: string }>): Suggestion[] {
+  private generateRepetitionSuggestions(_history: Array<{ role: string; content: string }>): Suggestion[] {
     return [
       {
         id: 'repetition-1',
@@ -412,7 +412,7 @@ export class SuggestionEngine {
         id: 'context-performance',
         type: 'next-step',
         title: 'Ready for advanced topics',
-        description: "You're doing great! Try more challenging material",
+        description: 'You\'re doing great! Try more challenging material',
         action: {
           type: 'link',
           data: '/advanced-topics'

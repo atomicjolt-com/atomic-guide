@@ -214,7 +214,7 @@ export function sanitizeJson(data: any): any {
   if (data && typeof data === 'object') {
     const sanitized: any = {};
     for (const key in data) {
-      if (data.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
         // Sanitize the key as well
         const safeKey = sanitizeInput(key);
         sanitized[safeKey] = sanitizeJson(data[key]);

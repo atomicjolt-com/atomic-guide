@@ -14,12 +14,12 @@ describe.skip('chatApi', () => {
     store = configureStore({ jwt: 'test-jwt-token', settings: {} });
   });
 
-  it.skip('sends message successfully', async () => {
+  it.skip('sends message successfully', async() => {
     // Skip this test due to RTK Query/fetch mock compatibility issues
     // The functionality is tested in chatApi.simple.test.ts
     (global.fetch as any).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
+      json: async() => ({
         message_id: 'msg-123',
         content: 'AI response',
         timestamp: '2025-01-20T10:00:00Z',
@@ -48,11 +48,11 @@ describe.skip('chatApi', () => {
     });
   });
 
-  it('handles rate limit errors', async () => {
+  it('handles rate limit errors', async() => {
     (global.fetch as any).mockResolvedValueOnce({
       ok: false,
       status: 429,
-      json: async () => ({ error: 'Rate limit exceeded', retry_after: 60 }),
+      json: async() => ({ error: 'Rate limit exceeded', retry_after: 60 }),
     });
 
     let error;
@@ -79,11 +79,11 @@ describe.skip('chatApi', () => {
     });
   });
 
-  it('handles generic errors', async () => {
+  it('handles generic errors', async() => {
     (global.fetch as any).mockResolvedValueOnce({
       ok: false,
       status: 500,
-      json: async () => ({ error: 'Internal server error' }),
+      json: async() => ({ error: 'Internal server error' }),
     });
 
     let error;
@@ -109,12 +109,12 @@ describe.skip('chatApi', () => {
     });
   });
 
-  it('includes JWT token in headers', async () => {
+  it('includes JWT token in headers', async() => {
     (global.fetch as any).mockImplementationOnce((url: string, options: any) => {
       expect(options.headers.get('authorization')).toBe('Bearer test-jwt-token');
       return Promise.resolve({
         ok: true,
-        json: async () => ({
+        json: async() => ({
           message_id: 'msg-123',
           content: 'AI response',
           timestamp: '2025-01-20T10:00:00Z',

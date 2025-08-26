@@ -12,20 +12,20 @@ const createMockKV = () => {
   const store = new Map<string, any>();
 
   const mockKV: Partial<KVNamespace> = {
-    get: vi.fn(async (key: string, type?: string) => {
+    get: vi.fn(async(key: string, type?: string) => {
       const value = store.get(key);
       if (type === 'json' && value) {
         return JSON.parse(value);
       }
       return value;
     }),
-    put: vi.fn(async (key: string, value: string) => {
+    put: vi.fn(async(key: string, value: string) => {
       store.set(key, value);
     }),
-    delete: vi.fn(async (key: string) => {
+    delete: vi.fn(async(key: string) => {
       store.delete(key);
     }),
-    list: vi.fn(async () => ({ keys: [], list_complete: true, cursor: '' })),
+    list: vi.fn(async() => ({ keys: [], list_complete: true, cursor: '' })),
   };
 
   return { kv: mockKV as KVNamespace, store };
@@ -61,14 +61,14 @@ const createMockD1 = (shouldFail = false, shouldTimeout = false) => {
         updated_at: '2025-01-21T00:00:00Z',
       });
     }),
-    run: vi.fn(async () => ({ success: true })),
+    run: vi.fn(async() => ({ success: true })),
   };
 
   const mockD1: Partial<D1Database> = {
     prepare: vi.fn(() => mockPreparedStatement as any),
-    batch: vi.fn(async () => []),
-    dump: vi.fn(async () => new ArrayBuffer(0)),
-    exec: vi.fn(async () => ({ count: 0, duration: 0 })),
+    batch: vi.fn(async() => []),
+    dump: vi.fn(async() => new ArrayBuffer(0)),
+    exec: vi.fn(async() => ({ count: 0, duration: 0 })),
   };
 
   return { db: mockD1 as D1Database, mockPreparedStatement };
@@ -96,7 +96,7 @@ describe('StorageFallbackService', () => {
       expect(metrics.circuitState).toBe('closed');
     });
 
-    it('should open circuit after threshold failures', async () => {
+    it('should open circuit after threshold failures', async() => {
       const failingD1 = createMockD1(true);
       service = new StorageFallbackService(mockKV.kv, failingD1.db);
 
@@ -110,7 +110,7 @@ describe('StorageFallbackService', () => {
       expect(metrics.d1Failures).toBe(5);
     });
 
-    it('should move to half-open after reset timeout', async () => {
+    it('should move to half-open after reset timeout', async() => {
       const failingD1 = createMockD1(true);
       service = new StorageFallbackService(mockKV.kv, failingD1.db);
 
@@ -142,7 +142,7 @@ describe('StorageFallbackService', () => {
       expect(['half-open', 'closed']).toContain(finalMetrics.circuitState);
     });
 
-    it('should close circuit after successful requests in half-open', async () => {
+    it('should close circuit after successful requests in half-open', async() => {
       // Start with working D1
       service = new StorageFallbackService(mockKV.kv, mockD1.db);
 
@@ -163,7 +163,7 @@ describe('StorageFallbackService', () => {
   });
 
   describe('D1 Timeout Handling', () => {
-    it('should fallback to KV on D1 timeout', async () => {
+    it('should fallback to KV on D1 timeout', async() => {
       const timeoutD1 = createMockD1(false, true);
       service = new StorageFallbackService(mockKV.kv, timeoutD1.db);
 
@@ -209,7 +209,7 @@ describe('StorageFallbackService', () => {
       expect(metrics.kvHits).toBeGreaterThan(0);
     }, 10000);
 
-    it('should enforce reasonable timeout for D1 operations', async () => {
+    it('should enforce reasonable timeout for D1 operations', async() => {
       const slowD1 = createMockD1(false, true);
       service = new StorageFallbackService(mockKV.kv, slowD1.db);
 
@@ -228,7 +228,7 @@ describe('StorageFallbackService', () => {
   });
 
   describe('Read-Through Cache Pattern', () => {
-    it('should update KV cache when D1 succeeds', async () => {
+    it('should update KV cache when D1 succeeds', async() => {
       await service.getLearnerProfile('tenant-123', 'user-789');
 
       // Check that KV was updated
@@ -237,7 +237,7 @@ describe('StorageFallbackService', () => {
       expect(kvData.lti_user_id).toBe('user-789');
     });
 
-    it('should use KV cache when D1 fails', async () => {
+    it('should use KV cache when D1 fails', async() => {
       // First, populate KV with a successful request
       await service.getLearnerProfile('tenant-123', 'user-789');
 
@@ -253,7 +253,7 @@ describe('StorageFallbackService', () => {
   });
 
   describe('Write Operations', () => {
-    it('should save to both D1 and KV', async () => {
+    it('should save to both D1 and KV', async() => {
       const profile = {
         id: 'profile-new',
         tenant_id: 'tenant-123',
@@ -288,7 +288,7 @@ describe('StorageFallbackService', () => {
       expect(kvData.id).toBe('profile-new');
     });
 
-    it('should still save to KV even if D1 fails', async () => {
+    it('should still save to KV even if D1 fails', async() => {
       const failingD1 = createMockD1(true);
       service = new StorageFallbackService(mockKV.kv, failingD1.db);
 
@@ -324,7 +324,7 @@ describe('StorageFallbackService', () => {
   });
 
   describe('Metrics Tracking', () => {
-    it('should track fallback activations', async () => {
+    it('should track fallback activations', async() => {
       const failingD1 = createMockD1(true);
       service = new StorageFallbackService(mockKV.kv, failingD1.db);
 
@@ -346,7 +346,7 @@ describe('StorageFallbackService', () => {
       expect(metrics.d1Failures).toBe(2);
     });
 
-    it('should track KV hits and misses', async () => {
+    it('should track KV hits and misses', async() => {
       const failingD1 = createMockD1(true);
       service = new StorageFallbackService(mockKV.kv, failingD1.db);
 
@@ -367,7 +367,7 @@ describe('StorageFallbackService', () => {
       expect(metrics.kvHits).toBe(1);
     });
 
-    it('should track last failure timestamp', async () => {
+    it('should track last failure timestamp', async() => {
       const failingD1 = createMockD1(true);
       service = new StorageFallbackService(mockKV.kv, failingD1.db);
 
@@ -380,7 +380,7 @@ describe('StorageFallbackService', () => {
   });
 
   describe('KV TTL', () => {
-    it('should set TTL on KV entries', async () => {
+    it('should set TTL on KV entries', async() => {
       const profile = {
         id: 'profile-ttl',
         tenant_id: 'tenant-123',

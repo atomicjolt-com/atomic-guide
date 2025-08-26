@@ -13,8 +13,8 @@ interface StudentDashboardProps {
 
 const StudentDashboard: React.FC<StudentDashboardProps> = ({ userId, tenantId }) => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState<'history' | 'insights' | 'privacy'>('history');
+  const _dispatch = useAppDispatch();
+  const [_activeTab, setActiveTab] = useState<'history' | 'insights' | 'privacy'>('history');
   
   // Get user info from Redux store
   const settings = useAppSelector((state) => state.settings);

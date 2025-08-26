@@ -12,7 +12,7 @@ const app = new Hono();
  * POST /api/chat/suggestions/feedback
  * Record user feedback on suggestion effectiveness
  */
-app.post('/feedback', async (c) => {
+app.post('/feedback', async(c) => {
   try {
     const { suggestionId, action, feedback, details, followupBehavior } = await c.req.json();
     
@@ -70,7 +70,7 @@ app.post('/feedback', async (c) => {
  * GET /api/chat/suggestions/next
  * Get the next ready suggestion for display
  */
-app.get('/next', async (c) => {
+app.get('/next', async(c) => {
   try {
     const tenantId = c.req.header('X-Tenant-ID');
     const learnerId = c.req.header('X-Learner-ID');
@@ -100,7 +100,7 @@ app.get('/next', async (c) => {
  * POST /api/chat/suggestions/dismiss
  * Track dismissal patterns for better suggestion timing
  */
-app.post('/dismiss', async (c) => {
+app.post('/dismiss', async(c) => {
   try {
     const { suggestionId, reason, contextData } = await c.req.json();
 
@@ -154,7 +154,7 @@ app.post('/dismiss', async (c) => {
  * PUT /api/learner/suggestion-preferences
  * Update user preferences for proactive suggestions
  */
-app.put('/preferences', async (c) => {
+app.put('/preferences', async(c) => {
   try {
     const { 
       frequency, 
@@ -222,7 +222,7 @@ app.put('/preferences', async (c) => {
  * GET /api/dashboard/suggestions
  * Get suggestion analytics for students and instructors
  */
-app.get('/analytics', async (c) => {
+app.get('/analytics', async(c) => {
   try {
     const tenantId = c.req.header('X-Tenant-ID');
     const learnerId = c.req.header('X-Learner-ID');
@@ -284,7 +284,7 @@ app.get('/analytics', async (c) => {
 /**
  * Helper method to get student suggestion statistics
  */
-async function getStudentSuggestionStats(
+async function _getStudentSuggestionStats(
   db: any, 
   tenantId: string, 
   learnerId: string, 
@@ -321,7 +321,7 @@ async function getStudentSuggestionStats(
       frequency: row.pattern_frequency,
       acceptance_rate: row.pattern_frequency > 0 ? row.accepted_count / row.pattern_frequency : 0
     })),
-    avg_effectiveness_score: results.reduce((sum: number, row: any, index: number, arr: any[]) => 
+    avg_effectiveness_score: results.reduce((sum: number, row: any) => 
       sum + (row.avg_effectiveness || 0), 0
     ) / results.length || 0
   };
@@ -330,7 +330,7 @@ async function getStudentSuggestionStats(
 /**
  * Helper method to get learning progress statistics
  */
-async function getLearningProgressStats(
+async function _getLearningProgressStats(
   db: any,
   tenantId: string,
   learnerId: string,
@@ -374,7 +374,7 @@ async function getLearningProgressStats(
 /**
  * Helper method to get course-level suggestion statistics
  */
-async function getCourseSuggestionStats(
+async function _getCourseSuggestionStats(
   db: any,
   tenantId: string,
   startDate: Date
@@ -405,7 +405,7 @@ async function getCourseSuggestionStats(
 /**
  * Helper method to get pattern analysis for instructors
  */
-async function getPatternAnalytics(
+async function _getPatternAnalytics(
   db: any,
   tenantId: string,
   startDate: Date

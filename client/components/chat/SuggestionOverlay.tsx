@@ -107,7 +107,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   }, [isMobile, isVisible]);
 
-  const fetchNextSuggestion = async () => {
+  const fetchNextSuggestion = async() => {
     setIsLoading(true);
     
     try {
@@ -129,7 +129,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const handleAccept = async (action: SuggestionAction) => {
+  const handleAccept = async(action: SuggestionAction) => {
     if (!currentSuggestion) return;
 
     try {
@@ -157,7 +157,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const handleDismiss = async (feedback?: string) => {
+  const handleDismiss = async(feedback?: string) => {
     if (!currentSuggestion) return;
 
     try {
@@ -186,7 +186,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const handleFeedback = async (feedback: 'helpful' | 'not_helpful' | 'too_frequent' | 'wrong_timing' | 'irrelevant') => {
+  const handleFeedback = async(feedback: 'helpful' | 'not_helpful' | 'too_frequent' | 'wrong_timing' | 'irrelevant') => {
     if (!currentSuggestion) return;
 
     try {
@@ -216,9 +216,9 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     onClose();
   };
 
-  const executeAction = async (action: SuggestionAction) => {
+  const executeAction = async(action: SuggestionAction) => {
     switch (action.type) {
-      case 'prompt':
+      case 'prompt': {
         // Send the suggested prompt to the chat
         const chatInput = document.querySelector('textarea[placeholder*="message"]') as HTMLTextAreaElement;
         if (chatInput) {
@@ -230,6 +230,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
           chatInput.dispatchEvent(event);
         }
         break;
+      }
 
       case 'resource':
         // Navigate to resource
@@ -260,7 +261,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const notifyInstructor = async (escalationData: any) => {
+  const notifyInstructor = async(escalationData: any) => {
     // This would integrate with the LMS notification system
     console.log('Notifying instructor:', escalationData);
   };

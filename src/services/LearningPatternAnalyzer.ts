@@ -4,7 +4,7 @@
  * learning trends, and optimal intervention timing for proactive help suggestions.
  */
 
-import { LearningStyleAnalyzer, LearningStyle, InteractionPattern } from './LearningStyleAnalyzer';
+import { LearningStyleAnalyzer } from './LearningStyleAnalyzer';
 
 export interface StrugglePattern {
   type: 'confusion' | 'frustration' | 'repetition' | 'topic_drift' | 'engagement_decline' | 'success_plateau';
@@ -67,9 +67,9 @@ export class LearningPatternAnalyzer {
   private readonly STRUGGLE_INDICATORS = {
     confusion: {
       keywords: [
-        "don't understand", "confused", "what do you mean", "can you explain",
-        "lost", "doesn't make sense", "unclear", "huh", "what?", "don't get it",
-        "still confused", "more confused", "even more lost"
+        'don\'t understand', 'confused', 'what do you mean', 'can you explain',
+        'lost', 'doesn\'t make sense', 'unclear', 'huh', 'what?', 'don\'t get it',
+        'still confused', 'more confused', 'even more lost'
       ],
       patterns: [
         /i\s+(still\s+)?don'?t\s+(understand|get\s+it)/i,
@@ -86,9 +86,9 @@ export class LearningPatternAnalyzer {
     },
     frustration: {
       keywords: [
-        "frustrated", "annoying", "difficult", "hard", "stuck", "can't do this",
-        "giving up", "tried everything", "nothing works", "impossible",
-        "waste of time", "stupid", "hate this"
+        'frustrated', 'annoying', 'difficult', 'hard', 'stuck', 'can\'t do this',
+        'giving up', 'tried everything', 'nothing works', 'impossible',
+        'waste of time', 'stupid', 'hate this'
       ],
       patterns: [
         /this\s+is\s+(too\s+)?(hard|difficult)/i,
@@ -174,7 +174,7 @@ export class LearningPatternAnalyzer {
    */
   private async detectStrugglePatterns(
     messages: Array<{ role: string; content: string; timestamp: Date; responseTime?: number }>,
-    context?: { pageType?: string; topic?: string; difficulty?: number }
+    _context?: { pageType?: string; topic?: string; difficulty?: number }
   ): Promise<StrugglePattern[]> {
     const patterns: StrugglePattern[] = [];
     const userMessages = messages.filter(m => m.role === 'user');
@@ -636,7 +636,7 @@ export class LearningPatternAnalyzer {
       interventionTiming: {
         optimalDelaySeconds: 3,
         confidence: 0.5,
-        contextFactors: context?.pageType ? [`Assessment in progress`, 'Insufficient data for analysis'] : ['Insufficient data for analysis'],
+        contextFactors: context?.pageType ? ['Assessment in progress', 'Insufficient data for analysis'] : ['Insufficient data for analysis'],
         avoidInterruptionScore: (context?.pageType === 'quiz' || context?.pageType === 'exam') ? 0.6 : 0
       }
     };
@@ -657,7 +657,7 @@ export class LearningPatternAnalyzer {
 
     for (const message of userMessages) {
       if (!message.content) continue;
-      const content = message.content.toLowerCase();
+      // const content = message.content.toLowerCase();
       positiveCount += this.countWordOccurrences([message], positiveWords);
       negativeCount += this.countWordOccurrences([message], negativeWords);
     }

@@ -51,7 +51,7 @@ export function getToolConfiguration(platformConfig: PlatformConfiguration, host
     productFamilyCode: ltiPlatformConfig?.product_family_code,
     courseNav: true,
     doDeepLinking: true,
-  }
+  };
 
   const toolConfiguration = buildToolConfiguration(params);
 

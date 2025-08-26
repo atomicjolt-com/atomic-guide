@@ -47,7 +47,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [detectedLanguage, setDetectedLanguage] = useState<string>(language);
   const [copied, setCopied] = useState(false);
-  const [loadTime, setLoadTime] = useState<number>(0);
+  const [_loadTime, setLoadTime] = useState<number>(0);
 
   // Language detection heuristics
   const detectLanguage = useCallback(
@@ -68,7 +68,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     [language],
   );
 
-  const highlightCode = useCallback(async () => {
+  const highlightCode = useCallback(async() => {
     const startTime = Date.now();
     setIsLoading(true);
     setHasError(false);
@@ -135,7 +135,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     highlightCode();
   }, [highlightCode]);
 
-  const handleCopyToClipboard = useCallback(async () => {
+  const handleCopyToClipboard = useCallback(async() => {
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);

@@ -451,9 +451,9 @@ Provide working code examples with clear explanations and best practices.`,
     // Adjust based on learning velocity
     if (context.learnerProfile?.learningVelocity) {
       if (context.learnerProfile.learningVelocity < 0.5) {
-        prompt += `\nThe student may need extra support. Break down concepts into smaller steps and check understanding frequently.`;
+        prompt += '\nThe student may need extra support. Break down concepts into smaller steps and check understanding frequently.';
       } else if (context.learnerProfile.learningVelocity > 1.5) {
-        prompt += `\nThe student is a quick learner. You can move at a faster pace and introduce advanced concepts when appropriate.`;
+        prompt += '\nThe student is a quick learner. You can move at a faster pace and introduce advanced concepts when appropriate.';
       }
     }
 

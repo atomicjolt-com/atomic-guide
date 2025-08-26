@@ -16,7 +16,7 @@ const app = new Hono<{ Bindings: Env }>();
 /**
  * Database health check endpoint
  */
-app.get('/db/health', async (c) => {
+app.get('/db/health', async(c) => {
   const db = c.env.DB;
 
   try {
@@ -64,7 +64,7 @@ app.get('/db/health', async (c) => {
 /**
  * Test learner profile operations
  */
-app.get('/db/test/learner', async (c) => {
+app.get('/db/test/learner', async(c) => {
   const db = c.env.DB;
 
   try {
@@ -113,7 +113,7 @@ app.get('/db/test/learner', async (c) => {
 /**
  * Test course analytics
  */
-app.get('/db/test/analytics', async (c) => {
+app.get('/db/test/analytics', async(c) => {
   const db = c.env.DB;
 
   try {
@@ -151,7 +151,7 @@ app.get('/db/test/analytics', async (c) => {
 /**
  * Test raw query execution
  */
-app.post('/db/test/query', async (c) => {
+app.post('/db/test/query', async(c) => {
   const db = c.env.DB;
 
   try {
@@ -187,7 +187,7 @@ app.post('/db/test/query', async (c) => {
 /**
  * Get database schema information
  */
-app.get('/db/schema', async (c) => {
+app.get('/db/schema', async(c) => {
   const db = c.env.DB;
 
   try {

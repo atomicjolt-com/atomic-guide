@@ -63,7 +63,7 @@ export async function getConversations(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -122,7 +122,7 @@ export async function getConversations(c: Context) {
         hasMore: offset + limit < (countResult?.total || 0)
       }
     });
-  } catch (error) {
+  } catch {
     console.error('Error fetching conversations:', error);
     return c.json({ error: 'Failed to fetch conversations' }, 500);
   }
@@ -146,7 +146,7 @@ export async function getLearningInsights(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -157,7 +157,7 @@ export async function getLearningInsights(c: Context) {
     const { tenantId, learnerId } = validateJWTPayload(payload);
 
     // Build date filter
-    let dateFilter = '';
+    let _dateFilter = '';
     const dateParams: any[] = [];
     if (startDate) {
       dateFilter += ' AND cm.created_at >= ?';
@@ -296,7 +296,7 @@ export async function getLearningInsights(c: Context) {
         confidence: learningStyleResult.confidence_score
       } : null
     });
-  } catch (error) {
+  } catch {
     console.error('Error fetching learning insights:', error);
     return c.json({ error: 'Failed to fetch learning insights' }, 500);
   }
@@ -320,7 +320,7 @@ export async function updateLearningStyle(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -353,7 +353,7 @@ export async function updateLearningStyle(c: Context) {
     }
 
     return c.json({ success: true, styleType });
-  } catch (error) {
+  } catch {
     console.error('Error updating learning style:', error);
     return c.json({ error: 'Failed to update learning style' }, 500);
   }
@@ -377,7 +377,7 @@ export async function getConversationSummary(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -422,7 +422,7 @@ export async function getConversationSummary(c: Context) {
       createdAt: result.created_at,
       updatedAt: result.updated_at
     });
-  } catch (error) {
+  } catch {
     console.error('Error fetching conversation summary:', error);
     return c.json({ error: 'Failed to fetch conversation summary' }, 500);
   }

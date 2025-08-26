@@ -15,7 +15,7 @@ function escapeHtml(text: string): string {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#039;',
+    '\'': '&#039;',
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
@@ -65,7 +65,7 @@ export async function handleChatMessage(c: Context): Promise<Response> {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -108,7 +108,7 @@ export async function handleChatMessage(c: Context): Promise<Response> {
 
     // Initialize AI services
     const aiService = new AIService(c.env.AI);
-    const modelRegistry = new ModelRegistry();
+    const _modelRegistry = new ModelRegistry();
     const promptBuilder = new PromptBuilder();
     const contextEnricher = new ContextEnricher();
     const faqKnowledgeBase = new FAQKnowledgeBase(
@@ -250,7 +250,7 @@ export async function handleChatMessage(c: Context): Promise<Response> {
         // Fallback to helpful message when AI fails
         return c.json({
           message_id: `msg-${Date.now()}`,
-          content: "I'm experiencing technical difficulties at the moment. While I work on resolving this, you might want to:\n\n• Review your course materials\n• Check the discussion forums\n• Contact your instructor directly\n\nPlease try again in a few moments.",
+          content: 'I\'m experiencing technical difficulties at the moment. While I work on resolving this, you might want to:\n\n• Review your course materials\n• Check the discussion forums\n• Contact your instructor directly\n\nPlease try again in a few moments.',
           timestamp: new Date().toISOString(),
           conversation_id: body.conversation_id || '',
           fallback: true
@@ -371,7 +371,7 @@ export async function searchChatHistory(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -403,7 +403,7 @@ export async function searchChatHistory(c: Context) {
     if (params.query) {
       // Sanitize query to prevent SQL injection through LIKE patterns
       const sanitizedQuery = params.query.replace(/[%_\\]/g, '\\$&');
-      queryParts.push(`(cs.summary LIKE ? OR cs.topics LIKE ?)`);
+      queryParts.push('(cs.summary LIKE ? OR cs.topics LIKE ?)');
       const searchPattern = `%${sanitizedQuery}%`;
       queryValues.push(searchPattern, searchPattern);
     }
@@ -411,17 +411,17 @@ export async function searchChatHistory(c: Context) {
     if (params.topic) {
       // Sanitize topic to prevent SQL injection through LIKE patterns
       const sanitizedTopic = params.topic.replace(/[%_\\]/g, '\\$&');
-      queryParts.push(`cs.topics LIKE ?`);
+      queryParts.push('cs.topics LIKE ?');
       queryValues.push(`%${sanitizedTopic}%`);
     }
 
     if (params.startDate) {
-      queryParts.push(`cs.created_at >= ?`);
+      queryParts.push('cs.created_at >= ?');
       queryValues.push(params.startDate);
     }
 
     if (params.endDate) {
-      queryParts.push(`cs.created_at <= ?`);
+      queryParts.push('cs.created_at <= ?');
       queryValues.push(params.endDate);
     }
 
@@ -491,7 +491,7 @@ export async function getChatConversation(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -562,7 +562,7 @@ export async function exportUserData(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 
@@ -713,7 +713,7 @@ export async function deleteChatConversation(c: Context) {
     let payload;
     try {
       payload = await verify(token, secret);
-    } catch (error) {
+    } catch {
       return c.json({ error: 'Invalid token' }, 401);
     }
 

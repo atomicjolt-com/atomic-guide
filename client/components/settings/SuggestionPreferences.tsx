@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-export interface SuggestionPreferences {
+export interface SuggestionPreferencesData {
   frequency: 'high' | 'medium' | 'low' | 'off';
   patternTrackingEnabled: boolean;
   preferredSuggestionTypes: string[];
@@ -15,13 +15,13 @@ export interface SuggestionPreferences {
 }
 
 export interface SuggestionPreferencesProps {
-  initialPreferences?: SuggestionPreferences;
-  onSave: (preferences: SuggestionPreferences) => Promise<void>;
+  initialPreferences?: SuggestionPreferencesData;
+  onSave: (preferences: SuggestionPreferencesData) => Promise<void>;
   onCancel?: () => void;
   className?: string;
 }
 
-const DEFAULT_PREFERENCES: SuggestionPreferences = {
+const DEFAULT_PREFERENCES: SuggestionPreferencesData = {
   frequency: 'medium',
   patternTrackingEnabled: true,
   preferredSuggestionTypes: ['confusion', 'frustration', 'success_opportunity'],
@@ -69,7 +69,7 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
   onCancel,
   className = ''
 }) => {
-  const [preferences, setPreferences] = useState<SuggestionPreferences>(
+  const [preferences, setPreferences] = useState<SuggestionPreferencesData>(
     initialPreferences || DEFAULT_PREFERENCES
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -121,7 +121,7 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
     setPreferences(prev => ({ ...prev, cooldownMinutes: minutes }));
   };
 
-  const handleSave = async () => {
+  const handleSave = async() => {
     setIsSaving(true);
     try {
       await onSave(preferences);

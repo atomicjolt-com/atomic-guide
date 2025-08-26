@@ -16,7 +16,7 @@ type Variables = {
 const richMedia = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Middleware to extract tenant and user information
-richMedia.use('*', async (c, next) => {
+richMedia.use('*', async(c, next) => {
   const tenantId = c.req.header('x-tenant-id') || 'default';
   const userId = c.req.header('x-user-id') || 'anonymous';
 
@@ -27,7 +27,7 @@ richMedia.use('*', async (c, next) => {
 });
 
 // POST /api/chat/media/render - Rich media processing endpoint
-richMedia.post('/render', async (c) => {
+richMedia.post('/render', async(c) => {
   try {
     const body = await c.req.json();
     const { content, media_type, context } = body;
@@ -45,7 +45,7 @@ richMedia.post('/render', async (c) => {
     let processingMetadata: any = {};
 
     switch (media_type) {
-      case 'latex':
+      case 'latex': {
         // Sanitize LaTeX - remove dangerous commands but keep math notation
         sanitizedContent = sanitizeInput(content);
 
@@ -94,8 +94,9 @@ richMedia.post('/render', async (c) => {
           estimated_render_time: Math.min(nestedBraces * 10, 500), // ms
         };
         break;
+      }
 
-      case 'code':
+      case 'code': {
         sanitizedContent = sanitizeInput(content);
 
         // Code-specific validation
@@ -119,8 +120,9 @@ richMedia.post('/render', async (c) => {
           estimated_highlight_time: Math.min(lineCount * 2, 200), // ms
         };
         break;
+      }
 
-      case 'diagram':
+      case 'diagram': {
         // For SVG diagrams, use xss with custom configuration
         sanitizedContent = xss(content, {
           whiteList: {
@@ -143,6 +145,7 @@ richMedia.post('/render', async (c) => {
           estimated_load_time: content.length / 1000, // rough estimate
         };
         break;
+      }
 
       case 'video':
         // For video, content should be a URL or video description
@@ -206,11 +209,12 @@ richMedia.post('/render', async (c) => {
         processedContent = `<span class="katex-processed">${sanitizedContent}</span>`;
         break;
 
-      case 'code':
+      case 'code': {
         // In production, this would apply syntax highlighting
         const language = processingMetadata.language;
         processedContent = `<pre class="code-processed language-${language}"><code>${sanitizedContent}</code></pre>`;
         break;
+      }
 
       case 'diagram':
         if (processingMetadata.format === 'svg') {
@@ -282,7 +286,7 @@ richMedia.post('/render', async (c) => {
 });
 
 // GET /api/learner/media-preferences - Retrieve media preferences
-richMedia.get('/preferences', async (c) => {
+richMedia.get('/preferences', async(c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;
@@ -331,7 +335,7 @@ richMedia.get('/preferences', async (c) => {
 });
 
 // PUT /api/learner/media-preferences - Update media preferences
-richMedia.put('/preferences', async (c) => {
+richMedia.put('/preferences', async(c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;
@@ -399,7 +403,7 @@ function detectProgrammingLanguage(code: string): string {
     { lang: 'html', pattern: /^(<html|<!DOCTYPE|<div|<span|<p>)/im },
     { lang: 'css', pattern: /^(\.|#|@media|\w+\s*\{)/m },
     { lang: 'bash', pattern: /^(#!\/bin\/|cd |ls |grep |awk |sed |echo )/m },
-    { lang: 'json', pattern: /^\s*[\{\[].*[\}\]]\s*$/s },
+    { lang: 'json', pattern: /^\s*[{[].*[}\]]\s*$/s },
     { lang: 'xml', pattern: /^<\?xml|^\s*<\w+/m },
   ];
 

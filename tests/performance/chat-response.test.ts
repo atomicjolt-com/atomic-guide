@@ -29,11 +29,11 @@ describe('Chat Response Performance', () => {
     };
   });
 
-  it('should respond within 2000ms for initial token', async () => {
+  it('should respond within 2000ms for initial token', async() => {
     const startTime = performance.now();
 
     // Simulate chat message processing
-    const chatMessage = {
+    const _chatMessage = {
       session_id: 'test-session',
       message: 'What is photosynthesis?',
       page_context: {
@@ -52,7 +52,7 @@ describe('Chat Response Performance', () => {
     expect(responseTime).toBeLessThan(500); // Should be much faster for mocked responses
   });
 
-  it('should handle concurrent requests efficiently', async () => {
+  it('should handle concurrent requests efficiently', async() => {
     const concurrentRequests = 10;
     const startTime = performance.now();
 
@@ -74,7 +74,7 @@ describe('Chat Response Performance', () => {
     expect(totalTime).toBeLessThan(1000);
   });
 
-  it('should stream first token quickly', async () => {
+  it('should stream first token quickly', async() => {
     const startTime = performance.now();
 
     // Simulate streaming response start
@@ -90,7 +90,7 @@ describe('Chat Response Performance', () => {
     expect(firstTokenTime).toBeLessThan(100);
   });
 
-  it('should maintain performance under load simulation', async () => {
+  it('should maintain performance under load simulation', async() => {
     const loadTestResults: number[] = [];
     const iterations = 20;
 
@@ -115,7 +115,7 @@ describe('Chat Response Performance', () => {
     expect(average).toBeLessThan(500);
   });
 
-  it('should handle FAQ cache hits quickly', async () => {
+  it('should handle FAQ cache hits quickly', async() => {
     // Mock FAQ cache hit
     mockEnv.KV_FAQ.get.mockResolvedValueOnce(
       JSON.stringify({

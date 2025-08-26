@@ -164,7 +164,7 @@ describe('Chat API Handler', () => {
     } as any;
   };
 
-  it('handles valid chat message request', async () => {
+  it('handles valid chat message request', async() => {
     const body = {
       session_id: 'session-123',
       message: 'Test message',
@@ -186,7 +186,7 @@ describe('Chat API Handler', () => {
     expect(response.json).toHaveProperty('conversation_id');
   });
 
-  it('rejects messages longer than 5000 characters', async () => {
+  it('rejects messages longer than 5000 characters', async() => {
     const body = {
       session_id: 'session-123',
       message: 'a'.repeat(5001),
@@ -205,7 +205,7 @@ describe('Chat API Handler', () => {
     expect(response.json.error).toBe('Message too long. Maximum 5000 characters allowed.');
   });
 
-  it('sanitizes HTML in messages', async () => {
+  it('sanitizes HTML in messages', async() => {
     const body = {
       session_id: 'session-123',
       message: '<script>alert("XSS")</script>',
@@ -228,7 +228,7 @@ describe('Chat API Handler', () => {
     expect(response.json.content).not.toContain('</script>');
   });
 
-  it('requires JWT secret environment variable', async () => {
+  it('requires JWT secret environment variable', async() => {
     const body = {
       session_id: 'session-123',
       message: 'Test message',
@@ -249,7 +249,7 @@ describe('Chat API Handler', () => {
     expect(response.json.error).toBe('Server configuration error');
   });
 
-  it('requires authorization header', async () => {
+  it('requires authorization header', async() => {
     const body = {
       session_id: 'session-123',
       message: 'Test message',

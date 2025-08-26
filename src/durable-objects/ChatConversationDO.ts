@@ -269,7 +269,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error adding message:', error);
       return new Response(JSON.stringify({ error: 'Failed to add message' }), {
         status: 500,
@@ -296,7 +296,7 @@ export class ChatConversationDO {
       return new Response(JSON.stringify(recentHistory), {
         headers: { 'Content-Type': 'application/json' },
       });
-    } catch (error) {
+    } catch {
       console.error('Error getting history:', error);
       return new Response(JSON.stringify({ error: 'Failed to get history' }), {
         status: 500,
@@ -305,7 +305,7 @@ export class ChatConversationDO {
     }
   }
 
-  private async handleGetContext(request: Request): Promise<Response> {
+  private async handleGetContext(_request: Request): Promise<Response> {
     try {
       const context = {
         sessionInfo: this.sessionInfo,
@@ -316,7 +316,7 @@ export class ChatConversationDO {
       return new Response(JSON.stringify(context), {
         headers: { 'Content-Type': 'application/json' },
       });
-    } catch (error) {
+    } catch {
       console.error('Error getting context:', error);
       return new Response(JSON.stringify({ error: 'Failed to get context' }), {
         status: 500,
@@ -325,7 +325,7 @@ export class ChatConversationDO {
     }
   }
 
-  private async handleSummarize(request: Request): Promise<Response> {
+  private async handleSummarize(_request: Request): Promise<Response> {
     try {
       // Return existing summary or key points from conversation
       if (this.conversationHistory.length < 5) {
@@ -377,7 +377,7 @@ export class ChatConversationDO {
       return new Response(JSON.stringify(summary), {
         headers: { 'Content-Type': 'application/json' },
       });
-    } catch (error) {
+    } catch {
       console.error('Error summarizing:', error);
       return new Response(JSON.stringify({ error: 'Failed to summarize' }), {
         status: 500,
@@ -386,7 +386,7 @@ export class ChatConversationDO {
     }
   }
 
-  private async handleGenerateSummary(request: Request): Promise<Response> {
+  private async handleGenerateSummary(_request: Request): Promise<Response> {
     try {
       if (!this.sessionInfo || this.conversationHistory.length < 5) {
         return new Response(
@@ -444,7 +444,7 @@ export class ChatConversationDO {
       return new Response(JSON.stringify(summary), {
         headers: { 'Content-Type': 'application/json' },
       });
-    } catch (error) {
+    } catch {
       console.error('Error generating summary:', error);
       return new Response(JSON.stringify({ error: 'Failed to generate summary' }), {
         status: 500,
@@ -498,7 +498,7 @@ export class ChatConversationDO {
       const summaryKeys = await this.state.storage.list({ prefix: 'summary:' });
       const summaries: ConversationSummary[] = [];
 
-      for (const [key, value] of summaryKeys) {
+      for (const [_key, value] of summaryKeys) {
         if (value && typeof value === 'object') {
           summaries.push(value as ConversationSummary);
         }
@@ -516,7 +516,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error getting summaries:', error);
       return new Response(JSON.stringify({ error: 'Failed to get summaries' }), {
         status: 500,
@@ -525,7 +525,7 @@ export class ChatConversationDO {
     }
   }
 
-  private async handlePersistState(request: Request): Promise<Response> {
+  private async handlePersistState(_request: Request): Promise<Response> {
     try {
       if (!this.sessionInfo) {
         return new Response(JSON.stringify({ error: 'No active session' }), {
@@ -569,7 +569,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error persisting state:', error);
       return new Response(JSON.stringify({ error: 'Failed to persist state' }), {
         status: 500,
@@ -616,7 +616,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error restoring state:', error);
       return new Response(JSON.stringify({ error: 'Failed to restore state' }), {
         status: 500,
@@ -625,7 +625,7 @@ export class ChatConversationDO {
     }
   }
 
-  private async handleCleanupOldData(request: Request): Promise<Response> {
+  private async handleCleanupOldData(_request: Request): Promise<Response> {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - this.retentionDays);
@@ -661,7 +661,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error cleaning up old data:', error);
       return new Response(JSON.stringify({ error: 'Failed to cleanup old data' }), {
         status: 500,
@@ -738,7 +738,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error checking rate limit:', error);
       return new Response(JSON.stringify({ error: 'Failed to check rate limit' }), {
         status: 500,
@@ -776,11 +776,11 @@ export class ChatConversationDO {
       this.initializeSession(sessionInfo.conversationId, sessionInfo.tenantId, sessionInfo.userId);
     }
 
-    webSocket.addEventListener('message', async (event) => {
+    webSocket.addEventListener('message', async(event) => {
       try {
         const message = JSON.parse(event.data as string);
         await this.handleWebSocketMessage(webSocket, message);
-      } catch (error) {
+      } catch {
         webSocket.send(
           JSON.stringify({
             type: 'error',
@@ -827,7 +827,7 @@ export class ChatConversationDO {
         );
         break;
 
-      case 'get-history':
+      case 'get-history': {
         const history = this.conversationHistory.slice(-10);
         sender.send(
           JSON.stringify({
@@ -836,8 +836,9 @@ export class ChatConversationDO {
           }),
         );
         break;
+      }
 
-      case 'get-context':
+      case 'get-context': {
         const context = {
           sessionInfo: this.sessionInfo,
           recentMessages: this.conversationHistory.slice(-this.conversationWindowSize),
@@ -850,6 +851,7 @@ export class ChatConversationDO {
           }),
         );
         break;
+      }
 
       case 'restore-state':
         if (message.conversationId) {
@@ -890,10 +892,10 @@ export class ChatConversationDO {
   }
 
   private broadcastMessage(message: any) {
-    for (const [client, info] of this.sessions) {
+    for (const [client] of this.sessions) {
       try {
         client.send(JSON.stringify(message));
-      } catch (error) {
+      } catch {
         this.sessions.delete(client);
       }
     }
@@ -980,7 +982,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error analyzing patterns:', error);
       return new Response(JSON.stringify({ error: 'Failed to analyze patterns' }), {
         status: 500,
@@ -995,7 +997,7 @@ export class ChatConversationDO {
   private async handleSuggestProactive(request: Request): Promise<Response> {
     try {
       const body = (await request.json()) as SuggestProactiveRequestBody;
-      const { triggerContext, learnerProfile, preferences } = body;
+      const { triggerContext } = body;
 
       if (!this.sessionInfo) {
         return new Response(JSON.stringify({ error: 'No active session' }), {
@@ -1032,7 +1034,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error handling proactive suggestion:', error);
       return new Response(JSON.stringify({ error: 'Failed to handle suggestion request' }), {
         status: 500,
@@ -1089,7 +1091,7 @@ export class ChatConversationDO {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-    } catch (error) {
+    } catch {
       console.error('Error updating suggestion state:', error);
       return new Response(JSON.stringify({ error: 'Failed to update suggestion state' }), {
         status: 500,
