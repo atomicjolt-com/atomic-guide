@@ -31,12 +31,11 @@ ltiLaunch(launchSettings).then((valid) => {
       const deepLinkingButton = document.getElementById('deep-linking-button');
       if (deepLinkingButton) {
         deepLinkingButton.addEventListener('click', () => {
-
           let deepLink: any = {
             type: 'image',
             title: 'Atomic Jolt',
             text: 'Atomic Jolt Logo',
-            url: 'https://atomic-lti-worker.atomicjolt.win/images/atomicjolt_name.png',
+            url: 'https://atomic-guide.atomicjolt.win/images/atomicjolt_name.png',
           };
 
           if (launchSettings.deepLinking?.accept_types) {
@@ -61,11 +60,11 @@ ltiLaunch(launchSettings).then((valid) => {
             method: 'POST',
             body: JSON.stringify([deepLink]),
             headers: {
-              'Authorization': `Bearer ${jwt}`,
-              'Content-Type': 'application/json'
-            }
+              Authorization: `Bearer ${jwt}`,
+              'Content-Type': 'application/json',
+            },
           })
-            .then(response => {
+            .then((response) => {
               return response.json();
             })
             .then((d: any) => {
@@ -79,7 +78,6 @@ ltiLaunch(launchSettings).then((valid) => {
             .catch((error) => {
               console.error('Error:', error);
             });
-
         });
       }
     }
@@ -88,16 +86,15 @@ ltiLaunch(launchSettings).then((valid) => {
     fetch(`/${LTI_NAMES_AND_ROLES_PATH}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${jwt}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
     })
-      .then(response => response.json())
-      .then(data => console.log(data))
+      .then((response) => response.json())
+      .then((data) => console.log(data))
       .catch((error) => {
         console.error('Error:', error);
       });
-
   } else {
     document.body.innerHTML = 'Failed to launch';
   }

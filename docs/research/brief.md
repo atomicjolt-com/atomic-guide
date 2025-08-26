@@ -182,7 +182,7 @@
 
 **2. Enhanced Canvas Integration**
 
-- **LTI 1.3 Foundation:** Leverage existing atomic-lti-worker for seamless institutional deployment
+- **LTI 1.3 Foundation:** Leverage existing atomic-guide for seamless institutional deployment
 - **PostMessage Struggle Detection:** 30+ second hover = confusion, repeated scrolling = difficulty, idle = overload
 - **Real-Time Intervention:** Non-intrusive overlay suggestions timed to cognitive state
 - **Rationale:** Immediate value demonstration through Canvas workflow enhancement
@@ -587,7 +587,7 @@
 
 - Brainstorming Session Results: `/docs/brainstorming-session-results.md`
 - Competitive Analysis: `/docs/competitor-analysis.md`
-- Technical Implementation: Current atomic-lti-worker codebase
+- Technical Implementation: Current atomic-guide codebase
 
 ## Next Steps
 
@@ -634,5 +634,5 @@ Please review this brief thoroughly and work with the team to create the PRD sec
 
 ---
 
-*Project Brief completed: 2025-01-20*
-*Next review: Post-MVP pilot results*
+_Project Brief completed: 2025-01-20_
+_Next review: Post-MVP pilot results_

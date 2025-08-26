@@ -103,7 +103,7 @@ Throughout Alex's journey, instructors use Atomic Guide's class-wide analytics t
 
 **FR1:** The system shall create individual Learner DNA profiles capturing memory architecture (individualized forgetting curves following Ebbinghaus exponential decay R = e^(-t/s)), learning velocity (time to 85% mastery), and engagement patterns (optimal challenge level at 70-80% success rate)
 
-**FR2:** ✅ ALREADY IMPLEMENTED - The system integrates with various LMSs via LTI 1.3 using the existing atomic-lti-worker foundation
+**FR2:** ✅ ALREADY IMPLEMENTED - The system integrates with various LMSs via LTI 1.3 using the existing atomic-guide foundation
 
 **FR3:** The system shall detect learning struggles in real-time through behavioral signals (30+ second hovers indicating confusion per Brown's decay theory, repeated scrolling showing difficulty, idle patterns suggesting cognitive overload per Mayer's coherence principle) via LMS postMessage integration APIs
 

@@ -1,7 +1,5 @@
 import { html } from '@atomicjolt/lti-endpoints';
-import {
-  APPLICATION_NAME,
-} from '../../definitions';
+import { APPLICATION_NAME } from '../../definitions';
 
 export default function indexHtml(scriptName: string) {
   const head = `
@@ -235,7 +233,7 @@ export default function indexHtml(scriptName: string) {
             <h2>Open Source</h2>
             <p>MIT licensed open source project that you can freely use, modify, and distribute.</p>
             <p>
-              <a href="https://github.com/atomicjolt-com/atomic-lti-worker" class="aj-btn" target="_blank" rel="noopener">
+              <a href="https://github.com/atomicjolt-com/atomic-guide" class="aj-btn" target="_blank" rel="noopener">
                 View on GitHub
               </a>
             </p>

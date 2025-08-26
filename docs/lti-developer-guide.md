@@ -20,11 +20,13 @@ LTI 1.3 is a secure, modern protocol that enables seamless integration between L
 ### Core LTI 1.3 Services
 
 #### 1. Resource Link Launch
+
 - Primary workflow for launching external tools from LMS
 - Carries user context, course information, and permissions
 - Uses JWT for secure message passing
 
 #### 2. Deep Linking (LTI-DL v2.0)
+
 - Enables content selection and configuration
 - Workflow:
   - Platform initiates deep linking request
@@ -33,12 +35,14 @@ LTI 1.3 is a secure, modern protocol that enables seamless integration between L
 - Supports multiple content types (links, files, HTML, images)
 
 #### 3. Names and Roles Provisioning Services (NRPS v2.0)
+
 - Retrieves course roster and user roles
 - Requires OAuth 2.0 access token with specific scope
 - Supports pagination and filtering
 - Privacy-conscious with consent-based data sharing
 
 #### 4. Assignment and Grade Services (AGS v2.0)
+
 - Manages gradebook integration
 - Three core services:
   - Line Items: Manage gradebook columns
@@ -61,44 +65,54 @@ LTI 1.3 is a secure, modern protocol that enables seamless integration between L
 ### When to Use Each Library
 
 #### @atomicjolt/lti-endpoints
+
 **Use when**: Building on Cloudflare Workers
 **Purpose**: Complete endpoint implementation for serverless LTI
 **Key Features**:
+
 - Pre-built routes for OIDC, redirect, and launch
 - KV namespace integration for state management
 - JWT validation and signing
 - Platform registration support
 
 #### @atomicjolt/lti-server
+
 **Use when**: Building on traditional Node.js servers
 **Purpose**: Server-side LTI handling utilities
 **Key Features**:
+
 - JWT validation
 - Nonce and state management
 - Platform integration helpers
 - Security utilities
 
 #### @atomicjolt/lti-client
+
 **Use when**: Implementing client-side LTI interactions
 **Purpose**: Browser-based LTI launch handling
 **Key Features**:
+
 - `initOIDCLaunch()`: Handle OIDC initialization
 - `ltiLaunch()`: Process final launch
 - State management in browser
 - Post-message communication
 
 #### @atomicjolt/lti-components
+
 **Use when**: Building React-based LTI tools
 **Purpose**: Pre-built UI components for LTI features
 **Key Features**:
+
 - React components for common LTI UI patterns
 - TypeScript support
 - Integration with other atomic-libs packages
 
 #### @atomicjolt/lti-types
+
 **Use when**: Any TypeScript LTI implementation
 **Purpose**: Type safety for LTI development
 **Key Features**:
+
 - Complete LTI 1.3 type definitions
 - Message type interfaces
 - Claim type definitions
@@ -137,9 +151,9 @@ const response = {
     {
       type: 'ltiResourceLink',
       title: 'Selected Resource',
-      url: 'https://tool.example/resource/123'
-    }
-  ]
+      url: 'https://tool.example/resource/123',
+    },
+  ],
 };
 ```
 
@@ -162,7 +176,7 @@ if (roster.headers['link']?.includes('rel="next"')) {
 const lineItem = {
   scoreMaximum: 100,
   label: 'Assignment 1',
-  resourceId: 'assignment-123'
+  resourceId: 'assignment-123',
 };
 
 // Submit score
@@ -171,24 +185,27 @@ const score = {
   scoreGiven: 85,
   scoreMaximum: 100,
   activityProgress: 'Completed',
-  gradingProgress: 'FullyGraded'
+  gradingProgress: 'FullyGraded',
 };
 ```
 
 ## Best Practices for AI Developers
 
 ### 1. Security First
+
 - Always validate JWT signatures
 - Check nonce to prevent replay attacks
 - Use HTTPS for all communications
 - Store sensitive data in secure KV namespaces
 
 ### 2. Type Safety
+
 - Use `@atomicjolt/lti-types` for all LTI data structures
 - Leverage TypeScript's type checking
 - Validate incoming data against type definitions
 
 ### 3. Error Handling
+
 ```typescript
 try {
   const token = await validateJWT(request);
@@ -201,11 +218,13 @@ try {
 ```
 
 ### 4. State Management
+
 - Use Cloudflare KV for persistent state
 - Implement proper state cleanup
 - Handle concurrent requests safely
 
 ### 5. Service Integration
+
 - Check for service availability in JWT claims
 - Request appropriate OAuth scopes
 - Handle service-specific errors gracefully
@@ -213,6 +232,7 @@ try {
 ## Common Implementation Scenarios
 
 ### Scenario 1: Basic Tool Launch
+
 ```typescript
 // Using @atomicjolt/lti-endpoints on Cloudflare Workers
 import { Hono } from 'hono';
@@ -223,23 +243,25 @@ app.post('/lti/launch', handleLTILaunch);
 ```
 
 ### Scenario 2: Grade Passback
+
 ```typescript
 // Submit grade after student completes activity
 async function submitGrade(studentId: string, score: number) {
   const accessToken = await getAccessToken();
   const lineItemUrl = getLineItemUrl();
-  
+
   await postScore(accessToken, lineItemUrl, {
     userId: studentId,
     scoreGiven: score,
     scoreMaximum: 100,
     activityProgress: 'Completed',
-    gradingProgress: 'FullyGraded'
+    gradingProgress: 'FullyGraded',
   });
 }
 ```
 
 ### Scenario 3: Content Selection with Deep Linking
+
 ```typescript
 // Handle deep linking selection
 async function handleContentSelection(items: ContentItem[]) {
@@ -249,15 +271,12 @@ async function handleContentSelection(items: ContentItem[]) {
 ```
 
 ### Scenario 4: Roster Retrieval
+
 ```typescript
 // Get course roster for instructor dashboard
 async function getCourseRoster(contextId: string) {
   const accessToken = await getAccessToken();
-  const members = await fetchNamesAndRoles(
-    accessToken,
-    contextMembershipsUrl,
-    { role: 'Instructor' }
-  );
+  const members = await fetchNamesAndRoles(accessToken, contextMembershipsUrl, { role: 'Instructor' });
   return members;
 }
 ```
@@ -289,12 +308,14 @@ async function getCourseRoster(contextId: string) {
 ## Migration from LTI 1.1
 
 ### Key Differences
+
 - OAuth 1.0a → OAuth 2.0 + OIDC
 - XML messages → JWT
 - Basic Outcomes → Assignment and Grade Services
 - No built-in roster → Names and Roles Service
 
 ### Migration Steps
+
 1. Update security implementation to JWT
 2. Implement OIDC flow
 3. Update grade passback to AGS
@@ -304,6 +325,7 @@ async function getCourseRoster(contextId: string) {
 ## Testing and Development
 
 ### Local Development Setup
+
 ```bash
 # Install dependencies
 npm install @atomicjolt/lti-endpoints @atomicjolt/lti-types
@@ -319,6 +341,7 @@ npm run dev
 ```
 
 ### Testing Checklist
+
 - [ ] OIDC initialization flow
 - [ ] JWT validation
 - [ ] State management
@@ -331,12 +354,14 @@ npm run dev
 ## Resources and References
 
 ### Specifications
+
 - [LTI 1.3 Core](https://www.imsglobal.org/spec/lti/v1p3)
 - [LTI NRPS v2.0](https://www.imsglobal.org/spec/lti-nrps/v2p0)
 - [LTI AGS v2.0](https://www.imsglobal.org/spec/lti-ags/v2p0)
 - [LTI Deep Linking v2.0](https://www.imsglobal.org/spec/lti-dl/v2p0)
 
 ### Atomic Jolt Libraries
+
 - [@atomicjolt/lti-endpoints](https://www.npmjs.com/package/@atomicjolt/lti-endpoints)
 - [@atomicjolt/lti-client](https://www.npmjs.com/package/@atomicjolt/lti-client)
 - [@atomicjolt/lti-server](https://www.npmjs.com/package/@atomicjolt/lti-server)
@@ -344,7 +369,8 @@ npm run dev
 - [@atomicjolt/lti-types](https://www.npmjs.com/package/@atomicjolt/lti-types)
 
 ### Example Implementation
-- [Atomic LTI Worker](https://github.com/atomicjolt/atomic-lti-worker)
+
+- [Atomic LTI Worker](https://github.com/atomicjolt/atomic-guide)
 
 ## Summary
 

@@ -24,7 +24,7 @@ This project provides a serverless implementation of the LTI 1.3 protocol using 
 
 Deploy a simple Hello World LTI tool to Cloudflare with one click:
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/atomicjolt-com/atomic-lti-worker)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/atomicjolt-com/atomic-guide)
 
 If you encounter errors during the one click install don't fret. Instead, follow these steps:
 
@@ -33,7 +33,7 @@ If you encounter errors during the one click install don't fret. Instead, follow
 3. Run `npm run deploy`
 
 The worker should deploy into your account. You may wish to change values in definitions.ts before deploy
-to change names (the default name will atomic-lti-worker)
+to change names (the default name will atomic-guide)
 
 ## Setup
 
