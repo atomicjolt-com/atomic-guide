@@ -93,9 +93,9 @@ app.use('/*', async (c: Context, next: Next) => {
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Needed for some LMS platforms
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self'",
     'frame-ancestors *', // Allow embedding in any domain for LTI
   ].join('; ');

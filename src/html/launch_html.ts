@@ -5,6 +5,8 @@ import { LaunchSettings } from '@atomicjolt/lti-client';
 export default function launchHtml(launchSettings: LaunchSettings, scriptName: string) {
   const head = `
     ${viteHmrHtml()}
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link href="/styles.css" rel="stylesheet">
     <script type="text/javascript">
       window.LAUNCH_SETTINGS = ${JSON.stringify(launchSettings)};
     </script>

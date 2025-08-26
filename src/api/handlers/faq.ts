@@ -1,12 +1,7 @@
 import { Hono } from 'hono';
 import { FAQKnowledgeBase, type FAQEntry, type FAQSearchOptions } from '../../services/FAQKnowledgeBase';
 import { AIService } from '../../services/AIService';
-import DOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
-
-// Setup DOMPurify for server-side sanitization
-const window = new JSDOM('').window;
-const serverDOMPurify = DOMPurify(window as unknown as Window);
+import { sanitizeInput, sanitizeRichContent } from '../../utils/sanitizer';
 
 type Bindings = {
   AI: any;
@@ -27,26 +22,26 @@ faq.use('*', async (c, next) => {
   // Extract tenant/user from headers or JWT (simplified for now)
   const tenantId = c.req.header('x-tenant-id') || 'default';
   const userId = c.req.header('x-user-id') || 'anonymous';
-  
+
   c.set('tenantId', tenantId);
   c.set('userId', userId);
-  
+
   await next();
 });
 
 // GET /api/chat/faq/search - Search FAQ database
 faq.get('/search', async (c) => {
   const startTime = Date.now();
-  
+
   try {
     const query = c.req.query('q');
     const courseId = c.req.query('course');
-    const moduleId = c.req.query('module');
+    //const moduleId = c.req.query('module');
     const limit = parseInt(c.req.query('limit') || '5');
     const fuzzy = c.req.query('fuzzy') === 'true';
-    const sortBy = c.req.query('sort') as 'relevance' | 'usage' | 'effectiveness' || 'relevance';
+    const sortBy = (c.req.query('sort') as 'relevance' | 'usage' | 'effectiveness') || 'relevance';
     const minConfidence = parseFloat(c.req.query('confidence') || '0.7');
-    
+
     const tenantId = c.get('tenantId')!;
 
     if (!query) {
@@ -54,37 +49,23 @@ faq.get('/search', async (c) => {
     }
 
     // Sanitize the query
-    const sanitizedQuery = serverDOMPurify.sanitize(query, {
-      ALLOWED_TAGS: [],
-      ALLOWED_ATTR: []
-    });
+    const sanitizedQuery = sanitizeInput(query);
 
     const aiService = new AIService(c.env.AI);
-    const faqService = new FAQKnowledgeBase(
-      aiService,
-      c.env.VECTORIZE_INDEX,
-      c.env.KV_CACHE,
-      c.env.DB
-    );
+    const faqService = new FAQKnowledgeBase(aiService, c.env.VECTORIZE_INDEX, c.env.KV_CACHE, c.env.DB);
 
     const options: FAQSearchOptions = {
       fuzzySearch: fuzzy,
       sortBy,
-      minConfidence
+      minConfidence,
     };
 
-    const results = await faqService.searchSimilarFAQs(
-      sanitizedQuery,
-      tenantId,
-      courseId,
-      limit,
-      options
-    );
+    const results = await faqService.searchSimilarFAQs(sanitizedQuery, tenantId, courseId, limit, options);
 
     const responseTime = Date.now() - startTime;
 
     // Transform results for API response
-    const matches = results.map(faq => ({
+    const matches = results.map((faq) => ({
       faq_id: faq.id,
       question: faq.question,
       answer: faq.answer,
@@ -94,25 +75,27 @@ faq.get('/search', async (c) => {
       effectiveness_score: faq.effectivenessScore,
       module_id: faq.moduleId,
       created_at: faq.createdAt.toISOString(),
-      updated_at: faq.updatedAt.toISOString()
+      updated_at: faq.updatedAt.toISOString(),
     }));
 
     return c.json({
       matches,
       response_time_ms: responseTime,
       total_results: matches.length,
-      search_options: options
+      search_options: options,
     });
-
   } catch (error) {
     console.error('FAQ search error:', error);
     const responseTime = Date.now() - startTime;
-    
-    return c.json({
-      error: 'Failed to search FAQ database',
-      response_time_ms: responseTime,
-      matches: []
-    }, 500);
+
+    return c.json(
+      {
+        error: 'Failed to search FAQ database',
+        response_time_ms: responseTime,
+        matches: [],
+      },
+      500,
+    );
   }
 });
 
@@ -121,7 +104,7 @@ faq.post('/', async (c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;
-    
+
     const body = await c.req.json();
     const { question, answer, course_id, module_id, rich_media_content } = body;
 
@@ -130,78 +113,62 @@ faq.post('/', async (c) => {
     }
 
     // Sanitize input content
-    const sanitizedQuestion = serverDOMPurify.sanitize(question, {
-      ALLOWED_TAGS: [],
-      ALLOWED_ATTR: []
-    });
-    
-    const sanitizedAnswer = serverDOMPurify.sanitize(answer, {
-      ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote'],
-      ALLOWED_ATTR: []
-    });
+    const sanitizedQuestion = sanitizeInput(question);
+    const sanitizedAnswer = sanitizeRichContent(answer);
 
     // Validate and sanitize rich media content
-    let sanitizedRichMedia = [];
+    let sanitizedRichMedia: any[] = [];
     if (rich_media_content && Array.isArray(rich_media_content)) {
-      sanitizedRichMedia = rich_media_content.map(media => {
-        const sanitizedContent = serverDOMPurify.sanitize(media.content, {
-          ALLOWED_TAGS: [],
-          ALLOWED_ATTR: []
-        });
-        
+      sanitizedRichMedia = rich_media_content.map((media: any) => {
+        const sanitizedContent = sanitizeInput(media.content);
+
         return {
           type: ['latex', 'code', 'diagram', 'video'].includes(media.type) ? media.type : 'text',
           content: sanitizedContent,
-          metadata: media.metadata || {}
+          metadata: media.metadata || {},
         };
       });
     }
 
     const aiService = new AIService(c.env.AI);
-    const faqService = new FAQKnowledgeBase(
-      aiService,
-      c.env.VECTORIZE_INDEX,
-      c.env.KV_CACHE,
-      c.env.DB
-    );
+    const faqService = new FAQKnowledgeBase(aiService, c.env.VECTORIZE_INDEX, c.env.KV_CACHE, c.env.DB);
 
-    const newFAQ = await faqService.addFAQ(
-      sanitizedQuestion,
-      sanitizedAnswer,
-      tenantId,
-      course_id,
-      module_id,
-      sanitizedRichMedia
-    );
+    const newFAQ = await faqService.addFAQ(sanitizedQuestion, sanitizedAnswer, tenantId, course_id, module_id, sanitizedRichMedia);
 
     // Log FAQ creation for management tracking
-    await c.env.DB.prepare(`
+    await c.env.DB.prepare(
+      `
       INSERT INTO faq_management_log (
         id, tenant_id, instructor_id, faq_id, action, changes_made, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      tenantId,
-      userId,
-      newFAQ.id,
-      'created',
-      JSON.stringify({ question: sanitizedQuestion, answer: sanitizedAnswer }),
-      new Date().toISOString()
-    ).run();
+    `,
+    )
+      .bind(
+        `log_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        tenantId,
+        userId,
+        newFAQ.id,
+        'created',
+        JSON.stringify({ question: sanitizedQuestion, answer: sanitizedAnswer }),
+        new Date().toISOString(),
+      )
+      .run();
 
-    return c.json({
-      success: true,
-      faq: {
-        id: newFAQ.id,
-        question: newFAQ.question,
-        answer: newFAQ.answer,
-        rich_media_content: newFAQ.richMediaContent,
-        usage_count: newFAQ.usageCount,
-        effectiveness_score: newFAQ.effectivenessScore,
-        created_at: newFAQ.createdAt.toISOString()
-      }
-    }, 201);
-
+    return c.json(
+      {
+        success: true,
+        faq: {
+          id: newFAQ.id,
+          question: newFAQ.question,
+          answer: newFAQ.answer,
+          rich_media_content: newFAQ.richMediaContent,
+          usage_count: newFAQ.usageCount,
+          effectiveness_score: newFAQ.effectivenessScore,
+          created_at: newFAQ.createdAt.toISOString(),
+        },
+      },
+      201,
+    );
   } catch (error) {
     console.error('FAQ creation error:', error);
     return c.json({ error: 'Failed to create FAQ entry' }, 500);
@@ -214,7 +181,7 @@ faq.put('/:id', async (c) => {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;
-    
+
     const body = await c.req.json();
     const { question, answer, rich_media_content } = body;
 
@@ -225,42 +192,35 @@ faq.put('/:id', async (c) => {
     // Sanitize updates
     const updates: any = {};
     if (question) {
-      updates.question = serverDOMPurify.sanitize(question, {
-        ALLOWED_TAGS: [],
-        ALLOWED_ATTR: []
-      });
+      updates.question = sanitizeInput(question);
     }
     if (answer) {
-      updates.answer = serverDOMPurify.sanitize(answer, {
-        ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote'],
-        ALLOWED_ATTR: []
-      });
+      updates.answer = sanitizeRichContent(answer);
     }
 
     const aiService = new AIService(c.env.AI);
-    const faqService = new FAQKnowledgeBase(
-      aiService,
-      c.env.VECTORIZE_INDEX,
-      c.env.KV_CACHE,
-      c.env.DB
-    );
+    const faqService = new FAQKnowledgeBase(aiService, c.env.VECTORIZE_INDEX, c.env.KV_CACHE, c.env.DB);
 
     const updatedFAQ = await faqService.updateFAQ(faqId, updates, tenantId);
 
     // Log FAQ update
-    await c.env.DB.prepare(`
+    await c.env.DB.prepare(
+      `
       INSERT INTO faq_management_log (
         id, tenant_id, instructor_id, faq_id, action, changes_made, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      tenantId,
-      userId,
-      faqId,
-      'updated',
-      JSON.stringify(updates),
-      new Date().toISOString()
-    ).run();
+    `,
+    )
+      .bind(
+        `log_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        tenantId,
+        userId,
+        faqId,
+        'updated',
+        JSON.stringify(updates),
+        new Date().toISOString(),
+      )
+      .run();
 
     return c.json({
       success: true,
@@ -271,10 +231,9 @@ faq.put('/:id', async (c) => {
         rich_media_content: updatedFAQ.richMediaContent,
         usage_count: updatedFAQ.usageCount,
         effectiveness_score: updatedFAQ.effectivenessScore,
-        updated_at: updatedFAQ.updatedAt.toISOString()
-      }
+        updated_at: updatedFAQ.updatedAt.toISOString(),
+      },
     });
-
   } catch (error) {
     console.error('FAQ update error:', error);
     return c.json({ error: 'Failed to update FAQ entry' }, 500);
@@ -289,31 +248,29 @@ faq.delete('/:id', async (c) => {
     const userId = c.get('userId')!;
 
     const aiService = new AIService(c.env.AI);
-    const faqService = new FAQKnowledgeBase(
-      aiService,
-      c.env.VECTORIZE_INDEX,
-      c.env.KV_CACHE,
-      c.env.DB
-    );
+    const faqService = new FAQKnowledgeBase(aiService, c.env.VECTORIZE_INDEX, c.env.KV_CACHE, c.env.DB);
 
     await faqService.deleteFAQ(faqId, tenantId);
 
     // Log FAQ deletion
-    await c.env.DB.prepare(`
+    await c.env.DB.prepare(
+      `
       INSERT INTO faq_management_log (
         id, tenant_id, instructor_id, faq_id, action, created_at
       ) VALUES (?, ?, ?, ?, ?, ?)
-    `).bind(
-      `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      tenantId,
-      userId,
-      faqId,
-      'deleted',
-      new Date().toISOString()
-    ).run();
+    `,
+    )
+      .bind(
+        `log_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        tenantId,
+        userId,
+        faqId,
+        'deleted',
+        new Date().toISOString(),
+      )
+      .run();
 
     return c.json({ success: true, message: 'FAQ deleted successfully' });
-
   } catch (error) {
     console.error('FAQ deletion error:', error);
     if (error instanceof Error && error.message === 'FAQ not found') {
@@ -328,27 +285,21 @@ faq.post('/:id/effectiveness', async (c) => {
   try {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
-    
+
     const body = await c.req.json();
     const { engagement_time, follow_up_question, user_rating, helpfulness } = body;
 
     const aiService = new AIService(c.env.AI);
-    const faqService = new FAQKnowledgeBase(
-      aiService,
-      c.env.VECTORIZE_INDEX,
-      c.env.KV_CACHE,
-      c.env.DB
-    );
+    const faqService = new FAQKnowledgeBase(aiService, c.env.VECTORIZE_INDEX, c.env.KV_CACHE, c.env.DB);
 
     await faqService.updateFAQEffectiveness(faqId, tenantId, {
       engagementTime: engagement_time,
       followUpQuestion: follow_up_question,
       userRating: user_rating,
-      helpfulness
+      helpfulness,
     });
 
     return c.json({ success: true, message: 'FAQ effectiveness updated' });
-
   } catch (error) {
     console.error('FAQ effectiveness update error:', error);
     return c.json({ error: 'Failed to update FAQ effectiveness' }, 500);
@@ -365,9 +316,9 @@ faq.get('/management', async (c) => {
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT *, 
+      SELECT *,
         COUNT(*) OVER() as total_count
-      FROM faq_entries 
+      FROM faq_entries
       WHERE tenant_id = ?
     `;
     const params = [tenantId];
@@ -377,24 +328,27 @@ faq.get('/management', async (c) => {
       params.push(courseId);
     }
 
-    query += ` ORDER BY usage_count DESC, effectiveness_score DESC 
+    query += ` ORDER BY usage_count DESC, effectiveness_score DESC
                LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
+    params.push(limit.toString(), offset.toString());
 
-    const results = await c.env.DB.prepare(query).bind(...params).all();
-    
-    const faqs = results.results?.map(row => ({
-      id: row.id,
-      question: row.question,
-      answer: row.answer,
-      rich_media_content: row.rich_media_content ? JSON.parse(row.rich_media_content) : [],
-      course_id: row.course_id,
-      module_id: row.module_id,
-      usage_count: row.usage_count,
-      effectiveness_score: row.effectiveness_score,
-      created_at: row.created_at,
-      updated_at: row.updated_at
-    })) || [];
+    const results = await c.env.DB.prepare(query)
+      .bind(...params)
+      .all();
+
+    const faqs =
+      results.results?.map((row: any) => ({
+        id: row.id,
+        question: row.question,
+        answer: row.answer,
+        rich_media_content: row.rich_media_content ? JSON.parse(row.rich_media_content) : [],
+        course_id: row.course_id,
+        module_id: row.module_id,
+        usage_count: row.usage_count,
+        effectiveness_score: row.effectiveness_score,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      })) || [];
 
     const totalCount = results.results?.[0]?.total_count || 0;
     const totalPages = Math.ceil(totalCount / limit);
@@ -406,10 +360,9 @@ faq.get('/management', async (c) => {
         total_pages: totalPages,
         total_count: totalCount,
         has_next: page < totalPages,
-        has_previous: page > 1
-      }
+        has_previous: page > 1,
+      },
     });
-
   } catch (error) {
     console.error('FAQ management retrieval error:', error);
     return c.json({ error: 'Failed to retrieve FAQ management data' }, 500);
@@ -424,7 +377,7 @@ faq.get('/analytics', async (c) => {
     const days = parseInt(c.req.query('days') || '30');
 
     let baseQuery = `
-      SELECT 
+      SELECT
         f.id,
         f.question,
         f.usage_count,
@@ -442,18 +395,18 @@ faq.get('/analytics', async (c) => {
     }
 
     // Get top performing FAQs
-    const topFAQs = await c.env.DB.prepare(
-      baseQuery + ' ORDER BY f.usage_count DESC LIMIT 10'
-    ).bind(...params).all();
+    const topFAQs = await c.env.DB.prepare(baseQuery + ' ORDER BY f.usage_count DESC LIMIT 10')
+      .bind(...params)
+      .all();
 
     // Get usage patterns analytics
     let patternsQuery = `
-      SELECT 
+      SELECT
         question_pattern,
         occurrence_count,
         last_asked,
         generated_faq_id IS NOT NULL as has_auto_faq
-      FROM faq_usage_analytics 
+      FROM faq_usage_analytics
       WHERE tenant_id = ?
     `;
     const patternsParams = [tenantId];
@@ -464,39 +417,46 @@ faq.get('/analytics', async (c) => {
     }
 
     patternsQuery += ' ORDER BY occurrence_count DESC LIMIT 20';
-    
-    const patterns = await c.env.DB.prepare(patternsQuery).bind(...patternsParams).all();
+
+    const patterns = await c.env.DB.prepare(patternsQuery)
+      .bind(...patternsParams)
+      .all();
 
     // Get effectiveness trends (simplified)
-    const avgEffectiveness = await c.env.DB.prepare(`
-      SELECT 
+    const avgEffectiveness = await c.env.DB.prepare(
+      `
+      SELECT
         AVG(effectiveness_score) as avg_effectiveness,
         COUNT(*) as total_faqs
-      FROM faq_entries 
+      FROM faq_entries
       WHERE tenant_id = ? ${courseId ? 'AND course_id = ?' : ''}
-    `).bind(...params.slice(0, courseId ? 2 : 1)).first();
+    `,
+    )
+      .bind(...params.slice(0, courseId ? 2 : 1))
+      .first();
 
     return c.json({
-      top_faqs: topFAQs.results?.map(row => ({
-        id: row.id,
-        question: row.question,
-        usage_count: row.usage_count,
-        effectiveness_score: row.effectiveness_score,
-        course_id: row.course_id
-      })) || [],
-      usage_patterns: patterns.results?.map(row => ({
-        pattern: row.question_pattern,
-        count: row.occurrence_count,
-        last_asked: row.last_asked,
-        has_auto_faq: row.has_auto_faq
-      })) || [],
+      top_faqs:
+        topFAQs.results?.map((row: any) => ({
+          id: row.id,
+          question: row.question,
+          usage_count: row.usage_count,
+          effectiveness_score: row.effectiveness_score,
+          course_id: row.course_id,
+        })) || [],
+      usage_patterns:
+        patterns.results?.map((row: any) => ({
+          pattern: row.question_pattern,
+          count: row.occurrence_count,
+          last_asked: row.last_asked,
+          has_auto_faq: row.has_auto_faq,
+        })) || [],
       summary: {
         average_effectiveness: avgEffectiveness?.avg_effectiveness || 0,
         total_faqs: avgEffectiveness?.total_faqs || 0,
-        analysis_period_days: days
-      }
+        analysis_period_days: days,
+      },
     });
-
   } catch (error) {
     console.error('FAQ analytics error:', error);
     return c.json({ error: 'Failed to retrieve FAQ analytics' }, 500);

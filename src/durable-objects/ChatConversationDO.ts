@@ -4,6 +4,7 @@
 
 import type { DurableObjectState } from '@cloudflare/workers-types';
 import { z } from 'zod';
+import { sanitizeInput } from '../utils/sanitizer';
 
 // Zod schemas for input validation
 const ConversationMessageSchema = z.object({
@@ -11,13 +12,15 @@ const ConversationMessageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system']),
   content: z.string().min(1).max(50000), // Prevent extremely large messages
   timestamp: z.string().optional(),
-  metadata: z.object({
-    tokensUsed: z.number().min(0).optional(),
-    modelUsed: z.string().max(100).optional(),
-    cached: z.boolean().optional(),
-    learningStyle: z.enum(['visual', 'auditory', 'kinesthetic', 'reading_writing', 'mixed']).optional(),
-    topics: z.array(z.string().max(100)).max(20).optional() // Limit topics array
-  }).optional()
+  metadata: z
+    .object({
+      tokensUsed: z.number().min(0).optional(),
+      modelUsed: z.string().max(100).optional(),
+      cached: z.boolean().optional(),
+      learningStyle: z.enum(['visual', 'auditory', 'kinesthetic', 'reading_writing', 'mixed']).optional(),
+      topics: z.array(z.string().max(100)).max(20).optional(), // Limit topics array
+    })
+    .optional(),
 });
 
 export interface ConversationMessage {
@@ -124,7 +127,7 @@ export class ChatConversationDO {
   private async initializeSession(conversationId: string, tenantId: string, userId: string) {
     // Load existing session or create new one
     const storedSession = await this.state.storage.get<ConversationSession>(`session:${conversationId}`);
-    
+
     if (storedSession) {
       this.sessionInfo = storedSession;
       // Load conversation history
@@ -138,7 +141,7 @@ export class ChatConversationDO {
         startedAt: new Date().toISOString(),
         lastActivityAt: new Date().toISOString(),
         messageCount: 0,
-        totalTokensUsed: 0
+        totalTokensUsed: 0,
       };
       await this.state.storage.put(`session:${conversationId}`, this.sessionInfo);
     }
@@ -147,20 +150,23 @@ export class ChatConversationDO {
   private async handleAddMessage(request: Request): Promise<Response> {
     try {
       const rawBody = await request.json();
-      
+
       // Validate input using Zod schema
       const validationResult = ConversationMessageSchema.safeParse(rawBody);
       if (!validationResult.success) {
         console.error('Message validation failed:', validationResult.error.issues);
-        return new Response(JSON.stringify({ 
-          error: 'Invalid message format', 
-          details: validationResult.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`)
-        }), { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+        return new Response(
+          JSON.stringify({
+            error: 'Invalid message format',
+            details: validationResult.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
       }
-      
+
       const body = validationResult.data;
 
       // Create message with ID and timestamp, sanitizing content
@@ -169,7 +175,7 @@ export class ChatConversationDO {
         role: body.role,
         content: this.sanitizeContent(body.content),
         timestamp: body.timestamp || new Date().toISOString(),
-        metadata: body.metadata
+        metadata: body.metadata,
       };
 
       // Add to history
@@ -198,20 +204,23 @@ export class ChatConversationDO {
       // Broadcast to WebSocket clients if any
       this.broadcastMessage({
         type: 'new-message',
-        message
+        message,
       });
 
-      return new Response(JSON.stringify({ 
-        success: true,
-        messageId: message.id
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          messageId: message.id,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error adding message:', error);
-      return new Response(JSON.stringify({ error: 'Failed to add message' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to add message' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -226,19 +235,19 @@ export class ChatConversationDO {
       const recentHistory = this.conversationHistory
         .slice(-Math.min(limit + offset, this.conversationHistory.length))
         .slice(0, limit)
-        .map(msg => ({
+        .map((msg) => ({
           role: msg.role,
-          content: msg.content
+          content: msg.content,
         }));
 
       return new Response(JSON.stringify(recentHistory), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error('Error getting history:', error);
-      return new Response(JSON.stringify({ error: 'Failed to get history' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to get history' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -248,17 +257,17 @@ export class ChatConversationDO {
       const context = {
         sessionInfo: this.sessionInfo,
         recentMessages: this.conversationHistory.slice(-this.conversationWindowSize),
-        messageCount: this.conversationHistory.length
+        messageCount: this.conversationHistory.length,
       };
 
       return new Response(JSON.stringify(context), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error('Error getting context:', error);
-      return new Response(JSON.stringify({ error: 'Failed to get context' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to get context' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -267,19 +276,22 @@ export class ChatConversationDO {
     try {
       // Return existing summary or key points from conversation
       if (this.conversationHistory.length < 5) {
-        return new Response(JSON.stringify({ 
-          summary: null,
-          message: 'Conversation too short for summarization'
-        }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
+        return new Response(
+          JSON.stringify({
+            summary: null,
+            message: 'Conversation too short for summarization',
+          }),
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
       }
 
       // Extract topics from conversation
       const topics = new Set<string>();
-      this.conversationHistory.forEach(msg => {
+      this.conversationHistory.forEach((msg) => {
         if (msg.metadata?.topics) {
-          msg.metadata.topics.forEach(topic => topics.add(topic));
+          msg.metadata.topics.forEach((topic) => topics.add(topic));
         }
       });
 
@@ -287,34 +299,36 @@ export class ChatConversationDO {
       const keyMessages = this.conversationHistory
         .filter((msg, index) => {
           // Keep first message, last few messages, and messages with questions
-          return index === 0 || 
-                 index >= this.conversationHistory.length - 3 ||
-                 msg.content.includes('?') ||
-                 (msg.role === 'assistant' && msg.content.length > 200);
+          return (
+            index === 0 ||
+            index >= this.conversationHistory.length - 3 ||
+            msg.content.includes('?') ||
+            (msg.role === 'assistant' && msg.content.length > 200)
+          );
         })
         .slice(0, 10);
 
       const summary = {
         totalMessages: this.conversationHistory.length,
-        keyPoints: keyMessages.map(msg => ({
+        keyPoints: keyMessages.map((msg) => ({
           role: msg.role,
-          snippet: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
+          snippet: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : ''),
         })),
         topics: Array.from(topics),
         startTime: this.sessionInfo?.startedAt,
         lastActivity: this.sessionInfo?.lastActivityAt,
         tokensUsed: this.sessionInfo?.totalTokensUsed || 0,
-        learningStyle: this.sessionInfo?.learningStyle
+        learningStyle: this.sessionInfo?.learningStyle,
       };
 
       return new Response(JSON.stringify(summary), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error('Error summarizing:', error);
-      return new Response(JSON.stringify({ error: 'Failed to summarize' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to summarize' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -322,21 +336,24 @@ export class ChatConversationDO {
   private async handleGenerateSummary(request: Request): Promise<Response> {
     try {
       if (!this.sessionInfo || this.conversationHistory.length < 5) {
-        return new Response(JSON.stringify({ 
-          error: 'Insufficient conversation data for summary generation'
-        }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+        return new Response(
+          JSON.stringify({
+            error: 'Insufficient conversation data for summary generation',
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
       }
 
       // Extract key topics from conversation
       const topics = new Set<string>();
       const learningPatterns = new Map<string, number>();
-      
-      this.conversationHistory.forEach(msg => {
+
+      this.conversationHistory.forEach((msg) => {
         if (msg.metadata?.topics) {
-          msg.metadata.topics.forEach(topic => topics.add(topic));
+          msg.metadata.topics.forEach((topic) => topics.add(topic));
         }
         if (msg.metadata?.learningStyle) {
           const count = learningPatterns.get(msg.metadata.learningStyle) || 0;
@@ -347,8 +364,7 @@ export class ChatConversationDO {
       // Determine dominant learning style
       let dominantStyle = this.sessionInfo.learningStyle;
       if (learningPatterns.size > 0) {
-        dominantStyle = Array.from(learningPatterns.entries())
-          .sort((a, b) => b[1] - a[1])[0][0];
+        dominantStyle = Array.from(learningPatterns.entries()).sort((a, b) => b[1] - a[1])[0][0];
       }
 
       // Create comprehensive summary
@@ -360,32 +376,26 @@ export class ChatConversationDO {
         startTime: this.sessionInfo.startedAt,
         endTime: this.sessionInfo.lastActivityAt,
         learningStyleDetected: dominantStyle,
-        tokensUsed: this.sessionInfo.totalTokensUsed
+        tokensUsed: this.sessionInfo.totalTokensUsed,
       };
 
       // Store summary
       this.conversationSummaries.push(summary);
-      await this.state.storage.put(
-        `summary:${this.sessionInfo.conversationId}:${Date.now()}`,
-        summary
-      );
+      await this.state.storage.put(`summary:${this.sessionInfo.conversationId}:${Date.now()}`, summary);
 
       // Update session info
       this.sessionInfo.summaryGenerated = true;
       this.sessionInfo.lastSummaryAt = new Date().toISOString();
-      await this.state.storage.put(
-        `session:${this.sessionInfo.conversationId}`,
-        this.sessionInfo
-      );
+      await this.state.storage.put(`session:${this.sessionInfo.conversationId}`, this.sessionInfo);
 
       return new Response(JSON.stringify(summary), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error('Error generating summary:', error);
-      return new Response(JSON.stringify({ error: 'Failed to generate summary' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to generate summary' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -393,32 +403,34 @@ export class ChatConversationDO {
   private generateTextSummary(): string {
     // Extract main topics and questions from conversation
     const questions = this.conversationHistory
-      .filter(msg => msg.role === 'user' && msg.content.includes('?'))
-      .map(msg => msg.content.substring(0, 100));
-    
+      .filter((msg) => msg.role === 'user' && msg.content.includes('?'))
+      .map((msg) => msg.content.substring(0, 100));
+
     const concepts = this.conversationHistory
-      .filter(msg => msg.role === 'assistant')
-      .map(msg => {
+      .filter((msg) => msg.role === 'assistant')
+      .map((msg) => {
         // Extract key concepts (simplified - in production would use NLP)
         const words = msg.content.split(' ');
-        return words.filter(word => word.length > 7).slice(0, 3);
+        return words.filter((word) => word.length > 7).slice(0, 3);
       })
       .flat();
 
     const uniqueConcepts = [...new Set(concepts)].slice(0, 5);
-    
-    return `This conversation covered ${questions.length} questions focusing on: ${uniqueConcepts.join(', ')}. ` +
-           `The discussion included ${this.conversationHistory.length} messages over ` +
-           `${this.calculateDuration()} with a focus on ${this.sessionInfo?.topics?.join(', ') || 'general topics'}.`;
+
+    return (
+      `This conversation covered ${questions.length} questions focusing on: ${uniqueConcepts.join(', ')}. ` +
+      `The discussion included ${this.conversationHistory.length} messages over ` +
+      `${this.calculateDuration()} with a focus on ${this.sessionInfo?.topics?.join(', ') || 'general topics'}.`
+    );
   }
 
   private calculateDuration(): string {
     if (!this.sessionInfo) return 'unknown duration';
-    
+
     const start = new Date(this.sessionInfo.startedAt).getTime();
     const end = new Date(this.sessionInfo.lastActivityAt).getTime();
     const durationMs = end - start;
-    
+
     if (durationMs < 60000) return `${Math.round(durationMs / 1000)} seconds`;
     if (durationMs < 3600000) return `${Math.round(durationMs / 60000)} minutes`;
     return `${Math.round(durationMs / 3600000)} hours`;
@@ -428,11 +440,11 @@ export class ChatConversationDO {
     try {
       const url = new URL(request.url);
       const limit = parseInt(url.searchParams.get('limit') || '10');
-      
+
       // Get stored summaries
       const summaryKeys = await this.state.storage.list({ prefix: 'summary:' });
       const summaries: ConversationSummary[] = [];
-      
+
       for (const [key, value] of summaryKeys) {
         if (value && typeof value === 'object') {
           summaries.push(value as ConversationSummary);
@@ -440,21 +452,22 @@ export class ChatConversationDO {
       }
 
       // Sort by end time (most recent first)
-      summaries.sort((a, b) => 
-        new Date(b.endTime).getTime() - new Date(a.endTime).getTime()
-      );
+      summaries.sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime());
 
-      return new Response(JSON.stringify({
-        summaries: summaries.slice(0, limit),
-        total: summaries.length
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          summaries: summaries.slice(0, limit),
+          total: summaries.length,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error getting summaries:', error);
-      return new Response(JSON.stringify({ error: 'Failed to get summaries' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to get summaries' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -464,24 +477,21 @@ export class ChatConversationDO {
       if (!this.sessionInfo) {
         return new Response(JSON.stringify({ error: 'No active session' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
 
       const conversationId = this.sessionInfo.conversationId;
-      
+
       // Persist conversation history
       await this.state.storage.put(`history:${conversationId}`, this.conversationHistory);
-      
+
       // Persist session info
       await this.state.storage.put(`session:${conversationId}`, this.sessionInfo);
-      
+
       // Persist summaries if any
       if (this.conversationSummaries.length > 0) {
-        await this.state.storage.put(
-          `summaries:${conversationId}`,
-          this.conversationSummaries
-        );
+        await this.state.storage.put(`summaries:${conversationId}`, this.conversationSummaries);
       }
 
       // Store state snapshot for recovery
@@ -489,75 +499,75 @@ export class ChatConversationDO {
         conversationId,
         timestamp: new Date().toISOString(),
         messageCount: this.conversationHistory.length,
-        lastMessageId: this.conversationHistory[this.conversationHistory.length - 1]?.id
+        lastMessageId: this.conversationHistory[this.conversationHistory.length - 1]?.id,
       };
-      
+
       await this.state.storage.put(`snapshot:${conversationId}`, stateSnapshot);
 
-      return new Response(JSON.stringify({ 
-        success: true,
-        persisted: {
-          messages: this.conversationHistory.length,
-          summaries: this.conversationSummaries.length
-        }
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          persisted: {
+            messages: this.conversationHistory.length,
+            summaries: this.conversationSummaries.length,
+          },
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error persisting state:', error);
-      return new Response(JSON.stringify({ error: 'Failed to persist state' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to persist state' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
 
   private async handleRestoreState(request: Request): Promise<Response> {
     try {
-      const body = await request.json() as { conversationId: string };
+      const body = (await request.json()) as { conversationId: string };
       const { conversationId } = body;
 
       // Restore session info
-      const storedSession = await this.state.storage.get<ConversationSession>(
-        `session:${conversationId}`
-      );
-      
+      const storedSession = await this.state.storage.get<ConversationSession>(`session:${conversationId}`);
+
       if (!storedSession) {
         return new Response(JSON.stringify({ error: 'Session not found' }), {
           status: 404,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
 
       this.sessionInfo = storedSession;
 
       // Restore conversation history
-      const storedHistory = await this.state.storage.get<ConversationMessage[]>(
-        `history:${conversationId}`
-      );
+      const storedHistory = await this.state.storage.get<ConversationMessage[]>(`history:${conversationId}`);
       this.conversationHistory = storedHistory || [];
 
       // Restore summaries
-      const storedSummaries = await this.state.storage.get<ConversationSummary[]>(
-        `summaries:${conversationId}`
-      );
+      const storedSummaries = await this.state.storage.get<ConversationSummary[]>(`summaries:${conversationId}`);
       this.conversationSummaries = storedSummaries || [];
 
-      return new Response(JSON.stringify({ 
-        success: true,
-        restored: {
-          messages: this.conversationHistory.length,
-          summaries: this.conversationSummaries.length,
-          sessionInfo: this.sessionInfo
-        }
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          restored: {
+            messages: this.conversationHistory.length,
+            summaries: this.conversationSummaries.length,
+            sessionInfo: this.sessionInfo,
+          },
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error restoring state:', error);
-      return new Response(JSON.stringify({ error: 'Failed to restore state' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to restore state' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -566,22 +576,20 @@ export class ChatConversationDO {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - this.retentionDays);
-      
+
       let deletedCount = 0;
-      
+
       // List all stored items
       const allKeys = await this.state.storage.list();
-      
+
       for (const [key, value] of allKeys) {
         if (value && typeof value === 'object') {
           const item = value as any;
-          
+
           // Check if item has a timestamp and is older than retention period
           if (item.timestamp || item.lastActivityAt || item.endTime) {
-            const itemDate = new Date(
-              item.timestamp || item.lastActivityAt || item.endTime
-            );
-            
+            const itemDate = new Date(item.timestamp || item.lastActivityAt || item.endTime);
+
             if (itemDate < cutoffDate) {
               await this.state.storage.delete(key);
               deletedCount++;
@@ -590,25 +598,28 @@ export class ChatConversationDO {
         }
       }
 
-      return new Response(JSON.stringify({ 
-        success: true,
-        deletedItems: deletedCount,
-        retentionDays: this.retentionDays
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          deletedItems: deletedCount,
+          retentionDays: this.retentionDays,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error cleaning up old data:', error);
-      return new Response(JSON.stringify({ error: 'Failed to cleanup old data' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to cleanup old data' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
 
   private async handleCheckRateLimit(request: Request): Promise<Response> {
     try {
-      const body = await request.json() as { userId: string; limit: number; windowMs: number };
+      const body = (await request.json()) as { userId: string; limit: number; windowMs: number };
       const { userId, limit = 10, windowMs = 60000 } = body;
 
       const now = Date.now();
@@ -619,50 +630,59 @@ export class ChatConversationDO {
         this.rateLimitMap.set(userId, {
           userId,
           messageCount: 1,
-          windowStart: now
+          windowStart: now,
         });
 
-        return new Response(JSON.stringify({ 
-          allowed: true,
-          remaining: limit - 1,
-          resetIn: windowMs
-        }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
+        return new Response(
+          JSON.stringify({
+            allowed: true,
+            remaining: limit - 1,
+            resetIn: windowMs,
+          }),
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
       }
 
       // Check if within limit
       if (rateLimitInfo.messageCount >= limit) {
         const resetIn = windowMs - (now - rateLimitInfo.windowStart);
-        return new Response(JSON.stringify({ 
-          allowed: false,
-          remaining: 0,
-          resetIn,
-          retryAfter: Math.ceil(resetIn / 1000)
-        }), {
-          status: 429,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil(resetIn / 1000).toString()
-          }
-        });
+        return new Response(
+          JSON.stringify({
+            allowed: false,
+            remaining: 0,
+            resetIn,
+            retryAfter: Math.ceil(resetIn / 1000),
+          }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': Math.ceil(resetIn / 1000).toString(),
+            },
+          },
+        );
       }
 
       // Increment counter
       rateLimitInfo.messageCount++;
-      
-      return new Response(JSON.stringify({ 
-        allowed: true,
-        remaining: limit - rateLimitInfo.messageCount,
-        resetIn: windowMs - (now - rateLimitInfo.windowStart)
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+
+      return new Response(
+        JSON.stringify({
+          allowed: true,
+          remaining: limit - rateLimitInfo.messageCount,
+          resetIn: windowMs - (now - rateLimitInfo.windowStart),
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } catch (error) {
       console.error('Error checking rate limit:', error);
-      return new Response(JSON.stringify({ error: 'Failed to check rate limit' }), { 
+      return new Response(JSON.stringify({ error: 'Failed to check rate limit' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -701,10 +721,12 @@ export class ChatConversationDO {
         const message = JSON.parse(event.data as string);
         await this.handleWebSocketMessage(webSocket, message);
       } catch (error) {
-        webSocket.send(JSON.stringify({
-          type: 'error',
-          message: 'Invalid message format',
-        }));
+        webSocket.send(
+          JSON.stringify({
+            type: 'error',
+            message: 'Invalid message format',
+          }),
+        );
       }
     });
 
@@ -712,11 +734,13 @@ export class ChatConversationDO {
       this.sessions.delete(webSocket);
     });
 
-    webSocket.send(JSON.stringify({
-      type: 'connected',
-      sessionInfo,
-      timestamp: new Date().toISOString(),
-    }));
+    webSocket.send(
+      JSON.stringify({
+        type: 'connected',
+        sessionInfo,
+        timestamp: new Date().toISOString(),
+      }),
+    );
   }
 
   private async handleWebSocketMessage(sender: WebSocket, message: any) {
@@ -727,62 +751,76 @@ export class ChatConversationDO {
     switch (message.type) {
       case 'chat':
         // Add message to history with metadata
-        await this.handleAddMessage(new Request('https://do/add-message', {
-          method: 'POST',
-          body: JSON.stringify({
-            role: 'user',
-            content: message.content,
-            timestamp: new Date().toISOString(),
-            metadata: {
-              learningStyle: message.learningStyle,
-              topics: message.topics
-            }
-          })
-        }));
+        await this.handleAddMessage(
+          new Request('https://do/add-message', {
+            method: 'POST',
+            body: JSON.stringify({
+              role: 'user',
+              content: message.content,
+              timestamp: new Date().toISOString(),
+              metadata: {
+                learningStyle: message.learningStyle,
+                topics: message.topics,
+              },
+            }),
+          }),
+        );
         break;
 
       case 'get-history':
         const history = this.conversationHistory.slice(-10);
-        sender.send(JSON.stringify({
-          type: 'history',
-          messages: history
-        }));
+        sender.send(
+          JSON.stringify({
+            type: 'history',
+            messages: history,
+          }),
+        );
         break;
 
       case 'get-context':
         const context = {
           sessionInfo: this.sessionInfo,
           recentMessages: this.conversationHistory.slice(-this.conversationWindowSize),
-          messageCount: this.conversationHistory.length
+          messageCount: this.conversationHistory.length,
         };
-        sender.send(JSON.stringify({
-          type: 'context',
-          data: context
-        }));
+        sender.send(
+          JSON.stringify({
+            type: 'context',
+            data: context,
+          }),
+        );
         break;
 
       case 'restore-state':
         if (message.conversationId) {
-          await this.handleRestoreState(new Request('https://do/restore-state', {
-            method: 'POST',
-            body: JSON.stringify({ conversationId: message.conversationId })
-          }));
-          sender.send(JSON.stringify({
-            type: 'state-restored',
-            conversationId: message.conversationId,
-            messageCount: this.conversationHistory.length
-          }));
+          await this.handleRestoreState(
+            new Request('https://do/restore-state', {
+              method: 'POST',
+              body: JSON.stringify({ conversationId: message.conversationId }),
+            }),
+          );
+          sender.send(
+            JSON.stringify({
+              type: 'state-restored',
+              conversationId: message.conversationId,
+              messageCount: this.conversationHistory.length,
+            }),
+          );
         }
         break;
 
       case 'persist-state':
-        await this.handlePersistState(new Request('https://do/persist-state', {
-          method: 'POST'
-        }));
-        sender.send(JSON.stringify({
-          type: 'state-persisted',
-          messageCount: this.conversationHistory.length
-        }));
+        await this.handlePersistState(
+          new Request('https://do/persist-state', {
+            method: 'POST',
+          }),
+        );
+        sender.send(
+          JSON.stringify({
+            type: 'state-persisted',
+            messageCount: this.conversationHistory.length,
+          }),
+        );
         break;
 
       case 'ping':
@@ -802,13 +840,8 @@ export class ChatConversationDO {
   }
 
   private sanitizeContent(content: string): string {
-    // Basic content sanitization to prevent malicious content
-    return content
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframe tags
-      .replace(/javascript:/gi, '') // Remove javascript: protocols
-      .replace(/on\w+\s*=/gi, '') // Remove event handlers
-      .trim();
+    // Use centralized sanitization utility
+    return sanitizeInput(content).trim();
   }
 
   private handleStats(): Response {
@@ -816,7 +849,7 @@ export class ChatConversationDO {
       activeSessions: this.sessions.size,
       conversationLength: this.conversationHistory.length,
       sessionInfo: this.sessionInfo,
-      rateLimitEntries: this.rateLimitMap.size
+      rateLimitEntries: this.rateLimitMap.size,
     };
 
     return new Response(JSON.stringify(stats), {
@@ -828,7 +861,7 @@ export class ChatConversationDO {
     // Clear conversation history
     this.conversationHistory = [];
     this.rateLimitMap.clear();
-    
+
     if (this.sessionInfo) {
       const conversationId = this.sessionInfo.conversationId;
       await this.state.storage.delete(`history:${conversationId}`);
