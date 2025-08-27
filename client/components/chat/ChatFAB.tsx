@@ -1,9 +1,9 @@
-import React from 'react';
+import type { KeyboardEvent } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { toggleChat } from '../../store/slices/chatSlice';
 import styles from '../../styles/components/chat.module.css';
 
-export const ChatFAB: React.FC = () => {
+export const ChatFAB = () => {
   const dispatch = useAppDispatch();
   const isOpen = useAppSelector((state) => state.chat.isOpen);
 
@@ -11,7 +11,7 @@ export const ChatFAB: React.FC = () => {
     dispatch(toggleChat());
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleClick();
