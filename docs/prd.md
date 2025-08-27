@@ -753,7 +753,7 @@ Establish multi-tenant infrastructure with D1 database provisioning, extend exis
 Expand chat capabilities with conversation memory, personalized explanations based on learning style, proactive help suggestions, and rich media responses. Add basic student learning dashboard showing chat history, saved explanations, and personal insights. This creates sticky user engagement.
 
 **Epic 3: Deep Linking Assessment Integration**
-Enable instructors to embed AI-powered conversational assessment checkpoints into Canvas assignments through deep linking, providing real-time comprehension feedback to students and learning insights to instructors. This creates seamless LMS integration.
+Enable instructors to embed AI-powered conversational assessment checkpoints into LMS assignments through deep linking, providing real-time comprehension feedback to students and learning insights to instructors. This creates seamless LMS integration.
 
 **Epic 4: Learner DNA Core + Privacy Controls**
 Build the cognitive profiling system that captures memory patterns, learning velocity, and engagement DNA with comprehensive privacy controls, data management interfaces, and student consent workflows. This establishes trust while building core algorithms.

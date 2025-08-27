@@ -705,3 +705,181 @@ CREATE INDEX idx_escalations_learner ON academic_support_escalations(tenant_id, 
 CREATE INDEX idx_escalations_instructor ON academic_support_escalations(tenant_id, instructor_notified_at);
 CREATE INDEX idx_escalations_severity ON academic_support_escalations(severity_score DESC, triggered_at);
 CREATE INDEX idx_escalations_status ON academic_support_escalations(resolution_status, triggered_at);
+
+-- ============================================
+-- STORY 3.1: LMS CONTENT EXTRACTION AND ANALYSIS
+-- ============================================
+
+-- LMS content storage with multi-tenant isolation
+CREATE TABLE IF NOT EXISTS lms_content (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    page_url TEXT NOT NULL,
+    page_type TEXT NOT NULL, -- 'assignment', 'discussion', 'module', 'page', 'quiz', 'unknown'
+    lms_type TEXT NOT NULL, -- 'canvas', 'moodle', 'blackboard', 'd2l', 'unknown'
+    content_hash TEXT NOT NULL, -- SHA-256 of content for change detection
+    raw_content TEXT NOT NULL, -- Original HTML/text content
+    processed_content JSON NOT NULL, -- Structured content with metadata
+    extracted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    version_number INTEGER DEFAULT 1,
+    created_by TEXT, -- instructor who placed assessment/requested extraction
+    extraction_consent BOOLEAN DEFAULT FALSE, -- Explicit instructor consent
+    extraction_method TEXT DEFAULT 'postmessage', -- 'postmessage', 'manual', 'api'
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    UNIQUE(tenant_id, page_url, content_hash)
+);
+
+CREATE INDEX idx_lms_content_tenant_url ON lms_content(tenant_id, page_url);
+CREATE INDEX idx_lms_content_hash ON lms_content(content_hash);
+CREATE INDEX idx_lms_content_tenant_type_hash ON lms_content(tenant_id, page_type, content_hash);
+CREATE INDEX idx_lms_content_extraction ON lms_content(tenant_id, extracted_at DESC);
+
+-- Content analysis results
+CREATE TABLE IF NOT EXISTS content_analysis (
+    id TEXT PRIMARY KEY,
+    content_id TEXT NOT NULL,
+    key_concepts JSON NOT NULL, -- Extracted concepts and topics with confidence scores
+    learning_objectives JSON, -- Identified learning goals with Bloom levels
+    prerequisite_concepts JSON, -- Required prior knowledge
+    difficulty_indicators JSON, -- Complexity markers and readability scores
+    assessment_opportunities JSON, -- Suggested assessment points with reasoning
+    analysis_confidence REAL NOT NULL, -- 0-1 confidence in analysis
+    readability_score REAL, -- Flesch readability score 0-100
+    estimated_reading_time INTEGER, -- Minutes
+    content_complexity TEXT, -- 'basic', 'intermediate', 'advanced'
+    topic_categories JSON, -- Detected subject categories
+    analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    analysis_version TEXT DEFAULT '1.0', -- Track algorithm versions
+    FOREIGN KEY (content_id) REFERENCES lms_content(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_content_analysis_content ON content_analysis(content_id);
+CREATE INDEX idx_content_analysis_concepts ON content_analysis(content_id) 
+    WHERE json_array_length(key_concepts) > 0;
+CREATE INDEX idx_content_analysis_complexity ON content_analysis(content_complexity, analysis_confidence);
+
+-- Content version tracking for change detection
+CREATE TABLE IF NOT EXISTS content_versions (
+    id TEXT PRIMARY KEY,
+    content_id TEXT NOT NULL,
+    version_number INTEGER NOT NULL,
+    content_hash TEXT NOT NULL,
+    change_summary TEXT,
+    changed_sections JSON, -- Which sections changed
+    change_magnitude TEXT, -- 'minor', 'moderate', 'major'
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (content_id) REFERENCES lms_content(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_content_versions_content ON content_versions(content_id, version_number);
+CREATE INDEX idx_content_versions_time ON content_versions(changed_at DESC);
+
+-- Content engagement tracking with privacy controls
+CREATE TABLE IF NOT EXISTS content_engagement (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    learner_id TEXT NOT NULL,
+    content_id TEXT NOT NULL,
+    page_url TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    engagement_data JSON NOT NULL, -- Reading patterns, scroll behavior, interactions
+    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    session_end TIMESTAMP,
+    total_time_seconds INTEGER,
+    scroll_depth_percent REAL,
+    interaction_count INTEGER DEFAULT 0,
+    hover_confusion_events INTEGER DEFAULT 0,
+    rapid_scroll_events INTEGER DEFAULT 0,
+    privacy_mode BOOLEAN DEFAULT FALSE, -- Enhanced privacy when true
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY (learner_id) REFERENCES learner_profiles(id),
+    FOREIGN KEY (content_id) REFERENCES lms_content(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_content_engagement_learner ON content_engagement(tenant_id, learner_id);
+CREATE INDEX idx_content_engagement_content ON content_engagement(content_id);
+CREATE INDEX idx_content_engagement_recent ON content_engagement(tenant_id, session_start DESC) 
+    WHERE session_start > datetime('now', '-7 days');
+CREATE INDEX idx_content_engagement_session ON content_engagement(session_id);
+
+-- Content extraction consent and privacy settings
+CREATE TABLE IF NOT EXISTS content_extraction_settings (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    instructor_id TEXT NOT NULL,
+    course_id TEXT NOT NULL,
+    extraction_enabled BOOLEAN DEFAULT FALSE,
+    auto_extract BOOLEAN DEFAULT FALSE,
+    content_types_allowed JSON DEFAULT '["assignment", "page", "module"]',
+    retention_days INTEGER DEFAULT 90,
+    anonymize_engagement BOOLEAN DEFAULT TRUE,
+    require_student_consent BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    UNIQUE(tenant_id, instructor_id, course_id)
+);
+
+CREATE INDEX idx_extraction_settings_course ON content_extraction_settings(tenant_id, course_id);
+CREATE INDEX idx_extraction_settings_instructor ON content_extraction_settings(tenant_id, instructor_id);
+
+-- Content-aware assessment opportunities
+CREATE TABLE IF NOT EXISTS content_assessments (
+    id TEXT PRIMARY KEY,
+    content_id TEXT NOT NULL,
+    assessment_type TEXT NOT NULL, -- 'comprehension', 'application', 'analysis', 'synthesis', 'evaluation'
+    location_identifier TEXT NOT NULL, -- Section or paragraph identifier
+    difficulty_level REAL NOT NULL, -- 0-1 scale
+    suggested_questions JSON, -- Array of potential questions
+    optimal_timing TEXT, -- When to present assessment
+    success_threshold REAL DEFAULT 0.7, -- Expected success rate
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    used_count INTEGER DEFAULT 0,
+    effectiveness_score REAL, -- Based on student performance
+    FOREIGN KEY (content_id) REFERENCES lms_content(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_content_assessments_content ON content_assessments(content_id);
+CREATE INDEX idx_content_assessments_type ON content_assessments(assessment_type, difficulty_level);
+CREATE INDEX idx_content_assessments_effectiveness ON content_assessments(effectiveness_score DESC);
+
+-- Content extraction audit log for compliance
+CREATE TABLE IF NOT EXISTS content_extraction_audit (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    actor_type TEXT NOT NULL, -- 'instructor', 'system', 'admin'
+    action TEXT NOT NULL, -- 'extract', 'analyze', 'delete', 'export', 'view'
+    content_id TEXT,
+    page_url TEXT,
+    success BOOLEAN DEFAULT TRUE,
+    error_message TEXT,
+    metadata JSON DEFAULT '{}',
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+CREATE INDEX idx_content_audit_tenant ON content_extraction_audit(tenant_id, created_at DESC);
+CREATE INDEX idx_content_audit_actor ON content_extraction_audit(actor_id, created_at DESC);
+CREATE INDEX idx_content_audit_content ON content_extraction_audit(content_id);
+
+-- Performance metrics for content processing
+CREATE TABLE IF NOT EXISTS content_processing_metrics (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    content_id TEXT,
+    operation TEXT NOT NULL, -- 'extraction', 'analysis', 'cache_hit', 'cache_miss'
+    duration_ms INTEGER NOT NULL,
+    content_size_bytes INTEGER,
+    success BOOLEAN DEFAULT TRUE,
+    error_type TEXT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+CREATE INDEX idx_processing_metrics_tenant ON content_processing_metrics(tenant_id, timestamp DESC);
+CREATE INDEX idx_processing_metrics_operation ON content_processing_metrics(operation, success);
+CREATE INDEX idx_processing_metrics_performance ON content_processing_metrics(duration_ms, timestamp DESC);

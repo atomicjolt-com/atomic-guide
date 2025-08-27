@@ -50,6 +50,17 @@ export interface ConversationSession {
   topics?: string[];
   summaryGenerated?: boolean;
   lastSummaryAt?: string;
+  contentContext?: ContentContext;
+}
+
+export interface ContentContext {
+  contentId?: string;
+  pageUrl?: string;
+  pageType?: string;
+  keyConcepts?: string[];
+  learningObjectives?: string[];
+  currentSection?: string;
+  lastUpdated?: string;
 }
 
 export interface ConversationSummary {

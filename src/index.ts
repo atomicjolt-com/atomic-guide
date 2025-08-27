@@ -38,6 +38,7 @@ import { getConversations, getLearningInsights, updateLearningStyle, getConversa
 import faqHandler from './api/handlers/faq';
 import richMediaHandler from './api/handlers/richMedia';
 import suggestionHandler from './api/handlers/suggestions';
+import contentHandler from './api/handlers/content';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -164,6 +165,9 @@ app.route('/api/learner/media', richMediaHandler);
 app.route('/api/chat/suggestions', suggestionHandler);
 app.route('/api/learner/suggestion-preferences', suggestionHandler);
 app.route('/api/dashboard/suggestions', suggestionHandler);
+
+// Mount content extraction and analysis routes
+app.route('/api/content', contentHandler);
 
 // Error handling
 app.onError((err: Error, c) => {
