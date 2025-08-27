@@ -77,7 +77,7 @@ app.use(
 );
 
 // Security headers middleware
-app.use('/*', async(c: Context, next: Next) => {
+app.use('/*', async (c: Context, next: Next) => {
   // Generate request ID for tracking
   const requestId = crypto.randomUUID();
   c.set('requestId', requestId);
@@ -93,15 +93,29 @@ app.use('/*', async(c: Context, next: Next) => {
 
   // Content Security Policy - adjust as needed
   const csp = [
-    'default-src \'self\'',
-    'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'', // Needed for some LMS platforms
-    'style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com',
-    'img-src \'self\' data: https:',
-    'font-src \'self\' data: https://fonts.gstatic.com',
-    'connect-src \'self\'',
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Needed for some LMS platforms
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https:",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self'",
     'frame-ancestors *', // Allow embedding in any domain for LTI
   ].join('; ');
   c.header('Content-Security-Policy', csp);
+});
+
+// Serve static assets
+app.get('/assets/*', async (c) => {
+  const path = c.req.path.replace(/^\//, '');
+  const assetPath = `public/${path}`;
+
+  // Try to read the asset from the public directory
+  const asset = c.env.ASSETS?.fetch(new Request(`https://fake-host/${assetPath}`));
+  if (asset) {
+    return asset;
+  }
+
+  return c.notFound();
 });
 
 // Health check and monitoring endpoints
@@ -122,7 +136,7 @@ app.get(LTI_JWKS_PATH, (c) => handleJwks(c));
 app.post(LTI_INIT_PATH, (c) => handleInit(c, initScriptName));
 app.post(LTI_REDIRECT_PATH, (c) => handleRedirect(c));
 
-app.post(LTI_LAUNCH_PATH, async(c) => {
+app.post(LTI_LAUNCH_PATH, async (c) => {
   // validateLaunchRequest will throw an exception if the request is invalid
   // and will return the idTokenWrapper and launchSettings
   // which allow the application to retrive values from the LTI launch
