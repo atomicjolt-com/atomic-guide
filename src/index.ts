@@ -39,6 +39,7 @@ import faqHandler from './api/handlers/faq';
 import richMediaHandler from './api/handlers/richMedia';
 import suggestionHandler from './api/handlers/suggestions';
 import contentHandler from './api/handlers/content';
+import testHtml from './html/test_html';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -118,9 +119,21 @@ app.get('/assets/*', async (c) => {
   return c.notFound();
 });
 
-// Health check and monitoring endpoints
+// Home page
 app.get('/', (c) => c.html(indexHtml(homeScriptName)));
 
+// Testing page - only available in development/test environments
+app.get('/test', (c) => {
+  const isDevelopment = c.env.ENVIRONMENT === 'development' || c.env.ENVIRONMENT === 'test';
+
+  if (isDevelopment) {
+    return c.html(testHtml(launchScriptName));
+  } else {
+    return c.notFound();
+  }
+});
+
+// Health check and monitoring endpoints
 app.get('/up', (c) => {
   const requestId = c.get('requestId') || 'unknown';
   return c.json({

@@ -20,6 +20,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Run tests in watch mode: `npm test -- --watch`
 - Run a specific test file: `npm test -- path/to/test.ts`
 
+The application can be viewed by visiting `http://localhost:5988/test`.
+Use PlayWright MCP to visit this url for testing
+
 ### Code Quality
 
 - Format code: `npx prettier --write .`

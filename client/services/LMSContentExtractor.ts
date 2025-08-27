@@ -75,13 +75,13 @@ export class LMSContentExtractor extends EventEmitter {
         '.brightspace.com',
       ],
     };
-    
+
     this.setupMessageListener();
   }
 
   private setupMessageListener(): void {
     if (this.isListening) return;
-    
+
     window.addEventListener('message', this.handleMessage.bind(this));
     this.isListening = true;
   }
@@ -96,7 +96,7 @@ export class LMSContentExtractor extends EventEmitter {
 
     const response = event.data as PostMessageResponse;
     const handler = this.messageHandlers.get(response.message_id);
-    
+
     if (handler) {
       handler(response);
       this.messageHandlers.delete(response.message_id);
@@ -107,9 +107,12 @@ export class LMSContentExtractor extends EventEmitter {
   private isValidOrigin(origin: string): boolean {
     try {
       const url = new URL(origin);
-      return this.options.allowedOrigins.some(allowed => {
+      return this.options.allowedOrigins.some((allowed) => {
         if (allowed.startsWith('.')) {
-          return url.hostname.endsWith(allowed) || url.hostname.endsWith(allowed.slice(1));
+          // Properly validate domain suffix to prevent bypass attacks
+          // e.g., .instructure.com should match canvas.instructure.com but not evil.instructure.com.attacker.com
+          const suffix = allowed.slice(1); // Remove leading dot
+          return url.hostname === suffix || (url.hostname.endsWith('.' + suffix) && !url.hostname.includes(suffix + '.'));
         }
         return url.hostname === allowed;
       });
@@ -121,7 +124,9 @@ export class LMSContentExtractor extends EventEmitter {
   private generateMessageId(): string {
     const timestamp = Date.now();
     const random = crypto.getRandomValues(new Uint8Array(16));
-    const randomHex = Array.from(random).map(b => b.toString(16).padStart(2, '0')).join('');
+    const randomHex = Array.from(random)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
     const id = `lms_content_${timestamp}_${randomHex}`;
     const nonce = timestamp;
     this.nonces.set(id, nonce);
@@ -133,22 +138,19 @@ export class LMSContentExtractor extends EventEmitter {
     const messageString = JSON.stringify(message);
     const encoder = new TextEncoder();
     const data = encoder.encode(messageString);
-    
+
     // Use a shared secret from session storage (set during LTI launch)
-    const secret = sessionStorage.getItem('lti_shared_secret') || 'default-dev-secret';
+    const secret = sessionStorage.getItem('lti_shared_secret');
+    if (!secret) {
+      throw new Error('LTI shared secret not found. Cannot authenticate message.');
+    }
     const keyData = encoder.encode(secret);
-    
-    const key = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign']
-    );
-    
+
+    const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+
     const signature = await crypto.subtle.sign('HMAC', key, data);
     const signatureArray = Array.from(new Uint8Array(signature));
-    return signatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return signatureArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   private async verifyMessageSignature(message: any, signature: string): Promise<boolean> {
@@ -167,7 +169,7 @@ export class LMSContentExtractor extends EventEmitter {
 
       this.messageHandlers.set(messageId, (response) => {
         clearTimeout(timeoutId);
-        
+
         if (response.error) {
           reject(new Error(response.error));
         } else {
@@ -186,7 +188,7 @@ export class LMSContentExtractor extends EventEmitter {
       const signedRequest = {
         ...request,
         signature,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       // Send to parent with specific origin validation
@@ -196,36 +198,33 @@ export class LMSContentExtractor extends EventEmitter {
   }
 
   private getTargetOrigin(): string {
-    // Use the parent's origin if available from referrer or opener
-    try {
-      // Try to get parent origin from document referrer
-      if (document.referrer) {
-        const referrerUrl = new URL(document.referrer);
-        return referrerUrl.origin;
-      }
-      
-      // Check if we have a stored LMS origin from initial launch
-      const storedOrigin = sessionStorage.getItem('lms_origin');
-      if (storedOrigin && this.isValidOrigin(storedOrigin)) {
-        return storedOrigin;
-      }
-      
-      // Fall back to current origin's parent domain
-      const currentOrigin = window.location.origin;
-      if (currentOrigin && currentOrigin !== 'null') {
-        return currentOrigin;
-      }
-    } catch (error) {
-      console.error('Error determining target origin:', error);
+    // Enforce explicit origin configuration - no fallbacks allowed
+    
+    // First, check if we have a stored LMS origin from initial LTI launch
+    const storedOrigin = sessionStorage.getItem('lms_origin');
+    if (storedOrigin && this.isValidOrigin(storedOrigin)) {
+      return storedOrigin;
     }
     
-    // Last resort: require explicit configuration
+    // Try to get parent origin from document referrer if it's validated
+    if (document.referrer) {
+      try {
+        const referrerUrl = new URL(document.referrer);
+        if (this.isValidOrigin(referrerUrl.origin)) {
+          return referrerUrl.origin;
+        }
+      } catch (error) {
+        console.error('Invalid referrer URL:', error);
+      }
+    }
+    
+    // No valid origin found - fail securely rather than using wildcards or insecure fallbacks
     throw new Error('Unable to determine secure target origin for postMessage. Please configure LMS origin.');
   }
 
   private detectLMSType(): 'canvas' | 'moodle' | 'blackboard' | 'd2l' | 'unknown' {
     const hostname = window.location.hostname;
-    
+
     if (hostname.includes('instructure.com') || hostname.includes('canvas')) {
       return 'canvas';
     } else if (hostname.includes('moodle') || hostname.includes('moodlecloud')) {
@@ -235,13 +234,13 @@ export class LMSContentExtractor extends EventEmitter {
     } else if (hostname.includes('brightspace') || hostname.includes('d2l')) {
       return 'd2l';
     }
-    
+
     return 'unknown';
   }
 
   private detectPageType(url: string, lmsType: string): LMSPageType {
     const urlPath = url.toLowerCase();
-    
+
     if (lmsType === 'canvas') {
       if (urlPath.includes('/assignments/')) return 'assignment';
       if (urlPath.includes('/discussion_topics/')) return 'discussion';
@@ -267,7 +266,7 @@ export class LMSContentExtractor extends EventEmitter {
       if (urlPath.includes('/le/content/')) return 'page';
       if (urlPath.includes('/quizzing/')) return 'quiz';
     }
-    
+
     return 'unknown';
   }
 
@@ -279,90 +278,90 @@ export class LMSContentExtractor extends EventEmitter {
         return content;
       } catch (error) {
         this.retryCount = i + 1;
-        
+
         if (i === this.options.maxRetries) {
           throw error;
         }
-        
+
         await this.delay(this.options.retryDelay * Math.pow(2, i));
       }
     }
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private sanitizeHtml(html: string): string {
     const div = document.createElement('div');
     div.innerHTML = html;
-    
+
     const scripts = div.querySelectorAll('script');
-    scripts.forEach(script => script.remove());
-    
+    scripts.forEach((script) => script.remove());
+
     const styles = div.querySelectorAll('style');
-    styles.forEach(style => style.remove());
-    
+    styles.forEach((style) => style.remove());
+
     const iframes = div.querySelectorAll('iframe');
-    iframes.forEach(iframe => {
+    iframes.forEach((iframe) => {
       const placeholder = document.createElement('div');
       placeholder.textContent = `[Embedded content: ${iframe.src || 'iframe'}]`;
       iframe.replaceWith(placeholder);
     });
-    
+
     return div.innerHTML;
   }
 
   private extractMetadata(html: string): LMSContentMetadata {
     const div = document.createElement('div');
     div.innerHTML = html;
-    
-    const headings = Array.from(div.querySelectorAll('h1, h2, h3, h4, h5, h6')).map(h => ({
+
+    const headings = Array.from(div.querySelectorAll('h1, h2, h3, h4, h5, h6')).map((h) => ({
       level: parseInt(h.tagName[1]),
       text: h.textContent?.trim() || '',
       id: h.id || undefined,
     }));
-    
-    const links = Array.from(div.querySelectorAll('a')).map(a => ({
+
+    const links = Array.from(div.querySelectorAll('a')).map((a) => ({
       url: a.href || '',
       text: a.textContent?.trim() || '',
       target: a.target || undefined,
     }));
-    
-    const images = Array.from(div.querySelectorAll('img')).map(img => ({
+
+    const images = Array.from(div.querySelectorAll('img')).map((img) => ({
       src: img.src || '',
       alt: img.alt || '',
       title: img.title || undefined,
     }));
-    
-    const lists = Array.from(div.querySelectorAll('ul, ol')).map(list => ({
-      type: list.tagName.toLowerCase() === 'ul' ? 'unordered' : 'ordered' as 'unordered' | 'ordered',
-      items: Array.from(list.querySelectorAll('li')).map(li => li.textContent?.trim() || ''),
+
+    const lists = Array.from(div.querySelectorAll('ul, ol')).map((list) => ({
+      type: list.tagName.toLowerCase() === 'ul' ? 'unordered' : ('ordered' as 'unordered' | 'ordered'),
+      items: Array.from(list.querySelectorAll('li')).map((li) => li.textContent?.trim() || ''),
     }));
-    
+
     const emphasis = [
-      ...Array.from(div.querySelectorAll('strong, b')).map(el => ({
+      ...Array.from(div.querySelectorAll('strong, b')).map((el) => ({
         type: 'bold' as const,
         text: el.textContent?.trim() || '',
       })),
-      ...Array.from(div.querySelectorAll('em, i')).map(el => ({
+      ...Array.from(div.querySelectorAll('em, i')).map((el) => ({
         type: 'italic' as const,
         text: el.textContent?.trim() || '',
       })),
-      ...Array.from(div.querySelectorAll('u')).map(el => ({
+      ...Array.from(div.querySelectorAll('u')).map((el) => ({
         type: 'underline' as const,
         text: el.textContent?.trim() || '',
       })),
     ];
-    
-    const tables = Array.from(div.querySelectorAll('table')).map(table => {
-      const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent?.trim() || '');
-      const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
-        Array.from(tr.querySelectorAll('td')).map(td => td.textContent?.trim() || '')
+
+    const tables = Array.from(div.querySelectorAll('table')).map((table) => {
+      const headers = Array.from(table.querySelectorAll('th')).map((th) => th.textContent?.trim() || '');
+      const rows = Array.from(table.querySelectorAll('tbody tr')).map((tr) =>
+        Array.from(tr.querySelectorAll('td')).map((td) => td.textContent?.trim() || ''),
       );
       return { headers, rows };
     });
-    
+
     return { headings, links, images, lists, emphasis, tables };
   }
 
@@ -372,27 +371,27 @@ export class LMSContentExtractor extends EventEmitter {
     const data = encoder.encode(content);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
     return hashHex;
   }
 
   async extractPageContent(): Promise<LMSContentExtraction> {
     try {
       const rawContent = await this.extractContentWithRetry();
-      
+
       const lmsType = this.detectLMSType();
       const pageUrl = rawContent.url || window.location.href;
       const pageType = this.detectPageType(pageUrl, lmsType);
-      
+
       const sanitizedHtml = this.sanitizeHtml(rawContent.content || rawContent.html || '');
       const metadata = this.extractMetadata(sanitizedHtml);
-      
+
       const div = document.createElement('div');
       div.innerHTML = sanitizedHtml;
       const textContent = div.textContent || div.innerText || '';
-      
+
       const contentHash = await this.hashContent(sanitizedHtml);
-      
+
       const extraction: LMSContentExtraction = {
         pageUrl,
         pageType,
@@ -406,10 +405,10 @@ export class LMSContentExtractor extends EventEmitter {
         contentHash,
         lmsType,
       };
-      
+
       this.lastContent = extraction;
       this.emit('content-extracted', extraction);
-      
+
       return extraction;
     } catch (error) {
       console.error('Failed to extract LMS content:', error);
@@ -422,13 +421,13 @@ export class LMSContentExtractor extends EventEmitter {
     if (this.monitoringInterval) {
       return;
     }
-    
+
     this.options.enableMonitoring = true;
-    
-    const monitor = async() => {
+
+    const monitor = async () => {
       try {
         const newContent = await this.extractPageContent();
-        
+
         if (this.lastContent && this.lastContent.contentHash !== newContent.contentHash) {
           this.emit('content-changed', {
             previous: this.lastContent,
@@ -439,7 +438,7 @@ export class LMSContentExtractor extends EventEmitter {
         console.error('Content monitoring error:', error);
       }
     };
-    
+
     monitor();
     this.monitoringInterval = setInterval(monitor, this.options.monitoringInterval);
     this.emit('monitoring-started');
@@ -464,12 +463,12 @@ export class LMSContentExtractor extends EventEmitter {
 
   destroy(): void {
     this.stopContentMonitoring();
-    
+
     if (this.isListening) {
       window.removeEventListener('message', this.handleMessage.bind(this));
       this.isListening = false;
     }
-    
+
     this.messageHandlers.clear();
     this.nonces.clear();
     this.removeAllListeners();

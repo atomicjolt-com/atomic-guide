@@ -26,24 +26,24 @@ INSERT INTO tenants (
 
 -- Create test learners with different cognitive profiles
 INSERT INTO learner_profiles (
-    tenant_id, lti_user_id, lti_deployment_id, email, name,
+    id, tenant_id, lti_user_id, lti_deployment_id, email, name,
     forgetting_curve_s, learning_velocity, optimal_difficulty, preferred_modality,
     peak_performance_time, avg_session_duration, total_sessions
 ) VALUES
     -- High performer - fast learner with strong retention
-    ('dev_tenant_001', 'user_001', 'deployment_001', 'alice@university.edu', 'Alice Johnson',
+    ('learner_001', 'dev_tenant_001', 'user_001', 'dev_deployment_001', 'alice@university.edu', 'Alice Johnson',
      1.5, 1.3, 0.75, 'visual', 'morning', 45, 25),
 
     -- Average performer - standard learning pace
-    ('dev_tenant_001', 'user_002', 'deployment_001', 'bob@university.edu', 'Bob Smith',
+    ('learner_002', 'dev_tenant_001', 'user_002', 'dev_deployment_001', 'bob@university.edu', 'Bob Smith',
      1.0, 1.0, 0.7, 'mixed', 'afternoon', 30, 20),
 
     -- Struggling learner - needs more support
-    ('dev_tenant_001', 'user_003', 'deployment_001', 'charlie@university.edu', 'Charlie Davis',
+    ('learner_003', 'dev_tenant_001', 'user_003', 'dev_deployment_001', 'charlie@university.edu', 'Charlie Davis',
      0.7, 0.8, 0.65, 'kinesthetic', 'evening', 20, 15),
 
     -- Highly engaged but moderate pace
-    ('dev_tenant_001', 'user_004', 'deployment_001', 'diana@university.edu', 'Diana Martinez',
+    ('learner_004', 'dev_tenant_001', 'user_004', 'dev_deployment_001', 'diana@university.edu', 'Diana Martinez',
      1.1, 0.9, 0.72, 'reading', 'morning', 60, 40);
 
 -- ============================================
@@ -100,25 +100,25 @@ INSERT INTO concept_mastery (
     last_practiced_at, next_review_at, review_interval_days, ease_factor, risk_score
 ) VALUES
     -- Alice (high performer) - strong across the board
-    ('dev_tenant_001', 1, 'cs101_variables', 0.95, 0.1, 10, 9, datetime('now', '-1 day'), datetime('now', '+7 days'), 7, 2.8, 0.1),
-    ('dev_tenant_001', 1, 'cs101_operators', 0.90, 0.15, 8, 7, datetime('now', '-2 days'), datetime('now', '+5 days'), 5, 2.6, 0.15),
-    ('dev_tenant_001', 1, 'cs101_control_flow', 0.85, 0.2, 12, 10, datetime('now', '-3 days'), datetime('now', '+4 days'), 4, 2.5, 0.2),
-    ('dev_tenant_001', 1, 'cs101_loops', 0.80, 0.2, 15, 12, datetime('now', '-1 day'), datetime('now', '+3 days'), 3, 2.4, 0.25),
+    ('dev_tenant_001', 'learner_001', 'cs101_variables', 0.95, 0.1, 10, 9, datetime('now', '-1 day'), datetime('now', '+7 days'), 7, 2.8, 0.1),
+    ('dev_tenant_001', 'learner_001', 'cs101_operators', 0.90, 0.15, 8, 7, datetime('now', '-2 days'), datetime('now', '+5 days'), 5, 2.6, 0.15),
+    ('dev_tenant_001', 'learner_001', 'cs101_control_flow', 0.85, 0.2, 12, 10, datetime('now', '-3 days'), datetime('now', '+4 days'), 4, 2.5, 0.2),
+    ('dev_tenant_001', 'learner_001', 'cs101_loops', 0.80, 0.2, 15, 12, datetime('now', '-1 day'), datetime('now', '+3 days'), 3, 2.4, 0.25),
 
     -- Bob (average) - moderate mastery
-    ('dev_tenant_001', 2, 'cs101_variables', 0.85, 0.2, 12, 10, datetime('now', '-2 days'), datetime('now', '+3 days'), 3, 2.5, 0.2),
-    ('dev_tenant_001', 2, 'cs101_operators', 0.75, 0.25, 10, 7, datetime('now', '-3 days'), datetime('now', '+2 days'), 2, 2.3, 0.3),
-    ('dev_tenant_001', 2, 'cs101_control_flow', 0.65, 0.3, 14, 9, datetime('now', '-1 day'), datetime('now', '+1 day'), 1, 2.1, 0.4),
+    ('dev_tenant_001', 'learner_002', 'cs101_variables', 0.85, 0.2, 12, 10, datetime('now', '-2 days'), datetime('now', '+3 days'), 3, 2.5, 0.2),
+    ('dev_tenant_001', 'learner_002', 'cs101_operators', 0.75, 0.25, 10, 7, datetime('now', '-3 days'), datetime('now', '+2 days'), 2, 2.3, 0.3),
+    ('dev_tenant_001', 'learner_002', 'cs101_control_flow', 0.65, 0.3, 14, 9, datetime('now', '-1 day'), datetime('now', '+1 day'), 1, 2.1, 0.4),
 
     -- Charlie (struggling) - needs support
-    ('dev_tenant_001', 3, 'cs101_variables', 0.70, 0.3, 20, 14, datetime('now', '-1 day'), datetime('now', '+1 day'), 1, 2.0, 0.35),
-    ('dev_tenant_001', 3, 'cs101_operators', 0.55, 0.35, 18, 10, datetime('now', '-2 days'), datetime('now'), 1, 1.8, 0.5),
-    ('dev_tenant_001', 3, 'cs101_control_flow', 0.40, 0.4, 25, 10, datetime('now', '-4 hours'), datetime('now', '+12 hours'), 1, 1.5, 0.7),
+    ('dev_tenant_001', 'learner_003', 'cs101_variables', 0.70, 0.3, 20, 14, datetime('now', '-1 day'), datetime('now', '+1 day'), 1, 2.0, 0.35),
+    ('dev_tenant_001', 'learner_003', 'cs101_operators', 0.55, 0.35, 18, 10, datetime('now', '-2 days'), datetime('now'), 1, 1.8, 0.5),
+    ('dev_tenant_001', 'learner_003', 'cs101_control_flow', 0.40, 0.4, 25, 10, datetime('now', '-4 hours'), datetime('now', '+12 hours'), 1, 1.5, 0.7),
 
     -- Diana (engaged) - good retention but slower pace
-    ('dev_tenant_001', 4, 'cs101_variables', 0.90, 0.15, 15, 13, datetime('now', '-2 days'), datetime('now', '+5 days'), 5, 2.6, 0.15),
-    ('dev_tenant_001', 4, 'cs101_operators', 0.80, 0.2, 12, 9, datetime('now', '-3 days'), datetime('now', '+3 days'), 3, 2.4, 0.25),
-    ('dev_tenant_001', 4, 'cs101_control_flow', 0.70, 0.25, 18, 12, datetime('now', '-1 day'), datetime('now', '+2 days'), 2, 2.2, 0.35);
+    ('dev_tenant_001', 'learner_004', 'cs101_variables', 0.90, 0.15, 15, 13, datetime('now', '-2 days'), datetime('now', '+5 days'), 5, 2.6, 0.15),
+    ('dev_tenant_001', 'learner_004', 'cs101_operators', 0.80, 0.2, 12, 9, datetime('now', '-3 days'), datetime('now', '+3 days'), 3, 2.4, 0.25),
+    ('dev_tenant_001', 'learner_004', 'cs101_control_flow', 0.70, 0.25, 18, 12, datetime('now', '-1 day'), datetime('now', '+2 days'), 2, 2.2, 0.35);
 
 -- ============================================
 -- LEARNING SESSIONS
@@ -132,30 +132,30 @@ INSERT INTO learning_sessions (
     engagement_score, struggle_events, help_requests
 ) VALUES
     -- Alice's sessions - highly engaged
-    ('dev_tenant_001', 1, 'context_cs101', 'session_001',
+    ('dev_tenant_001', 'learner_001', 'context_cs101', 'session_001',
      datetime('now', '-2 hours'), datetime('now', '-1 hour'), 3600, 25, 40,
      'lecture', 'lecture_loops', 'Introduction to Loops',
      0.9, 1, 0),
 
-    ('dev_tenant_001', 1, 'context_cs101', 'session_002',
+    ('dev_tenant_001', 'learner_001', 'context_cs101', 'session_002',
      datetime('now', '-25 hours'), datetime('now', '-24 hours'), 3000, 20, 35,
      'assignment', 'hw_functions', 'Functions Practice',
      0.85, 2, 1),
 
     -- Bob's sessions - moderate engagement
-    ('dev_tenant_001', 2, 'context_cs101', 'session_003',
+    ('dev_tenant_001', 'learner_002', 'context_cs101', 'session_003',
      datetime('now', '-3 hours'), datetime('now', '-2 hours'), 3000, 18, 25,
      'lecture', 'lecture_control', 'Control Flow Basics',
      0.7, 3, 1),
 
     -- Charlie's sessions - struggling
-    ('dev_tenant_001', 3, 'context_cs101', 'session_004',
+    ('dev_tenant_001', 'learner_003', 'context_cs101', 'session_004',
      datetime('now', '-4 hours'), datetime('now', '-3 hours'), 2400, 30, 20,
      'assignment', 'hw_operators', 'Operators Exercise',
      0.5, 8, 3),
 
     -- Diana's sessions - long and focused
-    ('dev_tenant_001', 4, 'context_cs101', 'session_005',
+    ('dev_tenant_001', 'learner_004', 'context_cs101', 'session_005',
      datetime('now', '-5 hours'), datetime('now', '-3 hours'), 7200, 40, 60,
      'resource', 'textbook_ch3', 'Chapter 3: Functions',
      0.8, 4, 2);
@@ -171,7 +171,7 @@ INSERT INTO struggle_events (
     duration_ms, intervention_triggered, intervention_type
 ) VALUES
     -- Charlie's struggles
-    ('dev_tenant_001', 3, 'session_004',
+    ('dev_tenant_001', 'learner_003', 'session_004',
      'hover_confusion', 0.8, '#operator-precedence', 'Understanding operator precedence',
      15000, TRUE, 'chat_prompt'),
 
@@ -184,12 +184,12 @@ INSERT INTO struggle_events (
      120000, TRUE, 'chat_prompt'),
 
     -- Bob's minor struggles
-    ('dev_tenant_001', 2, 'session_003',
+    ('dev_tenant_001', 'learner_002', 'session_003',
      'rapid_scrolling', 0.6, '.lecture-slides', 'Looking for specific information',
      8000, FALSE, NULL),
 
     -- Diana's focused review
-    ('dev_tenant_001', 4, 'session_005',
+    ('dev_tenant_001', 'learner_004', 'session_005',
      'repeated_access', 0.5, '#recursion-example', 'Reviewing complex concept',
      25000, FALSE, NULL);
 
@@ -204,17 +204,17 @@ INSERT INTO chat_conversations (
     lti_context_id, initial_context, conversation_topic,
     status, satisfaction_rating, resolution_status
 ) VALUES
-    ('dev_tenant_001', 3, 'conv_001',
+    ('dev_tenant_001', 'learner_003', 'conv_001',
      datetime('now', '-3 hours'), datetime('now', '-2.5 hours'), 8,
      'context_cs101', 'Struggle detected on operators', 'Operator precedence',
      'closed', 4, 'resolved'),
 
-    ('dev_tenant_001', 2, 'conv_002',
+    ('dev_tenant_001', 'learner_002', 'conv_002',
      datetime('now', '-1 hour'), datetime('now', '-45 minutes'), 5,
      'context_cs101', 'User initiated', 'Control flow help',
      'closed', 5, 'resolved'),
 
-    ('dev_tenant_001', 4, 'conv_003',
+    ('dev_tenant_001', 'learner_004', 'conv_003',
      datetime('now', '-30 minutes'), datetime('now', '-10 minutes'), 12,
      'context_cs101', 'User initiated', 'Recursion explanation',
      'idle', NULL, NULL);
@@ -261,12 +261,12 @@ INSERT INTO intervention_logs (
     effectiveness_score, time_to_resolution_seconds,
     intervention_content
 ) VALUES
-    ('dev_tenant_001', 3, 1, 'proactive_chat',
+    ('dev_tenant_001', 'learner_003', 1, 'proactive_chat',
      datetime('now', '-3 hours'), datetime('now', '-2.95 hours'),
      0.8, 300,
      '{"message": "Offered help with operator precedence", "accepted": true}'),
 
-    ('dev_tenant_001', 3, 2, 'resource_suggestion',
+    ('dev_tenant_001', 'learner_003', 2, 'resource_suggestion',
      datetime('now', '-2.8 hours'), datetime('now', '-2.75 hours'),
      0.6, 180,
      '{"resource": "Interactive operator precedence tutorial", "viewed": true}');

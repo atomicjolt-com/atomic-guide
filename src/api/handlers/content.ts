@@ -89,6 +89,22 @@ async function checkInstructorPermissions(
   return settings?.extraction_enabled || false;
 }
 
+async function checkCourseMembership(
+  env: any,
+  tenantId: string,
+  userId: string,
+  courseId: string
+): Promise<boolean> {
+  // Check if user is enrolled in the course or is an instructor
+  const membership = await env.DB.prepare(
+    `SELECT role FROM course_enrollments 
+     WHERE tenant_id = ? AND user_id = ? AND course_id = ? 
+     AND status = 'active'`
+  ).bind(tenantId, userId, courseId).first();
+  
+  return membership !== null;
+}
+
 async function logContentAudit(
   env: any,
   tenantId: string,
@@ -159,6 +175,14 @@ app.post('/extract', async(c) => {
       return c.json({ error: 'Instructor consent required for content extraction' }, 403);
     }
 
+    // First check if user is a member of the course
+    const hasMembership = await checkCourseMembership(c.env, tenantId, userId, courseId);
+    if (!hasMembership) {
+      await logContentAudit(c.env, tenantId, userId, 'extract', undefined, validated.pageUrl, false, 'Not enrolled in course');
+      return c.json({ error: 'Access denied: You must be enrolled in this course to extract content' }, 403);
+    }
+
+    // Then check instructor permissions for content extraction
     const hasPermission = await checkInstructorPermissions(c.env, tenantId, userId, courseId);
     if (!hasPermission) {
       await logContentAudit(c.env, tenantId, userId, 'extract', undefined, validated.pageUrl, false, 'Permission denied');
@@ -457,12 +481,20 @@ app.post('/engagement', async(c) => {
 
 app.get('/search', async(c) => {
   const tenantId = c.get('tenantId');
+  const userId = c.get('userId');
+  const courseId = c.get('courseId');
   const query = c.req.query('q');
   const pageType = c.req.query('type');
   const limit = parseInt(c.req.query('limit') || '10');
 
   if (!query) {
     return c.json({ error: 'Search query required' }, 400);
+  }
+
+  // Verify user has access to the course content
+  const hasMembership = await checkCourseMembership(c.env, tenantId, userId, courseId);
+  if (!hasMembership) {
+    return c.json({ error: 'Access denied: You must be enrolled in this course to search its content' }, 403);
   }
 
   try {
@@ -476,7 +508,9 @@ app.get('/search', async(c) => {
         AND (lc.raw_content LIKE ? OR json_extract(lc.processed_content, '$.title') LIKE ?)
     `;
 
-    const params: any[] = [tenantId, `%${query}%`, `%${query}%`];
+    // Sanitize search query to prevent SQL injection through LIKE patterns
+    const sanitizedQuery = query.replace(/[%_\\]/g, '\\$&'); // Escape LIKE wildcards
+    const params: any[] = [tenantId, `%${sanitizedQuery}%`, `%${sanitizedQuery}%`];
 
     if (pageType) {
       sql += ' AND lc.page_type = ?';

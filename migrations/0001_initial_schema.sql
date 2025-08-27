@@ -68,7 +68,7 @@ CREATE INDEX idx_learner_profiles_active ON learner_profiles(tenant_id, last_act
 CREATE TABLE IF NOT EXISTS learning_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tenant_id TEXT NOT NULL,
-    learner_profile_id INTEGER NOT NULL,
+    learner_profile_id TEXT NOT NULL,
     lti_context_id TEXT NOT NULL, -- Course ID from LTI
     session_id TEXT NOT NULL UNIQUE, -- UUID for session
 
@@ -103,7 +103,7 @@ CREATE INDEX idx_learning_sessions_context ON learning_sessions(tenant_id, lti_c
 CREATE TABLE IF NOT EXISTS struggle_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tenant_id TEXT NOT NULL,
-    learner_profile_id INTEGER NOT NULL,
+    learner_profile_id TEXT NOT NULL,
     session_id TEXT NOT NULL,
 
     -- Event details
@@ -133,7 +133,7 @@ CREATE INDEX idx_struggle_events_learner ON struggle_events(learner_profile_id, 
 CREATE TABLE IF NOT EXISTS intervention_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tenant_id TEXT NOT NULL,
-    learner_profile_id INTEGER NOT NULL,
+    learner_profile_id TEXT NOT NULL,
     struggle_event_id INTEGER,
 
     -- Intervention details
@@ -166,7 +166,7 @@ CREATE INDEX idx_intervention_logs_effectiveness ON intervention_logs(effectiven
 CREATE TABLE IF NOT EXISTS chat_conversations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tenant_id TEXT NOT NULL,
-    learner_profile_id INTEGER NOT NULL,
+    learner_profile_id TEXT NOT NULL,
     conversation_id TEXT NOT NULL UNIQUE, -- UUID
 
     -- Metadata
@@ -258,7 +258,7 @@ CREATE INDEX idx_knowledge_graph_context ON knowledge_graph(tenant_id, lti_conte
 CREATE TABLE IF NOT EXISTS concept_mastery (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tenant_id TEXT NOT NULL,
-    learner_profile_id INTEGER NOT NULL,
+    learner_profile_id TEXT NOT NULL,
     concept_id TEXT NOT NULL,
 
     -- Mastery metrics
@@ -754,7 +754,7 @@ CREATE TABLE IF NOT EXISTS content_analysis (
 );
 
 CREATE INDEX idx_content_analysis_content ON content_analysis(content_id);
-CREATE INDEX idx_content_analysis_concepts ON content_analysis(content_id) 
+CREATE INDEX idx_content_analysis_concepts ON content_analysis(content_id)
     WHERE json_array_length(key_concepts) > 0;
 CREATE INDEX idx_content_analysis_complexity ON content_analysis(content_complexity, analysis_confidence);
 
@@ -799,7 +799,7 @@ CREATE TABLE IF NOT EXISTS content_engagement (
 
 CREATE INDEX idx_content_engagement_learner ON content_engagement(tenant_id, learner_id);
 CREATE INDEX idx_content_engagement_content ON content_engagement(content_id);
-CREATE INDEX idx_content_engagement_recent ON content_engagement(tenant_id, session_start DESC) 
+CREATE INDEX idx_content_engagement_recent ON content_engagement(tenant_id, session_start DESC)
     WHERE session_start > datetime('now', '-7 days');
 CREATE INDEX idx_content_engagement_session ON content_engagement(session_id);
 
