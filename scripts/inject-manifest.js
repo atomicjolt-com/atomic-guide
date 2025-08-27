@@ -10,7 +10,7 @@ import { join } from 'path';
 
 const DIST_DIR = './dist';
 const CLIENT_MANIFEST_PATH = join(DIST_DIR, 'client', 'manifest.json');
-const WORKER_JS_PATH = join(DIST_DIR, 'atomic_lti_worker', 'index.js');
+const WORKER_JS_PATH = join(DIST_DIR, 'atomic_guide', 'index.js');
 
 try {
   console.log('Starting manifest injection...');
