@@ -74,7 +74,7 @@ app.use(
     exposeHeaders: ['Content-Length', 'X-Request-Id'],
     maxAge: 86400,
     credentials: true,
-  }),
+  })
 );
 
 // Security headers middleware
@@ -232,7 +232,7 @@ app.onError((err: Error, c) => {
       requestId,
       timestamp,
     },
-    statusCode,
+    statusCode
   );
 });
 
@@ -244,7 +244,7 @@ app.notFound((c) => {
       path: c.req.path,
       requestId,
     },
-    404,
+    404
   );
 });
 

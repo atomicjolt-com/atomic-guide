@@ -43,8 +43,8 @@
 		{
 			"binding": "DB",
 			"database_name": "atomic-guide-db",
-			"database_id": "715fc4ba-442d-4ac0-a90e-6c68e1a1f6b9",
-			"preview_database_id": " 5634296b-4957-46cf-ab80-cef807352928"
+			"database_id": "de5ac8b2-a57c-4866-ba30-8aae1df3e7fe",
+			"preview_database_id": "5634296b-4957-46cf-ab80-cef807352928"
 		},
 	],
 	"durable_objects": {

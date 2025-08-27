@@ -175,11 +175,11 @@ INSERT INTO struggle_events (
      'hover_confusion', 0.8, '#operator-precedence', 'Understanding operator precedence',
      15000, TRUE, 'chat_prompt'),
 
-    ('dev_tenant_001', 3, 'session_004',
+    ('dev_tenant_001', 'learner_003', 'session_004',
      'repeated_access', 0.9, '#example-code-2', 'Complex expression evaluation',
      30000, TRUE, 'resource_suggestion'),
 
-    ('dev_tenant_001', 3, 'session_004',
+    ('dev_tenant_001', 'learner_003', 'session_004',
      'idle_timeout', 0.7, '#exercise-3', 'Stuck on exercise',
      120000, TRUE, 'chat_prompt'),
 
@@ -261,12 +261,12 @@ INSERT INTO intervention_logs (
     effectiveness_score, time_to_resolution_seconds,
     intervention_content
 ) VALUES
-    ('dev_tenant_001', 'learner_003', 1, 'proactive_chat',
+    ('dev_tenant_001', 'learner_003', NULL, 'proactive_chat',
      datetime('now', '-3 hours'), datetime('now', '-2.95 hours'),
      0.8, 300,
      '{"message": "Offered help with operator precedence", "accepted": true}'),
 
-    ('dev_tenant_001', 'learner_003', 2, 'resource_suggestion',
+    ('dev_tenant_001', 'learner_003', NULL, 'resource_suggestion',
      datetime('now', '-2.8 hours'), datetime('now', '-2.75 hours'),
      0.6, 180,
      '{"resource": "Interactive operator precedence tutorial", "viewed": true}');
