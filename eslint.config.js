@@ -16,16 +16,20 @@ export default [
       '*.min.js',
       'public/manifest.json',
       'worker-configuration.d.ts',
-      'types.d.ts'
-    ]
+      'types.d.ts',
+    ],
   },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       parser: typescriptParser,
-      ecmaVersion: 2021,
+      ecmaVersion: 'latest',
       sourceType: 'module',
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
       globals: {
         describe: 'readonly',
         beforeAll: 'readonly',
@@ -61,38 +65,45 @@ export default [
         globalThis: 'readonly',
         self: 'readonly',
         vi: 'readonly',
-        global: 'readonly'
-      }
+        global: 'readonly',
+      },
     },
     plugins: {
       '@typescript-eslint': typescriptPlugin,
-      'react': reactPlugin,
-      'react-hooks': reactHooksPlugin
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
     },
     rules: {
       'block-spacing': ['error', 'never'],
       'object-curly-spacing': ['error', 'always'],
       'array-bracket-spacing': ['error', 'never'],
-      'space-before-function-paren': ['error', 'never'],
-      'space-in-parens': ['error', 'never'],
-      'indent': 'off', // Disabled due to stack overflow issue with TSX files
-      'linebreak-style': ['error', 'unix'],
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'always'],
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_'
+      'space-before-function-paren': ['error', {
+        anonymous: 'never',
+        named: 'never',
+        asyncArrow: 'always'
       }],
+      'space-in-parens': ['error', 'never'],
+      indent: 'off', // Disabled due to stack overflow issue with TSX files
+      'linebreak-style': ['error', 'unix'],
+      quotes: ['error', 'single', { avoidEscape: true }],
+      semi: ['error', 'always'],
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
       'no-undef': 'off',
       'react/prop-types': 'off',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn'
+      'react-hooks/exhaustive-deps': 'warn',
     },
     settings: {
       react: {
-        version: 'detect'
-      }
-    }
-  }
+        version: 'detect',
+      },
+    },
+  },
 ];
