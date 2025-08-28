@@ -199,13 +199,13 @@ export class LMSContentExtractor extends EventEmitter {
 
   private getTargetOrigin(): string {
     // Enforce explicit origin configuration - no fallbacks allowed
-    
+
     // First, check if we have a stored LMS origin from initial LTI launch
     const storedOrigin = sessionStorage.getItem('lms_origin');
     if (storedOrigin && this.isValidOrigin(storedOrigin)) {
       return storedOrigin;
     }
-    
+
     // Try to get parent origin from document referrer if it's validated
     if (document.referrer) {
       try {
@@ -217,7 +217,7 @@ export class LMSContentExtractor extends EventEmitter {
         console.error('Invalid referrer URL:', error);
       }
     }
-    
+
     // No valid origin found - fail securely rather than using wildcards or insecure fallbacks
     throw new Error('Unable to determine secure target origin for postMessage. Please configure LMS origin.');
   }
@@ -357,7 +357,7 @@ export class LMSContentExtractor extends EventEmitter {
     const tables = Array.from(div.querySelectorAll('table')).map((table) => {
       const headers = Array.from(table.querySelectorAll('th')).map((th) => th.textContent?.trim() || '');
       const rows = Array.from(table.querySelectorAll('tbody tr')).map((tr) =>
-        Array.from(tr.querySelectorAll('td')).map((td) => td.textContent?.trim() || ''),
+        Array.from(tr.querySelectorAll('td')).map((td) => td.textContent?.trim() || '')
       );
       return { headers, rows };
     });
