@@ -315,6 +315,654 @@ Update `wrangler.jsonc` with the returned IDs.
 - Platform response handling: `src/register.ts`
 - Tool definitions (names, URLs): `definitions.ts`
 
+## TypeScript Configuration (STRICT REQUIREMENTS) Assume strict requirements even if project settings are looser
+
+### MUST follow These Compiler Options
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "allowJs": false
+  }
+}
+```
+
+### MANDATORY Type Requirements
+
+- **NEVER use `any` type** - use `unknown` if type is truly unknown
+- **MUST have explicit return types** for all functions and components
+- **MUST use proper generic constraints** for reusable components
+- **MUST use type inference from Zod schemas** using `z.infer<typeof schema>`
+- **NEVER use `@ts-ignore`** or `@ts-expect-error` - fix the type issue properly
+
+### Type Safety Hierarchy (STRICT ORDER)
+
+1. **Specific Types**: Always prefer specific types when possible
+2. **Generic Constraints**: Use generic constraints for reusable code
+3. **Unknown**: Use `unknown` for truly unknown data that will be validated
+4. **Never `any`**: The only exception is library declaration merging (must be commented)
+
+### TypeScript Project Structure (MANDATORY)
+
+- **App Code**: `tsconfig.app.json` - covers src/ directory
+- **Node Config**: `tsconfig.node.json` - MUST include vite.config.ts, vitest.config.ts
+- **ESLint Integration**: MUST reference both in parserOptions.project
+
+### Branded Type Safety (MANDATORY)
+
+- **MUST use Schema.parse() to convert plain types to branded types**
+- **NEVER assume external data matches branded types**
+- **Always validate at system boundaries**
+
+```typescript
+// ✅ CORRECT: Convert plain types to branded types
+const cvId = CVIdSchema.parse(numericId);
+
+// ❌ FORBIDDEN: Assuming type without validation
+const cvId: CVId = numericId; // Type assertion without validation
+```
+
+### ExactOptionalPropertyTypes Compliance (MANDATORY)
+
+- **MUST handle `undefined` vs `null` properly** in API interfaces
+- **MUST use conditional spreads** instead of passing `undefined` to optional props
+- **MUST convert `undefined` to `null`** for API body types
+
+```typescript
+// ✅ CORRECT: Handle exactOptionalPropertyTypes properly
+const apiCall = async (data?: string) => {
+  return fetch('/api', {
+    method: 'POST',
+    body: data ? JSON.stringify({ data }) : null,  // null, not undefined
+  });
+};
+
+// Conditional prop spreading for optional properties
+<Input
+  label="Email"
+  error={errors.email?.message}
+  {...(showHelper ? { helperText: "Enter valid email" } : {})}  // Conditional spread
+/>
+
+// ❌ FORBIDDEN: Passing undefined to optional properties
+<Input
+  label="Email"
+  error={errors.email?.message}
+  helperText={showHelper ? "Enter valid email" : undefined}  // undefined not allowed
+/>
+```
+
+## Assets
+
+- Asset serving: Vite-built files served from `public/` with manifest injection
+- images, css and other static assets should be placed in `public/`
+
+## 🎨 React
+
+### Component Structure (MANDATORY)
+
+- **MAXIMUM 200 lines** per component file
+- **Single responsibility** principle - one component, one purpose
+- **Co-locate related files** - styles, tests, types in same folder
+- **Export one component** per file as default
+- **Name files** matching the component name
+
+### Component Integration (STRICT REQUIREMENTS)
+
+- **MUST verify actual prop names** before using components
+- **MUST use exact callback parameter types** from component interfaces
+- **NEVER assume prop names match semantic expectations**
+- **MUST import proper types** for callback parameters
+
+```typescript
+// ✅ CORRECT: Verify component interface and use exact prop names
+import { EducationList } from './EducationList';
+import { EducationSummary } from './schemas';
+
+<EducationList
+  cvId={cvId}
+  onSelectEducation={(education: EducationSummary) => handleEdit(education.id)}
+  onCreateEducation={() => handleCreate()}
+  showCreateButton={showActions}  // Verified actual prop name
+/>
+
+// ❌ FORBIDDEN: Assuming prop names without verification
+<EducationList
+  onEditEducation={(education) => handleEdit(education.id)}  // Wrong prop name
+  onAddEducation={() => handleCreate()}  // Wrong prop name
+/>
+```
+
+### Performance Guidelines
+
+#### React 19 Optimizations
+
+- **Trust the compiler** - avoid manual memoization
+- **Use Suspense** for data fetching boundaries
+- **Implement code splitting** at route level
+- **Lazy load** heavy components
+
+#### Bundle Optimization
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'query-vendor': ['@tanstack/react-query'],
+          'form-vendor': ['react-hook-form', 'zod'],
+        },
+      },
+    },
+  },
+});
+```
+
+#### Performance by Default
+
+With React 19's compiler, manual optimizations are largely unnecessary. Focus on clean, readable code and let the compiler handle performance optimizations.
+
+#### Design Principles (MUST FOLLOW)
+
+- **Vertical Slice Architecture**: MUST organize by features, not layers
+- **Composition Over Inheritance**: MUST use React's composition model
+
+### 🚀 React 19 Key Features
+
+#### Automatic Optimizations
+
+- **React Compiler**: Eliminates need for `useMemo`, `useCallback`, and `React.memo`
+- Let the compiler handle performance - write clean, readable code
+
+#### Core Features
+
+- **Server Components**: Use for data fetching and static content
+- **Actions**: Handle async operations with built-in pending states
+- **use() API**: Simplified data fetching and context consumption
+- **Document Metadata**: Native support for SEO tags
+- **Enhanced Suspense**: Better loading states and error boundaries
+
+#### React 19 TypeScript Integration (MANDATORY)
+
+- **MUST use `ReactElement` instead of `JSX.Element`** for return types
+- **MUST import `ReactElement` from 'react'** explicitly
+- **NEVER use `JSX.Element` namespace** - use React types directly
+
+```typescript
+// ✅ CORRECT: Modern React 19 typing
+import { ReactElement } from 'react';
+
+function MyComponent(): ReactElement {
+  return <div>Content</div>;
+}
+
+const renderHelper = (): ReactElement | null => {
+  return condition ? <span>Helper</span> : null;
+};
+
+// ❌ FORBIDDEN: Legacy JSX namespace
+function MyComponent(): JSX.Element {
+  // Cannot find namespace 'JSX'
+  return <div>Content</div>;
+}
+```
+
+#### State Management Example
+
+```typescript
+/**
+ * @fileoverview User list with proper state management hierarchy
+ */
+
+// 1. Local state for UI
+const [selectedTab, setSelectedTab] = useState<'active' | 'archived'>('active');
+
+// 2. Context for feature settings
+const { viewMode } = useListContext();
+
+// 3. Server state for data
+const { data: users, isLoading } = useQuery({
+  queryKey: ['users', selectedTab],
+  queryFn: () => fetchUsers(selectedTab),
+});
+
+// 4. Global state for auth (if needed)
+const { currentUser } = useAuthStore();
+
+// 5. URL state for filters
+const [searchParams] = useSearchParams();
+const filter = searchParams.get('filter');
+```
+
+#### Actions Example (WITH MANDATORY DOCUMENTATION)
+
+````typescript
+/**
+ * @fileoverview Contact form using React 19 Actions API
+ * @module features/contact/components/ContactForm
+ */
+
+import { useActionState, ReactElement } from 'react';
+
+/**
+ * Contact form component using React 19 Actions.
+ *
+ * Leverages the Actions API for automatic pending state management
+ * and error handling. Form data is validated with Zod before submission.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ContactForm onSuccess={() => router.push('/thank-you')} />
+ * ```
+ */
+function ContactForm(): ReactElement {
+  /**
+   * Form action handler with built-in state management.
+   *
+   * @param previousState - Previous form state (unused in this implementation)
+   * @param formData - Raw form data from submission
+   * @returns Promise resolving to success or error state
+   */
+  const [state, submitAction, isPending] = useActionState(async (previousState: any, formData: FormData) => {
+    // Extract and validate form data
+    const result = contactSchema.safeParse({
+      email: formData.get('email'),
+      message: formData.get('message'),
+    });
+
+    if (!result.success) {
+      return { error: result.error.flatten() };
+    }
+
+    // Process validated data
+    await sendEmail(result.data);
+    return { success: true };
+  }, null);
+
+  return (
+    <form action={submitAction}>
+      <button disabled={isPending}>{isPending ? 'Sending...' : 'Send'}</button>
+    </form>
+  );
+}
+````
+
+#### Instant UI Patterns
+
+- Use Suspense boundaries for ALL async operations
+- Leverage Server Components for data fetching
+- Use the new Actions API for form handling
+- Let React Compiler handle optimization
+
+#### Component Templates
+
+````typescript
+// Quick component with all states
+export function FeatureComponent(): ReactElement {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['feature'],
+    queryFn: fetchFeature
+  });
+
+  if (isLoading) return <Skeleton />;
+  if (error) return <ErrorBoundary error={error} />;
+  if (!data) return <EmptyState />;
+
+  return <FeatureContent data={data} />;
+}
+
+## 🛡️ Data Validation with Zod (MANDATORY FOR ALL EXTERNAL DATA)
+
+### MUST Follow These Validation Rules
+- **MUST validate ALL external data**: API responses, form inputs, URL params, environment variables
+- **MUST use branded types**: For all IDs and domain-specific values
+- **MUST fail fast**: Validate at system boundaries, throw errors immediately
+- **MUST use type inference**: Always derive TypeScript types from Zod schemas
+- **NEVER trust external data** without validation
+- **MUST validate before using** any data from outside the application
+
+### Schema Example (MANDATORY PATTERNS)
+```typescript
+import { z } from 'zod';
+
+// MUST use branded types for ALL IDs
+const UserIdSchema = z.string().uuid().brand<'UserId'>();
+type UserId = z.infer<typeof UserIdSchema>;
+
+// MUST include validation for ALL fields
+export const userSchema = z.object({
+  id: UserIdSchema,
+  email: z.string().email(),
+  username: z.string()
+    .min(3)
+    .max(20)
+    .regex(/^[a-zA-Z0-9_]+$/),
+  age: z.number().min(18).max(100),
+  role: z.enum(['admin', 'user', 'guest']),
+  metadata: z.object({
+    lastLogin: z.string().datetime(),
+    preferences: z.record(z.unknown()).optional(),
+  }),
+});
+
+export type User = z.infer<typeof userSchema>;
+
+// MUST validate ALL API responses
+export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+  z.object({
+    success: z.boolean(),
+    data: dataSchema,
+    error: z.string().optional(),
+    timestamp: z.string().datetime(),
+  });
+````
+
+#### Form Validation with React Hook Form
+
+```typescript
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+function UserForm(): ReactElement {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<User>({
+    resolver: zodResolver(userSchema),
+    mode: 'onBlur',
+  });
+
+  const onSubmit = async (data: User): Promise<void> => {
+    // Handle validated data
+  };
+
+  return <form onSubmit={handleSubmit(onSubmit)}>{/* Form fields */}</form>;
+}
+```
+
+### 🔄 React State Management Hierarchy
+
+#### MUST Follow This State Hierarchy (STRICT ORDER)
+
+1. **Local State (useState)**
+   - Component-specific UI state
+   - Form field values before submission
+   - Toggle states, modal visibility
+
+   ```typescript
+   const [isOpen, setIsOpen] = useState(false);
+   ```
+
+2. **Context (Feature-level)**
+   - Cross-component state within a single feature
+   - Theme preferences, user settings
+   - Feature-specific configuration
+
+   ```typescript
+   const ThemeContext = createContext<Theme>('light');
+   ```
+
+3. **Server State (TanStack Query)**
+   - ALL API data fetching and caching
+   - Optimistic updates
+   - Background refetching
+
+   ```typescript
+   const { data, isLoading } = useQuery({
+     queryKey: ['user', id],
+     queryFn: fetchUser,
+     staleTime: 5 * 60 * 1000,
+   });
+   ```
+
+4. **Global State (Zustand)**
+   - ONLY when truly needed app-wide
+   - User authentication state
+   - App-wide notifications
+
+   ```typescript
+   const useAuthStore = create((set) => ({
+     user: null,
+     login: (user) => set({ user }),
+     logout: () => set({ user: null }),
+   }));
+   ```
+
+5. **URL State (Search Params)**
+   - Shareable application state
+   - Filters, pagination, search queries
+   - Navigation state
+   ```typescript
+   const [searchParams, setSearchParams] = useSearchParams();
+   const page = searchParams.get('page') || '1';
+   ```
+
+## 🧪 Testing Strategy
+
+### Testing Requirements
+
+- **Minimum 80% code coverage** - NO EXCEPTIONS
+- **Co-locate tests** in `__tests__` folders next to components
+- **Use React Testing Library** for all component tests
+- **Test user behavior**, not implementation details
+- **Mock external dependencies** appropriately
+- **NEVER skip tests** for new features or bug fixes
+
+### Test Execution
+
+```bash
+npm test                    # Run all tests
+npm test -- --watch        # Watch mode
+npm test -- --coverage     # Coverage report
+npm run test:coverage      # Full coverage analysis
+```
+
+### Test Example
+
+```typescript
+/**
+ * @fileoverview Tests for UserProfile component
+ * @module features/user/__tests__/UserProfile.test
+ */
+
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, userEvent } from '@testing-library/react';
+
+describe('UserProfile', () => {
+  it('should update user name on form submission', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn();
+
+    render(<UserProfile onUpdate={onUpdate} />);
+
+    const input = screen.getByLabelText(/name/i);
+    await user.type(input, 'John Doe');
+    await user.click(screen.getByRole('button', { name: /save/i }));
+
+    expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({ name: 'John Doe' }));
+  });
+});
+```
+
+## 📊 Code Quality Standards
+
+### SonarQube Quality Gates (MUST PASS)
+
+- **Cognitive Complexity**: MAX 15 per function
+- **Cyclomatic Complexity**: MAX 10 per function
+- **Duplicated Lines**: MAX 3%
+- **Technical Debt Ratio**: MAX 5%
+- **Critical Issues**: ZERO tolerance
+
+### Component Requirements
+
+- **MAX 200 lines** per component file
+- **Single responsibility** principle
+- **Handle ALL states**: loading, error, empty, success
+- **Include ARIA labels** for accessibility
+
+### ESLint Rules (MANDATORY)
+
+```javascript
+{
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "sonarjs/cognitive-complexity": ["error", 15],
+    "sonarjs/no-duplicate-string": ["error", 3]
+  }
+}
+```
+
+## 📝 Documentation Standards
+
+### JSDoc Requirements (MANDATORY)
+
+- **Document ALL exports** with full JSDoc
+- **Include @fileoverview** for each module
+- **Add @param** for every parameter with description
+- **Add @returns** with description (unless void)
+- **Include @throws** for any thrown errors
+- **Include @example** for complex functions
+- **Document component props** with descriptions
+- **Use @deprecated** with migration path when deprecating
+- **NEVER use single-line comments** for documentation
+
+### Documentation Example
+
+````typescript
+/**
+ * @fileoverview User authentication service handling login, logout, and session management.
+ * @module features/auth/services/authService
+ */
+
+/**
+ * Calculates the discount price for a product.
+ *
+ * This method applies a percentage discount to the original price,
+ * ensuring the final price doesn't go below the minimum threshold.
+ *
+ * @param originalPrice - The original price of the product in cents (must be positive)
+ * @param discountPercent - The discount percentage (0-100)
+ * @param minPrice - The minimum allowed price after discount in cents
+ * @returns The calculated discount price in cents
+ * @throws {ValidationError} If any parameter is invalid
+ *
+ * @example
+ * ```typescript
+ * const discountedPrice = calculateDiscount(10000, 25, 1000);
+ * console.log(discountedPrice); // 7500
+ * ```
+ */
+export function calculateDiscount(originalPrice: number, discountPercent: number, minPrice: number): number {
+  if (originalPrice <= 0) {
+    throw new ValidationError('Original price must be positive');
+  }
+  const discountAmount = originalPrice * (discountPercent / 100);
+  const discountedPrice = originalPrice - discountAmount;
+  return Math.max(discountedPrice, minPrice);
+}
+````
+
+### Component Documentation
+
+````typescript
+/**
+ * Button component with multiple variants and sizes.
+ *
+ * Provides a reusable button with consistent styling and behavior
+ * across the application. Supports keyboard navigation and screen readers.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <Button
+ *   variant="primary"
+ *   size="medium"
+ *   onClick={handleSubmit}
+ * >
+ *   Submit Form
+ * </Button>
+ * ```
+ */
+interface ButtonProps {
+  /** Visual style variant of the button */
+  variant: 'primary' | 'secondary';
+
+  /** Size of the button @default 'medium' */
+  size?: 'small' | 'medium' | 'large';
+
+  /** Click handler for the button */
+  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+
+  /** Content to be rendered inside the button */
+  children: React.ReactNode;
+
+  /** Whether the button is disabled @default false */
+  disabled?: boolean;
+}
+````
+
+## 🔐 Security Requirements
+
+### Input Validation (MUST IMPLEMENT ALL)
+
+- **MUST sanitize ALL user inputs** with Zod before processing
+- **MUST validate file uploads**: type, size, and content
+- **MUST prevent XSS** with proper escaping
+- **MUST implement CSP headers** in production
+- **NEVER use dangerouslySetInnerHTML** without sanitization
+- **NEVER trust external data** without validation
+
+### API Security
+
+- **MUST validate ALL API responses** with Zod schemas
+- **MUST handle errors gracefully** without exposing internals
+- **NEVER log sensitive data** (passwords, tokens, PII)
+- **MUST use HTTPS** for all external API calls
+- **MUST implement rate limiting** for public endpoints
+- **MUST validate JWT tokens** before processing requests
+
+### Secure Coding Practices
+
+```typescript
+// ✅ CORRECT: Validate and sanitize user input
+const handleUserInput = async (input: unknown): Promise<void> => {
+  const validated = userInputSchema.parse(input);
+  // Process validated data
+};
+
+// ❌ FORBIDDEN: Direct use of untrusted data
+const handleUserInput = async (input: any): Promise<void> => {
+  await db.query(`SELECT * FROM users WHERE id = ${input.id}`);
+};
+
+// ✅ CORRECT: Safe error handling
+try {
+  await performOperation();
+} catch (error) {
+  console.error('Operation failed', {
+    type: error instanceof Error ? error.name : 'Unknown',
+    timestamp: new Date().toISOString(),
+  });
+  throw new UserFacingError('Operation could not be completed');
+}
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -377,3 +1025,57 @@ Invoke the `@agent-design-review` subagent for thorough design validation when:
 3. **Deploy**: Use `npm run deploy` for production deployment
 4. **Monitor**: Check logs with `npm run tail`
 5. **Rollback**: Database supports versioned rollbacks via migration system
+
+## Context Awareness
+
+- When implementing features, always check existing patterns first
+- Prefer composition over inheritance in all designs
+- Use existing utilities before creating new ones
+- Check for similar functionality in other domains/features
+
+## Common Pitfalls to Avoid
+
+- Creating duplicate functionality
+- Overwriting existing tests
+- Modifying core frameworks without explicit instruction
+- Adding dependencies without checking existing alternatives
+
+## Workflow Patterns
+
+- Prefferably create tests BEFORE implementation (TDD)
+- Use "think hard" for architecture decisions
+- Break complex tasks into smaller, testable units
+- Validate understanding before implementation
+
+## Search Command Requirements
+
+**CRITICAL**: Always use `rg` (ripgrep) instead of traditional `grep` and `find` commands:
+
+```bash
+# ❌ Don't use grep
+grep -r "pattern" .
+
+# ✅ Use rg instead
+rg "pattern"
+
+# ❌ Don't use find with name
+find . -name "*.tsx"
+
+# ✅ Use rg with file filtering
+rg --files | rg "\.tsx$"
+# or
+rg --files -g "*.tsx"
+```
+
+**Enforcement Rules:**
+
+```
+(
+    r"^grep\b(?!.*\|)",
+    "Use 'rg' (ripgrep) instead of 'grep' for better performance and features",
+),
+(
+    r"^find\s+\S+\s+-name\b",
+    "Use 'rg --files | rg pattern' or 'rg --files -g pattern' instead of 'find -name' for better performance",
+),
+```
