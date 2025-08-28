@@ -992,8 +992,8 @@ try {
 
 ### Design Principles
 
-- Comprehensive design checklist in `/context/design-principles.md`
-- Brand style guide in `/context/style-guide.md`
+- Comprehensive design checklist in `/ai_docs/branding/design-principles.md`
+- Brand style guide in `/ai_docs/branding/style-guide.md`
 - When making visual (front-end, UI/UX) changes, always refer to these files for guidance
 
 ### Quick Visual Check
