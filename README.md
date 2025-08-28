@@ -106,7 +106,7 @@ To start a local development server:
 npm run dev
 ```
 
-This will start a local server at http://localhost:8787.
+This will start a local server at http://localhost:5988.
 
 ### Testing
 

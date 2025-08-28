@@ -977,7 +977,7 @@ try {
 
 - View logs: `npm run tail` or `npx wrangler tail`
 - Check deployment: `npm run check` (dry-run deploy with validation)
-- Test locally: `npm run dev` (http://localhost:8787)
+- Test locally: `npm run dev` (http://localhost:5988)
 
 ## Important Context
 
