@@ -1,4 +1,10 @@
-import React from 'react';
+/**
+ * @fileoverview Main LTI launch application entry point for the Atomic Guide client.
+ * Handles LTI 1.3 launch validation, store initialization, and deep linking setup.
+ * @module client/app
+ */
+
+import { ReactElement, StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { ltiLaunch } from '@atomicjolt/lti-client';
@@ -6,15 +12,70 @@ import type { LaunchSettings } from '@atomicjolt/lti-client';
 import { configureStore, setJwt } from './store';
 import { ChatFAB } from './components/chat/ChatFAB';
 import { ChatWindow } from './components/chat/ChatWindow';
-import { LTI_NAMES_AND_ROLES_PATH, LTI_SIGN_DEEP_LINK_PATH } from '../definitions';
+import { LTI_NAMES_AND_ROLES_PATH } from '../definitions';
+import { setupDeepLinkingButton } from './services/deepLinkingService';
+import { namesAndRolesResponseSchema } from './schemas/deepLink.schema';
 
+/**
+ * Global type augmentation for window launch settings.
+ */
 declare global {
   interface Window {
     LAUNCH_SETTINGS: LaunchSettings;
   }
 }
 
-const App: React.FC<{ jwt?: string }> = () => {
+/**
+ * Main application component props.
+ */
+interface AppProps {
+  /** JWT token for API authentication */
+  jwt?: string;
+}
+
+/**
+ * Main application component.
+ * 
+ * Renders the chat interface after successful LTI launch.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <App jwt="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+ * ```
+ */
+function App({ jwt }: AppProps): ReactElement {
+  useEffect(() => {
+    if (!jwt) {
+      return;
+    }
+
+    // Fetch names and roles if JWT is available
+    const fetchNamesAndRoles = async (): Promise<void> => {
+      try {
+        const response = await fetch(`/${LTI_NAMES_AND_ROLES_PATH}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch names and roles: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const validatedData = namesAndRolesResponseSchema.parse(data);
+        console.log('Names and roles:', validatedData);
+      } catch (error) {
+        console.error('Names and roles error:', error instanceof Error ? error.message : 'Unknown error');
+      }
+    };
+
+    fetchNamesAndRoles();
+  }, [jwt]);
+
   return (
     <>
       <h1>Chat</h1>
@@ -22,107 +83,110 @@ const App: React.FC<{ jwt?: string }> = () => {
       <ChatWindow />
     </>
   );
-};
+}
 
-const launchSettings: LaunchSettings = window.LAUNCH_SETTINGS;
+/**
+ * Renders error message when LTI launch fails.
+ * 
+ * @returns Error message element
+ */
+function renderLaunchError(): void {
+  const mainContent = document.getElementById('main-content');
+  if (mainContent) {
+    mainContent.innerHTML = '<div role="alert">Failed to launch LTI application</div>';
+  } else {
+    document.body.innerHTML = '<div role="alert">Failed to launch LTI application</div>';
+  }
+}
 
-ltiLaunch(launchSettings).then((valid) => {
-  if (valid) {
-    const mainContent = document.getElementById('main-content');
+/**
+ * Gets the main content container element.
+ * 
+ * @returns Main content element or null if not found
+ * @throws {Error} If main content element is not found
+ */
+function getMainContentElement(): HTMLElement {
+  const mainContent = document.getElementById('main-content');
+  
+  if (!mainContent) {
+    throw new Error('Main content element not found');
+  }
+  
+  return mainContent;
+}
 
-    if (!mainContent) {
-      console.error('Main content element not found');
-      return;
-    }
-
-    const jwt = launchSettings.jwt;
-
-    const store = configureStore({
-      jwt,
-      settings: launchSettings,
-    });
-
-    if (jwt) {
-      store.dispatch(setJwt({ token: jwt }));
-    }
-
-    const root = createRoot(mainContent);
-    root.render(
+/**
+ * Initializes the application after successful LTI launch.
+ * 
+ * @param launchSettings - Settings from LTI launch
+ * @param mainContent - DOM element to render app into
+ */
+function initializeApp(launchSettings: LaunchSettings, mainContent: HTMLElement): void {
+  const jwt = launchSettings.jwt;
+  
+  // Configure Redux store with launch settings
+  const store = configureStore({
+    jwt,
+    settings: launchSettings,
+  });
+  
+  // Dispatch JWT to store if available
+  if (jwt) {
+    store.dispatch(setJwt({ token: jwt }));
+  }
+  
+  // Create React root and render app
+  const root = createRoot(mainContent);
+  root.render(
+    <StrictMode>
       <Provider store={store}>
         <App jwt={jwt} />
-      </Provider>,
-    );
-
-    if (launchSettings.deepLinking) {
-      const deepLinkingSetup = () => {
-        const deepLinkingButton = document.getElementById('deep-linking-button');
-        if (deepLinkingButton) {
-          deepLinkingButton.addEventListener('click', () => {
-            let deepLink: any = {
-              type: 'image',
-              title: 'Atomic Jolt',
-              text: 'Atomic Jolt Logo',
-              url: 'https://atomic-guide.atomicjolt.win/images/atomicjolt_name.png',
-            };
-
-            if (launchSettings.deepLinking?.accept_types) {
-              if (launchSettings.deepLinking.accept_types.indexOf('html') >= 0) {
-                deepLink = {
-                  type: 'html',
-                  html: '<h2>Just saying hi!</h2>',
-                  title: 'Hello World',
-                  text: 'A simple hello world example',
-                };
-              } else if (launchSettings.deepLinking.accept_types.indexOf('link') >= 0) {
-                deepLink = {
-                  type: 'link',
-                  title: 'Atomic Jolt',
-                  text: 'Atomic Jolt Home Page',
-                  url: 'https://atomicjolt.com',
-                };
-              }
-            }
-
-            fetch('/' + LTI_SIGN_DEEP_LINK_PATH, {
-              method: 'POST',
-              body: JSON.stringify([deepLink]),
-              headers: {
-                Authorization: `Bearer ${jwt}`,
-                'Content-Type': 'application/json',
-              },
-            })
-              .then((response) => response.json())
-              .then((d: any) => {
-                const data = JSON.parse(d);
-                const form = document.getElementById('deep-linking-form') as HTMLFormElement;
-                form?.setAttribute('action', launchSettings.deepLinking?.deep_link_return_url || '');
-                const field = document.getElementById('deep-link-jwt');
-                field?.setAttribute('value', data.jwt);
-                form?.submit();
-              })
-              .catch((error) => {
-                console.error('Error:', error);
-              });
-          });
-        }
-      };
-
-      setTimeout(deepLinkingSetup, 100);
-    }
-
-    fetch(`/${LTI_NAMES_AND_ROLES_PATH}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => {
-        console.error('Error:', error);
-      });
-  } else {
-    document.body.innerHTML = 'Failed to launch';
+      </Provider>
+    </StrictMode>
+  );
+  
+  // Setup deep linking if enabled
+  if (launchSettings.deepLinking) {
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+      const cleanup = setupDeepLinkingButton(launchSettings);
+      
+      // Store cleanup function if needed for later
+      if (cleanup && typeof window !== 'undefined') {
+        (window as any).__deepLinkingCleanup = cleanup;
+      }
+    }, 100);
   }
-});
+}
+
+/**
+ * Application bootstrap function.
+ * 
+ * Validates LTI launch and initializes the application.
+ */
+async function bootstrap(): Promise<void> {
+  try {
+    const launchSettings: LaunchSettings = window.LAUNCH_SETTINGS;
+    
+    // Validate LTI launch
+    const isValid = await ltiLaunch(launchSettings);
+    
+    if (!isValid) {
+      renderLaunchError();
+      return;
+    }
+    
+    // Get main content element
+    const mainContent = getMainContentElement();
+    
+    // Initialize application
+    initializeApp(launchSettings, mainContent);
+    
+  } catch (error) {
+    console.error('Bootstrap error:', error instanceof Error ? error.message : 'Unknown error');
+    renderLaunchError();
+  }
+}
+
+// Start application
+bootstrap();
