@@ -29,9 +29,7 @@
     "db:export": "wrangler d1 export atomic-guide-db --output=backup.sql",
     "db:local": "wrangler d1 execute atomic-guide-db --local --command",
     "kv:setup": "node scripts/kv-setup.cjs",
-    "kv:destroy": "node scripts/kv-cleanup.cjs",
-    "r2:setup": "node scripts/r2-setup.cjs",
-    "r2:list": "node scripts/r2-list.cjs"
+    "kv:destroy": "node scripts/kv-cleanup.cjs"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.12.0",
