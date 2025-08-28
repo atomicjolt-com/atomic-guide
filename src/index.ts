@@ -39,7 +39,7 @@ import faqHandler from './api/handlers/faq';
 import richMediaHandler from './api/handlers/richMedia';
 import suggestionHandler from './api/handlers/suggestions';
 import contentHandler from './api/handlers/content';
-import testHtml from './html/test_html';
+import embedHtml from './html/embed_html';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -122,15 +122,10 @@ app.get('/assets/*', async (c) => {
 // Home page
 app.get('/', (c) => c.html(indexHtml(homeScriptName)));
 
-// Testing page - only available in development/test environments
-app.get('/test', (c) => {
-  const isDevelopment = c.env.ENVIRONMENT === 'development' || c.env.ENVIRONMENT === 'test';
-
-  if (isDevelopment) {
-    return c.html(testHtml(launchScriptName));
-  } else {
-    return c.notFound();
-  }
+// Embed endpoint - allows Atomic Guide to be embedded in external webpages
+app.get('/embed', (c) => {
+  // Available in all environments for embedding functionality
+  return c.html(embedHtml(launchScriptName));
 });
 
 // Health check and monitoring endpoints
