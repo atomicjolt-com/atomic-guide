@@ -66,13 +66,13 @@ export class DatabaseService {
         INSERT INTO tenants (id, iss, client_id, deployment_ids, institution_name, lms_type, lms_url, settings, features)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *
-      `),
+      `)
     );
 
     // Learner profile queries with tenant isolation
     this.preparedStatements.set(
       'findLearnerProfile',
-      this.db.prepare('SELECT * FROM learner_profiles WHERE tenant_id = ? AND lti_user_id = ?'),
+      this.db.prepare('SELECT * FROM learner_profiles WHERE tenant_id = ? AND lti_user_id = ?')
     );
 
     this.preparedStatements.set(
@@ -84,7 +84,7 @@ export class DatabaseService {
           data_sharing_consent, ai_interaction_consent, anonymous_analytics
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *
-      `),
+      `)
     );
   }
 
@@ -97,7 +97,7 @@ export class DatabaseService {
     institutionName: string,
     lmsType: string,
     lmsUrl: string,
-    deploymentIds: string[] = [],
+    deploymentIds: string[] = []
   ): Promise<Tenant> {
     const id = uuidv4();
     const stmt = this.preparedStatements.get('createTenant')!;
@@ -117,7 +117,7 @@ export class DatabaseService {
             chat: true,
             cognitive_profiling: true,
             struggle_detection: true,
-          }),
+          })
         )
         .first<Tenant>();
 
@@ -159,18 +159,51 @@ export class DatabaseService {
   }
 
   /**
-   * Update tenant deployment IDs
+   * Update tenant information
    */
-  async updateTenantDeploymentIds(tenantId: string, deploymentIds: string[]): Promise<void> {
+  async updateTenant(
+    tenantId: string,
+    updates: Partial<Pick<Tenant, 'deployment_ids' | 'institution_name' | 'lms_type' | 'lms_url' | 'settings' | 'features'>>
+  ): Promise<void> {
+    const setClauses: string[] = [];
+    const values: any[] = [];
+
+    if (updates.deployment_ids !== undefined) {
+      setClauses.push('deployment_ids = ?');
+      values.push(JSON.stringify(updates.deployment_ids));
+    }
+    if (updates.institution_name !== undefined) {
+      setClauses.push('institution_name = ?');
+      values.push(updates.institution_name);
+    }
+    if (updates.lms_type !== undefined) {
+      setClauses.push('lms_type = ?');
+      values.push(updates.lms_type);
+    }
+    if (updates.lms_url !== undefined) {
+      setClauses.push('lms_url = ?');
+      values.push(updates.lms_url);
+    }
+    if (updates.settings !== undefined) {
+      setClauses.push('settings = ?');
+      values.push(JSON.stringify(updates.settings));
+    }
+    if (updates.features !== undefined) {
+      setClauses.push('features = ?');
+      values.push(JSON.stringify(updates.features));
+    }
+
+    if (setClauses.length === 0) {
+      return; // Nothing to update
+    }
+
+    setClauses.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(tenantId);
+
+    const query = `UPDATE tenants SET ${setClauses.join(', ')} WHERE id = ?`;
     await this.db
-      .prepare(
-        `
-      UPDATE tenants
-      SET deployment_ids = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `,
-      )
-      .bind(JSON.stringify(deploymentIds), tenantId)
+      .prepare(query)
+      .bind(...values)
       .run();
   }
 
@@ -182,7 +215,7 @@ export class DatabaseService {
     ltiUserId: string,
     ltiDeploymentId: string,
     email?: string,
-    name?: string,
+    name?: string
   ): Promise<LearnerProfile> {
     // First check for existing profile
     const existing = await this.findLearnerProfile(tenantId, ltiUserId);
@@ -199,7 +232,7 @@ export class DatabaseService {
             last_active_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP
         WHERE tenant_id = ? AND lti_user_id = ?
-      `,
+      `
         )
         .bind(ltiDeploymentId, email, name, tenantId, ltiUserId)
         .run();
@@ -229,7 +262,7 @@ export class DatabaseService {
         'mixed', // preferred_modality default
         false, // data_sharing_consent default
         true, // ai_interaction_consent default
-        true, // anonymous_analytics default
+        true // anonymous_analytics default
       )
       .first<LearnerProfile>();
 
@@ -261,7 +294,7 @@ export class DatabaseService {
       WHERE tenant_id = ?
       ORDER BY created_at DESC
       LIMIT ? OFFSET ?
-    `,
+    `
       )
       .bind(tenantId, limit, offset)
       .all();
@@ -275,7 +308,7 @@ export class DatabaseService {
   async updateLearnerCognitiveProfile(
     tenantId: string,
     ltiUserId: string,
-    cognitiveProfile: Partial<LearnerProfile['cognitive_profile']>,
+    cognitiveProfile: Partial<LearnerProfile['cognitive_profile']>
   ): Promise<void> {
     // Get existing profile
     const existing = await this.findLearnerProfile(tenantId, ltiUserId);
@@ -296,7 +329,7 @@ export class DatabaseService {
           preferred_modality = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE tenant_id = ? AND lti_user_id = ?
-    `,
+    `
       )
       .bind(
         updated.forgetting_curve_s,
@@ -304,7 +337,7 @@ export class DatabaseService {
         updated.optimal_difficulty,
         updated.preferred_modality,
         tenantId,
-        ltiUserId,
+        ltiUserId
       )
       .run();
   }
@@ -315,7 +348,7 @@ export class DatabaseService {
   async updateLearnerPrivacySettings(
     tenantId: string,
     ltiUserId: string,
-    privacySettings: Partial<LearnerProfile['privacy_settings']>,
+    privacySettings: Partial<LearnerProfile['privacy_settings']>
   ): Promise<void> {
     // Get existing profile
     const existing = await this.findLearnerProfile(tenantId, ltiUserId);
@@ -335,7 +368,7 @@ export class DatabaseService {
           anonymous_analytics = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE tenant_id = ? AND lti_user_id = ?
-    `,
+    `
       )
       .bind(updated.data_sharing_consent, updated.ai_interaction_consent, updated.anonymous_analytics, tenantId, ltiUserId)
       .run();
@@ -414,7 +447,7 @@ export class DatabaseService {
           (SELECT COUNT(*) FROM learner_profiles WHERE tenant_id = ?) as learner_count,
           (SELECT COUNT(*) FROM learning_sessions WHERE tenant_id = ?) as session_count,
           (SELECT COUNT(*) FROM chat_conversations WHERE tenant_id = ?) as chat_count
-      `,
+      `
         )
         .bind(tenantId, tenantId, tenantId)
         .first();
@@ -427,7 +460,7 @@ export class DatabaseService {
         (SELECT COUNT(*) FROM tenants) as tenant_count,
         (SELECT COUNT(*) FROM learner_profiles) as total_learners,
         (SELECT COUNT(*) FROM learning_sessions) as total_sessions
-    `,
+    `
       )
       .first();
   }
