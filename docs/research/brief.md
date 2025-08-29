@@ -373,9 +373,9 @@
 - **React 18+** for component-based architecture and rich ecosystem
 - **TypeScript** for type safety and improved developer experience
 - **Vite** for fast builds and HMR development
-- **React Query/TanStack Query** for server state management and caching
+- **React Redux/Redux RTK Query** for server state management and caching
 - **Tailwind CSS** for rapid, consistent UI development
-- **Zustand or Redux Toolkit** for client state management
+- **Redux Toolkit** for client state management
 - **React Router** for SPA navigation
 
 **Backend:**

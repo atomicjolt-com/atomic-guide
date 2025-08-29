@@ -403,7 +403,7 @@ Comprehensive testing pyramid including:
 
 - **Frontend Framework:** React with TypeScript for type safety and component reusability
 - **Component Library:** @atomicjolt/atomic-elements for consistent UI components
-- **State Management:** React Context + Zustand for complex client state
+- **State Management:** React Context + Redux Toolkit for complex client state
 - **Client Architecture:** Feature-based folder structure with clear separation of concerns (features/, shared/, utils/)
 - **Styling:** CSS Modules or Tailwind for scoped, maintainable styles
 - **Build System:** Vite for fast development and optimized production builds

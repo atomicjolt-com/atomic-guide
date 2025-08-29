@@ -909,7 +909,7 @@ export class AtomicGuideMCP extends McpAgent<McpProps, Env> {
         resources: { listChanged: true },
         prompts: { listChanged: true },
       },
-    },
+    }
   );
 }
 ```
@@ -1312,7 +1312,7 @@ class PersonaManager {
 
 **Dependencies:** WebSocket client, Canvas postMessage API, React hooks
 
-**Technology Stack:** React 18, TypeScript, Zustand for state, Tailwind CSS
+**Technology Stack:** React 18, TypeScript, Redux Toolkit for state, Custom CSS
 
 ### Cloudflare AI Service
 
@@ -2085,55 +2085,6 @@ export const { setActiveConfig, updateProgress, clearAssessment } = assessmentSl
 export default assessmentSlice.reducer;
 ```
 
-#### Chat State Management with Redux Toolkit
-
-```typescript
-// Zustand store for conversation state
-interface ConversationState {
-  conversationId: string | null;
-  messages: Message[];
-  masteryScore: number;
-  status: 'idle' | 'active' | 'completed';
-
-  // Actions
-  initConversation: (configId: string) => Promise<void>;
-  addMessage: (message: Message) => void;
-  updateMastery: (score: number) => void;
-  completeConversation: () => void;
-}
-
-import { create } from 'zustand';
-
-export const useConversationStore = create<ConversationState>((set, get) => ({
-  conversationId: null,
-  messages: [],
-  masteryScore: 0,
-  status: 'idle',
-
-  initConversation: async (configId) => {
-    const response = await assessmentApi.startConversation(configId);
-    set({
-      conversationId: response.conversationId,
-      status: 'active',
-    });
-  },
-
-  addMessage: (message) => {
-    set((state) => ({
-      messages: [...state.messages, message],
-    }));
-  },
-
-  updateMastery: (score) => {
-    set({ masteryScore: score });
-  },
-
-  completeConversation: () => {
-    set({ status: 'completed' });
-  },
-}));
-```
-
 ### Routing Architecture
 
 #### Route Organization
@@ -2211,7 +2162,7 @@ apiClient.interceptors.response.use(
       window.location.href = '/lti/launch';
     }
     return Promise.reject(error);
-  },
+  }
 );
 ```
 
@@ -2518,7 +2469,7 @@ export class LTIErrorHandler {
           error: 'invalid_request',
           error_description: 'JWT validation failed',
         },
-        401,
+        401
       );
     }
 
@@ -2528,7 +2479,7 @@ export class LTIErrorHandler {
           error: 'invalid_request',
           error_description: `Missing required claim: ${error.claim}`,
         },
-        400,
+        400
       );
     }
 
@@ -2540,7 +2491,7 @@ export class LTIErrorHandler {
         error: 'server_error',
         error_description: 'An internal error occurred',
       },
-      500,
+      500
     );
   }
 }
@@ -2641,7 +2592,7 @@ export async function createConfigHandler(c: Context) {
       {
         error: 'Failed to create configuration',
       },
-      500,
+      500
     );
   }
 }
@@ -2664,7 +2615,7 @@ export class ConversationRepository {
         INSERT INTO conversations
         (id, assessment_config_id, user_id, course_id, status, metadata)
         VALUES (?, ?, ?, ?, ?, ?)
-      `,
+      `
       )
       .bind(
         id,
@@ -2672,7 +2623,7 @@ export class ConversationRepository {
         conversation.user_id,
         conversation.course_id,
         'active',
-        JSON.stringify(conversation.metadata || {}),
+        JSON.stringify(conversation.metadata || {})
       )
       .run();
 
@@ -2759,7 +2710,7 @@ export class VectorSearchService {
 
     // Generate embeddings (768 dimensions for bge-base-en-v1.5)
     const embedding = await aiService.generateEmbedding(
-      `${assessment.title} ${assessment.description} ${assessment.learning_objectives?.join(' ') || ''}`,
+      `${assessment.title} ${assessment.description} ${assessment.learning_objectives?.join(' ') || ''}`
     );
 
     // Store in Vectorize with namespace
@@ -2788,7 +2739,7 @@ export class VectorSearchService {
       courseId?: string;
       limit?: number;
       highPrecision?: boolean;
-    } = {},
+    } = {}
   ): Promise<SearchResult[]> {
     const aiService = new EdgeAIService(this.env);
     const queryEmbedding = await aiService.generateEmbedding(query);
@@ -2824,7 +2775,7 @@ export class VectorSearchService {
         .slice(-10)
         .map((m) => m.content)
         .join(' ')}`,
-      { systemPrompt: 'Extract main concepts and learning outcomes.' },
+      { systemPrompt: 'Extract main concepts and learning outcomes.' }
     );
 
     const embedding = await aiService.generateEmbedding(summary);
@@ -2859,7 +2810,7 @@ export class HybridStorageService {
     private d1: D1Database,
     private kv: KVNamespace,
     private r2: R2Bucket,
-    private vectorize: VectorizeIndex,
+    private vectorize: VectorizeIndex
   ) {}
 
   // Store structured data in D1
@@ -3037,7 +2988,7 @@ export async function ltiAuthMiddleware(c: Context, next: Next) {
       course_id: claims['https://purl.imsglobal.org/spec/lti/claim/context'].id,
       roles: claims['https://purl.imsglobal.org/spec/lti/claim/roles'],
       is_instructor: claims['https://purl.imsglobal.org/spec/lti/claim/roles'].includes(
-        'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor',
+        'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'
       ),
     });
 
@@ -3474,7 +3425,7 @@ atomic-guide/
 │   │   ├── configure_store.ts
 │   │   ├── slices/
 │   │   └── api/
-│   ├── stores/                 # Zustand stores
+│   ├── slices/                 # Redux Tookit slices
 │   ├── libs/                   # Utility libraries
 │   ├── styles/                 # CSS with design system
 │   │   ├── base.css
@@ -3923,7 +3874,7 @@ describe('Config Handler', () => {
         assessment_type: 'chat',
         mastery_threshold: 80,
       }),
-      201,
+      201
     );
   });
 });
@@ -4181,7 +4132,7 @@ export function errorHandler(err: Error, c: Context) {
         requestId,
       },
     },
-    statusCode,
+    statusCode
   );
 }
 ```
@@ -4743,7 +4694,7 @@ For developers starting implementation:
 - This architecture extends the existing LTI starter - study current codebase first
 - Follow existing TypeScript/Prettier/ESLint conventions already in place
 - Integration requirements: All new APIs under /api/v1, preserve existing routes
-- Key technical decisions: Redux Toolkit + Zustand for state, CSS modules with variables, MCP via OAuth
+- Key technical decisions: Redux Toolkit for state, CSS modules with variables, MCP via OAuth
 - Implementation sequence: 1) D1 setup with chat tables, 2) Basic API routes, 3) React components with chat, 4) Cognitive engine, 5) MCP integration
 - Verify LTI launches still work after each major change
 
