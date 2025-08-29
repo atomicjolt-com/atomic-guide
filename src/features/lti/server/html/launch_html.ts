@@ -1,5 +1,5 @@
 import { html } from '@atomicjolt/lti-endpoints';
-import viteHmrHtml from './vite_hmr_html';
+import viteHmrHtml from '../../../../shared/server/html/vite_hmr_html.js';
 import { LaunchSettings } from '@atomicjolt/lti-client';
 
 export default function launchHtml(launchSettings: LaunchSettings, scriptName: string) {

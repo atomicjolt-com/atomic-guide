@@ -1,5 +1,5 @@
 import { html } from '@atomicjolt/lti-endpoints';
-import viteHmrHtml from './vite_hmr_html.js';
+import viteHmrHtml from '../../../../shared/server/html/vite_hmr_html.js';
 import { LaunchSettings } from '@atomicjolt/lti-client';
 
 // This page is for embedding Atomic Guide into external webpages
