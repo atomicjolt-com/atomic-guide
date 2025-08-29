@@ -1113,3 +1113,8 @@ rg --files -g "*.tsx"
     "Use 'rg --files | rg pattern' or 'rg --files -g pattern' instead of 'find -name' for better performance",
 ),
 ```
+
+\*\* Sanity check
+Whenever changes are made and before finishing a request use playwright mcp to check the url:
+https://guide.atomicjolt.xyz/embed
+just to make sure the application still functions

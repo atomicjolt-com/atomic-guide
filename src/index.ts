@@ -28,7 +28,7 @@ import {
 } from '../definitions';
 import { getToolJwt } from './features/lti/server/services/tool_jwt';
 import { handlePlatformResponse } from './features/lti/server/services/register';
-import indexHtml from './features/lti/server/html/index_html';
+import indexHtml from './features/site/server/html/index_html';
 import launchHtml from './features/lti/server/html/launch_html';
 import { getClientAssetPath } from './shared/server/utils/manifest';
 import dbTestApp from './shared/server/db/test-connection';
@@ -39,7 +39,7 @@ import faqHandler from './features/faq/server/handlers/faq';
 import richMediaHandler from './features/chat/server/handlers/richMedia';
 import suggestionHandler from './features/chat/server/handlers/suggestions';
 import contentHandler from './features/content/server/handlers/content';
-import embedHtml from './features/lti/server/html/embed_html';
+import embedHtml from './features/site/server/html/embed_html';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
