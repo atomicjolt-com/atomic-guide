@@ -1,3 +1,5 @@
+@import url('./styles/loader.css');
+
 body {
   font-family: system-ui, -apple-system, sans-serif;
   max-width: 600px;

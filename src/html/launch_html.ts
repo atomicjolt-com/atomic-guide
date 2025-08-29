@@ -19,7 +19,11 @@ export default function launchHtml(launchSettings: LaunchSettings, scriptName: s
       </p>
     </div>
     <div id="main-content">
-    Hello World
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <h1 class="loading-title">Loading Atomic Guide</h1>
+        <p class="loading-subtitle">Please wait...</p>
+      </div>
     </div>
     <script type="module" src="/${scriptName}"></script>
   `;
