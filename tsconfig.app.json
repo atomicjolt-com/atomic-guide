@@ -21,6 +21,15 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"],
+      "@/types": ["src/shared/types"],
+      "@/schemas": ["src/shared/schemas"]
+    }
   },
-  "include": ["client", "client/types"]
+  "include": ["client", "client/types", "src/features/*/client/**/*", "src/shared/client/**/*"]
 }

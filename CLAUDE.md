@@ -99,12 +99,27 @@ This project is build using vite, specifically `@cloudflare/vite-plugin` which h
 - **Vector Search**: Cloudflare Vectorize (https://developers.cloudflare.com/vectorize/)
 - **Frontend**: React 19 + TypeScript
 
-### Project Structure
+### Project Structure (Vertical Slice Architecture)
+
+> **Note**: This project uses a vertical slice architecture, organizing code by features rather than technical layers. See [vertical-slice-refactoring.md](docs/architecture/vertical-slice-refactoring.md) for detailed documentation.
 
 ```
 /Users/jbasdf/projects/atomic-guide/
-├── client/                   # Client-side React application
-├── src/                      # Server-side Cloudflare Worker code
+├── src/
+│   ├── features/             # Feature-based vertical slices
+│   │   ├── chat/            # Chat feature domain
+│   │   ├── assessment/      # Assessment & deep linking
+│   │   ├── content/         # Content extraction
+│   │   ├── dashboard/       # Analytics & insights
+│   │   ├── lti/            # LTI protocol
+│   │   ├── settings/        # User preferences
+│   │   └── faq/            # Knowledge base
+│   └── shared/              # Cross-feature shared code
+│       ├── client/          # Shared client code
+│       ├── server/          # Shared server code
+│       ├── schemas/         # Shared data schemas
+│       └── types/          # Common TypeScript types
+├── client/                   # Legacy client entry points (being migrated)
 ├── tests/                    # Test suite organization
 ├── docs/                     # Comprehensive project documentation
 ├── scripts/                  # Database and infrastructure scripts
@@ -114,42 +129,60 @@ This project is build using vite, specifically `@cloudflare/vite-plugin` which h
 └── Configuration files
 ```
 
-#### Server-Side Architecture (`src/`)
+#### Feature-Based Architecture
 
-The server-side code follows a modular Hono-based architecture:
+Each feature follows a consistent structure:
 
-- **`src/index.ts`** - Main Cloudflare Worker entry point with Hono app setup
-- **`src/api/handlers/`** - API endpoint handlers for chat, content, dashboard, FAQ, and suggestions
-- **`src/services/`** - Business logic services including AI, content analysis, learning patterns, and database operations
-- **`src/durable-objects/`** - Cloudflare Durable Objects for stateful operations (chat conversations, struggle detection)
-- **`src/html/`** - HTML template generators for various LTI pages (launch, registration, etc.)
-- **`src/db/`** - Database utilities and connection management
-- **`src/libs/`** - Utility libraries for encryption and manifest handling
-- **`src/utils/`** - Response formatting, sanitization, and tokenization utilities
-- **`src/config.ts`** - Tool configuration for LTI dynamic registration
-- **`src/register.ts`** - Platform registration handling
-- **`src/tool_jwt.ts`** - JWT token management
+```
+features/[feature-name]/
+├── client/                   # Client-side code
+│   ├── components/          # React components
+│   ├── hooks/              # Feature-specific hooks
+│   ├── store/              # Redux slices & RTK Query
+│   └── services/           # Client services
+├── server/                   # Server-side code
+│   ├── handlers/           # API route handlers
+│   ├── services/           # Business logic
+│   └── durable-objects/    # Stateful objects
+├── shared/                   # Feature-internal shared code
+│   ├── types/              # TypeScript types
+│   └── schemas/            # Zod schemas
+└── tests/                    # Feature tests
 
-#### Client-Side Architecture (`client/`)
+```
 
-The client-side is a modern React 19 application with Redux Toolkit:
+#### Shared Module (`src/shared/`)
 
-- **`client/app.tsx`** - Main LTI launch application entry point
-- **`client/app-init.ts`** - OIDC initialization handler
-- **`client/home.ts`** - Home page entry point
-- **`client/components/`** - React component organization:
-  - `chat/` - Chat interface components (FAB, window, messages, rich media)
-  - `content/` - Content awareness and privacy controls
-  - `dashboard/` - Analytics and learning insights
-  - `settings/` - User preference components
-- **`client/pages/`** - Page-level components (student dashboard)
-- **`client/store/`** - Redux Toolkit store configuration:
-  - `api/` - RTK Query API definitions
-  - `slices/` - Redux state slices (chat, JWT)
-- **`client/hooks/`** - Custom React hooks for content extraction and LMS integration
-- **`client/services/`** - Client-side services (LMS content extractor)
-- **`client/styles/`** - CSS modules for component styling
-- **`client/utils/`** - Client utilities (retry logic)
+The shared module contains cross-cutting concerns used by multiple features:
+
+- **`shared/client/`** - Shared client-side code:
+  - `components/` - Reusable UI components (Button, Modal, ErrorBoundary)
+  - `hooks/` - Common React hooks (useAuth, useDebounce)
+  - `store/` - Base store configuration
+  - `utils/` - Client utilities
+- **`shared/server/`** - Shared server-side code:
+  - `services/` - Core services (AIService, DatabaseService)
+  - `middleware/` - Common middleware
+  - `db/` - Database utilities
+  - `utils/` - Server utilities (sanitizer, tokenizer)
+- **`shared/schemas/`** - Common Zod schemas
+- **`shared/types/`** - Shared TypeScript types
+
+#### Import Pattern Examples
+
+```typescript
+// Importing from shared modules
+import { AIService } from '@shared/server/services';
+import { Button } from '@shared/client/components';
+import { useAuth } from '@shared/client/hooks';
+
+// Importing within a feature
+import { ChatWindow } from './components';
+import { chatApi } from './store';
+
+// Cross-feature types (when necessary)
+import type { ChatMessage } from '@features/chat/shared/types';
+```
 
 #### Testing Organization (`tests/`)
 
@@ -201,14 +234,16 @@ Extensive documentation organized by concern:
 
 #### Notable Patterns and Conventions
 
-1. **Separation of Concerns**: Clear boundaries between server (Cloudflare Worker) and client (React SPA) code
-2. **Entry Point Strategy**: Multiple Vite entry points for different application modes (LTI launch, home page, OIDC init)
-3. **Service Architecture**: Modular service layer with dependency injection patterns
-4. **Type Safety**: Comprehensive TypeScript configuration with strict typing
-5. **Testing Strategy**: Multi-layered testing approach (unit, integration, performance, security)
-6. **Infrastructure as Code**: Automated scripts for database and KV namespace management
-7. **LTI Compliance**: Built on Atomic Jolt's LTI foundation with standard endpoint patterns
-8. **Edge Computing**: Leverages Cloudflare's edge platform (Workers, D1, Durable Objects, AI, Vectorize)
+1. **Vertical Slice Architecture**: Features organized by business domain, not technical layers
+2. **Shared Module Pattern**: Cross-cutting concerns extracted to prevent duplication
+3. **Feature Cohesion**: All code for a feature lives together (client, server, tests)
+4. **Entry Point Strategy**: Multiple Vite entry points for different application modes (LTI launch, home page, OIDC init)
+5. **Service Architecture**: Modular service layer with dependency injection patterns
+6. **Type Safety**: Comprehensive TypeScript configuration with strict typing
+7. **Testing Strategy**: Multi-layered testing approach (unit, integration, performance, security)
+8. **Infrastructure as Code**: Automated scripts for database and KV namespace management
+9. **LTI Compliance**: Built on Atomic Jolt's LTI foundation with standard endpoint patterns
+10. **Edge Computing**: Leverages Cloudflare's edge platform (Workers, D1, Durable Objects, AI, Vectorize)
 
 ### Core Components
 

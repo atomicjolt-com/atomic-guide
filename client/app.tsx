@@ -9,8 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import type { LaunchSettings } from '@atomicjolt/lti-client';
 import { configureStore } from './store';
-import { ChatFAB } from './components/chat/ChatFAB';
-import { ChatWindow } from './components/chat/ChatWindow';
+import { ChatFAB, ChatWindow } from '@features/chat/client/components';
 import { LtiLaunchCheck } from '@atomicjolt/lti-components';
 
 /**

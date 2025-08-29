@@ -14,8 +14,8 @@ import {
   handleSignDeepLink,
   validateLaunchRequest,
 } from '@atomicjolt/lti-endpoints';
-import { dynamicRegistrationHtml } from './html/dynamic_registration_html';
-import { getToolConfiguration } from './config';
+import { dynamicRegistrationHtml } from './features/lti/server/html/dynamic_registration_html';
+import { getToolConfiguration } from './features/lti/server/config/config';
 import {
   LTI_INIT_PATH,
   LTI_REDIRECT_PATH,
@@ -26,25 +26,25 @@ import {
   LTI_NAMES_AND_ROLES_PATH,
   LTI_SIGN_DEEP_LINK_PATH,
 } from '../definitions';
-import { getToolJwt } from './tool_jwt';
-import { handlePlatformResponse } from './register';
-import indexHtml from './html/index_html';
-import launchHtml from './html/launch_html';
-import { getClientAssetPath } from './libs/manifest';
-import dbTestApp from './db/test-connection';
-import { handleChatMessage, searchChatHistory, getChatConversation, deleteChatConversation, exportUserData } from './api/handlers/chat';
-import { handleChatStream } from './api/handlers/chatStream';
-import { getConversations, getLearningInsights, updateLearningStyle, getConversationSummary } from './api/handlers/dashboard';
-import faqHandler from './api/handlers/faq';
-import richMediaHandler from './api/handlers/richMedia';
-import suggestionHandler from './api/handlers/suggestions';
-import contentHandler from './api/handlers/content';
-import embedHtml from './html/embed_html';
+import { getToolJwt } from './features/lti/server/services/tool_jwt';
+import { handlePlatformResponse } from './features/lti/server/services/register';
+import indexHtml from './features/lti/server/html/index_html';
+import launchHtml from './features/lti/server/html/launch_html';
+import { getClientAssetPath } from './shared/server/utils/manifest';
+import dbTestApp from './shared/server/db/test-connection';
+import { handleChatMessage, searchChatHistory, getChatConversation, deleteChatConversation, exportUserData } from './features/chat/server/handlers/chat';
+import { handleChatStream } from './features/chat/server/handlers/chatStream';
+import { getConversations, getLearningInsights, updateLearningStyle, getConversationSummary } from './features/dashboard/server/handlers/dashboard';
+import faqHandler from './features/faq/server/handlers/faq';
+import richMediaHandler from './features/chat/server/handlers/richMedia';
+import suggestionHandler from './features/chat/server/handlers/suggestions';
+import contentHandler from './features/content/server/handlers/content';
+import embedHtml from './features/lti/server/html/embed_html';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
-export { StruggleDetectorDO } from './durable-objects/StruggleDetectorDO';
-export { ChatConversationDO } from './durable-objects/ChatConversationDO';
+export { StruggleDetectorDO } from './features/dashboard/server/durable-objects/StruggleDetectorDO';
+export { ChatConversationDO } from './features/chat/server/durable-objects/ChatConversationDO';
 
 // Define context variables type
 type Variables = {

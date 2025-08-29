@@ -1,9 +1,9 @@
 import { configureStore as rtkConfigureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { baseApi } from './api/baseApi';
-import chatReducer from './slices/chatSlice';
-import jwtReducer from './slices/jwtSlice';
-import deepLinkReducer from './slices/deepLinkSlice';
+import chatReducer from '@features/chat/client/store/chatSlice';
+import jwtReducer from '@features/lti/client/store/jwtSlice';
+import deepLinkReducer from '@features/assessment/client/store/deepLinkSlice';
 
 export interface StoreConfig {
   jwt?: string;

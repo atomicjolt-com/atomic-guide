@@ -4,7 +4,14 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
     "types": ["vite/client", "./worker-configuration.d.ts", "@cloudflare/vitest-pool-workers"],
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"],
+      "@/types": ["src/shared/types"],
+      "@/schemas": ["src/shared/schemas"]
+    }
   },
   "include": ["src"]
 }
