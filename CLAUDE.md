@@ -460,7 +460,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
-          'query-vendor': ['@tanstack/react-query'],
           'form-vendor': ['react-hook-form', 'zod'],
         },
       },
