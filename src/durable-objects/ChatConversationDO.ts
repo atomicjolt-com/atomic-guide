@@ -787,7 +787,7 @@ export class ChatConversationDO {
       this.initializeSession(sessionInfo.conversationId, sessionInfo.tenantId, sessionInfo.userId);
     }
 
-    webSocket.addEventListener('message', async(event) => {
+    webSocket.addEventListener('message', async (event) => {
       try {
         const message = JSON.parse(event.data as string);
         await this.handleWebSocketMessage(webSocket, message);

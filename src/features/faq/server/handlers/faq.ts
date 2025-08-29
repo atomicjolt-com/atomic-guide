@@ -18,7 +18,7 @@ type Variables = {
 const faq = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Middleware to extract tenant and user information
-faq.use('*', async(c, next) => {
+faq.use('*', async (c, next) => {
   // Extract tenant/user from headers or JWT (simplified for now)
   const tenantId = c.req.header('x-tenant-id') || 'default';
   const userId = c.req.header('x-user-id') || 'anonymous';
@@ -30,7 +30,7 @@ faq.use('*', async(c, next) => {
 });
 
 // GET /api/chat/faq/search - Search FAQ database
-faq.get('/search', async(c) => {
+faq.get('/search', async (c) => {
   const startTime = Date.now();
 
   try {
@@ -100,7 +100,7 @@ faq.get('/search', async(c) => {
 });
 
 // POST /api/chat/faq - Create new FAQ entry
-faq.post('/', async(c) => {
+faq.post('/', async (c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;
@@ -176,7 +176,7 @@ faq.post('/', async(c) => {
 });
 
 // PUT /api/chat/faq/:id - Update FAQ entry
-faq.put('/:id', async(c) => {
+faq.put('/:id', async (c) => {
   try {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
@@ -241,7 +241,7 @@ faq.put('/:id', async(c) => {
 });
 
 // DELETE /api/chat/faq/:id - Delete FAQ entry
-faq.delete('/:id', async(c) => {
+faq.delete('/:id', async (c) => {
   try {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
@@ -281,7 +281,7 @@ faq.delete('/:id', async(c) => {
 });
 
 // POST /api/chat/faq/:id/effectiveness - Update FAQ effectiveness based on user feedback
-faq.post('/:id/effectiveness', async(c) => {
+faq.post('/:id/effectiveness', async (c) => {
   try {
     const faqId = c.req.param('id');
     const tenantId = c.get('tenantId')!;
@@ -307,7 +307,7 @@ faq.post('/:id/effectiveness', async(c) => {
 });
 
 // GET /api/dashboard/faq - FAQ management interface for instructors
-faq.get('/management', async(c) => {
+faq.get('/management', async (c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const courseId = c.req.query('course');
@@ -370,7 +370,7 @@ faq.get('/management', async(c) => {
 });
 
 // GET /api/dashboard/faq/analytics - FAQ usage analytics
-faq.get('/analytics', async(c) => {
+faq.get('/analytics', async (c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const courseId = c.req.query('course');

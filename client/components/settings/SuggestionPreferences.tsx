@@ -121,7 +121,7 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
     setPreferences(prev => ({ ...prev, cooldownMinutes: minutes }));
   };
 
-  const handleSave = async() => {
+  const handleSave = async () => {
     setIsSaving(true);
     try {
       await onSave(preferences);

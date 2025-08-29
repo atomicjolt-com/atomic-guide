@@ -68,7 +68,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     [language],
   );
 
-  const highlightCode = useCallback(async() => {
+  const highlightCode = useCallback(async () => {
     const startTime = Date.now();
     setIsLoading(true);
     setHasError(false);
@@ -135,7 +135,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     highlightCode();
   }, [highlightCode]);
 
-  const handleCopyToClipboard = useCallback(async() => {
+  const handleCopyToClipboard = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);

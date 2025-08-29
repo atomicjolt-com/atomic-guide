@@ -15,7 +15,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Confusion Pattern Detection', () => {
-    it('should detect high confidence confusion patterns', async() => {
+    it('should detect high confidence confusion patterns', async () => {
       const messages = [
         { role: 'user', content: 'I don\'t understand this at all', timestamp: new Date(), responseTime: 5000 },
         { role: 'assistant', content: 'Let me explain the concept differently', timestamp: new Date() },
@@ -33,7 +33,7 @@ describe('LearningPatternAnalyzer', () => {
       expect(analysis.strugglesDetected[0].indicators).toContain('Uses confusion keyword: "don\'t understand"');
     });
 
-    it('should detect medium confidence confusion with fewer indicators', async() => {
+    it('should detect medium confidence confusion with fewer indicators', async () => {
       const messages = [
         { role: 'user', content: 'Can you explain this part?', timestamp: new Date() },
         { role: 'assistant', content: 'Sure, here\'s the explanation', timestamp: new Date() },
@@ -51,7 +51,7 @@ describe('LearningPatternAnalyzer', () => {
       }
     });
 
-    it('should not detect confusion in clear conversation', async() => {
+    it('should not detect confusion in clear conversation', async () => {
       const messages = [
         { role: 'user', content: 'How does photosynthesis work?', timestamp: new Date() },
         { role: 'assistant', content: 'Photosynthesis converts sunlight to energy', timestamp: new Date() },
@@ -66,7 +66,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Frustration Pattern Detection', () => {
-    it('should detect critical frustration patterns', async() => {
+    it('should detect critical frustration patterns', async () => {
       const messages = [
         { role: 'user', content: 'This is impossible! I\'ve tried everything', timestamp: new Date() },
         { role: 'assistant', content: 'Let\'s work through this together', timestamp: new Date() },
@@ -84,7 +84,7 @@ describe('LearningPatternAnalyzer', () => {
       expect(frustrationPattern?.suggestedIntervention).toBe('escalation');
     });
 
-    it('should detect medium frustration without escalation', async() => {
+    it('should detect medium frustration without escalation', async () => {
       const messages = [
         { role: 'user', content: 'This problem is quite difficult', timestamp: new Date() },
         { role: 'assistant', content: 'Let\'s break it into steps', timestamp: new Date() },
@@ -102,7 +102,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Repetition Pattern Detection', () => {
-    it('should detect repetitive questioning', async() => {
+    it('should detect repetitive questioning', async () => {
       const messages = [
         { role: 'user', content: 'How do I solve quadratic equations?', timestamp: new Date() },
         { role: 'assistant', content: 'Use the quadratic formula', timestamp: new Date() },
@@ -121,7 +121,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Engagement Decline Detection', () => {
-    it('should detect declining engagement from response patterns', async() => {
+    it('should detect declining engagement from response patterns', async () => {
       const messages = [
         {
           role: 'user',
@@ -165,7 +165,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Learning Trend Analysis', () => {
-    it('should identify improvement trends', async() => {
+    it('should identify improvement trends', async () => {
       const messages = [
         { role: 'user', content: 'I don\'t understand this concept', timestamp: new Date(Date.now() - 30000) },
         { role: 'assistant', content: 'Let me explain...', timestamp: new Date(Date.now() - 29000) },
@@ -195,7 +195,7 @@ describe('LearningPatternAnalyzer', () => {
       }
     });
 
-    it('should identify decline trends requiring intervention', async() => {
+    it('should identify decline trends requiring intervention', async () => {
       const messages = [
         { role: 'user', content: 'I think I understand this', timestamp: new Date(Date.now() - 30000) },
         { role: 'assistant', content: 'Great! Let\'s continue...', timestamp: new Date(Date.now() - 29000) },
@@ -225,7 +225,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Intervention Timing Calculation', () => {
-    it('should calculate optimal timing based on urgency', async() => {
+    it('should calculate optimal timing based on urgency', async () => {
       const criticalMessages = [
         { role: 'user', content: 'I\'m completely lost and giving up!', timestamp: new Date() },
         { role: 'assistant', content: 'Please don\'t give up, let me help', timestamp: new Date() },
@@ -238,7 +238,7 @@ describe('LearningPatternAnalyzer', () => {
       expect(analysis.interventionTiming.avoidInterruptionScore).toBeGreaterThan(0.5); // Quiz context
     });
 
-    it('should respect focused work context', async() => {
+    it('should respect focused work context', async () => {
       const focusedMessages = [
         {
           role: 'user',
@@ -255,7 +255,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Help-Seeking Behavior Analysis', () => {
-    it('should identify proactive help-seeking behavior', async() => {
+    it('should identify proactive help-seeking behavior', async () => {
       const proactiveMessages = [
         { role: 'user', content: 'Can you help me understand this before I get stuck?', timestamp: new Date() },
         { role: 'assistant', content: 'Absolutely! Let me explain...', timestamp: new Date() },
@@ -267,7 +267,7 @@ describe('LearningPatternAnalyzer', () => {
       expect(analysis.helpSeekingBehavior).toBe('proactive');
     });
 
-    it('should identify reactive help-seeking behavior', async() => {
+    it('should identify reactive help-seeking behavior', async () => {
       const reactiveMessages = [
         { role: 'assistant', content: 'Do you need help with this?', timestamp: new Date() },
         { role: 'user', content: 'Yes, I guess I do', timestamp: new Date() },
@@ -280,7 +280,7 @@ describe('LearningPatternAnalyzer', () => {
       expect(analysis.helpSeekingBehavior).toBe('reactive');
     });
 
-    it('should identify resistant help-seeking behavior', async() => {
+    it('should identify resistant help-seeking behavior', async () => {
       const resistantMessages = [
         { role: 'assistant', content: 'Would you like help with this problem?', timestamp: new Date() },
         { role: 'user', content: 'No, I don\'t need help', timestamp: new Date() },
@@ -295,7 +295,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Profile Updates', () => {
-    it('should update learner profile based on analysis', async() => {
+    it('should update learner profile based on analysis', async () => {
       const initialProfile: LearningPatternProfile = {
         learnerId: 'test-123',
         confusionTendency: 0.3,
@@ -343,7 +343,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Edge Cases and Error Handling', () => {
-    it('should handle insufficient data gracefully', async() => {
+    it('should handle insufficient data gracefully', async () => {
       const tooFewMessages = [{ role: 'user', content: 'Hi', timestamp: new Date() }];
 
       const analysis = await analyzer.analyzeConversation(tooFewMessages);
@@ -353,7 +353,7 @@ describe('LearningPatternAnalyzer', () => {
       expect(analysis.interventionTiming.confidence).toBe(0.5);
     });
 
-    it('should handle empty conversation', async() => {
+    it('should handle empty conversation', async () => {
       const analysis = await analyzer.analyzeConversation([]);
 
       expect(analysis.messageCount).toBe(0);
@@ -361,7 +361,7 @@ describe('LearningPatternAnalyzer', () => {
       expect(analysis.helpSeekingBehavior).toBe('reactive');
     });
 
-    it('should handle malformed messages', async() => {
+    it('should handle malformed messages', async () => {
       const malformedMessages = [
         { role: 'user', content: '', timestamp: new Date() },
         { role: 'assistant', content: 'How can I help?', timestamp: new Date() },
@@ -377,7 +377,7 @@ describe('LearningPatternAnalyzer', () => {
   });
 
   describe('Performance Requirements', () => {
-    it('should complete analysis within performance constraints', async() => {
+    it('should complete analysis within performance constraints', async () => {
       // Create a larger conversation to test performance
       const largeConversation = Array.from({ length: 50 }, (_, index) => ({
         role: index % 2 === 0 ? 'user' : 'assistant',

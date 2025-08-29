@@ -171,7 +171,7 @@ export async function handleChatStream(c: Context): Promise<Response> {
     const encoder = new TextEncoder();
 
     // Start streaming in background
-    (async() => {
+    (async () => {
       let fullResponse = '';
       let tokensUsed = 0;
 

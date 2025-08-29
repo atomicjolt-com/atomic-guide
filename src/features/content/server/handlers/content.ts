@@ -160,7 +160,7 @@ async function trackProcessingMetrics(
   ).run();
 }
 
-app.post('/extract', async(c) => {
+app.post('/extract', async (c) => {
   const startTime = Date.now();
   const tenantId = c.get('tenantId');
   const userId = c.get('userId');
@@ -312,7 +312,7 @@ app.post('/extract', async(c) => {
   }
 });
 
-app.get('/context/:pageUrl', async(c) => {
+app.get('/context/:pageUrl', async (c) => {
   const startTime = Date.now();
   const tenantId = c.get('tenantId');
   const pageUrl = decodeURIComponent(c.req.param('pageUrl'));
@@ -413,7 +413,7 @@ app.get('/context/:pageUrl', async(c) => {
   }
 });
 
-app.post('/engagement', async(c) => {
+app.post('/engagement', async (c) => {
   const tenantId = c.get('tenantId');
   const learnerId = c.get('userId');
 
@@ -479,7 +479,7 @@ app.post('/engagement', async(c) => {
   }
 });
 
-app.get('/search', async(c) => {
+app.get('/search', async (c) => {
   const tenantId = c.get('tenantId');
   const userId = c.get('userId');
   const courseId = c.get('courseId');
@@ -541,7 +541,7 @@ app.get('/search', async(c) => {
   }
 });
 
-app.post('/settings', async(c) => {
+app.post('/settings', async (c) => {
   const tenantId = c.get('tenantId');
   const instructorId = c.get('userId');
   const courseId = c.get('courseId');

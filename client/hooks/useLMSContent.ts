@@ -98,7 +98,7 @@ export function useLMSContent(options: UseLMSContentOptions = {}): UseLMSContent
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const extractContent = useCallback(async() => {
+  const extractContent = useCallback(async () => {
     if (!extractorRef.current || isExtracting) {
       return;
     }

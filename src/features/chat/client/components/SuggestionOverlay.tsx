@@ -107,7 +107,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   }, [isMobile, isVisible, handleClose]);
 
-  const fetchNextSuggestion = useCallback(async() => {
+  const fetchNextSuggestion = useCallback(async () => {
     setIsLoading(true);
     
     try {
@@ -129,7 +129,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   }, []);
 
-  const handleAccept = async(action: SuggestionAction) => {
+  const handleAccept = async (action: SuggestionAction) => {
     if (!currentSuggestion) return;
 
     try {
@@ -157,7 +157,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const handleDismiss = async(feedback?: string) => {
+  const handleDismiss = async (feedback?: string) => {
     if (!currentSuggestion) return;
 
     try {
@@ -186,7 +186,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const handleFeedback = async(feedback: 'helpful' | 'not_helpful' | 'too_frequent' | 'wrong_timing' | 'irrelevant') => {
+  const handleFeedback = async (feedback: 'helpful' | 'not_helpful' | 'too_frequent' | 'wrong_timing' | 'irrelevant') => {
     if (!currentSuggestion) return;
 
     try {
@@ -216,7 +216,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     onClose();
   }, [onClose]);
 
-  const executeAction = async(action: SuggestionAction) => {
+  const executeAction = async (action: SuggestionAction) => {
     switch (action.type) {
       case 'prompt': {
         // Send the suggested prompt to the chat
@@ -261,7 +261,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     }
   };
 
-  const notifyInstructor = async(escalationData: any) => {
+  const notifyInstructor = async (escalationData: any) => {
     // This would integrate with the LMS notification system
     console.log('Notifying instructor:', escalationData);
   };

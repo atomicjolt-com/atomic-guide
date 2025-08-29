@@ -11,9 +11,9 @@ describe('PostMessage Security Fixes', () => {
     // Mock sessionStorage
     global.sessionStorage = {
       getItem: vi.fn((key) => mockSessionStorage[key] || null),
-      setItem: vi.fn((key, value) => { mockSessionStorage[key] = value; }),
-      removeItem: vi.fn((key) => { delete mockSessionStorage[key]; }),
-      clear: vi.fn(() => { mockSessionStorage = {}; }),
+      setItem: vi.fn((key, value) => {mockSessionStorage[key] = value;}),
+      removeItem: vi.fn((key) => {delete mockSessionStorage[key];}),
+      clear: vi.fn(() => {mockSessionStorage = {};}),
       length: 0,
       key: vi.fn()
     } as Storage;

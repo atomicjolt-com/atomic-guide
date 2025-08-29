@@ -41,7 +41,7 @@ describe('FAQKnowledgeBase', () => {
   });
 
   describe('searchSimilarFAQs', () => {
-    it('should find similar FAQs from vector search', async() => {
+    it('should find similar FAQs from vector search', async () => {
       const mockMatches = [
         {
           id: 'faq_123',
@@ -87,7 +87,7 @@ describe('FAQKnowledgeBase', () => {
       expect(mockAIService.generateEmbedding).toHaveBeenCalledWith('How does photosynthesis work?');
     });
 
-    it('should return empty array when no similar FAQs found', async() => {
+    it('should return empty array when no similar FAQs found', async () => {
       mockVectorizeIndex.query.mockResolvedValue({
         matches: [],
       });
@@ -99,7 +99,7 @@ describe('FAQKnowledgeBase', () => {
       expect(results).toEqual([]);
     });
 
-    it('should return cached results when available', async() => {
+    it('should return cached results when available', async () => {
       const now = new Date();
       const cachedResults = [
         {
@@ -126,7 +126,7 @@ describe('FAQKnowledgeBase', () => {
       expect(mockAIService.generateEmbedding).not.toHaveBeenCalled();
     });
 
-    it('should handle AI service errors gracefully', async() => {
+    it('should handle AI service errors gracefully', async () => {
       mockAIService.generateEmbedding = vi.fn().mockRejectedValue(new Error('AI service error'));
       mockKvCache.get.mockResolvedValue(null);
 
@@ -137,7 +137,7 @@ describe('FAQKnowledgeBase', () => {
   });
 
   describe('addFAQ', () => {
-    it('should add new FAQ with vector embedding', async() => {
+    it('should add new FAQ with vector embedding', async () => {
       mockVectorizeIndex.insert.mockResolvedValue({ count: 1 });
       mockDB.prepare().bind().run.mockResolvedValue({ success: true });
 
@@ -152,7 +152,7 @@ describe('FAQKnowledgeBase', () => {
       expect(mockDB.prepare).toHaveBeenCalled();
     });
 
-    it('should handle database errors during FAQ creation', async() => {
+    it('should handle database errors during FAQ creation', async () => {
       mockVectorizeIndex.insert.mockResolvedValue({ count: 1 });
       mockDB.prepare().bind().run.mockRejectedValue(new Error('Database error'));
 
@@ -161,7 +161,7 @@ describe('FAQKnowledgeBase', () => {
   });
 
   describe('updateFAQ', () => {
-    it('should update existing FAQ', async() => {
+    it('should update existing FAQ', async () => {
       // Mock getting existing FAQ
       mockDB.prepare().bind().first.mockResolvedValueOnce({
         id: 'faq-1',
@@ -188,7 +188,7 @@ describe('FAQKnowledgeBase', () => {
   });
 
   describe('deleteFAQ', () => {
-    it('should delete FAQ from both vector and database', async() => {
+    it('should delete FAQ from both vector and database', async () => {
       // Mock getting existing FAQ
       mockDB.prepare().bind().first.mockResolvedValueOnce({
         id: 'faq-1',
@@ -207,7 +207,7 @@ describe('FAQKnowledgeBase', () => {
       expect(mockDB.prepare).toHaveBeenCalledWith(expect.stringContaining('DELETE FROM faq_entries'));
     });
 
-    it('should handle missing FAQ during deletion', async() => {
+    it('should handle missing FAQ during deletion', async () => {
       mockDB.prepare().bind().first.mockResolvedValueOnce(null);
 
       await expect(faqService.deleteFAQ('nonexistent', 'tenant-1')).rejects.toThrow('FAQ not found');
@@ -215,7 +215,7 @@ describe('FAQKnowledgeBase', () => {
   });
 
   describe('filtering and relevance', () => {
-    it('should filter FAQs by similarity threshold', async() => {
+    it('should filter FAQs by similarity threshold', async () => {
       const mockMatches = [
         { id: 'faq_1', score: 0.95 }, // Above threshold
         { id: 'faq_2', score: 0.6 }, // Below threshold
@@ -264,7 +264,7 @@ describe('FAQKnowledgeBase', () => {
       expect(results[1].similarity).toBe(0.85);
     });
 
-    it('should sort by similarity and usage count', async() => {
+    it('should sort by similarity and usage count', async () => {
       const mockMatches = [
         { id: 'faq_1', score: 0.85 },
         { id: 'faq_2', score: 0.87 },

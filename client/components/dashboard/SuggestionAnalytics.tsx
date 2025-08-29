@@ -70,7 +70,7 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({
     fetchAnalytics();
   }, [fetchAnalytics]);
 
-  const fetchAnalytics = useCallback(async() => {
+  const fetchAnalytics = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     

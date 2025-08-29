@@ -179,7 +179,7 @@ export class ContentCache {
   async warmCache(tenantId: string, pageUrls: string[]): Promise<void> {
     console.log(`Warming cache for ${pageUrls.length} pages`);
     
-    const promises = pageUrls.map(async(pageUrl) => {
+    const promises = pageUrls.map(async (pageUrl) => {
       const content = await this.getContent(pageUrl, tenantId);
       if (!content) {
         console.log(`No cached content for warm-up: ${pageUrl}`);
@@ -405,8 +405,8 @@ export class ContentCacheManager {
       return cached;
     }
 
-    return this.circuitBreaker.execute(async() => {
-      return this.rateLimiter.throttle(tenantId, async() => {
+    return this.circuitBreaker.execute(async () => {
+      return this.rateLimiter.throttle(tenantId, async () => {
         const content = await fetchFn();
         await this.cache.setContent(content);
         return content;

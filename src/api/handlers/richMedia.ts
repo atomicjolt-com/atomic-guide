@@ -16,7 +16,7 @@ type Variables = {
 const richMedia = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Middleware to extract tenant and user information
-richMedia.use('*', async(c, next) => {
+richMedia.use('*', async (c, next) => {
   const tenantId = c.req.header('x-tenant-id') || 'default';
   const userId = c.req.header('x-user-id') || 'anonymous';
 
@@ -27,7 +27,7 @@ richMedia.use('*', async(c, next) => {
 });
 
 // POST /api/chat/media/render - Rich media processing endpoint
-richMedia.post('/render', async(c) => {
+richMedia.post('/render', async (c) => {
   try {
     const body = await c.req.json();
     const { content, media_type, context } = body;
@@ -286,7 +286,7 @@ richMedia.post('/render', async(c) => {
 });
 
 // GET /api/learner/media-preferences - Retrieve media preferences
-richMedia.get('/preferences', async(c) => {
+richMedia.get('/preferences', async (c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;
@@ -335,7 +335,7 @@ richMedia.get('/preferences', async(c) => {
 });
 
 // PUT /api/learner/media-preferences - Update media preferences
-richMedia.put('/preferences', async(c) => {
+richMedia.put('/preferences', async (c) => {
   try {
     const tenantId = c.get('tenantId')!;
     const userId = c.get('userId')!;

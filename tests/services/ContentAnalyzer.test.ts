@@ -13,7 +13,7 @@ describe('ContentAnalyzer', () => {
   });
 
   describe('analyzeContent', () => {
-    it('should analyze content and return complete analysis', async() => {
+    it('should analyze content and return complete analysis', async () => {
       const mockContent = {
         pageUrl: 'https://canvas.example.com/courses/123/assignments/456',
         pageType: 'assignment',
@@ -55,7 +55,7 @@ describe('ContentAnalyzer', () => {
   });
 
   describe('extractKeyConcepts', () => {
-    it('should extract concepts from headings', async() => {
+    it('should extract concepts from headings', async () => {
       const text = 'This is about machine learning and neural networks.';
       const metadata = {
         headings: [
@@ -74,7 +74,7 @@ describe('ContentAnalyzer', () => {
       expect(concepts.some(c => c.concept.includes('Neural Networks'))).toBe(true);
     });
 
-    it('should extract concepts from emphasized text', async() => {
+    it('should extract concepts from emphasized text', async () => {
       const text = 'Learn about important concepts.';
       const metadata = {
         headings: [],
@@ -93,7 +93,7 @@ describe('ContentAnalyzer', () => {
       expect(concepts.some(c => c.concept === 'Deep Learning')).toBe(true);
     });
 
-    it('should detect definition patterns', async() => {
+    it('should detect definition patterns', async () => {
       const text = 'Regression is defined as a statistical method for modeling relationships. Classification means categorizing data into groups.';
       const metadata = { headings: [], emphasis: [] };
 
@@ -107,7 +107,7 @@ describe('ContentAnalyzer', () => {
   });
 
   describe('identifyLearningObjectives', () => {
-    it('should identify explicit learning objectives', async() => {
+    it('should identify explicit learning objectives', async () => {
       const text = 'Learning objectives: Students will be able to explain machine learning concepts. You will learn to apply algorithms to real problems.';
       const metadata = { headings: [] };
 
@@ -120,7 +120,7 @@ describe('ContentAnalyzer', () => {
       expect(objectives[0]).toHaveProperty('confidence');
     });
 
-    it('should detect Bloom taxonomy levels', async() => {
+    it('should detect Bloom taxonomy levels', async () => {
       const text = 'Students will analyze data patterns, evaluate model performance, and create new algorithms.';
       const metadata = { headings: [] };
 
@@ -133,7 +133,7 @@ describe('ContentAnalyzer', () => {
   });
 
   describe('detectPrerequisites', () => {
-    it('should detect explicit prerequisites', async() => {
+    it('should detect explicit prerequisites', async () => {
       const text = 'Prerequisites: understanding of calculus and linear algebra. This course builds upon statistics fundamentals.';
 
       const prerequisites = await analyzer.detectPrerequisites(text);
@@ -144,7 +144,7 @@ describe('ContentAnalyzer', () => {
       expect(prerequisites.some(p => p.concept.includes('statistics'))).toBe(true);
     });
 
-    it('should detect chapter/module references', async() => {
+    it('should detect chapter/module references', async () => {
       const text = 'As discussed in Chapter 3, neural networks require understanding from the previous module.';
 
       const prerequisites = await analyzer.detectPrerequisites(text);
@@ -156,7 +156,7 @@ describe('ContentAnalyzer', () => {
   });
 
   describe('suggestAssessmentPoints', () => {
-    it('should suggest comprehension assessments for definitions', async() => {
+    it('should suggest comprehension assessments for definitions', async () => {
       const text = 'Machine learning is defined as the study of algorithms. Deep learning refers to neural networks with multiple layers.';
       const metadata = { headings: [] };
 
@@ -167,7 +167,7 @@ describe('ContentAnalyzer', () => {
       expect(assessments.some(a => a.suggestedQuestionTypes?.includes('definition matching'))).toBe(true);
     });
 
-    it('should suggest application assessments for examples', async() => {
+    it('should suggest application assessments for examples', async () => {
       const text = 'For example, you can use regression to predict house prices. Consider this scenario where classification helps identify spam emails.';
       const metadata = { headings: [] };
 
@@ -178,7 +178,7 @@ describe('ContentAnalyzer', () => {
       expect(assessments.some(a => a.suggestedQuestionTypes?.includes('problem solving'))).toBe(true);
     });
 
-    it('should suggest analysis assessments for comparisons', async() => {
+    it('should suggest analysis assessments for comparisons', async () => {
       const text = 'Unlike supervised learning, unsupervised learning works without labels. However, reinforcement learning differs from both approaches.';
       const metadata = { headings: [] };
 
@@ -191,7 +191,7 @@ describe('ContentAnalyzer', () => {
   });
 
   describe('content metrics', () => {
-    it('should calculate readability score', async() => {
+    it('should calculate readability score', async () => {
       const text = 'This is a simple sentence. It has easy words. Students can read it well.';
 
       const result = await (analyzer as any).analyzeContentMetrics(text);
@@ -201,7 +201,7 @@ describe('ContentAnalyzer', () => {
       expect(result.readabilityScore).toBeLessThanOrEqual(100);
     });
 
-    it('should estimate reading time', async() => {
+    it('should estimate reading time', async () => {
       const text = Array(500).fill('word').join(' '); // 500 words
 
       const result = await (analyzer as any).analyzeContentMetrics(text);
@@ -210,7 +210,7 @@ describe('ContentAnalyzer', () => {
       expect(result.estimatedReadingTime).toBe(2); // 500 words / 250 wpm = 2 minutes
     });
 
-    it('should determine content complexity', async() => {
+    it('should determine content complexity', async () => {
       const simpleText = 'The cat sat on the mat. The dog ran fast.';
       const complexText = 'The epistemological ramifications of quantum entanglement necessitate a paradigmatic shift in our understanding of causality.';
 
@@ -221,7 +221,7 @@ describe('ContentAnalyzer', () => {
       expect(complexResult.contentComplexity).toBe('advanced');
     });
 
-    it('should identify topic categories', async() => {
+    it('should identify topic categories', async () => {
       const mathText = 'Solve the equation using algebra. Calculate the derivative of the function. Apply the theorem to prove the formula.';
       const scienceText = 'The experiment tested the hypothesis about molecular reactions in cells and organisms.';
 

@@ -22,7 +22,7 @@ export const MessageInput: React.FC = () => {
     return launchSettings?.session_id || `session-${Date.now()}`;
   };
 
-  const handleSend = async() => {
+  const handleSend = async () => {
     if (!message.trim() || isLoading) {
       return;
     }

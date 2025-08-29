@@ -42,7 +42,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
-  const fetchSettings = async() => {
+  const fetchSettings = async () => {
     try {
       const response = await fetch(`/api/content/settings?courseId=${courseId}`);
       if (response.ok) {
@@ -69,7 +69,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
     handleSettingChange('contentTypesAllowed', newTypes);
   };
 
-  const handleSave = async() => {
+  const handleSave = async () => {
     setIsSaving(true);
     setMessage(null);
 
@@ -102,7 +102,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
     }
   };
 
-  const handleStudentConsent = async() => {
+  const handleStudentConsent = async () => {
     try {
       const response = await fetch('/api/learner/content-consent', {
         method: 'POST',

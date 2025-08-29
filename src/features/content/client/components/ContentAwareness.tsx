@@ -62,7 +62,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
     }
   }, [isExtracting]);
 
-  const analyzeContent = useCallback(async(contentData: any) => {
+  const analyzeContent = useCallback(async (contentData: any) => {
     setStatus('analyzing');
     
     try {
@@ -132,7 +132,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
     extract();
   }, [extract]);
 
-  const handleManualSubmit = useCallback(async(content: string, metadata: any) => {
+  const handleManualSubmit = useCallback(async (content: string, metadata: any) => {
     setStatus('analyzing');
     setError(null);
     

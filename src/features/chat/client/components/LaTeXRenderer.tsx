@@ -26,7 +26,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [_loadTime, setLoadTime] = useState<number>(0);
 
-  const renderMath = useCallback(async() => {
+  const renderMath = useCallback(async () => {
     const startTime = Date.now();
     setIsLoading(true);
     setHasError(false);
@@ -83,7 +83,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
     renderMath();
   }, [renderMath]);
 
-  const handleCopyToClipboard = useCallback(async() => {
+  const handleCopyToClipboard = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(content);
       onInteraction?.();
