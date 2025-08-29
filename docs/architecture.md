@@ -1,19 +1,28 @@
 # Atomic Guide Deep Linking Assessment Features Fullstack Architecture Document
 
-**Version:** 2.0 (Merged Edition)
-**Date:** 2025-08-22
-**Status:** Complete Merged Architecture - Ready for Implementation
+**Version:** 3.0 (Vertical Slice Architecture Edition)
+**Date:** 2025-12-29
+**Status:** Complete Architecture with Vertical Slice Refactoring
 
 ## 1. Introduction
 
-This document provides the complete unified architecture for Atomic Guide Deep Linking Assessment Features, merging the comprehensive fullstack implementation details with the brownfield enhancement strategy. It serves as the single source of truth for AI-driven development, ensuring consistency across the entire technology stack while maintaining seamless integration with the existing LTI 1.3 foundation.
+This document provides the complete unified architecture for Atomic Guide Deep Linking Assessment Features, now organized using vertical slice architecture. It serves as the single source of truth for AI-driven development, ensuring consistency across the entire technology stack while maintaining seamless integration with the existing LTI 1.3 foundation.
 
 This architecture document combines:
 
+- **Vertical slice architecture** organizing code by features rather than technical layers
 - Complete fullstack technical specifications for deep linking assessment features
 - Brownfield enhancement patterns for Progressive Cognitive Learning Infrastructure
 - Proven research foundations achieving 50-80% improvement in knowledge retention
 - Integration strategies preserving all existing LTI 1.3 functionality (detailed in [LTI Developer Guide](./lti-developer-guide.md))
+
+### Architectural Approach
+
+**Architecture Pattern:** Vertical Slice Architecture
+- Features organized by business domain, not technical layers
+- Shared module for cross-cutting concerns
+- Clear feature boundaries with minimal cross-dependencies
+- See [vertical-slice-refactoring.md](./architecture/vertical-slice-refactoring.md) for migration details
 
 ### Project Context
 
@@ -51,6 +60,7 @@ This architecture document combines:
 | 2025-08-20 | 1.4     | Added empirical foundations, cognitive algorithms, and use cases            | Winston |
 | 2025-08-21 | 1.5     | Integrated UI/UX specification with design system and personas              | Winston |
 | 2025-08-22 | 2.0     | Merged comprehensive fullstack and brownfield architectures                 | Winston |
+| 2025-12-29 | 3.0     | Refactored to vertical slice architecture with feature-based organization   | Claude  |
 
 ## 2. High Level Architecture
 
@@ -66,15 +76,34 @@ The frontend leverages a progressive React migration strategy for new assessment
 **Key Services:** Workers (compute), KV (config storage), D1 (relational data), Durable Objects (real-time state), R2 (file storage if needed)
 **Deployment Host and Regions:** Global edge deployment via Cloudflare's 275+ data centers
 
-### Repository Structure
+### Repository Structure (Vertical Slice Architecture)
 
-**Structure:** Existing monorepo with enhancement modules
+**Structure:** Feature-based vertical slices with shared module
 **Monorepo Tool:** Native npm workspaces (existing)
 **Package Organization:**
 
-- `/src` - Backend Worker code with new `/src/assessment` module
-- `/client` - Frontend code with new `/client/components/assessment` React components
-- `/packages` - Shared types and utilities (to be created for assessment features)
+```
+src/
+├── features/           # Feature-based vertical slices
+│   ├── chat/          # Chat feature (client + server + tests)
+│   ├── assessment/    # Assessment & deep linking
+│   ├── content/       # Content extraction & awareness  
+│   ├── dashboard/     # Analytics & insights
+│   ├── lti/          # LTI protocol handling
+│   ├── settings/      # User preferences
+│   └── faq/          # Knowledge base
+└── shared/            # Cross-feature shared code
+    ├── client/        # Shared UI components, hooks
+    ├── server/        # Shared services, utilities
+    ├── schemas/       # Common data schemas
+    └── types/        # Shared TypeScript types
+```
+
+Each feature contains:
+- `client/` - React components, hooks, store
+- `server/` - API handlers, services, durable objects
+- `shared/` - Feature-internal shared code
+- `tests/` - Feature-specific tests
 
 ### High Level Architecture Diagram
 
