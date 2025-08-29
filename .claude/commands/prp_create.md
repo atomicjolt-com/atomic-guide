@@ -11,7 +11,6 @@ The AI agent only gets the context you are appending to the PRP and its own trai
 > During the research process, create clear tasks and spawn as many agents and subagents as needed using the batch tools. The deeper research we do here the better the PRP will be. we optimize for chance of success and not for speed.
 
 1. **Codebase Analysis in depth**
-
    - Create clear todos and spawn subagents to search the codebase for similar features/patterns Think hard and plan your approach
    - Identify all the necessary files to reference in the PRP
    - Note all existing conventions to follow (TypeScript patterns, React patterns, etc.)
@@ -19,7 +18,6 @@ The AI agent only gets the context you are appending to the PRP and its own trai
    - Use the batch tools to spawn subagents to search the codebase for similar features/patterns
 
 2. **External Research at scale**
-
    - Create clear todos and spawn with instructions subagents to do deep research for similar features/patterns online and include urls to documentation and examples
    - Library documentation (include specific URLs for TypeScript/JavaScript libraries)
    - For critical pieces of documentation add a .md file to ai_docs/prps and reference it in the PRP with clear reasoning and instructions
@@ -75,7 +73,7 @@ Include tests, build validation, linting, and any other relevant validation gate
 
 ## Output
 
-Save as: `docs/prps/1_todo/{feature-name}.md`
+Save as: `ai_docs/prps/1_todo/{feature-name}.md`
 
 ## Quality Checklist
 
