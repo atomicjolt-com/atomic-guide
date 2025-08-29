@@ -3,10 +3,10 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import { baseApi } from './api/baseApi';
 import chatReducer from './slices/chatSlice';
 import jwtReducer from './slices/jwtSlice';
+import deepLinkReducer from './slices/deepLinkSlice';
 
 export interface StoreConfig {
   jwt?: string;
-  settings?: Record<string, any>;
 }
 
 export function configureStore({ jwt }: StoreConfig) {
@@ -14,6 +14,7 @@ export function configureStore({ jwt }: StoreConfig) {
     reducer: {
       chat: chatReducer,
       jwt: jwtReducer,
+      deepLink: deepLinkReducer,
       [baseApi.reducerPath]: baseApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
@@ -22,9 +23,11 @@ export function configureStore({ jwt }: StoreConfig) {
           ignoredActions: ['jwt/refresh'],
         },
       }).concat(baseApi.middleware),
-    preloadedState: jwt ? {
-      jwt: { token: jwt, expiresAt: null },
-    } : undefined,
+    preloadedState: jwt
+      ? {
+          jwt: { token: jwt, expiresAt: null },
+        }
+      : undefined,
   });
 
   setupListeners(store.dispatch);

@@ -103,7 +103,7 @@ This project is build using vite, specifically `@cloudflare/vite-plugin` which h
 
 ```
 /Users/jbasdf/projects/atomic-guide/
-├── client/                    # Client-side React application
+├── client/                   # Client-side React application
 ├── src/                      # Server-side Cloudflare Worker code
 ├── tests/                    # Test suite organization
 ├── docs/                     # Comprehensive project documentation
