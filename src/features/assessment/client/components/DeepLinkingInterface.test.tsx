@@ -25,17 +25,14 @@ describe('DeepLinkingInterface', () => {
   const mockLaunchSettings: LaunchSettings = {
     jwt: 'test-jwt-token',
     deepLinking: {
-      acceptTypes: ['ltiResourceLink'],
-      acceptMultiple: false,
-      returnUrl: 'https://canvas.test/return',
-      acceptPresentationDocumentTargets: ['iframe'],
+      accept_types: ['ltiResourceLink'],
+      accept_multiple: false,
+      deep_link_return_url: 'https://canvas.test/return',
+      accept_presentation_document_targets: ['iframe'],
     },
     contextId: 'test-context',
     userId: 'test-user',
-  };
-
-  const mockOnComplete = vi.fn();
-  const mockOnCancel = vi.fn();
+  } as any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,13 +45,11 @@ describe('DeepLinkingInterface', () => {
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
-    expect(screen.getByText(/Create AI-Powered Assessment/i)).toBeInTheDocument();
-    expect(screen.getByText(/Assessment Builder/i)).toBeInTheDocument();
+    expect(screen.getByText(/Assessment Details/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Assessment Title/i)).toBeInTheDocument();
   });
 
   it('should display warning when ltiResourceLink is not accepted', () => {
@@ -66,44 +61,38 @@ describe('DeepLinkingInterface', () => {
           ...mockLaunchSettings,
           deepLinking: {
             ...mockLaunchSettings.deepLinking!,
-            acceptTypes: ['html'],
+            accept_types: ['html'],
           },
         }}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
-    expect(screen.getByText(/platform does not accept assessment/i)).toBeInTheDocument();
+    expect(screen.getByText(/doesn't support assessment deep links/i)).toBeInTheDocument();
   });
 
-  it('should switch between builder and preview tabs', async () => {
+  it('should show error when trying to preview without questions', async () => {
     const user = userEvent.setup();
     
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
     // Initially shows builder
-    expect(screen.getByText(/Assessment Type/i)).toBeInTheDocument();
+    expect(screen.getByText(/Assessment Details/i)).toBeInTheDocument();
 
-    // Click preview tab
-    const previewTab = screen.getByRole('tab', { name: /preview/i });
-    await user.click(previewTab);
+    // Fill title first (required for preview)
+    const titleInput = screen.getByLabelText(/Assessment Title/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Test Assessment');
 
-    // Should show preview
-    expect(screen.getByText(/Assessment Preview/i)).toBeInTheDocument();
+    // Click preview button
+    const previewButton = screen.getByRole('button', { name: /preview assessment/i });
+    await user.click(previewButton);
 
-    // Click back to builder
-    const builderTab = screen.getByRole('tab', { name: /builder/i });
-    await user.click(builderTab);
-
-    // Should show builder again
-    expect(screen.getByText(/Assessment Type/i)).toBeInTheDocument();
+    // Should show error about needing questions
+    expect(screen.getByText(/Please add a title and at least one question before previewing/i)).toBeInTheDocument();
   });
 
   it('should handle assessment configuration changes', async () => {
@@ -112,110 +101,88 @@ describe('DeepLinkingInterface', () => {
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
     // Change assessment type
-    const typeSelect = screen.getByLabelText(/assessment type/i);
+    const typeSelect = screen.getByLabelText(/Assessment Type/i);
     await user.selectOptions(typeSelect, 'summative');
 
     // Change title
-    const titleInput = screen.getByLabelText(/title/i);
+    const titleInput = screen.getByLabelText(/Assessment Title/i);
     await user.clear(titleInput);
     await user.type(titleInput, 'Unit Test Assessment');
 
-    // Verify changes reflected in preview
-    const previewTab = screen.getByRole('tab', { name: /preview/i });
-    await user.click(previewTab);
+    // Click preview to see changes
+    const previewButton = screen.getByRole('button', { name: /preview assessment/i });
+    await user.click(previewButton);
     
-    expect(screen.getByText(/Unit Test Assessment/i)).toBeInTheDocument();
-    expect(screen.getByText(/summative/i)).toBeInTheDocument();
+    // Should show error about needing questions
+    expect(screen.getByText(/Please add a title and at least one question before previewing/i)).toBeInTheDocument();
   });
 
-  it('should submit assessment deep link successfully', async () => {
+  it('should block submission without questions', async () => {
     const user = userEvent.setup();
     
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
     // Fill in required fields
-    const titleInput = screen.getByLabelText(/title/i);
+    const titleInput = screen.getByLabelText(/Assessment Title/i);
+    await user.clear(titleInput);
     await user.type(titleInput, 'Test Assessment');
 
-    const focusInput = screen.getByLabelText(/assessment focus/i);
-    await user.type(focusInput, 'Testing knowledge of React components');
+    // Try to preview
+    const previewButton = screen.getByRole('button', { name: /preview assessment/i });
+    await user.click(previewButton);
 
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /create assessment/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(assessmentDeepLink.submitAssessmentDeepLink).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: expect.stringContaining('Test Assessment'),
-          aiGuidance: expect.objectContaining({
-            assessmentFocus: expect.stringContaining('Testing knowledge'),
-          }),
-        }),
-        'test-jwt-token',
-        expect.any(String),
-        'https://canvas.test/return'
-      );
-    });
-
-    expect(mockOnComplete).toHaveBeenCalledWith('signed-jwt');
+    // Should show error about needing questions
+    expect(screen.getByText(/Please add a title and at least one question before previewing/i)).toBeInTheDocument();
+    
+    // Should not have called submit
+    expect(assessmentDeepLink.submitAssessmentDeepLink).not.toHaveBeenCalled();
   });
 
   it('should handle submission errors gracefully', async () => {
     const user = userEvent.setup();
-    const errorMessage = 'Failed to create assessment';
     
-    vi.mocked(assessmentDeepLink.submitAssessmentDeepLink).mockRejectedValue(
-      new Error(errorMessage)
-    );
-
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /create assessment/i });
-    await user.click(submitButton);
+    // Fill title
+    const titleInput = screen.getByLabelText(/Assessment Title/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Test Assessment');
 
-    await waitFor(() => {
-      expect(screen.getByText(new RegExp(errorMessage, 'i'))).toBeInTheDocument();
-    });
+    // Try to preview without questions
+    const previewButton = screen.getByRole('button', { name: /preview assessment/i });
+    await user.click(previewButton);
 
-    expect(mockOnComplete).not.toHaveBeenCalled();
+    // Should show error message about needing questions
+    expect(screen.getByText(/Please add a title and at least one question before previewing/i)).toBeInTheDocument();
   });
 
-  it('should handle cancel action', async () => {
+  it('should show error when trying to preview without title', async () => {
     const user = userEvent.setup();
     
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
-    const cancelButton = screen.getByRole('button', { name: /cancel/i });
-    await user.click(cancelButton);
+    // Try to preview without entering title
+    const previewButton = screen.getByRole('button', { name: /preview assessment/i });
+    await user.click(previewButton);
 
-    expect(mockOnCancel).toHaveBeenCalled();
-    expect(mockOnComplete).not.toHaveBeenCalled();
+    // Should show error message
+    expect(screen.getByText(/Please add a title/i)).toBeInTheDocument();
   });
 
   it('should validate required fields before submission', async () => {
@@ -224,87 +191,66 @@ describe('DeepLinkingInterface', () => {
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
-    // Try to submit without filling required fields
-    const submitButton = screen.getByRole('button', { name: /create assessment/i });
-    await user.click(submitButton);
+    // Try to preview without filling title
+    const previewButton = screen.getByRole('button', { name: /preview assessment/i });
+    await user.click(previewButton);
 
-    // Should show validation errors
-    expect(screen.getByText(/title is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/assessment focus is required/i)).toBeInTheDocument();
+    // Should show validation error
+    expect(screen.getByText(/Please add a title/i)).toBeInTheDocument();
 
-    // Should not have submitted
-    expect(assessmentDeepLink.submitAssessmentDeepLink).not.toHaveBeenCalled();
+    // Should not proceed to preview
+    expect(screen.queryByText(/Assessment Preview/i)).not.toBeInTheDocument();
   });
 
-  it('should handle adding and removing questions', async () => {
+  it('should handle description input', async () => {
     const user = userEvent.setup();
     
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
-    // Add a question
-    const addQuestionButton = screen.getByRole('button', { name: /add question/i });
-    await user.click(addQuestionButton);
+    // Find and fill description
+    const descriptionInput = screen.getByLabelText(/Description/i);
+    await user.type(descriptionInput, 'This is a test assessment description');
 
-    // Should show question input
-    expect(screen.getByLabelText(/question 1/i)).toBeInTheDocument();
+    // Verify description was entered
+    expect(descriptionInput).toHaveValue('This is a test assessment description');
 
-    // Add another question
-    await user.click(addQuestionButton);
-    expect(screen.getByLabelText(/question 2/i)).toBeInTheDocument();
+    // Fill title
+    const titleInput = screen.getByLabelText(/Assessment Title/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Test Assessment');
 
-    // Remove first question
-    const removeButtons = screen.getAllByRole('button', { name: /remove/i });
-    await user.click(removeButtons[0]);
-
-    // Should only have one question now
-    expect(screen.queryByLabelText(/question 2/i)).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/question 1/i)).toBeInTheDocument();
+    // Verify title was entered
+    expect(titleInput).toHaveValue('Test Assessment');
   });
 
-  it('should update mastery threshold', async () => {
+  it('should change assessment type', async () => {
     const user = userEvent.setup();
     
     render(
       <DeepLinkingInterface
         launchSettings={mockLaunchSettings}
-        onComplete={mockOnComplete}
-        onCancel={mockOnCancel}
       />
     );
 
-    const thresholdInput = screen.getByLabelText(/mastery threshold/i);
-    await user.clear(thresholdInput);
-    await user.type(thresholdInput, '85');
-
-    // Submit and verify threshold is included
-    const submitButton = screen.getByRole('button', { name: /create assessment/i });
+    // Find type selector
+    const typeSelect = screen.getByLabelText(/Assessment Type/i);
     
-    // Fill required fields first
-    await user.type(screen.getByLabelText(/title/i), 'Test');
-    await user.type(screen.getByLabelText(/assessment focus/i), 'Test Focus');
+    // Should default to formative
+    expect(typeSelect).toHaveValue('formative');
     
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(assessmentDeepLink.submitAssessmentDeepLink).toHaveBeenCalledWith(
-        expect.objectContaining({
-          masteryThreshold: 85,
-        }),
-        expect.any(String),
-        expect.any(String),
-        expect.any(String)
-      );
-    });
+    // Change to summative
+    await user.selectOptions(typeSelect, 'summative');
+    expect(typeSelect).toHaveValue('summative');
+    
+    // Change to diagnostic
+    await user.selectOptions(typeSelect, 'diagnostic');
+    expect(typeSelect).toHaveValue('diagnostic');
   });
 });

@@ -227,7 +227,7 @@ export class ChatConversationDO {
           {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
-          },
+          }
         );
       }
 
@@ -278,7 +278,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error adding message:', error);
@@ -347,7 +347,7 @@ export class ChatConversationDO {
           }),
           {
             headers: { 'Content-Type': 'application/json' },
-          },
+          }
         );
       }
 
@@ -407,7 +407,7 @@ export class ChatConversationDO {
           {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
-          },
+          }
         );
       }
 
@@ -525,7 +525,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error getting summaries:', error);
@@ -578,7 +578,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error persisting state:', error);
@@ -625,7 +625,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error restoring state:', error);
@@ -670,7 +670,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error cleaning up old data:', error);
@@ -712,7 +712,7 @@ export class ChatConversationDO {
           }),
           {
             headers: { 'Content-Type': 'application/json' },
-          },
+          }
         );
       }
 
@@ -732,7 +732,7 @@ export class ChatConversationDO {
               'Content-Type': 'application/json',
               'Retry-After': Math.ceil(resetIn / 1000).toString(),
             },
-          },
+          }
         );
       }
 
@@ -747,7 +747,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error checking rate limit:', error);
@@ -796,7 +796,7 @@ export class ChatConversationDO {
           JSON.stringify({
             type: 'error',
             message: 'Invalid message format',
-          }),
+          })
         );
       }
     });
@@ -810,7 +810,7 @@ export class ChatConversationDO {
         type: 'connected',
         sessionInfo,
         timestamp: new Date().toISOString(),
-      }),
+      })
     );
   }
 
@@ -834,7 +834,7 @@ export class ChatConversationDO {
                 topics: message.topics,
               },
             }),
-          }),
+          })
         );
         break;
 
@@ -844,7 +844,7 @@ export class ChatConversationDO {
           JSON.stringify({
             type: 'history',
             messages: history,
-          }),
+          })
         );
         break;
       }
@@ -859,7 +859,7 @@ export class ChatConversationDO {
           JSON.stringify({
             type: 'context',
             data: context,
-          }),
+          })
         );
         break;
       }
@@ -870,14 +870,14 @@ export class ChatConversationDO {
             new Request('https://do/restore-state', {
               method: 'POST',
               body: JSON.stringify({ conversationId: message.conversationId }),
-            }),
+            })
           );
           sender.send(
             JSON.stringify({
               type: 'state-restored',
               conversationId: message.conversationId,
               messageCount: this.conversationHistory.length,
-            }),
+            })
           );
         }
         break;
@@ -886,13 +886,13 @@ export class ChatConversationDO {
         await this.handlePersistState(
           new Request('https://do/persist-state', {
             method: 'POST',
-          }),
+          })
         );
         sender.send(
           JSON.stringify({
             type: 'state-persisted',
             messageCount: this.conversationHistory.length,
-          }),
+          })
         );
         break;
 
@@ -943,7 +943,7 @@ export class ChatConversationDO {
           }),
           {
             headers: { 'Content-Type': 'application/json' },
-          },
+          }
         );
       }
 
@@ -991,7 +991,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error analyzing patterns:', error);
@@ -1043,7 +1043,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error handling proactive suggestion:', error);
@@ -1100,7 +1100,7 @@ export class ChatConversationDO {
         }),
         {
           headers: { 'Content-Type': 'application/json' },
-        },
+        }
       );
     } catch {
       console.error('Error updating suggestion state:', error);

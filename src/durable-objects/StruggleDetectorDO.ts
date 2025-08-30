@@ -1,7 +1,6 @@
 /**
  * StruggleDetectorDO - Durable Object for real-time struggle detection
  * Tracks learner behavior patterns and triggers interventions
- * Story 1.1 Requirement: Struggle detection Durable Object
  */
 
 import type { DurableObjectState, DurableObjectStorage } from '@cloudflare/workers-types';
@@ -171,7 +170,7 @@ export class StruggleDetectorDO {
       }),
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     );
   }
 
@@ -196,7 +195,7 @@ export class StruggleDetectorDO {
         acc[signal.type] = (acc[signal.type] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
 
     // Calculate weighted score
@@ -210,7 +209,7 @@ export class StruggleDetectorDO {
     // Consider recency of signals (recent signals have more weight)
     const now = Date.now();
     const recentSignals = session.signals.filter(
-      (s) => now - s.timestamp < 60000, // Last minute
+      (s) => now - s.timestamp < 60000 // Last minute
     );
 
     if (recentSignals.length > 3) {
@@ -299,7 +298,7 @@ export class StruggleDetectorDO {
       }),
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     );
   }
 
@@ -335,7 +334,7 @@ export class StruggleDetectorDO {
       }),
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     );
   }
 
