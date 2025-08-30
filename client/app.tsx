@@ -10,6 +10,7 @@ import { Provider } from 'react-redux';
 import type { LaunchSettings } from '@atomicjolt/lti-client';
 import { configureStore } from './store';
 import { ChatFAB, ChatWindow } from '@features/chat/client/components';
+import { DeepLinkingInterface } from '@features/assessment/client/components';
 import { LtiLaunchCheck } from '@atomicjolt/lti-components';
 
 /**
@@ -29,13 +30,8 @@ import { LtiLaunchCheck } from '@atomicjolt/lti-components';
  */
 function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactElement {
   if (launchSettings.deepLinking) {
-    // TODO: Implement deep linking interface
-    // Will enable content selection from the LMS
-    // Uncomment when implementing:
-    // const cleanup = setupDeepLinkingButton(launchSettings);
-    // import { setupDeepLinkingButton } from './services/deepLinkingService';
-    // import { namesAndRolesResponseSchema } from './schemas/deepLink.schema';
-    return <div>iz deep</div>;
+    // Deep linking mode - show assessment builder interface
+    return <DeepLinkingInterface launchSettings={launchSettings} />;
   }
 
   return (

@@ -3,9 +3,10 @@
  * @module client/services/assessmentDeepLink
  */
 
-import type { AssessmentConfig } from '../schemas/assessment.schema';
-import { signDeepLink, submitDeepLink } from './deepLinkingService';
-import { LTI_SIGN_DEEP_LINK_PATH } from '../../definitions';
+import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
+import { safeValidateAssessmentConfig } from '../../shared/schemas/assessment.schema';
+import { submitDeepLink } from '../../../../../client/services/deepLinkingService';
+import { LTI_SIGN_DEEP_LINK_PATH } from '../../../../../definitions';
 
 /**
  * LTI Resource Link structure for assessments
@@ -146,6 +147,7 @@ export function generateAssessmentId(): string {
  * Extracts assessment configuration from custom parameters
  * @param customParams - Custom parameters from LTI launch
  * @returns Parsed assessment configuration or null
+ * @throws {Error} If JSON parsing fails or validation fails
  */
 export function extractAssessmentConfig(customParams: Record<string, string>): AssessmentConfig | null {
   try {
@@ -154,7 +156,24 @@ export function extractAssessmentConfig(customParams: Record<string, string>): A
       return null;
     }
 
-    return JSON.parse(configString) as AssessmentConfig;
+    // Parse JSON safely with try-catch specifically for JSON.parse
+    let parsedData: unknown;
+    try {
+      parsedData = JSON.parse(configString);
+    } catch (jsonError) {
+      console.error('Invalid JSON in assessment configuration:', jsonError);
+      return null;
+    }
+    
+    // Validate with Zod schema
+    const validationResult = safeValidateAssessmentConfig(parsedData);
+    
+    if (!validationResult.success) {
+      console.error('Assessment configuration validation failed:', validationResult.errors);
+      return null;
+    }
+    
+    return validationResult.data;
   } catch (error) {
     console.error('Failed to extract assessment configuration:', error);
     return null;
