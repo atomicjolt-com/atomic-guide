@@ -4,7 +4,7 @@
  */
 
 import type { AssessmentConfig } from '../schemas/assessment.schema';
-import { signDeepLink, submitDeepLink } from './deepLinkingService';
+import { submitDeepLink } from './deepLinkingService';
 import { LTI_SIGN_DEEP_LINK_PATH } from '../../definitions';
 
 /**

@@ -43,7 +43,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
     if (isVisible && !currentSuggestion) {
       fetchNextSuggestion();
     }
-  }, [isVisible, currentSuggestion, fetchNextSuggestion]);
+  }, [isVisible, currentSuggestion]);
 
   // Handle click outside to close (desktop only)
   useEffect(() => {
@@ -57,7 +57,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isVisible, isMobile, handleClose]);
+  }, [isVisible, isMobile]);
 
   // Prevent body scroll when mobile overlay is open
   useEffect(() => {
@@ -105,7 +105,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
         element.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isMobile, isVisible, handleClose]);
+  }, [isMobile, isVisible]);
 
   const fetchNextSuggestion = useCallback(async () => {
     setIsLoading(true);

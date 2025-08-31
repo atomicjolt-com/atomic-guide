@@ -18,6 +18,7 @@ import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 global.fetch = vi.fn();
 
 // Mock the legacy deep linking service
+// TODO: Move this mock to features/assessment when migrating from legacy client
 vi.mock('../../../../../client/services/deepLinkingService', () => ({
   submitDeepLink: vi.fn(),
   signDeepLink: vi.fn(),

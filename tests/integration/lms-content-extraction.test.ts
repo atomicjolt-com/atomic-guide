@@ -56,7 +56,7 @@ describe('LMS Content Extraction Integration', () => {
     if (!global.crypto) {
       global.crypto = {
         subtle: {
-          digest: vi.fn(async (algorithm, data) => {
+          digest: vi.fn(async (_algorithm, _data) => {
             // Simple mock hash
             return new ArrayBuffer(32);
           }),
@@ -94,7 +94,7 @@ describe('LMS Content Extraction Integration', () => {
   describe('PostMessage Security', () => {
     it('should send postMessage with specific origin instead of wildcard', async () => {
       // Simulate sending a message
-      const messagePromise = (extractor as any).sendPostMessage('lti.getPageContent', {});
+      const _messagePromise = (extractor as any).sendPostMessage('lti.getPageContent', {});
 
       // Wait for postMessage to be called
       await new Promise((resolve) => setTimeout(resolve, 10));

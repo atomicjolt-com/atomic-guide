@@ -87,7 +87,7 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
     setHasChanges(isChanged);
   }, [preferences, initialPreferences]);
 
-  const handleFrequencyChange = (frequency: SuggestionPreferences['frequency']) => {
+  const handleFrequencyChange = (frequency: SuggestionPreferencesData['frequency']) => {
     setPreferences(prev => ({ ...prev, frequency }));
   };
 

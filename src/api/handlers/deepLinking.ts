@@ -7,7 +7,6 @@ import type { Context } from 'hono';
 import { z } from 'zod';
 import { assessmentConfigSchema } from '../../features/assessment/shared/schemas/assessment.schema';
 import { validateLTIToken } from '../../utils/lti';
-import type { HonoEnv } from '../../types';
 
 /**
  * Deep link request schema for validation
@@ -33,7 +32,7 @@ const deepLinkRequestSchema = z.object({
  * @param c - Hono context with environment bindings
  * @returns JSON response with signed JWT for deep link
  */
-export async function handleDeepLinking(c: Context<HonoEnv>): Promise<Response> {
+export async function handleDeepLinking(c: Context<{ Bindings: Env }>): Promise<Response> {
   try {
     // Extract and validate JWT token
     const authHeader = c.req.header('Authorization');
@@ -178,7 +177,7 @@ async function storeAssessments(
 async function signDeepLinkResponse(
   assessments: any[],
   assessmentIds: string[],
-  env: HonoEnv['Bindings']
+  env: Env
 ): Promise<string> {
   // This would use the actual LTI signing implementation
   // For now, returning a placeholder
@@ -209,7 +208,7 @@ async function signDeepLinkResponse(
  * @param c - Hono context
  * @returns Validation result
  */
-export async function validateDeepLinkLaunch(c: Context<HonoEnv>): Promise<Response> {
+export async function validateDeepLinkLaunch(c: Context<{ Bindings: Env }>): Promise<Response> {
   try {
     const { assessment_id } = c.req.param();
     

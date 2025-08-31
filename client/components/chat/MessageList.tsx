@@ -53,7 +53,7 @@ export const MessageList: React.FC = () => {
                 message={{
                   id: message.id,
                   content: message.content,
-                  sender_type: message.sender === 'user' ? 'learner' : 'ai',
+                  sender_type: message.sender === 'ai' ? 'ai' : 'learner',
                   created_at: message.timestamp,
                   rich_media: message.rich_media,
                   from_faq: message.from_faq,

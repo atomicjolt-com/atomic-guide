@@ -231,7 +231,7 @@ export async function getLearnerMastery(db: D1Database, learnerProfileId: number
     WHERE cm.learner_profile_id = ?
   `;
 
-  const params = [learnerProfileId];
+  const params: (number | string)[] = [learnerProfileId];
 
   if (conceptId) {
     query += ' AND cm.concept_id = ?';

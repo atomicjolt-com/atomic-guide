@@ -56,7 +56,7 @@ describe('Content API Security Fixes', () => {
 
       const searchQuery = 'test%_\\pattern';
 
-      const response = await app.request('/api/content/search?q=' + encodeURIComponent(searchQuery));
+      const _response = await app.request('/api/content/search?q=' + encodeURIComponent(searchQuery));
 
       // Check that the query was sanitized - the search SQL should be called after membership check
       expect(mockDB.prepare).toHaveBeenCalled();
@@ -94,7 +94,7 @@ describe('Content API Security Fixes', () => {
 
       const searchQuery = 'normal search text';
 
-      const response = await app.request('/api/content/search?q=' + encodeURIComponent(searchQuery));
+      const _response = await app.request('/api/content/search?q=' + encodeURIComponent(searchQuery));
 
       // Find the bind call for the search query (not the membership check)
       const sqlCalls = mockDB.prepare.mock.calls.map((call) => call[0]);

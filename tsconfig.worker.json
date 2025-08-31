@@ -5,6 +5,8 @@
     "types": ["vite/client", "./worker-configuration.d.ts", "@cloudflare/vitest-pool-workers"],
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
       "@features/*": ["src/features/*"],
@@ -13,5 +15,5 @@
       "@/schemas": ["src/shared/schemas"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "!src/shared/client/**/*"]
 }

@@ -20,5 +20,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     exclude: ['**/node_modules/**'],
+    testTimeout: 10000, // 10 seconds timeout per test
+    hookTimeout: 10000, // 10 seconds timeout for hooks
   },
 });

@@ -3,7 +3,7 @@
  * @module features/assessment/client/components/AssessmentPreview
  */
 
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 import styles from './AssessmentPreview.module.css';
 
@@ -12,18 +12,42 @@ interface AssessmentPreviewProps {
   onBack: () => void;
   onSubmit: () => void;
   isSubmitting: boolean;
+  isInstructor?: boolean;
 }
 
 /**
  * Assessment preview interface for reviewing configuration before embedding
  */
-export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting }: AssessmentPreviewProps): ReactElement {
+export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting, isInstructor = true }: AssessmentPreviewProps): ReactElement {
+  const [previewMode, setPreviewMode] = useState<'instructor' | 'student'>('instructor');
   return (
     <div className={styles.preview}>
       <div className={styles.card}>
-        <h2>Assessment Preview</h2>
+        <div className={styles.header}>
+          <h2>Assessment Preview</h2>
+          {isInstructor && (
+            <div className={styles.viewToggle}>
+              <button
+                className={`${styles.toggleButton} ${previewMode === 'instructor' ? styles.active : ''}`}
+                onClick={() => setPreviewMode('instructor')}
+                type="button"
+              >
+                👨‍🏫 Instructor View
+              </button>
+              <button
+                className={`${styles.toggleButton} ${previewMode === 'student' ? styles.active : ''}`}
+                onClick={() => setPreviewMode('student')}
+                type="button"
+              >
+                👨‍🎓 Student View
+              </button>
+            </div>
+          )}
+        </div>
 
-        <div className={styles.details}>
+        {previewMode === 'instructor' ? (
+          <div className={styles.instructorView}>
+            <div className={styles.details}>
           <div className={styles.detailRow}>
             <span className={styles.label}>Title:</span>
             <span className={styles.value}>{config.title}</span>
@@ -148,6 +172,94 @@ export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting }: As
             assignment list.
           </p>
         </div>
+          </div>
+        ) : (
+          <div className={styles.studentView}>
+            <div className={styles.studentAssessment}>
+              <div className={styles.studentHeader}>
+                <h3>{config.title}</h3>
+                {config.description && (
+                  <p className={styles.studentDescription}>{config.description}</p>
+                )}
+                <div className={styles.studentInfo}>
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Questions:</span>
+                    <span>{config.questions.length}</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Points:</span>
+                    <span>{config.gradingSchema.maxScore}</span>
+                  </div>
+                  {config.timeLimit && (
+                    <div className={styles.infoItem}>
+                      <span className={styles.infoLabel}>Time Limit:</span>
+                      <span>{config.timeLimit} min</span>
+                    </div>
+                  )}
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Attempts:</span>
+                    <span>{config.aiGuidance.allowedAttempts}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.studentQuestions}>
+                {config.questions.map((question, index) => (
+                  <div key={question.id} className={styles.studentQuestion}>
+                    <div className={styles.studentQuestionHeader}>
+                      <span className={styles.questionNum}>Question {index + 1}</span>
+                      <span className={styles.questionScore}>{question.points} pts</span>
+                    </div>
+                    <div className={styles.studentQuestionText}>
+                      {question.text}
+                    </div>
+                    {question.type === 'multiple_choice' && question.options && (
+                      <div className={styles.studentOptions}>
+                        {question.options.map((option, i) => (
+                          <label key={i} className={styles.studentOption}>
+                            <input type="radio" name={`question-${question.id}`} disabled />
+                            <span>{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {question.type === 'true_false' && (
+                      <div className={styles.studentOptions}>
+                        <label className={styles.studentOption}>
+                          <input type="radio" name={`question-${question.id}`} disabled />
+                          <span>True</span>
+                        </label>
+                        <label className={styles.studentOption}>
+                          <input type="radio" name={`question-${question.id}`} disabled />
+                          <span>False</span>
+                        </label>
+                      </div>
+                    )}
+                    {(question.type === 'short_answer' || question.type === 'essay') && (
+                      <div className={styles.studentTextAnswer}>
+                        <textarea 
+                          placeholder="Enter your answer here..."
+                          disabled
+                          className={styles.studentTextarea}
+                          rows={question.type === 'essay' ? 6 : 3}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.studentActions}>
+                <button className={styles.studentSubmit} disabled>
+                  Submit Assessment
+                </button>
+                <p className={styles.previewNote}>
+                  <em>Preview mode - This is how students will see the assessment</em>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className={styles.actions}>

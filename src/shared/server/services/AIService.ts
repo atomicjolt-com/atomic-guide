@@ -1,4 +1,4 @@
-import { Ai } from '@cloudflare/ai';
+// AI binding is provided via environment
 
 export interface AIServiceConfig {
   modelName?: string;
@@ -20,13 +20,13 @@ export interface StreamChunk {
 }
 
 export class AIService {
-  private ai: Ai;
+  private ai: any;
   private defaultModel: string;
   private retryAttempts: number = 3;
   private retryDelay: number = 1000;
 
   constructor(aiBinding: any, defaultModel: string = '@cf/meta/llama-3.1-8b-instruct') {
-    this.ai = new Ai(aiBinding);
+    this.ai = aiBinding;
     this.defaultModel = defaultModel;
   }
 

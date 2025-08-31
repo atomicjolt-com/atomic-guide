@@ -133,7 +133,7 @@ describe('AssessmentBuilder', () => {
     it('should have all assessment type options available', () => {
       render(<AssessmentBuilder {...defaultProps} />);
 
-      const typeSelect = screen.getByLabelText(/type/i);
+      const _typeSelect = screen.getByLabelText(/type/i);
       const options = screen.getAllByRole('option');
       const optionValues = options.map((option) => option.getAttribute('value'));
 
@@ -243,7 +243,7 @@ describe('AssessmentBuilder', () => {
       const headings = screen.getAllByRole('heading', { level: 2 });
       expect(headings).toHaveLength(2);
       expect(headings[0]).toHaveTextContent('Assessment Details');
-      expect(headings[1]).toHaveTextContent('AI Configuration');
+      expect(headings[1]).toHaveTextContent('AI-Powered Questions');
     });
 
     it('should have accessible form controls', () => {

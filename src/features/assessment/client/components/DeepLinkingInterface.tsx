@@ -10,6 +10,7 @@ import { AssessmentBuilder } from './AssessmentBuilder';
 import { AssessmentPreview } from './AssessmentPreview';
 import { DeepLinkingHeader } from './DeepLinkingHeader';
 import { submitAssessmentDeepLink, canCreateAssessmentLink } from '../services/assessmentDeepLink';
+// TODO: Move deepLinkingService to features/assessment when migrating from legacy client
 import { setupDeepLinkingButton } from '../../../../../client/services/deepLinkingService';
 import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 import { defaultAssessmentConfig } from '../../shared/schemas/assessment.schema';

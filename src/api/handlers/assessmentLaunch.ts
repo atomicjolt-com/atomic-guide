@@ -5,7 +5,6 @@
 
 import type { Context } from 'hono';
 import { z } from 'zod';
-import type { HonoEnv } from '../../types';
 import { validateLTIToken } from '../../utils/lti';
 import { assessmentConfigSchema } from '../../features/assessment/shared/schemas/assessment.schema';
 
@@ -27,7 +26,7 @@ const assessmentLaunchSchema = z.object({
  * @param c - Hono context with environment bindings
  * @returns Assessment launch data or error
  */
-export async function handleAssessmentLaunch(c: Context<HonoEnv>): Promise<Response> {
+export async function handleAssessmentLaunch(c: Context<{ Bindings: Env }>): Promise<Response> {
   try {
     // Validate authorization
     const authHeader = c.req.header('Authorization');
@@ -173,7 +172,7 @@ export async function handleAssessmentLaunch(c: Context<HonoEnv>): Promise<Respo
  * @param c - Hono context
  * @returns Submission result with grade
  */
-export async function handleAssessmentSubmission(c: Context<HonoEnv>): Promise<Response> {
+export async function handleAssessmentSubmission(c: Context<{ Bindings: Env }>): Promise<Response> {
   try {
     const { attempt_id } = c.req.param();
     const body = await c.req.json();
@@ -237,7 +236,7 @@ export async function handleAssessmentSubmission(c: Context<HonoEnv>): Promise<R
  * @param c - Hono context
  * @returns Array of attempt records
  */
-export async function getAssessmentHistory(c: Context<HonoEnv>): Promise<Response> {
+export async function getAssessmentHistory(c: Context<{ Bindings: Env }>): Promise<Response> {
   try {
     const { assessment_id, user_id } = c.req.query();
 
@@ -276,7 +275,7 @@ async function generateSessionToken(
   attemptId: string,
   userId: string,
   assessmentId: string,
-  _env: HonoEnv['Bindings']
+  _env: Env
 ): Promise<string> {
   // Simplified token generation - would use proper JWT
   const payload = {
@@ -331,7 +330,7 @@ async function sendGradeToLMS(
   resourceLinkId: string,
   userId: string,
   score: number,
-  _env: HonoEnv['Bindings']
+  _env: Env
 ): Promise<void> {
   // This would integrate with LTI AGS
   // Placeholder for actual implementation

@@ -4,4 +4,4 @@
  */
 
 export { useAppDispatch, useAppSelector } from './hooks';
-export type { RootState, AppDispatch } from '../../../client/store/configure_store';
+export type { RootState, AppDispatch } from '../../../../client/store/configure_store';

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, type ReactElement } from 'react';
 import { useInView } from 'react-intersection-observer';
 import LaTeXRenderer from './LaTeXRenderer';
 import CodeBlock from './CodeBlock';
@@ -73,12 +73,12 @@ export const RichMessage: React.FC<RichMessageProps> = ({
       return { processedText: text, inlineElements: [] };
     }
 
-    const inlineElements: JSX.Element[] = [];
+    const inlineElements: ReactElement[] = [];
     let processedText = text;
     let elementIndex = 0;
 
     // Replace inline LaTeX (single $ delimiters)
-    processedText = processedText.replace(/\$([^$]+)\$/g, (match, latex) => {
+    processedText = processedText.replace(/\$([^$]+)\$/g, (_, latex) => {
       const placeholder = `__INLINE_LATEX_${elementIndex}__`;
       inlineElements.push(
         <LaTeXRenderer
@@ -192,7 +192,7 @@ export const RichMessage: React.FC<RichMessageProps> = ({
             {media.content.startsWith('http') ? (
               <img
                 src={media.content}
-                alt={media.metadata?.complexity === 'simple' ? 'Simple diagram' : 'Detailed diagram'}
+                alt={media.metadata?.complexity === 'beginner' ? 'Simple diagram' : 'Detailed diagram'}
                 style={{
                   maxWidth: '100%',
                   height: 'auto',

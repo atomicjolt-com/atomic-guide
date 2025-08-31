@@ -5,6 +5,7 @@
 
 import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 import { safeValidateAssessmentConfig } from '../../shared/schemas/assessment.schema';
+// TODO: Move these imports to features/assessment when migrating from legacy client
 import { submitDeepLink } from '../../../../../client/services/deepLinkingService';
 import { LTI_SIGN_DEEP_LINK_PATH } from '../../../../../definitions';
 

@@ -159,8 +159,23 @@ export class LMSContentExtractor extends EventEmitter {
   }
 
   private async sendPostMessage(subject: string, data?: any): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const messageId = this.generateMessageId();
+    const messageId = this.generateMessageId();
+    
+    const request: PostMessageRequest = {
+      subject,
+      message_id: messageId,
+      data,
+    };
+
+    // Add HMAC signature for message authentication
+    const signature = await this.generateMessageSignature(request);
+    const signedRequest = {
+      ...request,
+      signature,
+      timestamp: Date.now(),
+    };
+
+    return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         this.messageHandlers.delete(messageId);
         this.nonces.delete(messageId);
@@ -176,20 +191,6 @@ export class LMSContentExtractor extends EventEmitter {
           resolve(response.data);
         }
       });
-
-      const request: PostMessageRequest = {
-        subject,
-        message_id: messageId,
-        data,
-      };
-
-      // Add HMAC signature for message authentication
-      const signature = await this.generateMessageSignature(request);
-      const signedRequest = {
-        ...request,
-        signature,
-        timestamp: Date.now(),
-      };
 
       // Send to parent with specific origin validation
       const targetOrigin = this.getTargetOrigin();

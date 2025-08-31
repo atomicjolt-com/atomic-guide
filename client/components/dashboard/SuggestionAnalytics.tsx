@@ -66,9 +66,7 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
+  // Define fetchAnalytics first
 
   const fetchAnalytics = useCallback(async () => {
     setIsLoading(true);
@@ -95,6 +93,10 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({
       setIsLoading(false);
     }
   }, [selectedTimeframe, role]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const getTenantId = (): string => {
     return localStorage.getItem('tenantId') || '';
@@ -272,7 +274,7 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({
         
         <select
           value={selectedTimeframe}
-          onChange={(e) => setSelectedTimeframe(e.target.value)}
+          onChange={(e) => setSelectedTimeframe(e.target.value as 'day' | 'week' | 'month' | 'semester')}
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 dark:focus:ring-yellow-600"
         >
           {Object.entries(TIMEFRAME_LABELS).map(([value, label]) => (

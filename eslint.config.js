@@ -11,6 +11,7 @@ export default [
       'node_modules/**',
       'build/**',
       'dist/**',
+      'public/assets/**',
       '.env',
       'package-lock.json',
       '*.min.js',
