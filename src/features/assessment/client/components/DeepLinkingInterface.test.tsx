@@ -16,8 +16,8 @@ vi.mock('../services/assessmentDeepLink', () => ({
   canCreateAssessmentLink: vi.fn(),
 }));
 
-// Mock the legacy deep linking service
-vi.mock('../../../../../client/services/deepLinkingService', () => ({
+// Mock the shared deep linking service
+vi.mock('@shared/client/services/deepLinkingService', () => ({
   setupDeepLinkingButton: vi.fn(),
 }));
 

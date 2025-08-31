@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { LMSContentExtractor } from '../../client/services/LMSContentExtractor';
+import { LMSContentExtractor } from '@features/content/client/services/LMSContentExtractor';
 
 describe('LMS Content Extraction Integration', () => {
   let extractor: LMSContentExtractor;

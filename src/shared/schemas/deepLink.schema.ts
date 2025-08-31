@@ -1,12 +1,14 @@
 /**
  * @fileoverview Deep link validation schemas for LTI deep linking operations.
- * @module client/schemas/deepLink
+ * Provides type-safe schemas for deep link content items and API responses.
+ * @module shared/schemas/deepLink
  */
 
 import { z } from 'zod';
 
 /**
  * HTML deep link content schema.
+ * Used for embedding HTML content directly in the platform.
  */
 export const htmlDeepLinkSchema = z.object({
   type: z.literal('html'),
@@ -17,6 +19,7 @@ export const htmlDeepLinkSchema = z.object({
 
 /**
  * Link deep link content schema.
+ * Used for creating external links in the platform.
  */
 export const linkDeepLinkSchema = z.object({
   type: z.literal('link'),
@@ -27,6 +30,7 @@ export const linkDeepLinkSchema = z.object({
 
 /**
  * Image deep link content schema.
+ * Used for embedding images in the platform.
  */
 export const imageDeepLinkSchema = z.object({
   type: z.literal('image'),
@@ -37,6 +41,7 @@ export const imageDeepLinkSchema = z.object({
 
 /**
  * Union schema for all deep link types.
+ * Allows type-safe discrimination between different content types.
  */
 export const deepLinkSchema = z.discriminatedUnion('type', [
   htmlDeepLinkSchema,
@@ -54,6 +59,7 @@ export type DeepLink = z.infer<typeof deepLinkSchema>;
 
 /**
  * Deep link API response schema.
+ * Contains the signed JWT for submitting back to the platform.
  */
 export const deepLinkResponseSchema = z.object({
   jwt: z.string().min(1),
@@ -63,6 +69,7 @@ export type DeepLinkResponse = z.infer<typeof deepLinkResponseSchema>;
 
 /**
  * Names and roles API response schema.
+ * Contains course membership information from the platform.
  */
 export const namesAndRolesResponseSchema = z.object({
   members: z.array(

@@ -6,8 +6,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SuggestionCard } from '../../client/components/chat/SuggestionCard';
-import type { Suggestion } from '../../client/components/chat/SuggestionCard';
+import { SuggestionCard } from '../../src/features/chat/client/components/SuggestionCard';
+import type { Suggestion } from '../../src/features/chat/client/components/SuggestionCard';
 
 // Mock suggestion data
 const createMockSuggestion = (type: string = 'confusion', urgency: 'low' | 'medium' | 'high' | 'critical' = 'medium'): Suggestion => ({

@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
-import { MessageList } from '../../../client/components/chat/MessageList';
-import { addMessage } from '../../../client/store/slices/chatSlice';
-import styles from '../../../client/styles/components/chat.module.css';
+import { MessageList } from '@features/chat/client/components/MessageList';
+import { addMessage } from '@features/chat/client/store/chatSlice';
+import styles from '@features/chat/client/styles/chat.module.css';
 
 describe('MessageList', () => {
   const createMockStore = () => {

@@ -1,16 +1,17 @@
 /**
  * @fileoverview Service for handling LTI deep linking operations.
- * @module client/services/deepLinkingService
+ * Provides utilities for creating, signing, and submitting deep links to LTI platforms.
+ * @module shared/client/services/deepLinkingService
  */
 
 import type { LaunchSettings } from '@atomicjolt/lti-client';
-import { LTI_SIGN_DEEP_LINK_PATH } from '../../definitions';
+import { LTI_SIGN_DEEP_LINK_PATH } from '../../../../definitions';
 import { 
   deepLinkSchema, 
   deepLinkResponseSchema,
   type DeepLink,
   type DeepLinkResponse 
-} from '../schemas/deepLink.schema';
+} from '@shared/schemas/deepLink.schema';
 
 /**
  * Creates the appropriate deep link based on accepted types.

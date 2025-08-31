@@ -10,7 +10,7 @@ import chatReducer, {
   setLoading,
   setError,
   clearMessages,
-} from '../../client/store/slices/chatSlice';
+} from '@features/chat/client/store/chatSlice';
 
 describe('chatSlice', () => {
   const initialState = {

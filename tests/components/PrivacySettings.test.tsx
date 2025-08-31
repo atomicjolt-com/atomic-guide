@@ -7,10 +7,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import PrivacySettings from '../../client/components/dashboard/PrivacySettings';
+import PrivacySettings from '../../src/features/dashboard/client/components/PrivacySettings';
 
 // Mock CSS modules
-vi.mock('../../client/styles/components/privacy-settings.module.css', () => ({
+vi.mock('../../src/features/dashboard/styles/components/privacy-settings.module.css', () => ({
   default: {
     privacySettings: 'privacySettings',
     loading: 'loading',

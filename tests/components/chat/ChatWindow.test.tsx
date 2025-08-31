@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
-import { ChatWindow } from '../../../client/components/chat/ChatWindow';
+import { ChatWindow } from '../../../src/features/chat/client/components/ChatWindow';
 
 describe('ChatWindow', () => {
   const createMockStore = (openChat = false) => {

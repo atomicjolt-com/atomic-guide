@@ -17,9 +17,8 @@ import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 // Mock fetch globally
 global.fetch = vi.fn();
 
-// Mock the legacy deep linking service
-// TODO: Move this mock to features/assessment when migrating from legacy client
-vi.mock('../../../../../client/services/deepLinkingService', () => ({
+// Mock the shared deep linking service
+vi.mock('@shared/client/services/deepLinkingService', () => ({
   submitDeepLink: vi.fn(),
   signDeepLink: vi.fn(),
 }));
@@ -127,7 +126,7 @@ describe('assessmentDeepLink service', () => {
         json: async () => ({ jwt: mockSignedJWT }),
       } as Response);
 
-      const { submitDeepLink } = await import('../../../../../client/services/deepLinkingService');
+      const { submitDeepLink } = await import('@shared/client/services/deepLinkingService');
       
       const result = await submitAssessmentDeepLink(
         mockAssessmentConfig,

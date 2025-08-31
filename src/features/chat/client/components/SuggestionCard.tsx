@@ -63,6 +63,14 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const primaryActionRef = useRef<HTMLButtonElement>(null);
 
+  // Define handleDismiss early to avoid temporal dead zone
+  const handleDismiss = useCallback((reason: string) => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onDismiss(reason);
+    }, 200); // Wait for exit animation
+  }, [onDismiss]);
+
   // Auto-dismiss timer
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -115,13 +123,6 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
       setShowFeedback(true);
     }
   };
-
-  const handleDismiss = useCallback((reason: string) => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onDismiss(reason);
-    }, 200); // Wait for exit animation
-  }, [onDismiss]);
 
   const handleFeedback = (feedback: 'helpful' | 'not_helpful' | 'too_frequent' | 'wrong_timing' | 'irrelevant') => {
     onFeedback(feedback);

@@ -12,9 +12,9 @@ export {
   setLoading,
   setError,
   clearMessages,
-} from './slices/chatSlice';
+} from '../../src/features/chat/client/store/chatSlice';
 
-export { setJwt, clearJwt, refreshJwt } from './slices/jwtSlice';
+export { setJwt, clearJwt, refreshJwt } from '../../src/features/lti/client/store/jwtSlice';
 
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from './configure_store';

@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
-import { ChatFAB } from '../../../client/components/chat/ChatFAB';
-import styles from '../../../client/styles/components/chat.module.css';
+import { ChatFAB } from '../../../src/features/chat/client/components/ChatFAB';
+import styles from '../../../src/features/chat/client/styles/chat.module.css';
 
 describe('ChatFAB', () => {
   const createMockStore = () => {
