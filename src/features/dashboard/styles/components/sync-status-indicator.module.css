@@ -1,0 +1,467 @@
+/**
+ * Sync Status Indicator Component Styles for Story 3.4
+ * Cross-device synchronization status with mobile-first design
+ */
+
+/* Main Indicator */
+.syncStatusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.syncStatusIndicator.compact {
+  padding: 4px 6px;
+  min-width: 32px;
+  justify-content: center;
+}
+
+/* Status States */
+.synced {
+  background: #f0f9ff;
+  color: #0284c7;
+  border-color: #bae6fd;
+}
+
+.syncing {
+  background: #fefce8;
+  color: #ca8a04;
+  border-color: #fde047;
+}
+
+.offline {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.conflict {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.error {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.unknown {
+  background: #f9fafb;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
+/* Status Icon */
+.statusIcon {
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Status Text */
+.statusText {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.resolveBtn,
+.retryBtn {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 24px;
+  min-width: 24px;
+}
+
+.resolveBtn:hover,
+.retryBtn:hover {
+  background: currentColor;
+  color: white;
+}
+
+.resolveBtn:active,
+.retryBtn:active {
+  transform: scale(0.95);
+}
+
+/* Conflict Modal */
+.conflictModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.conflictModal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: modalAppear 0.2s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.conflictHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.conflictHeader h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  min-height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.conflictContent {
+  padding: 20px 24px 24px;
+}
+
+.conflictContent > p {
+  color: #6b7280;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.conflictOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.conflictOption {
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.conflictOption:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.optionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.optionHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.deviceInfo {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: normal;
+}
+
+.optionPreview {
+  margin-bottom: 16px;
+}
+
+.preferencePreview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.preferencePreview span {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preferencePreview span:before {
+  content: attr(data-label);
+  font-weight: 500;
+  color: #374151;
+}
+
+.chooseOptionBtn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  min-height: 44px;
+}
+
+.chooseOptionBtn.primary {
+  background: #667eea;
+  color: white;
+}
+
+.chooseOptionBtn.primary:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.chooseOptionBtn.secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.chooseOptionBtn.secondary:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.chooseOptionBtn:active {
+  transform: translateY(0);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .conflictModalOverlay {
+    padding: 8px;
+    align-items: flex-end;
+  }
+  
+  .conflictModal {
+    border-radius: 16px 16px 0 0;
+    max-height: 80vh;
+  }
+  
+  .conflictHeader {
+    padding: 16px 20px 12px;
+  }
+  
+  .conflictContent {
+    padding: 16px 20px 20px;
+  }
+  
+  .conflictOptions {
+    gap: 12px;
+  }
+  
+  .conflictOption {
+    padding: 12px;
+  }
+  
+  .optionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .preferencePreview {
+    padding: 8px;
+  }
+  
+  .chooseOptionBtn {
+    padding: 12px 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .conflictOptions {
+    flex-direction: row;
+  }
+  
+  .conflictOption {
+    flex: 1;
+  }
+  
+  .syncStatusIndicator:not(.compact) {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .resolveBtn,
+  .retryBtn {
+    min-height: 32px;
+    padding: 4px 12px;
+  }
+  
+  .closeBtn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .syncStatusIndicator {
+    border: 2px solid currentColor;
+  }
+  
+  .conflictModal {
+    border: 2px solid #000;
+  }
+  
+  .chooseOptionBtn.primary {
+    background: #000;
+  }
+  
+  .chooseOptionBtn.secondary {
+    background: #fff;
+    border: 2px solid #000;
+    color: #000;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
+  }
+  
+  .conflictModal {
+    animation: none;
+  }
+  
+  .chooseOptionBtn:hover {
+    transform: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .conflictModal {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .conflictHeader {
+    border-bottom-color: #374151;
+  }
+  
+  .conflictHeader h3 {
+    color: #f9fafb;
+  }
+  
+  .closeBtn {
+    color: #9ca3af;
+  }
+  
+  .closeBtn:hover {
+    background: #374151;
+    color: #f9fafb;
+  }
+  
+  .conflictOption {
+    border-color: #374151;
+    background: #111827;
+  }
+  
+  .conflictOption:hover {
+    border-color: #4b5563;
+  }
+  
+  .optionHeader h4 {
+    color: #f9fafb;
+  }
+  
+  .deviceInfo {
+    color: #9ca3af;
+  }
+  
+  .preferencePreview {
+    background: #1f2937;
+    border: 1px solid #374151;
+  }
+  
+  .preferencePreview span {
+    color: #d1d5db;
+  }
+  
+  .chooseOptionBtn.secondary {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+  }
+  
+  .chooseOptionBtn.secondary:hover {
+    background: #4b5563;
+  }
+}

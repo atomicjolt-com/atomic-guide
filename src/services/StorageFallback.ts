@@ -336,4 +336,19 @@ export class StorageFallbackService {
     this.halfOpenAttempts = 0;
     this.metrics.circuitState = 'closed';
   }
+
+  /**
+   * Set circuit state for testing
+   */
+  setCircuitStateForTesting(state: 'closed' | 'open' | 'half-open', failures = 0, lastFailureTimestamp?: number): void {
+    this.circuitState = state;
+    this.failures = failures;
+    this.metrics.circuitState = state;
+    this.metrics.d1Failures = failures;
+    
+    if (lastFailureTimestamp !== undefined) {
+      this.lastFailureTime = lastFailureTimestamp;
+      this.metrics.lastFailure = new Date(lastFailureTimestamp).toISOString();
+    }
+  }
 }

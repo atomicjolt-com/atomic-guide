@@ -1,0 +1,683 @@
+/**
+ * Benchmark Comparison Component Styles for Story 3.4
+ * Mobile-first responsive design with touch-optimized interactions
+ */
+
+/* Main Container */
+.benchmarkComparison {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  color: #1a1a1a;
+}
+
+/* Header Section */
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Loading States */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading p {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Error State */
+.error {
+  text-align: center;
+  padding: 32px 20px;
+  background: #fef2f2;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+}
+
+.error h3 {
+  color: #dc2626;
+  font-size: 1.125rem;
+  margin-bottom: 8px;
+}
+
+.error p {
+  color: #7f1d1d;
+  margin-bottom: 16px;
+}
+
+.retryBtn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  transition: all 0.2s;
+}
+
+.retryBtn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Privacy Controls */
+.privacyControls {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.privacyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.privacyIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ddd6fe;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid #c4b5fd;
+}
+
+.privacyIcon {
+  font-size: 1rem;
+}
+
+.privacyStatus {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+.consentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.consentToggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  min-height: 44px;
+}
+
+.consentToggle:hover {
+  background: #f1f5f9;
+}
+
+.privacyCheckbox {
+  display: none;
+}
+
+.checkboxCustom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  position: relative;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.privacyCheckbox:checked + .checkboxCustom {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.privacyCheckbox:checked + .checkboxCustom::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.consentLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.privacyExplanationBtn {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-height: 32px;
+  transition: all 0.2s;
+}
+
+.privacyExplanationBtn:hover {
+  background: #f0f4ff;
+  text-decoration: none;
+}
+
+/* Privacy Explanation */
+.privacyExplanation {
+  margin-top: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.privacyExplanation h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.protectionMethods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.protectionMethod {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.methodIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.methodContent strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.methodContent p {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Metric Comparison */
+.metricComparison {
+  background: #fafbfc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.metricHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.metricTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metricIcon {
+  font-size: 1.5rem;
+}
+
+.metricTitle h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.metricSelector {
+  position: relative;
+}
+
+.metricSelect {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  min-height: 40px;
+  min-width: 44px;
+}
+
+.metricSelect:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Comparison Chart */
+.comparisonChart {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.chartContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.performanceBar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.barLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.sampleSize {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: normal;
+}
+
+.barWrapper {
+  position: relative;
+  height: 32px;
+  background: #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.performanceLevel {
+  height: 100%;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  position: relative;
+  transition: width 0.8s ease;
+  min-width: 60px;
+}
+
+.performanceLevel.student {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.performanceLevel.average {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.performanceValue {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Confidence Interval */
+.confidenceInterval {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.intervalLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.intervalBar {
+  position: relative;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.intervalRange {
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  border-radius: 4px;
+  top: 0;
+}
+
+.intervalLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  color: #6b7280;
+}
+
+/* Performance Context */
+.performanceContext {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.percentileInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.percentileLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.percentileValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.contextDescription {
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.contextPositive {
+  color: #059669;
+  font-weight: 500;
+}
+
+.contextNeutral {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.contextEncouraging {
+  color: #d97706;
+  font-weight: 500;
+}
+
+/* Privacy Information */
+.privacyInfo {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.privacyMetadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  color: #6b7280;
+}
+
+.privacyMethod,
+.privacyStrength,
+.dataFreshness {
+  white-space: nowrap;
+}
+
+/* No Consent State */
+.noConsentState {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.noConsentIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.noConsentState h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.noConsentState p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.enableBtn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+}
+
+.enableBtn:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+/* No Data State */
+.noData {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Responsive Design - Mobile First */
+@media (min-width: 480px) {
+  .benchmarkComparison {
+    padding: 20px;
+  }
+  
+  .protectionMethods {
+    flex-direction: row;
+    gap: 20px;
+  }
+  
+  .protectionMethod {
+    flex: 1;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .methodIcon {
+    align-self: center;
+    margin-bottom: 8px;
+  }
+}
+
+@media (min-width: 768px) {
+  .benchmarkComparison {
+    padding: 24px;
+  }
+  
+  .header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .metricHeader {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .privacyMetadata {
+    justify-content: center;
+    gap: 24px;
+  }
+  
+  .consentSection {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 1024px) {
+  .comparisonChart {
+    padding: 24px;
+  }
+  
+  .chartContainer {
+    gap: 20px;
+  }
+  
+  .performanceBar {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .barLabel {
+    min-width: 180px;
+    flex-shrink: 0;
+  }
+  
+  .barWrapper {
+    flex: 1;
+  }
+}
+
+/* Touch and Accessibility Improvements */
+@media (hover: none) and (pointer: coarse) {
+  .consentToggle {
+    padding: 12px;
+  }
+  
+  .privacyExplanationBtn {
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+  
+  .metricSelect {
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .benchmarkComparison {
+    border: 2px solid #000;
+  }
+  
+  .performanceLevel.student {
+    background: #000;
+  }
+  
+  .performanceLevel.average {
+    background: #666;
+  }
+  
+  .privacyCheckbox:checked + .checkboxCustom {
+    background: #000;
+    border-color: #000;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+  
+  .performanceLevel {
+    transition: none;
+  }
+  
+  .retryBtn:hover,
+  .enableBtn:hover {
+    transform: none;
+  }
+}

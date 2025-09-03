@@ -1,0 +1,910 @@
+/**
+ * Data Export Interface Component Styles for Story 3.4
+ * Mobile-first responsive design with comprehensive export workflow
+ */
+
+/* Main Container */
+.dataExportInterface {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  color: #1a1a1a;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Progress Indicator */
+.progressIndicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 0 16px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 120px;
+  position: relative;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: -50%;
+  width: 100%;
+  height: 2px;
+  background: #e5e7eb;
+  z-index: 0;
+}
+
+.step.completed:not(:last-child)::after {
+  background: #10b981;
+}
+
+.stepNumber {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  background: #e5e7eb;
+  color: #6b7280;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 8px;
+}
+
+.step.active .stepNumber {
+  background: #667eea;
+  color: white;
+}
+
+.step.completed .stepNumber {
+  background: #10b981;
+  color: white;
+}
+
+.stepLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.step.active .stepLabel {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.step.completed .stepLabel {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Configuration Step */
+.configurationStep {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.configSection {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.configSection h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Date Range Selection */
+.presetButtons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.presetBtn {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.presetBtn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.presetBtn:active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.customDateInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.dateInput {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dateInput label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.dateField {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: #374151;
+  min-height: 44px;
+}
+
+.dateField:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Data Type Selection */
+.dataTypeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.dataTypeOption {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dataTypeOption:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.dataTypeCheckbox {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+.optionContent {
+  flex: 1;
+}
+
+.optionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.optionIcon {
+  font-size: 1.25rem;
+}
+
+.optionHeader strong {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.optionDescription {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Format Selection */
+.formatOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.formatOption {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.formatOption:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.formatCheckbox {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+.recommendedBadge {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Purpose Selection */
+.purposeSelect {
+  width: 100%;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.purposeSelect:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Additional Options */
+.metadataOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  min-height: 44px;
+}
+
+.metadataOption:hover {
+  background: #f1f5f9;
+}
+
+.metadataCheckbox {
+  width: 20px;
+  height: 20px;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+/* Step Actions */
+.stepActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.previewBtn,
+.generateBtn,
+.downloadBtn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.previewBtn:hover,
+.generateBtn:hover,
+.downloadBtn:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.previewBtn:disabled,
+.generateBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.backBtn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+}
+
+.backBtn:hover {
+  background: #4b5563;
+}
+
+/* Preview Step */
+.previewStep {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.previewHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.previewStats {
+  display: flex;
+  gap: 16px;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.recordCount {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.estimatedSize {
+  font-weight: 500;
+}
+
+.previewContent {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.sampleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sampleHeader h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.dateRangeInfo {
+  display: flex;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.sampleTable {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.sampleTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.sampleTable th {
+  background: #f9fafb;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sampleTable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #6b7280;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noDataMessage {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Privacy Notice */
+.privacyNotice {
+  background: #ddd6fe;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #c4b5fd;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.privacyIcon {
+  font-size: 1.25rem;
+  margin-top: 2px;
+}
+
+.privacyContent strong {
+  display: block;
+  color: #7c3aed;
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+}
+
+.privacyContent p {
+  color: #7c3aed;
+  font-size: 0.75rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Terms Agreement */
+.termsAgreement {
+  background: #fef3c7;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #fcd34d;
+}
+
+.termsLabel {
+  display: flex;
+  gap: 12px;
+  cursor: pointer;
+  align-items: flex-start;
+}
+
+.termsCheckbox {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #d97706;
+  cursor: pointer;
+}
+
+.termsText {
+  font-size: 0.75rem;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+.termsText ul {
+  margin-top: 8px;
+  padding-left: 16px;
+}
+
+.termsText li {
+  margin-bottom: 4px;
+}
+
+/* Generation Step */
+.generationStep {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.generationHeader {
+  text-align: center;
+}
+
+.generationHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16px;
+}
+
+.progressContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.progressBar {
+  flex: 1;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #667eea;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Generation Status */
+.generationStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.statusIcon {
+  font-size: 1.125rem;
+  min-width: 24px;
+}
+
+.statusItem.complete {
+  color: #166534;
+}
+
+.statusItem.pending {
+  color: #6b7280;
+}
+
+/* Success and Error Alerts */
+.downloadReady {
+  background: #f0fdf4;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #bbf7d0;
+}
+
+.successAlert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.successIcon {
+  font-size: 1.25rem;
+  color: #16a34a;
+  margin-top: 2px;
+}
+
+.successAlert strong {
+  display: block;
+  color: #166534;
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+}
+
+.successAlert p {
+  color: #166534;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.downloadActions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.downloadBtn {
+  text-decoration: none;
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.downloadBtn:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: white;
+}
+
+.downloadIcon {
+  font-size: 1.125rem;
+}
+
+.downloadInfo {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #166534;
+}
+
+.downloadInfo p {
+  margin: 4px 0;
+}
+
+.errorAlert {
+  background: #fef2f2;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #fecaca;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.errorIcon {
+  font-size: 1.25rem;
+  color: #dc2626;
+  margin-top: 2px;
+}
+
+.errorAlert strong {
+  display: block;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+}
+
+.errorAlert p {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+/* Error State */
+.error {
+  text-align: center;
+  padding: 32px 20px;
+  background: #fef2f2;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+}
+
+.error h3 {
+  color: #dc2626;
+  font-size: 1.125rem;
+  margin-bottom: 8px;
+}
+
+.error p {
+  color: #7f1d1d;
+  margin-bottom: 16px;
+}
+
+.retryBtn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+}
+
+.retryBtn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (min-width: 480px) {
+  .dataExportInterface {
+    padding: 20px;
+  }
+  
+  .dataTypeGrid,
+  .formatOptions {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .stepActions {
+    flex-direction: row;
+  }
+  
+  .downloadActions {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 768px) {
+  .dataExportInterface {
+    padding: 24px;
+  }
+  
+  .header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .progressIndicator {
+    padding: 0;
+  }
+  
+  .step {
+    max-width: 150px;
+  }
+  
+  .configSection {
+    padding: 24px;
+  }
+  
+  .dataTypeGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .previewHeader {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .sampleHeader {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .sampleTable table {
+    font-size: 0.875rem;
+  }
+  
+  .sampleTable td {
+    max-width: 200px;
+  }
+}
+
+/* Touch and Accessibility */
+@media (hover: none) and (pointer: coarse) {
+  .presetBtn,
+  .dataTypeOption,
+  .formatOption {
+    min-height: 48px;
+  }
+  
+  .metadataOption {
+    padding: 16px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .dataExportInterface {
+    border: 2px solid #000;
+  }
+  
+  .progressFill {
+    background: #000;
+  }
+  
+  .previewBtn,
+  .generateBtn,
+  .downloadBtn {
+    background: #000;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .progressFill {
+    transition: none;
+  }
+  
+  .previewBtn:hover,
+  .generateBtn:hover,
+  .downloadBtn:hover,
+  .retryBtn:hover {
+    transform: none;
+  }
+}

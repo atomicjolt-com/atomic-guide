@@ -129,10 +129,7 @@ describe('StorageFallbackService', () => {
       service = new StorageFallbackService(mockKV.kv, workingD1.db);
 
       // Manually set the circuit state based on previous failures
-      const metrics = service.getMetrics();
-      metrics.circuitState = 'open';
-      metrics.failures = 5;
-      metrics.lastFailureTimestamp = Date.now() - 61000;
+      service.setCircuitStateForTesting('open', 5, Date.now() - 61000);
 
       // Next request should move to half-open then succeed
       await service.getLearnerProfile('tenant-123', 'user-456');
@@ -147,9 +144,7 @@ describe('StorageFallbackService', () => {
       service = new StorageFallbackService(mockKV.kv, mockD1.db);
 
       // Manually set to half-open state for testing
-      service.resetCircuit();
-      const metrics = service.getMetrics();
-      metrics.circuitState = 'half-open';
+      service.setCircuitStateForTesting('half-open', 0);
 
       // Make successful requests
       for (let i = 0; i < 3; i++) {
@@ -196,7 +191,7 @@ describe('StorageFallbackService', () => {
       const resultPromise = service.getLearnerProfile('tenant-123', 'user-456');
 
       // Advance timers to trigger timeout
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(150); // Advance past the 100ms timeout
 
       const result = await resultPromise;
 
@@ -213,17 +208,20 @@ describe('StorageFallbackService', () => {
       const slowD1 = createMockD1(false, true);
       service = new StorageFallbackService(mockKV.kv, slowD1.db);
 
-      const startTime = Date.now();
       const resultPromise = service.getLearnerProfile('tenant-123', 'user-456');
 
       // Advance timers to trigger timeout
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(150); // Advance past the 100ms timeout
 
-      await resultPromise;
-      const endTime = Date.now();
+      const result = await resultPromise;
 
-      // Should timeout quickly (around 100ms, not wait for full slow operation)
-      expect(endTime - startTime).toBeLessThan(150);
+      // The operation should complete without waiting for the slow D1 operation
+      // We should get null since there's no KV fallback data
+      expect(result).toBeNull();
+
+      // Verify that the fallback was triggered (D1 timeout)
+      const metrics = service.getMetrics();
+      expect(metrics.d1Failures).toBe(1);
     }, 10000);
   });
 
