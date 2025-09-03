@@ -1,3 +1,4 @@
+/* eslint-env node */
 /**
  * D1 Database Query Script
  * Interactive SQL query runner for D1

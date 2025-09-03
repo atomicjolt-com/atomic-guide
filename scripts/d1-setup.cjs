@@ -1,3 +1,4 @@
+/* eslint-env node */
 /**
  * D1 Database Setup Script
  * Sets up the Cloudflare D1 database for AtomicStream
