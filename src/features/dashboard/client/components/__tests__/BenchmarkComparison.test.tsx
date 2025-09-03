@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import BenchmarkComparison from '../BenchmarkComparison';
 
@@ -210,7 +210,7 @@ describe('BenchmarkComparison', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Peer Performance Comparison')).toBeInTheDocument();
-        expect(screen.getAllByText('Overall Mastery')).toHaveLength.greaterThan(0);
+        expect(screen.getAllByText('Overall Mastery').length).toBeGreaterThan(0);
       });
     });
 
@@ -281,8 +281,10 @@ describe('BenchmarkComparison', () => {
       await user.selectOptions(select, 'learningVelocity');
 
       await waitFor(() => {
-        expect(screen.getAllByText('Learning Velocity')).toHaveLength.greaterThan(0);
-        expect(screen.getByText('1.2')).toBeInTheDocument(); // Student velocity
+        expect(screen.getAllByText('Learning Velocity').length).toBeGreaterThan(0);
+        // Look for the student velocity value specifically
+        const velocityValues = screen.getAllByText('1.2');
+        expect(velocityValues.length).toBeGreaterThan(0); // Should have at least one 1.2 value
         expect(screen.getByText('1.0')).toBeInTheDocument(); // Course average velocity
       });
     });

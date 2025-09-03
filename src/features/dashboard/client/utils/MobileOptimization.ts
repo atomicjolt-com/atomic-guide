@@ -8,7 +8,7 @@ import { z } from 'zod';
 /**
  * Schema for device capabilities
  */
-const DeviceCapabilitiesSchema = z.object({
+const _DeviceCapabilitiesSchema = z.object({
   isMobile: z.boolean(),
   isTablet: z.boolean(),
   isTouch: z.boolean(),
@@ -22,12 +22,12 @@ const DeviceCapabilitiesSchema = z.object({
   darkMode: z.boolean(),
 });
 
-export type DeviceCapabilities = z.infer<typeof DeviceCapabilitiesSchema>;
+export type DeviceCapabilities = z.infer<typeof _DeviceCapabilitiesSchema>;
 
 /**
  * Schema for performance budget
  */
-const PerformanceBudgetSchema = z.object({
+const _PerformanceBudgetSchema = z.object({
   maxImageSize: z.number(),
   maxBundleSize: z.number(),
   maxRenderTime: z.number(),
@@ -38,7 +38,7 @@ const PerformanceBudgetSchema = z.object({
   concurrentRequests: z.number(),
 });
 
-export type PerformanceBudget = z.infer<typeof PerformanceBudgetSchema>;
+export type PerformanceBudget = z.infer<typeof _PerformanceBudgetSchema>;
 
 /**
  * Mobile optimization utility class
@@ -301,9 +301,8 @@ export class MobileOptimization {
    */
   public optimizeImageUrl(baseUrl: string, width: number, height: number): string {
     const capabilities = this.capabilities;
-    const budget = this.performanceBudget;
 
-    // Calculate optimal dimensions based on pixel ratio and budget
+    // Calculate optimal dimensions based on pixel ratio
     const optimalWidth = Math.min(width, Math.floor(width / capabilities.pixelRatio));
     const optimalHeight = Math.min(height, Math.floor(height / capabilities.pixelRatio));
 

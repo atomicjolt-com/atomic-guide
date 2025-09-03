@@ -767,4 +767,304 @@ export class PerformanceAnalyticsService {
       progressHistory,
     };
   }
+
+  /**
+   * Calculate comprehensive student performance metrics
+   */
+  public async calculateStudentPerformance(
+    tenantId: string,
+    studentId: string,
+    courseId: string
+  ): Promise<StudentPerformanceProfile & { 
+    strugglesIdentified: StrugglePattern[]; 
+    conceptMasteries: Map<string, ConceptMastery> 
+  }> {
+    // Get assessment attempts
+    const attemptsResult = await this.db
+      .prepare(`
+        SELECT aa.score, aa.max_score, aa.time_spent, aa.question_count
+        FROM assessment_attempts aa
+        WHERE aa.tenant_id = ? AND aa.student_id = ? 
+          AND aa.course_id = ? AND aa.status = 'completed'
+      `)
+      .bind(tenantId, studentId, courseId)
+      .all();
+
+    // Calculate overall mastery
+    let totalScore = 0;
+    let maxPossibleScore = 0;
+    let totalTimeSpent = 0;
+    
+    attemptsResult.results.forEach(attempt => {
+      totalScore += Number(attempt.score) || 0;
+      maxPossibleScore += Number(attempt.max_score) || 0;
+      totalTimeSpent += Number(attempt.time_spent) || 0;
+    });
+    
+    const overallMastery = maxPossibleScore > 0 ? totalScore / maxPossibleScore : 0;
+
+    // Get concept-level data
+    const conceptsResult = await this.db
+      .prepare(`
+        SELECT concept_id, SUM(correct_count) as correct_count, 
+               SUM(total_count) as total_count
+        FROM concept_performance
+        WHERE tenant_id = ? AND student_id = ? AND course_id = ?
+        GROUP BY concept_id
+      `)
+      .bind(tenantId, studentId, courseId)
+      .all();
+
+    // Build concept masteries
+    const conceptMasteries = new Map<string, ConceptMastery>();
+    const strugglingConcepts: string[] = [];
+    
+    conceptsResult.results.forEach(concept => {
+      const correct = Number(concept.correct_count) || 0;
+      const total = Number(concept.total_count) || 0;
+      const masteryLevel = total > 0 ? correct / total : 0;
+      
+      if (masteryLevel < 0.5) {
+        strugglingConcepts.push(concept.concept_id as string);
+      }
+      
+      conceptMasteries.set(concept.concept_id as string, {
+        id: crypto.randomUUID(),
+        profileId: '',
+        conceptId: concept.concept_id as string,
+        conceptName: concept.concept_id as string,
+        masteryLevel,
+        confidenceScore: 0.8,
+        assessmentCount: 5,
+        averageResponseTime: 30,
+        improvementTrend: 'stable',
+        lastAssessed: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        commonMistakes: []
+      } as any);
+    });
+
+    // Identify struggle patterns
+    const strugglesIdentified: StrugglePattern[] = [];
+    
+    if (strugglingConcepts.length > 0) {
+      strugglesIdentified.push({
+        id: crypto.randomUUID(),
+        tenantId,
+        studentId,
+        patternType: 'knowledge_gap',
+        conceptsInvolved: strugglingConcepts,
+        evidenceCount: strugglingConcepts.length,
+        severity: Math.max(0.5, 1 - overallMastery),
+        suggestedInterventions: ['Review foundational concepts', 'Practice problems'],
+        detectedAt: new Date().toISOString(),
+        resolvedAt: undefined,
+        resolutionMethod: undefined,
+        confidenceScore: 0.8
+      });
+    }
+
+    // Calculate learning velocity (concepts mastered per hour)
+    const conceptsMastered = Array.from(conceptMasteries.values()).filter(c => c.masteryLevel > 0.7).length;
+    const learningVelocity = totalTimeSpent > 0 ? (conceptsMastered * 3600) / totalTimeSpent : 0;
+
+    return {
+      id: crypto.randomUUID(),
+      tenantId,
+      studentId,
+      courseId,
+      overallMastery,
+      learningVelocity,
+      confidenceLevel: 0.7,
+      performanceData: {},
+      lastCalculated: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      strugglesIdentified,
+      conceptMasteries,
+      recommendedActions: []
+    } as any;
+  }
+
+  /**
+   * Analyze concept mastery for a student
+   */
+  public async analyzeConceptMastery(
+    tenantId: string,
+    studentId: string,
+    courseId: string
+  ): Promise<ConceptMastery[]> {
+    const result = await this.db
+      .prepare(`
+        SELECT 
+          concept_id,
+          concept_name,
+          SUM(correct_count) as correct_count,
+          SUM(total_count) as total_count,
+          AVG(response_time) as avg_response_time
+        FROM concept_performance
+        WHERE tenant_id = ? AND student_id = ? AND course_id = ?
+        GROUP BY concept_id, concept_name
+      `)
+      .bind(tenantId, studentId, courseId)
+      .all();
+
+    return result.results.map(row => ({
+      id: crypto.randomUUID(),
+      profileId: '',
+      conceptId: row.concept_id as string,
+      conceptName: row.concept_name as string || row.concept_id as string,
+      masteryLevel: Number(row.correct_count) / Math.max(1, Number(row.total_count)),
+      confidenceScore: 0.8,
+      assessmentCount: Number(row.total_count),
+      averageResponseTime: Number(row.avg_response_time) || 30,
+      improvementTrend: 'stable',
+      lastAssessed: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      commonMistakes: []
+    } as any));
+  }
+
+  /**
+   * Detect struggle patterns for a student
+   */
+  public async detectStrugglePatterns(
+    tenantId: string,
+    studentId: string,
+    courseId: string
+  ): Promise<StrugglePattern[]> {
+    const patterns: StrugglePattern[] = [];
+    
+    // Get low-performing concepts
+    const result = await this.db
+      .prepare(`
+        SELECT concept_id, SUM(correct_count) as correct, SUM(total_count) as total
+        FROM concept_performance
+        WHERE tenant_id = ? AND student_id = ? AND course_id = ?
+        GROUP BY concept_id
+        HAVING (CAST(correct AS REAL) / CAST(total AS REAL)) < 0.5
+      `)
+      .bind(tenantId, studentId, courseId)
+      .all();
+
+    if (result.results.length > 0) {
+      const conceptsInvolved = result.results.map(r => r.concept_id as string);
+      
+      patterns.push({
+        id: crypto.randomUUID(),
+        tenantId,
+        studentId,
+        patternType: 'knowledge_gap',
+        conceptsInvolved,
+        evidenceCount: result.results.length,
+        severity: 0.8,
+        suggestedInterventions: ['Review material', 'Seek help'],
+        detectedAt: new Date().toISOString(),
+        confidenceScore: 0.9
+      });
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Save performance profile to database
+   */
+  public async savePerformanceProfile(
+    profile: StudentPerformanceProfile
+  ): Promise<void> {
+    await this.db
+      .prepare(`
+        INSERT OR REPLACE INTO student_performance_profiles (
+          id, tenant_id, student_id, course_id, overall_mastery,
+          learning_velocity, confidence_level, performance_data,
+          last_calculated, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      .bind(
+        profile.id,
+        profile.tenantId,
+        profile.studentId,
+        profile.courseId,
+        profile.overallMastery,
+        profile.learningVelocity,
+        profile.confidenceLevel,
+        JSON.stringify(profile.performanceData),
+        profile.lastCalculated,
+        profile.createdAt,
+        profile.updatedAt
+      )
+      .run();
+  }
+
+  /**
+   * Get aggregate class metrics
+   */
+  public async getClassMetrics(
+    tenantId: string,
+    courseId: string
+  ): Promise<{
+    averageMastery: number;
+    strugglingConcepts: { conceptId: string; averageMastery: number }[];
+    topPerformers: string[];
+    needsSupport: string[];
+  }> {
+    // Get average mastery
+    const avgResult = await this.db
+      .prepare(`
+        SELECT AVG(overall_mastery) as avg_mastery
+        FROM student_performance_profiles
+        WHERE tenant_id = ? AND course_id = ?
+      `)
+      .bind(tenantId, courseId)
+      .first();
+
+    const averageMastery = Number(avgResult?.avg_mastery) || 0;
+
+    // Get struggling concepts (average mastery < 0.6)
+    const strugglingResult = await this.db
+      .prepare(`
+        SELECT concept_id, AVG(mastery_level) as avg_mastery
+        FROM concept_masteries cm
+        JOIN student_performance_profiles spp ON cm.profile_id = spp.id
+        WHERE spp.tenant_id = ? AND spp.course_id = ?
+        GROUP BY concept_id
+        HAVING avg_mastery < 0.6
+      `)
+      .bind(tenantId, courseId)
+      .all();
+
+    const strugglingConcepts = strugglingResult.results.map(r => ({
+      conceptId: r.concept_id as string,
+      averageMastery: Number(r.avg_mastery) || 0
+    }));
+
+    // Get top performers and those needing support
+    const studentsResult = await this.db
+      .prepare(`
+        SELECT student_id, overall_mastery
+        FROM student_performance_profiles
+        WHERE tenant_id = ? AND course_id = ?
+        ORDER BY overall_mastery DESC
+      `)
+      .bind(tenantId, courseId)
+      .all();
+
+    const topPerformers = studentsResult.results
+      .filter(s => Number(s.overall_mastery) >= 0.9)
+      .map(s => s.student_id as string);
+
+    const needsSupport = studentsResult.results
+      .filter(s => Number(s.overall_mastery) < 0.6)
+      .map(s => s.student_id as string);
+
+    return {
+      averageMastery,
+      strugglingConcepts,
+      topPerformers,
+      needsSupport
+    };
+  }
 }

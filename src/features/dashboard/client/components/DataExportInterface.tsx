@@ -3,14 +3,14 @@
  * @module features/dashboard/client/components/DataExportInterface
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { z } from 'zod';
 import styles from '../../styles/components/data-export-interface.module.css';
 
 /**
  * Schema for export configuration
  */
-const ExportConfigSchema = z.object({
+const _ExportConfigSchema = z.object({
   dateRange: z.object({
     start: z.string().datetime(),
     end: z.string().datetime(),
@@ -26,7 +26,7 @@ const ExportConfigSchema = z.object({
   purpose: z.string().min(1),
 });
 
-type ExportConfig = z.infer<typeof ExportConfigSchema>;
+type ExportConfig = z.infer<typeof _ExportConfigSchema>;
 
 /**
  * Schema for export status from API

@@ -123,12 +123,8 @@ export default function BenchmarkComparison({
         }
       } catch (err) {
         console.error('Privacy consent fetch error:', err);
-        // Default to no consent for safety
-        setPrivacyConsent({
-          benchmarkOptIn: false,
-          lastUpdated: new Date().toISOString(),
-          consentVersion: '1.0',
-        });
+        setError(err instanceof Error ? err.message : 'Failed to load privacy settings');
+        setLoading(false);
       }
     };
 

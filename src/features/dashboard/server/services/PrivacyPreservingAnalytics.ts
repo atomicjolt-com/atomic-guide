@@ -91,8 +91,12 @@ export class PrivacyPreservingAnalytics {
 
   constructor(
     private readonly db: D1Database,
-    private readonly tenantId: string
-  ) {}
+    private readonly kvNamespace?: any
+  ) {
+    this.tenantId = 'default';
+  }
+
+  private tenantId: string;
 
   /**
    * Generate Laplace noise for differential privacy
@@ -526,33 +530,32 @@ export class PrivacyPreservingAnalytics {
    * @param justification - Reason for access
    * @returns Promise resolving when audit logged
    */
-  public async auditDataAccess(
-    actorId: string,
-    actorType: 'student' | 'instructor' | 'admin' | 'system',
-    operation: 'view_profile' | 'generate_benchmark' | 'export_data' | 'create_alert',
-    dataAccessed: string,
-    justification?: string
-  ): Promise<void> {
+  public async auditDataAccess(params: {
+    tenantId: string;
+    userId: string;
+    targetStudentId?: string;
+    operation: string;
+    dataCategory: string;
+    timestamp: Date;
+    ipAddress?: string;
+    userAgent?: string;
+  }): Promise<void> {
     await this.db
       .prepare(`
-        INSERT INTO audit_logs (
-          tenant_id, actor_type, actor_id, action, resource_type, 
-          resource_id, details, created_at
-        ) VALUES (?, ?, ?, ?, 'analytics_data', ?, ?, datetime('now'))
+        INSERT INTO privacy_audit_log (
+          tenant_id, user_id, target_student_id, operation, data_category, 
+          timestamp, ip_address, user_agent
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .bind(
-        this.tenantId,
-        actorType,
-        actorId,
-        operation,
-        dataAccessed,
-        JSON.stringify({
-          operation,
-          dataAccessed,
-          justification,
-          privacyCompliant: true,
-          timestamp: new Date().toISOString(),
-        })
+        params.tenantId,
+        params.userId,
+        params.targetStudentId || null,
+        params.operation,
+        params.dataCategory,
+        params.timestamp.toISOString(),
+        params.ipAddress || null,
+        params.userAgent || null
       )
       .run();
   }
@@ -619,5 +622,430 @@ export class PrivacyPreservingAnalytics {
       anonymizationRequired: consent.anonymizationRequired,
       dataRetentionDays: consent.dataRetentionPreference,
     };
+  }
+
+  /**
+   * Anonymize benchmark data with differential privacy
+   */
+  public anonymizeBenchmarkData(
+    studentData: any[],
+    epsilon: number
+  ): any[] {
+    return studentData.map((data) => {
+      const anonymousId = crypto.randomUUID();
+      const { studentId, name, email, ...rest } = data;
+      
+      // Add noise to numeric fields
+      const noisyData = { ...rest };
+      if (typeof rest.score === 'number') {
+        noisyData.score = rest.score + this.generateLaplaceNoise(1, epsilon);
+      }
+      if (typeof rest.timeSpent === 'number') {
+        noisyData.timeSpent = Math.round(rest.timeSpent + this.generateLaplaceNoise(100, epsilon));
+      }
+      
+      return {
+        ...noisyData,
+        anonymousId
+      };
+    });
+  }
+
+  /**
+   * Apply k-anonymity to data
+   */
+  public applyKAnonymity(studentData: any[], k: number): any[] {
+    // Group by demographic if present
+    const groups = new Map<string, any[]>();
+    
+    studentData.forEach(data => {
+      const key = data.demographic || 'default';
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(data);
+    });
+    
+    // Filter out groups with less than k members
+    const result: any[] = [];
+    groups.forEach((group) => {
+      if (group.length >= k) {
+        result.push(...group);
+      }
+    });
+    
+    return result;
+  }
+
+  /**
+   * Validate privacy compliance
+   */
+  public async validatePrivacyCompliance(
+    tenantId: string,
+    studentId: string,
+    operation: string
+  ): Promise<boolean> {
+    const result = await this.db
+      .prepare(`
+        SELECT * FROM analytics_privacy_consent 
+        WHERE tenant_id = ? AND student_id = ?
+        ORDER BY consent_updated_at DESC
+        LIMIT 1
+      `)
+      .bind(tenantId, studentId)
+      .first();
+    
+    if (!result) return false;
+    
+    // Check the specific operation type
+    const operationMap: Record<string, string> = {
+      'performance_tracking': 'performance_analytics_consent',
+      'any_operation': 'analytics_enabled'
+    };
+    
+    const consentField = operationMap[operation] || 'analytics_enabled';
+    return result[consentField] === 1 || result[consentField] === true;
+  }
+
+  /**
+   * Validate FERPA compliance
+   */
+  public async validateFERPACompliance(
+    tenantId: string,
+    instructorId: string,
+    studentId: string
+  ): Promise<boolean> {
+    const result = await this.db
+      .prepare(`
+        SELECT * FROM analytics_privacy_consent 
+        WHERE tenant_id = ? AND student_id = ?
+        ORDER BY consent_updated_at DESC
+        LIMIT 1
+      `)
+      .bind(tenantId, studentId)
+      .first();
+    
+    if (!result) return false;
+    
+    return result.instructor_access === true && result.ferpa_acknowledged === true;
+  }
+
+  /**
+   * Detect suspicious access patterns
+   */
+  public async detectSuspiciousAccess(
+    tenantId: string,
+    userId: string
+  ): Promise<boolean> {
+    const result = await this.db
+      .prepare(`
+        SELECT COUNT(*) as count FROM audit_logs 
+        WHERE tenant_id = ? AND actor_id = ? 
+        AND action = 'export_data'
+        AND created_at > datetime('now', '-1 hour')
+      `)
+      .bind(tenantId, userId)
+      .first();
+    
+    // More than 50 exports in an hour is suspicious
+    return result && result.count > 50;
+  }
+
+  /**
+   * Handle consent withdrawal
+   */
+  public async handleConsentWithdrawal(
+    tenantId: string,
+    studentId: string,
+    consentTypes: string[]
+  ): Promise<void> {
+    const statements = [];
+    
+    // Update consent record
+    statements.push(
+      this.db.prepare(`
+        UPDATE analytics_privacy_consent 
+        SET withdrawal_requested_at = datetime('now')
+        WHERE tenant_id = ? AND student_id = ?
+      `).bind(tenantId, studentId)
+    );
+    
+    // Delete or anonymize data based on consent types
+    if (consentTypes.includes('performance_tracking')) {
+      statements.push(
+        this.db.prepare(`
+          DELETE FROM student_performance_profiles 
+          WHERE tenant_id = ? AND student_id = ?
+        `).bind(tenantId, studentId)
+      );
+    }
+    
+    if (consentTypes.includes('data_sharing')) {
+      statements.push(
+        this.db.prepare(`
+          DELETE FROM anonymized_benchmarks 
+          WHERE tenant_id = ? 
+          AND id IN (
+            SELECT benchmark_id FROM benchmark_contributions 
+            WHERE student_id = ?
+          )
+        `).bind(tenantId, studentId)
+      );
+    }
+    
+    await this.db.batch(statements);
+  }
+
+  /**
+   * Update consent status
+   */
+  public async updateConsentStatus(
+    tenantId: string,
+    studentId: string,
+    consentOptions: any
+  ): Promise<void> {
+    // Update consent record
+    await this.db
+      .prepare(`
+        INSERT OR REPLACE INTO analytics_privacy_consent (
+          tenant_id, student_id, 
+          analytics_enabled, performance_analytics_consent,
+          predictive_analytics_consent, benchmark_comparison_consent,
+          instructor_visibility_consent, data_retention_preference,
+          anonymization_required, consent_given_at, consent_updated_at,
+          consent_version, instructor_access, ferpa_acknowledged, ai_processing
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), '1.0', ?, ?, ?)
+      `)
+      .bind(
+        tenantId,
+        studentId,
+        consentOptions.analytics_enabled || false,
+        consentOptions.performance_tracking || false,
+        consentOptions.predictive_analytics || false,
+        consentOptions.data_sharing || false,
+        consentOptions.instructor_visibility || false,
+        consentOptions.data_retention || 365,
+        consentOptions.anonymization_required || true,
+        consentOptions.instructor_access || false,
+        consentOptions.ferpa_acknowledged || false,
+        consentOptions.ai_processing || false
+      )
+      .run();
+    
+    // Audit the consent change
+    await this.db
+      .prepare(`
+        INSERT INTO consent_audit (
+          tenant_id, student_id, action, details, created_at
+        ) VALUES (?, ?, 'consent_updated', ?, datetime('now'))
+      `)
+      .bind(
+        tenantId,
+        studentId,
+        JSON.stringify(consentOptions)
+      )
+      .run();
+  }
+
+  /**
+   * Generate privacy report
+   */
+  public async generatePrivacyReport(
+    tenantId: string,
+    studentId: string
+  ): Promise<any> {
+    const consentStatus = await this.db
+      .prepare(`
+        SELECT * FROM analytics_privacy_consent 
+        WHERE tenant_id = ? AND student_id = ?
+        ORDER BY consent_updated_at DESC
+        LIMIT 1
+      `)
+      .bind(tenantId, studentId)
+      .first();
+    
+    const dataCollected = await this.db
+      .prepare(`
+        SELECT 
+          COUNT(DISTINCT assessment_id) as assessment_attempts,
+          COUNT(DISTINCT chat_message_id) as chat_messages,
+          COUNT(DISTINCT profile_id) as performance_profiles
+        FROM (
+          SELECT id as assessment_id, null as chat_message_id, null as profile_id
+          FROM assessment_attempts WHERE student_id = ? AND tenant_id = ?
+          UNION ALL
+          SELECT null, id, null
+          FROM chat_messages WHERE student_id = ? AND tenant_id = ?
+          UNION ALL
+          SELECT null, null, id
+          FROM student_performance_profiles WHERE student_id = ? AND tenant_id = ?
+        )
+      `)
+      .bind(studentId, tenantId, studentId, tenantId, studentId, tenantId)
+      .first();
+    
+    const dataShared = await this.db
+      .prepare(`
+        SELECT 
+          COUNT(DISTINCT actor_id) as instructor_views,
+          COUNT(DISTINCT benchmark_id) as benchmark_contributions
+        FROM (
+          SELECT actor_id, null as benchmark_id
+          FROM audit_logs 
+          WHERE tenant_id = ? AND resource_id LIKE ? AND action = 'view_profile'
+          UNION ALL
+          SELECT null, benchmark_id
+          FROM benchmark_contributions
+          WHERE student_id = ? AND tenant_id = ?
+        )
+      `)
+      .bind(tenantId, `%${studentId}%`, studentId, tenantId)
+      .first();
+    
+    const accessHistory = await this.db
+      .prepare(`
+        SELECT action as operation, created_at as timestamp
+        FROM audit_logs 
+        WHERE tenant_id = ? AND (actor_id = ? OR resource_id LIKE ?)
+        ORDER BY created_at DESC
+        LIMIT 100
+      `)
+      .bind(tenantId, studentId, `%${studentId}%`)
+      .all();
+    
+    return {
+      consentStatus,
+      dataCollected,
+      dataShared,
+      accessHistory: accessHistory.results
+    };
+  }
+
+  /**
+   * Export user data in GDPR format
+   */
+  public async exportUserDataGDPR(
+    tenantId: string,
+    studentId: string
+  ): Promise<any> {
+    const personalInfo = await this.db
+      .prepare(`
+        SELECT * FROM students 
+        WHERE tenant_id = ? AND id = ?
+        LIMIT 1
+      `)
+      .bind(tenantId, studentId)
+      .first();
+    
+    const performanceData = await this.db
+      .prepare(`
+        SELECT score, created_at as date
+        FROM assessment_attempts 
+        WHERE tenant_id = ? AND student_id = ?
+        ORDER BY created_at DESC
+      `)
+      .bind(tenantId, studentId)
+      .all();
+    
+    const chatHistory = await this.db
+      .prepare(`
+        SELECT message, created_at as timestamp
+        FROM chat_messages 
+        WHERE tenant_id = ? AND student_id = ?
+        ORDER BY created_at DESC
+      `)
+      .bind(tenantId, studentId)
+      .all();
+    
+    return {
+      personalInfo,
+      performanceData: performanceData.results,
+      chatHistory: chatHistory.results
+    };
+  }
+
+  /**
+   * Add Laplace noise to a value
+   */
+  public addLaplaceNoise(
+    value: number,
+    sensitivity: number,
+    epsilon: number
+  ): number {
+    const noise = this.generateLaplaceNoise(sensitivity, epsilon);
+    return value + noise;
+  }
+
+  /**
+   * Add Gaussian noise to a value
+   */
+  public addGaussianNoise(
+    value: number,
+    sensitivity: number,
+    epsilon: number,
+    delta: number
+  ): number {
+    const noise = this.generateGaussianNoise(sensitivity, epsilon, delta);
+    return value + noise;
+  }
+
+  /**
+   * Apply randomized response
+   */
+  public randomizedResponse(
+    truthfulAnswer: boolean,
+    probability: number
+  ): boolean {
+    const random = Math.random();
+    if (random < probability) {
+      return truthfulAnswer;
+    }
+    return !truthfulAnswer;
+  }
+
+  /**
+   * Cache benchmark data
+   */
+  public async cacheBenchmark(
+    tenantId: string,
+    courseId: string,
+    benchmarkData: any
+  ): Promise<void> {
+    if (!this.kvNamespace) return;
+    
+    const key = `benchmark:${tenantId}:${courseId}`;
+    await this.kvNamespace.put(
+      key,
+      JSON.stringify(benchmarkData),
+      { expirationTtl: 7 * 24 * 60 * 60 } // 7 days
+    );
+  }
+
+  /**
+   * Get cached benchmark
+   */
+  public async getCachedBenchmark(
+    tenantId: string,
+    courseId: string
+  ): Promise<any> {
+    if (!this.kvNamespace) return null;
+    
+    const key = `benchmark:${tenantId}:${courseId}`;
+    const cached = await this.kvNamespace.get(key);
+    
+    if (!cached) return null;
+    
+    const data = JSON.parse(cached);
+    
+    // Check if data is stale (older than 7 days)
+    if (data.timestamp) {
+      const age = Date.now() - new Date(data.timestamp).getTime();
+      if (age > 7 * 24 * 60 * 60 * 1000) {
+        await this.kvNamespace.delete(key);
+        return null;
+      }
+    }
+    
+    return data;
   }
 }

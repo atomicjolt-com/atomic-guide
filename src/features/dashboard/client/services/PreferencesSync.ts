@@ -35,7 +35,7 @@ export type DashboardPreferences = z.infer<typeof DashboardPreferencesSchema>;
 /**
  * Schema for sync status
  */
-const SyncStatusSchema = z.object({
+const _SyncStatusSchema = z.object({
   status: z.enum(['synced', 'syncing', 'offline', 'conflict', 'error']),
   lastSync: z.string().datetime().optional(),
   conflictData: z.object({
@@ -46,7 +46,7 @@ const SyncStatusSchema = z.object({
   errorMessage: z.string().optional(),
 });
 
-export type SyncStatus = z.infer<typeof SyncStatusSchema>;
+export type SyncStatus = z.infer<typeof _SyncStatusSchema>;
 
 /**
  * Cross-device preference synchronization service

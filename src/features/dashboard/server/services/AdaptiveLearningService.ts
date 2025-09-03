@@ -123,12 +123,46 @@ export class AdaptiveLearningService {
   /**
    * Generate adaptive learning recommendations for a student
    * 
-   * @param params - Adaptive learning parameters
+   * @param paramsOrProfile - Adaptive learning parameters or student performance profile
+   * @param options - Additional options for recommendation generation
    * @returns Promise resolving to array of learning recommendations
    */
   public async generateAdaptiveRecommendations(
-    params: AdaptiveLearningParams
+    paramsOrProfile: AdaptiveLearningParams | StudentPerformanceProfile,
+    options?: { useAI?: boolean }
   ): Promise<LearningRecommendation[]> {
+    // Convert profile to params if needed
+    let params: AdaptiveLearningParams;
+    
+    if ('overallMastery' in paramsOrProfile) {
+      // It's a StudentPerformanceProfile
+      const profile = paramsOrProfile as StudentPerformanceProfile;
+      const strugglingConcepts: string[] = [];
+      const strongConcepts: string[] = [];
+      
+      profile.conceptMasteries.forEach((mastery, conceptId) => {
+        if (mastery.masteryLevel < 0.5) {
+          strugglingConcepts.push(conceptId);
+        } else if (mastery.masteryLevel > 0.8) {
+          strongConcepts.push(conceptId);
+        }
+      });
+      
+      params = {
+        studentId: profile.studentId,
+        courseId: profile.courseId,
+        currentMastery: profile.overallMastery,
+        learningVelocity: profile.learningVelocity,
+        confidenceLevel: profile.confidenceLevel,
+        strugglingConcepts,
+        strongConcepts,
+        difficultyPreference: 'moderate',
+        goalType: 'mastery'
+      };
+    } else {
+      params = paramsOrProfile as AdaptiveLearningParams;
+    }
+    
     const validatedParams = AdaptiveLearningParamsSchema.parse(params);
     
     // Get student performance context
@@ -221,8 +255,8 @@ export class AdaptiveLearningService {
 
     const recentStrugglePatterns = strugglesResult.results.map(row => ({
       ...row,
-      conceptsInvolved: JSON.parse(row.concepts_involved as string),
-      suggestedInterventions: JSON.parse(row.suggested_interventions as string),
+      conceptsInvolved: row.concepts_involved ? JSON.parse(row.concepts_involved as string) : [],
+      suggestedInterventions: row.suggested_interventions ? JSON.parse(row.suggested_interventions as string) : [],
       detectedAt: row.detected_at,
       resolvedAt: row.resolved_at || undefined,
       resolutionMethod: row.resolution_method || undefined,

@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import type { MessageBatch, Queue } from '@cloudflare/workers-types';
+import type { MessageBatch, Queue, D1Database } from '@cloudflare/workers-types';
 import { PerformanceAnalyticsService } from '../services/PerformanceAnalyticsService';
 import { PrivacyPreservingAnalytics } from '../services/PrivacyPreservingAnalytics';
 
@@ -616,3 +616,20 @@ export class AnalyticsQueueConsumer {
     return chunks;
   }
 }
+
+/**
+ * Export handler function for queue consumer
+ */
+export async function analyticsQueueHandler(
+  batch: MessageBatch<AnalyticsQueueMessage>,
+  env: any
+): Promise<BatchProcessingResult> {
+  const analyticsService = new PerformanceAnalyticsService(env.DB, env.ANALYTICS_QUEUE, 'default');
+  const privacyService = new PrivacyPreservingAnalytics(env.DB, env.KV_ANALYTICS);
+  const consumer = new AnalyticsQueueConsumer(analyticsService, privacyService, env);
+  
+  return consumer.processBatch(batch);
+}
+
+// Also export as default for compatibility
+export default analyticsQueueHandler;
