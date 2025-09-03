@@ -87,6 +87,23 @@
 			"index_name": "faq-embeddings"
 		}
 	],
+	"queues": {
+		"producers": [
+			{
+				"binding": "ANALYTICS_QUEUE",
+				"queue": "analytics-processing"
+			}
+		],
+		"consumers": [
+			{
+				"queue": "analytics-processing",
+				"max_batch_size": 10,
+				"max_batch_timeout": 30,
+				"max_retries": 3,
+				"dead_letter_queue": "analytics-dlq"
+			}
+		]
+	},
 	/**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
