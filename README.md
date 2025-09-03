@@ -1,152 +1,133 @@
 # Atomic Guide
 
-AI for your classroom
+AI-Powered Educational Assistant for Learning Management Systems - Intelligent tutoring, automated assessments, and real-time learning analytics at the edge.
 
-## Demo
+## 🚀 Live Demo
 
-View the home page:
-https://lti-worker.atomicjolt.win/
+**Application**: [https://guide.atomicjolt.xyz](https://guide.atomicjolt.xyz)  
+**LTI Registration**: `https://guide.atomicjolt.xyz/lti/register`
 
-Register a Hello World LTI tool using [Dynamic Registration](https://www.imsglobal.org/spec/lti-dr/v1p0).
-`https://lti-worker.atomicjolt.win/lti/register`
+## 🎯 What is Atomic Guide?
 
-## Overview
+Atomic Guide is an AI-powered educational platform that seamlessly integrates with Learning Management Systems (LMS) via LTI 1.3. Built on Cloudflare's edge computing infrastructure, it provides:
 
-This project provides a serverless implementation of the LTI 1.3 protocol using Cloudflare Workers. It handles all aspects of the Tool side of an LTI launch, including authentication, key management, and platform communication.
+- **🤖 AI Chat Assistant** - Context-aware tutoring with LaTeX and code support
+- **📝 Automated Assessments** - AI-generated quizzes with deep linking
+- **📊 Learning Analytics** - Real-time insights and performance tracking
+- **📚 Content Intelligence** - Semantic search across course materials
+- **⚡ Edge Performance** - Sub-50ms response times globally
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) (v14 or newer)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/cli-wrangler/install-update) for Cloudflare Workers
-- A Cloudflare account
-
-## Deploy to Cloudflare
-
-Deploy a simple Hello World LTI tool to Cloudflare with one click:
-
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/atomicjolt-com/atomic-guide)
-
-If you encounter errors during the one click install don't fret. Instead, follow these steps:
-
-1. clone down the newly created repository.
-2. cd into the directory and run `npm i`
-3. Run `npm run deploy`
-
-The worker should deploy into your account. You may wish to change values in definitions.ts before deploy
-to change names (the default name will atomic-guide)
-
-## Setup
-
-### 1. Configuration
-
-If you used the "Deploy to Cloudflare" button your wrangler.jsonc should already be modified with the ids for new Cloudflare Resources and you can skip step #2. Otherwise you will need to modify your wrangler.jsonc wtih the values generated in step #2
-
-### 2. Create KV Namespaces
-
-Run the following commands to create the required KV namespaces for both production and preview environments:
+## 🏃 Quick Start
 
 ```bash
-# For storing your tool's key pairs
-npx wrangler kv:namespace create KEY_SETS
-npx wrangler kv:namespace create KEY_SETS --preview
+# Clone the repository
+git clone https://github.com/atomicjolt-com/atomic-guide.git
+cd atomic-guide
 
-# For caching platform JWK sets
-npx wrangler kv:namespace create REMOTE_JWKS
-npx wrangler kv:namespace create REMOTE_JWKS --preview
+# Install dependencies
+npm install
 
-# For managing client authentication tokens
-npx wrangler kv:namespace create CLIENT_AUTH_TOKENS
-npx wrangler kv:namespace create CLIENT_AUTH_TOKENS --preview
+# Set up infrastructure
+npm run db:setup    # Create D1 database
+npm run kv:setup    # Create KV namespaces
 
-# For storing platform configurations
-npx wrangler kv:namespace create PLATFORMS
-npx wrangler kv:namespace create PLATFORMS --preview
-```
+# Run migrations and seed data
+npm run db:migrate
+npm run db:seed
 
-After creating the namespaces, copy the returned IDs into your `wrangler.jsonc` file.
-
-### 3. Platform Configuration
-
-#### For Dynamic Registration
-
-Atomic Guide supports dynamic registration which makes installing the tool into your platform simple. Change the tool configuration to meet your needs which will include changing the tool name, support email, etc:
-
-- Modify `definitions.ts` to match your tool's configuration requirements
-- A default tool configuration for dynamic registration is already setup but can be modified in src/config.ts as needed.
-- Configuration provided by the platform once dynamic registration is finished is provied in src/register.ts. The handlePlatformResponse callback in this file gives you the opportunity to store values like client_id as needed.
-
-Dynamic Registration URL
-`https://yourdomain.com/lti/register`
-
-#### For Manual Registration
-
-If your LTI platform doesn't support dynamic registration:
-
-- Update `install.json` with your tool's URLs and registration details
-
-### 4. Build your app
-
-This LTI tool is designed as a single page application (SPA).
-
-If you need/want to make changes to the code that handles the LTI launch or if you need to store or modify values server side look at the code in:
-`src/index.ts`
-
-The client code can be found in:
-`client/app.tsx`
-
-This is where you will want to build out your application.
-
-## Development
-
-### Local Development
-
-To start a local development server:
-
-```bash
+# Start development server
 npm run dev
 ```
 
-This will start a local server at http://localhost:5988.
+Visit `http://localhost:5988/test` to see the application.
+
+## 📖 Documentation
+
+Complete documentation is available in the [docs](./docs) directory:
+
+- **[Getting Started Guide](./docs/getting-started/)** - Installation and setup
+- **[Architecture Overview](./docs/architecture/)** - System design and components
+- **[Development Guide](./docs/development/)** - Commands, testing, and debugging
+- **[API Reference](./docs/api/)** - Endpoints and authentication
+- **[LTI Integration](./docs/lti-developer-guide.md)** - LMS integration guide
+- **[Deployment Guide](./docs/deployment/)** - Production deployment
+
+For a complete documentation index, see [docs/index.md](./docs/index.md).
+
+## 🛠️ Key Technologies
+
+- **Runtime**: [Cloudflare Workers](https://workers.cloudflare.com/) (V8 isolates)
+- **Framework**: [Hono](https://hono.dev/) (lightweight web framework)
+- **Frontend**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Database**: [Cloudflare D1](https://developers.cloudflare.com/d1/) (SQLite at the edge)
+- **AI**: [Workers AI](https://developers.cloudflare.com/workers-ai/)
+- **Vector Search**: [Cloudflare Vectorize](https://developers.cloudflare.com/vectorize/)
+- **Real-time**: [Durable Objects](https://developers.cloudflare.com/workers/learning/using-durable-objects/)
+
+## 📦 Project Structure
+
+```
+src/
+├── features/          # Feature-based vertical slices
+│   ├── chat/         # AI chat functionality
+│   ├── assessment/   # Assessment generation
+│   ├── dashboard/    # Analytics dashboard
+│   └── lti/         # LTI protocol handling
+└── shared/           # Cross-feature shared code
+```
+
+See [Architecture Documentation](./docs/architecture/vertical-slice-refactoring.md) for details.
+
+## 🧑‍💻 Development
+
+### Common Commands
+
+```bash
+npm run dev          # Start development server
+npm test            # Run tests
+npm run build       # Build production bundle
+npm run deploy      # Deploy to Cloudflare
+npm run lint        # Run ESLint
+npm run db:migrate  # Run database migrations
+```
+
+See [Development Guide](./docs/development/commands.md) for all available commands.
 
 ### Testing
 
-Run the test suite with:
-
 ```bash
-npm test
+npm test                     # Run all tests
+npm test -- --watch         # Watch mode
+npm run test:integration    # Integration tests
 ```
 
-## Deployment
+## 🚀 Deployment
 
-Deploy your worker to Cloudflare:
+1. Configure Cloudflare account in `wrangler.jsonc`
+2. Run database migrations: `npm run db:migrate:remote`
+3. Deploy: `npm run deploy`
 
-```bash
-npm run deploy
-```
+See [Deployment Guide](./docs/deployment/cloudflare.md) for detailed instructions.
 
-To view logs after deployment:
+## 🤝 Contributing
 
-```bash
-npx wrangler tail
-```
+We welcome contributions! Please see our [Contributing Guidelines](./docs/contributing/guidelines.md).
 
-## Tips
+## 📄 License
 
-Create a new KV namespace:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-```bash
-npx wrangler kv:namespace create <YOUR_NAMESPACE>
-```
+## 🏢 About Atomic Jolt
 
-## Troubleshooting
+[Atomic Jolt](https://www.atomicjolt.com) builds innovative educational technology solutions. We specialize in LTI integrations, AI-powered learning tools, and scalable EdTech platforms.
 
-If you encounter issues with your LTI integrations:
+## 🆘 Support
 
-1. Check that your platform configuration is correct
-2. Verify your JWKS endpoints are accessible
-3. Examine the worker logs using `npx wrangler tail`
-4. Ensure your KV namespaces are correctly configured in wrangler.toml
+- **Documentation**: [docs/index.md](./docs/index.md)
+- **Issues**: [GitHub Issues](https://github.com/atomicjolt-com/atomic-guide/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/atomicjolt-com/atomic-guide/discussions)
+- **Commercial Support**: [Contact Atomic Jolt](https://www.atomicjolt.com/contact)
 
-## License
+---
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Built with ❤️ by [Atomic Jolt](https://www.atomicjolt.com)

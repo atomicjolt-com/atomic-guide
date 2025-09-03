@@ -1,8 +1,8 @@
 # Atomic Guide Deep Linking Assessment Features Fullstack Architecture Document
 
-**Version:** 3.0 (Vertical Slice Architecture Edition)
-**Date:** 2025-12-29
-**Status:** Complete Architecture with Vertical Slice Refactoring
+**Version:** 3.1 (Vertical Slice Architecture - Implementation Complete)
+**Date:** 2025-01-01
+**Status:** Complete Architecture with Vertical Slice Implementation
 
 ## 1. Introduction
 
@@ -19,6 +19,7 @@ This architecture document combines:
 ### Architectural Approach
 
 **Architecture Pattern:** Vertical Slice Architecture
+
 - Features organized by business domain, not technical layers
 - Shared module for cross-cutting concerns
 - Clear feature boundaries with minimal cross-dependencies
@@ -61,6 +62,7 @@ This architecture document combines:
 | 2025-08-21 | 1.5     | Integrated UI/UX specification with design system and personas              | Winston |
 | 2025-08-22 | 2.0     | Merged comprehensive fullstack and brownfield architectures                 | Winston |
 | 2025-12-29 | 3.0     | Refactored to vertical slice architecture with feature-based organization   | Claude  |
+| 2025-01-01 | 3.1     | Fixed section numbering, added site feature, documented shared services     | Winston |
 
 ## 2. High Level Architecture
 
@@ -87,11 +89,12 @@ src/
 ├── features/           # Feature-based vertical slices
 │   ├── chat/          # Chat feature (client + server + tests)
 │   ├── assessment/    # Assessment & deep linking
-│   ├── content/       # Content extraction & awareness  
+│   ├── content/       # Content extraction & awareness
 │   ├── dashboard/     # Analytics & insights
 │   ├── lti/          # LTI protocol handling
 │   ├── settings/      # User preferences
-│   └── faq/          # Knowledge base
+│   ├── faq/          # Knowledge base
+│   └── site/         # Embedding & landing pages
 └── shared/            # Cross-feature shared code
     ├── client/        # Shared UI components, hooks
     ├── server/        # Shared services, utilities
@@ -100,6 +103,7 @@ src/
 ```
 
 Each feature contains:
+
 - `client/` - React components, hooks, store
 - `server/` - API handlers, services, durable objects
 - `shared/` - Feature-internal shared code
@@ -1614,6 +1618,59 @@ graph LR
     MCP --> D1
 ```
 
+### Site Embedding Service
+
+**Responsibility:** Enable embedding of Atomic Guide in external websites and manage embedded sessions
+
+**Key Interfaces:**
+
+- `GET /embed` - Serve embeddable interface HTML
+- `POST /api/embed/initialize` - Initialize embedded session with configuration
+- `GET /api/embed/config` - Retrieve embedding configuration
+- `POST /api/embed/validate-origin` - Validate embedding origin permissions
+
+**Dependencies:** Origin validation service, Session management, PostMessage handler
+
+**Technology Stack:** TypeScript, iframe sandboxing, Content Security Policy
+
+**Implementation Details:**
+
+```typescript
+interface EmbeddingService {
+  // Embedding configuration
+  generateEmbedCode(config: EmbedConfig): string;
+  validateOrigin(origin: string): boolean;
+
+  // Session management
+  initializeEmbeddedSession(config: EmbedConfig): Promise<EmbedSession>;
+  validateEmbedToken(token: string): Promise<boolean>;
+
+  // Communication
+  handlePostMessage(message: MessageEvent): Promise<void>;
+  sendToParent(data: any): void;
+
+  // Security
+  generateCSPHeaders(origin: string): Headers;
+  validateFrameAncestors(origin: string): boolean;
+}
+```
+
+**Embedding Usage:**
+
+```html
+<!-- Embed Atomic Guide in any webpage -->
+<iframe src="https://guide.atomicjolt.xyz/embed" width="100%" height="600px" sandbox="allow-scripts allow-same-origin"> </iframe>
+```
+
+**Security Considerations:**
+
+- Strict origin validation against whitelist
+- Content Security Policy with frame-ancestors directive
+- Sandboxed iframe attributes
+- Rate limiting per origin
+- Token-based session validation
+- PostMessage origin verification
+
 ## 7. External APIs
 
 ### OpenAI API
@@ -2530,6 +2587,62 @@ export class LTIErrorHandler {
 
 ### Service Architecture
 
+#### Shared Services Layer
+
+The application implements a comprehensive shared services layer providing cross-feature functionality:
+
+##### Core AI Services
+
+**AIService** (`src/shared/server/services/AIService.ts`)
+
+- Unified interface for all AI operations
+- Model selection and fallback strategies
+- Token management and rate limiting
+- Streaming response handling with Server-Sent Events
+- Error recovery and retry logic
+
+**ModelRegistry** (`src/shared/server/services/ModelRegistry.ts`)
+
+- Dynamic model selection based on task complexity
+- Performance metrics tracking
+- Cost optimization through model routing
+- Fallback chains for reliability
+- A/B testing support for model evaluation
+
+**PromptBuilder** (`src/shared/server/services/PromptBuilder.ts`)
+
+- Context-aware prompt generation
+- Template management with variable substitution
+- Token-efficient prompt compression
+- Multi-shot example injection
+- System prompt optimization
+
+##### Infrastructure Services
+
+**StorageFallback** (`src/shared/server/services/StorageFallback.ts`)
+
+- Resilient storage abstraction layer
+- Automatic failover between KV, D1, and R2
+- Caching strategies with TTL management
+- Data consistency guarantees
+- Migration utilities for storage backend changes
+
+**DatabaseService** (`src/shared/server/services/database.ts`)
+
+- D1 database operations abstraction
+- Connection pooling and retry logic
+- Query builder with type safety
+- Transaction support with rollback
+- Migration management
+
+**DeepLinkingService** (`src/shared/client/services/deepLinkingService.ts`)
+
+- LTI Deep Linking 2.0 implementation
+- Content item message creation
+- JWT signing and verification
+- Platform-specific adaptations
+- State management for multi-step flows
+
 #### Function Organization
 
 ```
@@ -3028,7 +3141,7 @@ export async function ltiAuthMiddleware(c: Context, next: Next) {
 }
 ```
 
-## 12. Canvas postMessage Integration Architecture
+## 13. Canvas postMessage Integration Architecture
 
 ### Overview
 
@@ -3232,7 +3345,7 @@ export class SecureMessageHandler {
                         └────────────────────────────┘
 ```
 
-## 13. Theoretical Foundations & Cognitive Science Integration
+## 14. Theoretical Foundations & Cognitive Science Integration
 
 ### Memory Architecture & Learning Dynamics
 
@@ -3289,7 +3402,7 @@ Implementing Chrysafiadi et al. (2023) fuzzy logic approach:
 | Early Intervention | Gardner Institute, 2023        | 10-15% retention          | 6-week detection window      |
 | Pedagogical Agents | Kim & Baylor, 2006             | 40% time-on-task increase | AI Guide presence            |
 
-## 14. Target User Personas
+## 15. Target User Personas
 
 From the front-end specification, our architecture supports three primary personas:
 
@@ -3317,7 +3430,7 @@ From the front-end specification, our architecture supports three primary person
 - **Success Metrics:** 2-week early warning before failure points, 25% improvement in intervention success
 - **Interface Needs:** Unified view across courses, automated alerts, intervention tracking
 
-## 15. Use Case Implementation: Alex's Academic Journey
+## 16. Use Case Implementation: Alex's Academic Journey
 
 This section demonstrates how the architecture supports cross-course intelligence through a learner's multi-year journey:
 
@@ -3394,7 +3507,7 @@ Throughout Alex's journey, the platform provides institutions with:
 - Curriculum insights based on common struggle patterns
 - ROI metrics demonstrating $13,000+ savings per retained student
 
-## 16. Unified Project Structure
+## 17. Unified Project Structure
 
 ```
 atomic-guide/
@@ -3495,7 +3608,7 @@ atomic-guide/
 └── README.md
 ```
 
-## 17. Development Workflow
+## 18. Development Workflow
 
 ### Local Development Setup
 
@@ -3601,7 +3714,7 @@ LTI_KEY=your-lti-key
 LTI_SECRET=your-lti-secret
 ```
 
-## 18. Deployment Architecture
+## 19. Deployment Architecture
 
 ### Deployment Strategy
 
@@ -3710,7 +3823,7 @@ jobs:
 }
 ```
 
-## 19. Security and Performance
+## 20. Security and Performance
 
 ### Security Requirements
 
@@ -3789,7 +3902,7 @@ jobs:
    - D1 profile update (100ms)
    - Cache invalidation (100ms)
 
-## 20. Testing Strategy
+## 21. Testing Strategy
 
 ### Testing Pyramid
 
@@ -3935,7 +4048,7 @@ test('instructor can configure deep link assessment', async ({ page }) => {
 });
 ```
 
-## 21. Coding Standards
+## 22. Coding Standards
 
 ### Critical Fullstack Rules
 
@@ -4005,7 +4118,7 @@ export default function LearnerDashboard({ learnerId, profile }: DashboardProps)
 }
 ```
 
-## 22. Error Handling Strategy
+## 23. Error Handling Strategy
 
 ### Error Flow
 
@@ -4185,7 +4298,7 @@ export function errorHandler(err: Error, c: Context) {
 - AI API failure → FAQ knowledge base + cached responses
 - Chat rate limit exceeded → Graceful throttling with user notification
 
-## 23. Monitoring and Observability
+## 24. Monitoring and Observability
 
 ### Monitoring Stack
 
@@ -4327,7 +4440,7 @@ export class MetricsAggregator {
 - Vector search relevance scores
 - Intent classification accuracy
 
-## 24. Implementation Roadmap
+## 25. Implementation Roadmap
 
 ### Phase 1: Foundation (Weeks 1-2)
 
@@ -4380,7 +4493,7 @@ export class MetricsAggregator {
 7. **Epic 7:** MCP OAuth server implementation (1 week)
 8. **Epic 8:** Performance optimization and testing (2 weeks)
 
-## 25. Risk Mitigation
+## 26. Risk Mitigation
 
 ### Technical Risks and Mitigations
 
@@ -4412,7 +4525,7 @@ export class MetricsAggregator {
 - **Monitoring:** Cloudflare Analytics + custom D1 metrics tables
 - **Disaster Recovery:** Daily D1 exports to R2 bucket for cross-region backup
 
-## 26. Design System Implementation
+## 27. Design System Implementation
 
 ### Atomic Jolt Brand Integration
 
@@ -4499,7 +4612,7 @@ When `prefers-reduced-motion: reduce`:
 - Keep only essential motion (loading indicators)
 - Disable auto-playing videos and parallax effects
 
-## 27. Commercialization & Market Strategy
+## 28. Commercialization & Market Strategy
 
 ### Pricing Architecture
 
@@ -4526,7 +4639,7 @@ The architecture must support these confirmed pilot institutions:
 5. **Privacy-First:** Student-controlled data with FERPA/GDPR compliance built-in
 6. **Zero Training:** Intuitive interfaces leveraging Canvas familiarity
 
-## 28. Future Innovations Roadmap
+## 29. Future Innovations Roadmap
 
 This section outlines advanced features and moonshot concepts from the brainstorming sessions that represent future innovation opportunities beyond the initial implementation phases.
 
@@ -4704,7 +4817,7 @@ For each future innovation, evaluate using:
    - Evaluate new web standards
    - Assess EdTech ecosystem evolution
 
-## 29. Next Steps
+## 30. Next Steps
 
 ### Story Manager Handoff
 
