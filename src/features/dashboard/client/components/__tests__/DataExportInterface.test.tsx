@@ -484,7 +484,7 @@ describe('DataExportInterface', () => {
 
       // Check that configure step is active - with CSS modules, the class name is transformed
       const configureStepContainer = configureStep.closest('div');
-      expect(configureStepContainer).toHaveClass(expect.stringContaining('active'));
+      expect(configureStepContainer?.className).toMatch(/active/);
     });
 
     it('should update progress indicator on step change', async () => {
@@ -508,7 +508,7 @@ describe('DataExportInterface', () => {
 
       await waitFor(() => {
         const previewStep = screen.getByText('Preview').closest('div');
-        expect(previewStep).toHaveClass('active');
+        expect(previewStep?.className).toMatch(/active/);
       });
     });
   });
@@ -524,6 +524,13 @@ describe('DataExportInterface', () => {
           json: () => Promise.resolve({
             success: true,
             data: mockPreviewData,
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({
+            success: true,
+            data: mockExportStatus,
           }),
         })
         .mockResolvedValueOnce({

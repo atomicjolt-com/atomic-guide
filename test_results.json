@@ -1,0 +1,4 @@
+
+> atomic-guide@1.3.3 test
+> vitest --run --reporter=json
+

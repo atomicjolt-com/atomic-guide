@@ -32,7 +32,7 @@ import '@features/dashboard/styles/atomic-jolt-dashboard.css';
  */
 function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactElement {
   const [activeView, setActiveView] = useState<'chat' | 'dashboard'>('chat');
-  
+
   if (launchSettings.deepLinking) {
     // Deep linking mode - show assessment builder interface
     return <DeepLinkingInterface launchSettings={launchSettings} />;
@@ -56,7 +56,7 @@ function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactEleme
           Analytics Dashboard
         </button>
       </nav>
-      
+
       <main className="app-content">
         {activeView === 'chat' ? (
           <div className="chat-container">

@@ -518,28 +518,38 @@ export class AnalyticsQueueConsumer {
 
     params.push(taskId);
 
-    await this.env.DB
-      .prepare(`
-        UPDATE analytics_processing_queue 
-        SET ${updateFields.join(', ')}
-        WHERE id = ?
-      `)
-      .bind(...params)
-      .run();
+    try {
+      await this.env.DB
+        .prepare(`
+          UPDATE analytics_processing_queue 
+          SET ${updateFields.join(', ')}
+          WHERE id = ?
+        `)
+        .bind(...params)
+        .run();
+    } catch (error) {
+      console.error(`Failed to update task status for ${taskId}:`, error);
+      // Don't let database errors prevent task processing
+    }
   }
 
   /**
    * Log batch processing start
    */
   private async logBatchStart(batchId: string, messageCount: number): Promise<void> {
-    await this.env.DB
-      .prepare(`
-        INSERT INTO analytics_batch_logs (
-          id, tenant_id, batch_id, batch_type, total_count, started_at
-        ) VALUES (?, 'system', ?, 'queue_processing', ?, datetime('now'))
-      `)
-      .bind(crypto.randomUUID(), batchId, messageCount)
-      .run();
+    try {
+      await this.env.DB
+        .prepare(`
+          INSERT INTO analytics_batch_logs (
+            id, tenant_id, batch_id, batch_type, total_count, started_at
+          ) VALUES (?, 'system', ?, 'queue_processing', ?, datetime('now'))
+        `)
+        .bind(crypto.randomUUID(), batchId, messageCount)
+        .run();
+    } catch (error) {
+      console.error('Failed to log batch start:', error);
+      // Don't let logging errors prevent queue processing
+    }
   }
 
   /**
@@ -554,27 +564,32 @@ export class AnalyticsQueueConsumer {
     errors: Array<{ taskId: string; error: string; retryable: boolean }>,
     metrics: Record<string, unknown>
   ): Promise<void> {
-    await this.env.DB
-      .prepare(`
-        UPDATE analytics_batch_logs 
-        SET 
-          processed_count = ?,
-          failed_count = ?,
-          completed_at = datetime('now'),
-          processing_duration_ms = ?,
-          error_summary = ?,
-          performance_metrics = ?
-        WHERE batch_id = ?
-      `)
-      .bind(
-        processedCount,
-        failedCount,
-        processingDurationMs,
-        JSON.stringify(errors),
-        JSON.stringify(metrics),
-        batchId
-      )
-      .run();
+    try {
+      await this.env.DB
+        .prepare(`
+          UPDATE analytics_batch_logs 
+          SET 
+            processed_count = ?,
+            failed_count = ?,
+            completed_at = datetime('now'),
+            processing_duration_ms = ?,
+            error_summary = ?,
+            performance_metrics = ?
+          WHERE batch_id = ?
+        `)
+        .bind(
+          processedCount,
+          failedCount,
+          processingDurationMs,
+          JSON.stringify(errors),
+          JSON.stringify(metrics),
+          batchId
+        )
+        .run();
+    } catch (error) {
+      console.error('Failed to log batch completion:', error);
+      // Don't let logging errors prevent queue processing completion
+    }
   }
 
   /**

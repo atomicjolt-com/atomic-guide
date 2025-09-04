@@ -27,6 +27,7 @@ export function StudentPerformanceOverviewWrapper({ jwt }: WrapperProps): ReactE
       userId={mockUserId}
       tenantId={mockTenantId}
       courseId={mockCourseId}
+      jwt={jwt}
     />
   );
 }
@@ -36,20 +37,7 @@ export function BenchmarkComparisonWrapper({ jwt }: WrapperProps): ReactElement 
     <BenchmarkComparison
       userId={mockUserId}
       courseId={mockCourseId}
-      courseName="Sample Course"
-      studentData={{
-        averageScore: 0,
-        completionRate: 0,
-        timeSpent: 0,
-        strugglingTopics: [],
-        strongTopics: []
-      }}
-      classData={{
-        averageScore: 0,
-        completionRate: 0,
-        timeSpent: 0
-      }}
-      isLoading={false}
+      jwt={jwt}
     />
   );
 }
@@ -59,19 +47,12 @@ export function DataExportInterfaceWrapper({ jwt }: WrapperProps): ReactElement 
     <DataExportInterface
       userId={mockUserId}
       courseId={mockCourseId}
-      courseName="Sample Course"
-      availableData={{
-        conversations: [],
-        assessments: [],
-        progress: [],
-        insights: []
-      }}
-      isLoading={false}
+      jwt={jwt}
     />
   );
 }
 
-export function ChatHistoryWrapper({ jwt }: WrapperProps): ReactElement {
+export function ChatHistoryWrapper({ jwt: _jwt }: WrapperProps): ReactElement {
   return (
     <ChatHistory
       conversations={[]}

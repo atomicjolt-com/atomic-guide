@@ -46,7 +46,7 @@ const defaultTopicFrequencies: TopicFrequency[] = [];
 const defaultLearningPatterns: LearningPattern[] = [];
 
 export default function LearningInsights({
-  jwt,
+  jwt: _jwt,
   metrics = defaultMetrics,
   topicFrequencies = defaultTopicFrequencies,
   learningPatterns = defaultLearningPatterns,
