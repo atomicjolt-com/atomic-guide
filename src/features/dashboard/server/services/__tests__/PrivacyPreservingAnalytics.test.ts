@@ -3,13 +3,14 @@
  * @module features/dashboard/server/services/__tests__/PrivacyPreservingAnalytics.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach, afterEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { PrivacyPreservingAnalytics } from '../PrivacyPreservingAnalytics';
 import type { 
   PerformanceData,
   PrivacySettings
 } from '@features/dashboard/shared/types';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('PrivacyPreservingAnalytics', () => {
   let service: PrivacyPreservingAnalytics;
   let mockD1Database: any;

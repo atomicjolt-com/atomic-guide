@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import {  describe, it, expect, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
@@ -6,6 +6,7 @@ import { MessageList } from '@features/chat/client/components/MessageList';
 import { addMessage } from '@features/chat/client/store/chatSlice';
 import styles from '@features/chat/client/styles/chat.module.css';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('MessageList', () => {
   const createMockStore = () => {
     return configureStore({ jwt: 'test-jwt', settings: {} });

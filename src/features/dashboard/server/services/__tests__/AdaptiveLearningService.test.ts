@@ -1,15 +1,17 @@
+// TODO: Consider using ServiceTestHarness for AdaptiveLearningService
 /**
  * @fileoverview Tests for AdaptiveLearningService
  * @module features/dashboard/server/services/__tests__/AdaptiveLearningService.test
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { AdaptiveLearningService } from '../AdaptiveLearningService';
 import type { 
   StudentPerformanceProfile,
   ConceptMastery
 } from '../PerformanceAnalyticsService';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('AdaptiveLearningService', () => {
   let service: AdaptiveLearningService;
   let mockD1Database: any;

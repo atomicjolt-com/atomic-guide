@@ -3,10 +3,11 @@
  * Validates pattern detection accuracy, confidence scoring, and learning trend analysis
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import {  describe, it, expect, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { LearningPatternAnalyzer } from '../../src/services/LearningPatternAnalyzer';
 import type { ConversationAnalysis, LearningPatternProfile } from '../../src/services/LearningPatternAnalyzer';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('LearningPatternAnalyzer', () => {
   let analyzer: LearningPatternAnalyzer;
 

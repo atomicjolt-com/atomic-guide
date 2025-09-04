@@ -3,10 +3,11 @@
  * @module features/dashboard/server/durable-objects/__tests__/StruggleDetectorDO.test
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { StruggleDetectorDO } from '../StruggleDetectorDO';
 import type { DurableObjectState, DurableObjectStorage } from '@cloudflare/workers-types';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('StruggleDetectorDO', () => {
   let struggleDetector: StruggleDetectorDO;
   let mockState: DurableObjectState;

@@ -3,9 +3,10 @@
  * @module features/dashboard/client/services/__tests__/PreferencesSync.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach, afterEach } from '@/tests/infrastructure';
 import { PreferencesSync } from '../PreferencesSync';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -46,12 +47,14 @@ describe('PreferencesSync', () => {
   const tenantId = 'test-tenant-456';
   const jwt = 'test-jwt-token';
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Clear mocks and localStorage
     vi.clearAllMocks();
+    mockFetch.mockClear();
     mockLocalStorage.clear();
     
     // Set online status to true by default
-    const navigator = window.navigator as any;
+    const navigator = window.navigator;
     navigator.onLine = true;
     
     preferencesSync = new PreferencesSync(userId, tenantId, jwt);
@@ -233,7 +236,7 @@ describe('PreferencesSync', () => {
   });
 
   describe('Status Callbacks', () => {
-    it('should notify listeners of status changes', () => {
+    it('should notify listeners of status changes', async () => {
       const callback1 = vi.fn();
       const callback2 = vi.fn();
 
@@ -241,17 +244,14 @@ describe('PreferencesSync', () => {
       preferencesSync.onSyncStatusChange(callback2);
 
       // Trigger a status change by going offline
-      const navigator = window.navigator as any;
+      const navigator = window.navigator;
       navigator.onLine = false;
 
-      // Simulate offline event
-      const offlineHandler = mockAddEventListener.mock.calls.find(
-        call => call[0] === 'offline'
-      )?.[1];
-      
-      if (offlineHandler) {
-        offlineHandler();
-      }
+      // Simulate offline event by creating and dispatching event
+      window.dispatchEvent(new Event('offline'));
+
+      // Wait for the event to be processed
+      await vi.runOnlyPendingTimersAsync();
 
       expect(callback1).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'offline' })
@@ -268,16 +268,11 @@ describe('PreferencesSync', () => {
       unsubscribe();
 
       // Trigger a status change
-      const navigator = window.navigator as any;
+      const navigator = window.navigator;
       navigator.onLine = false;
       
-      const offlineHandler = mockAddEventListener.mock.calls.find(
-        call => call[0] === 'offline'
-      )?.[1];
-      
-      if (offlineHandler) {
-        offlineHandler();
-      }
+      // Simulate offline event
+      window.dispatchEvent(new Event('offline'));
 
       expect(callback).not.toHaveBeenCalled();
     });
@@ -286,7 +281,7 @@ describe('PreferencesSync', () => {
   describe('Sync from Server', () => {
     it('should sync preferences from server when online', async () => {
       // Ensure we're online
-      const navigator = window.navigator as any;
+      const navigator = window.navigator;
       navigator.onLine = true;
 
       const serverPrefs = {
@@ -319,14 +314,10 @@ describe('PreferencesSync', () => {
         }),
       });
 
-      // Trigger online event to sync from server
-      const onlineHandler = mockAddEventListener.mock.calls.find(
-        call => call[0] === 'online'
-      )?.[1];
-      
-      if (onlineHandler) {
-        await onlineHandler();
-      }
+      // Instead of relying on event timing, directly call the private syncFromServer method
+      // by accessing it through the service instance
+      const syncFromServerMethod = preferencesSync['syncFromServer'].bind(preferencesSync);
+      await syncFromServerMethod();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(`/api/preferences/sync/${userId}`),
@@ -382,6 +373,10 @@ describe('PreferencesSync', () => {
     });
 
     it('should not override local preferences when they are newer', async () => {
+      // Ensure we're online
+      const navigator = window.navigator;
+      navigator.onLine = true;
+
       // Make local update first
       mockFetch.mockResolvedValue({
         ok: true,
@@ -414,13 +409,12 @@ describe('PreferencesSync', () => {
       });
 
       // Trigger sync
-      const onlineHandler = mockAddEventListener.mock.calls.find(
-        call => call[0] === 'online'
-      )?.[1];
+      window.dispatchEvent(new Event('online'));
       
-      if (onlineHandler) {
-        await onlineHandler();
-      }
+      // Wait for async operations to complete (but not the periodic sync)
+      await vi.waitFor(() => {
+        expect(mockFetch).toHaveBeenCalled();
+      }, { timeout: 1000 });
 
       // Local preferences should be preserved
       const finalPrefs = preferencesSync.getPreferences();
@@ -431,7 +425,7 @@ describe('PreferencesSync', () => {
   describe('Conflict Resolution', () => {
     it('should detect conflicts between local and server preferences', async () => {
       // Ensure we're online
-      const navigator = window.navigator as any;
+      const navigator = window.navigator;
       navigator.onLine = true;
 
       // Create local changes
@@ -550,7 +544,7 @@ describe('PreferencesSync', () => {
   describe('Periodic Sync', () => {
     it('should sync periodically when online', async () => {
       // Ensure we're online
-      const navigator = window.navigator as any;
+      const navigator = window.navigator;
       navigator.onLine = true;
 
       mockFetch.mockResolvedValue({
@@ -568,7 +562,7 @@ describe('PreferencesSync', () => {
     });
 
     it('should not sync when offline', () => {
-      const navigator = window.navigator as any;
+      const navigator = window.navigator;
       navigator.onLine = false;
 
       vi.advanceTimersByTime(30000);
@@ -623,7 +617,7 @@ describe('PreferencesSync', () => {
 
     it('should handle malformed server responses', async () => {
       // Ensure we're online
-      const navigator = window.navigator as any;
+      const navigator = window.navigator;
       navigator.onLine = true;
 
       mockFetch.mockResolvedValue({

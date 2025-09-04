@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+// TODO: Consider using ServiceTestHarness for AIService
+import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { AIService } from '../../src/services/AIService';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('AIService', () => {
   let mockAIBinding: any;
   let aiService: AIService;

@@ -1,17 +1,21 @@
+// TODO: Consider using ServiceTestHarness for GradePassbackService
 /**
  * @fileoverview Tests for LTI AGS grade passback service
  * @module services/gradePassback.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// Mock the @atomicjolt/lti-server module BEFORE other imports
+import { vi } from 'vitest';
+vi.mock('@atomicjolt/lti-server', () => ({
+  getLtiToken: vi.fn(),
+}));
+
+import { describe, it, expect, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { GradePassbackService, GradePassbackError, createGradePassbackService } from './gradePassback';
 import { getLtiToken } from '@atomicjolt/lti-server';
 import type { Env } from '../types';
 
-// Mock the @atomicjolt/lti-server module
-vi.mock('@atomicjolt/lti-server', () => ({
-  getLtiToken: vi.fn(),
-}));
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 
 // Mock environment
 const mockEnv: Partial<Env> = {
@@ -36,9 +40,18 @@ global.fetch = vi.fn();
 describe('GradePassbackService', () => {
   let service: GradePassbackService;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Setup test infrastructure - testing GradePassbackService
+    const harness = ServiceTestHarness.withDefaults(GradePassbackService, {
+      database: true,
+      kvStore: true,
+      queue: false
+    }).build();
+    
     service = new GradePassbackService(mockEnv as Env);
-    vi.clearAllMocks();
+    
+    ;
+  
   });
 
   afterEach(() => {
@@ -48,14 +61,14 @@ describe('GradePassbackService', () => {
   describe('submitGrade', () => {
     it('should successfully submit a grade', async () => {
       // Mock platform configuration
-      (mockEnv.PLATFORMS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
         token_endpoint: 'https://canvas.test/token',
         client_id: 'test-client',
         key_id: 'test-key',
       }));
 
       // Mock key set
-      (mockEnv.KEY_SETS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
         privateKey: 'test-private-key',
       }));
 
@@ -99,13 +112,13 @@ describe('GradePassbackService', () => {
 
     it('should retry on server errors', async () => {
       // Mock platform and key setup
-      (mockEnv.PLATFORMS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
         token_endpoint: 'https://canvas.test/token',
         client_id: 'test-client',
         key_id: 'test-key',
       }));
 
-      (mockEnv.KEY_SETS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
         privateKey: 'test-private-key',
       }));
 
@@ -151,13 +164,13 @@ describe('GradePassbackService', () => {
 
     it('should fail after max retries', async () => {
       // Mock platform and key setup
-      (mockEnv.PLATFORMS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
         token_endpoint: 'https://canvas.test/token',
         client_id: 'test-client',
         key_id: 'test-key',
       }));
 
-      (mockEnv.KEY_SETS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
         privateKey: 'test-private-key',
       }));
 
@@ -188,13 +201,13 @@ describe('GradePassbackService', () => {
 
     it('should not retry on client errors', async () => {
       // Mock platform and key setup
-      (mockEnv.PLATFORMS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
         token_endpoint: 'https://canvas.test/token',
         client_id: 'test-client',
         key_id: 'test-key',
       }));
 
-      (mockEnv.KEY_SETS!.get as any).mockResolvedValue(JSON.stringify({
+      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
         privateKey: 'test-private-key',
       }));
 
@@ -271,7 +284,7 @@ describe('GradePassbackService', () => {
       const mockBind = vi.fn(() => ({ run: mockRun }));
       const mockPrepare = vi.fn(() => ({ bind: mockBind }));
       
-      (mockEnv.DB as any).prepare = mockPrepare;
+      (mockEnv.DB as MockD1Database).prepare = mockPrepare;
 
       await service.trackGradeStatus('attempt123', 'submitted');
 
@@ -285,7 +298,7 @@ describe('GradePassbackService', () => {
         throw new Error('Database error');
       });
       
-      (mockEnv.DB as any).prepare = mockPrepare;
+      (mockEnv.DB as MockD1Database).prepare = mockPrepare;
 
       // Should not throw
       await expect(service.trackGradeStatus('attempt123', 'failed', 'Test error'))

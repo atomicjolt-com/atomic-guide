@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {  describe, it, expect, beforeEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { Hono } from 'hono';
 import { Context } from '../../src/types';
 import contentRouter from '../../src/api/handlers/content';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('Content API Security Fixes', () => {
   let app: Hono<{ Bindings: Context['Bindings'] }>;
   let mockDB: any;

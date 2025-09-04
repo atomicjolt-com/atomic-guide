@@ -99,7 +99,7 @@ export class PrivacyControlService {
     };
     
     // Store consent with audit trail
-    await this.db.run(
+    await this.db.getDb().prepare(
       `INSERT INTO learner_dna_privacy_consent (
         id, tenant_id, user_id, consent_version,
         behavioral_timing_consent, assessment_patterns_consent, 
@@ -108,8 +108,8 @@ export class PrivacyControlService {
         parental_consent_required, parental_consent_given, parental_email,
         consent_given_at, consent_updated_at, consent_source,
         ip_address, user_agent
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
         consentRecord.id, tenantId, userId, this.CONSENT_VERSION,
         consentData.behavioralTimingConsent, consentData.assessmentPatternsConsent,
         consentData.chatInteractionsConsent, consentData.crossCourseCorrelationConsent,
@@ -118,8 +118,7 @@ export class PrivacyControlService {
         consentRecord.consentGivenAt.toISOString(), consentRecord.consentUpdatedAt.toISOString(),
         consentData.consentSource || 'dashboard',
         consentData.ipAddress, consentData.userAgent
-      ]
-    );
+    ).run();
     
     // Create audit log entry
     await this.createAuditLogEntry({
@@ -191,12 +190,11 @@ export class PrivacyControlService {
     updateValues.push(new Date().toISOString());
     updateValues.push(existingConsent.id);
     
-    await this.db.run(
+    await this.db.getDb().prepare(
       `UPDATE learner_dna_privacy_consent 
        SET ${updateFields.join(', ')} 
-       WHERE id = ?`,
-      updateValues
-    );
+       WHERE id = ?`
+    ).bind(...updateValues).run();
     
     // Create audit log entry for consent update
     await this.createAuditLogEntry({
@@ -284,12 +282,11 @@ export class PrivacyControlService {
    * @returns Promise resolving to active consent or null if none exists
    */
   async getActiveConsent(tenantId: string, userId: string): Promise<LearnerDNAPrivacyConsent | null> {
-    const result = await this.db.get<LearnerDNAPrivacyConsent>(
+    const result = await this.db.getDb().prepare(
       `SELECT * FROM learner_dna_privacy_consent 
        WHERE tenant_id = ? AND user_id = ? AND withdrawal_requested_at IS NULL
-       ORDER BY consent_given_at DESC LIMIT 1`,
-      [tenantId, userId]
-    );
+       ORDER BY consent_given_at DESC LIMIT 1`
+    ).bind(tenantId, userId).first<LearnerDNAPrivacyConsent>();
     
     return result || null;
   }
@@ -396,21 +393,20 @@ export class PrivacyControlService {
       ]
     };
     
-    await this.db.run(
+    await this.db.getDb().prepare(
       `INSERT INTO cognitive_processing_queue (
         id, tenant_id, task_type, task_data, priority_level,
         processing_complexity, privacy_sensitive
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        crypto.randomUUID(),
-        tenantId,
-        'data_anonymization',
-        JSON.stringify(taskData),
-        1, // Highest priority for compliance
-        'complex',
-        true
-      ]
-    );
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      crypto.randomUUID(),
+      tenantId,
+      'data_anonymization',
+      JSON.stringify(taskData),
+      1, // Highest priority for compliance
+      'complex',
+      true
+    ).run();
   }
   
   /**

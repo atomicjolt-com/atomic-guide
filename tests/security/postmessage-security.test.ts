@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {  describe, it, expect, beforeEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { LMSContentExtractor } from '@features/content/client/services/LMSContentExtractor';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('PostMessage Security Fixes', () => {
   let extractor: LMSContentExtractor;
   let mockSessionStorage: Record<string, string>;

@@ -1,8 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { handleChatMessage } from '../../src/api/handlers/chat';
-import { Context } from 'hono';
-
-// Mock the verify function from hono/jwt
+// Mock modules BEFORE other imports
+import { vi } from 'vitest';
 vi.mock('hono/jwt', () => ({
   verify: vi.fn().mockResolvedValue({ tenant_id: 'test-tenant', sub: 'test-user' })
 }));
@@ -63,6 +60,12 @@ vi.mock('../../src/services/SuggestionEngine', () => ({
     generateSuggestions: vi.fn().mockResolvedValue([])
   }))
 }));
+
+import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { handleChatMessage } from '../../src/api/handlers/chat';
+import { Context } from 'hono';
+
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 
 describe('Chat API Handler', () => {
   const createMockContext = (body: any, jwt?: string): Context => {

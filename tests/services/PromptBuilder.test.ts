@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import {  describe, it, expect, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { PromptBuilder, PromptContext } from '../../src/services/PromptBuilder';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('PromptBuilder', () => {
   let promptBuilder: PromptBuilder;
 
@@ -254,7 +255,7 @@ describe('PromptBuilder', () => {
 
       const context: PromptContext = {
         currentQuestion: 'Test question',
-        conversationHistory: longHistory as any,
+        conversationHistory: longHistory,
       };
 
       const { userPrompt } = promptBuilder.buildPrompt(context);

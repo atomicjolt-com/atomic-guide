@@ -1,3 +1,4 @@
+// TODO: Consider using ServiceTestHarness for DatabaseService
 /**
  * @fileoverview Comprehensive Privacy Compliance Test Suite for Learner DNA Foundation
  * @module features/learner-dna/tests/PrivacyComplianceTestSuite
@@ -7,7 +8,7 @@
  * Validates data protection, anonymization, and right-to-be-forgotten implementations.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {  describe, it, expect, beforeEach, afterEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { DatabaseService } from '@shared/server/services';
 import { PrivacyControlService } from '../server/services/PrivacyControlService';
 import { CognitiveDataCollector } from '../server/services/CognitiveDataCollector';
@@ -20,6 +21,7 @@ import type {
   LearnerDNAProfile
 } from '../shared/types';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 /**
  * Comprehensive Privacy Compliance Test Suite.
  * 
@@ -48,18 +50,11 @@ describe('Privacy Compliance Test Suite', () => {
 
   beforeEach(async () => {
     // Initialize test database and services with mock DB
-    const mockDb = {
-      prepare: vi.fn().mockReturnValue({
-        bind: vi.fn().mockReturnThis(),
-        run: vi.fn().mockResolvedValue({ success: true, meta: { last_row_id: 1, changes: 1 } }),
-        all: vi.fn().mockResolvedValue([]),
-        first: vi.fn().mockResolvedValue(null)
-      }),
-      exec: vi.fn().mockResolvedValue({ success: true }),
-      batch: vi.fn().mockResolvedValue([])
-    };
+    const mockDb = MockFactory.createD1Database();
     
-    db = new DatabaseService(mockDb as any);
+    db = new DatabaseService(mockDb as D1Database);
+    // Mock the getDb method to return the mock database
+    vi.spyOn(db, 'getDb').mockReturnValue(mockDb);
     privacyService = new PrivacyControlService(db);
     dataCollector = new CognitiveDataCollector(db, privacyService);
     dnaEngine = new LearnerDNAEngine(db, dataCollector, privacyService);
@@ -363,18 +358,11 @@ describe('Privacy Compliance Test Suite', () => {
       
       // Mock API context for export
       const mockContext = {
-        req: {
-          param: (key: string) => key === 'userId' ? TEST_USER_ID : undefined,
-          header: (name: string) => {
-            if (name === 'X-Tenant-ID') return TEST_TENANT_ID;
-            if (name === 'Authorization') return 'Bearer valid-token';
-            return undefined;
-          }
-        },
+        ...MockFactory.createHonoContext(),
         json: (data: any) => Promise.resolve({ json: () => data })
       };
       
-      const exportResult = await apiHandler.exportUserData(mockContext as any);
+      const exportResult = await apiHandler.exportUserData(mockContext);
       
       // Verify export contains structured, machine-readable data
       expect(exportResult).toBeDefined();
@@ -433,15 +421,9 @@ describe('Privacy Compliance Test Suite', () => {
       });
       
       // Attempt to generate insights with insufficient sample size
-      const mockContext = {
-        req: {
-          param: () => 'test-course',
-          query: () => TEST_TENANT_ID
-        },
-        json: (data: any, status?: number) => ({ data, status })
-      };
+      const mockContext = MockFactory.createHonoContext();
       
-      const result = await apiHandler.getCourseInsights(mockContext as any);
+      const result = await apiHandler.getCourseInsights(mockContext);
       
       // Should reject due to insufficient sample size for k-anonymity
       expect(result.status).toBe(403);
@@ -467,12 +449,11 @@ describe('Privacy Compliance Test Suite', () => {
       expect(storedPattern.purge_at).toBeDefined();
       
       // Simulate passage of time and automatic anonymization
-      await db.run(
+      await db.getDb().prepare(
         `UPDATE behavioral_patterns 
          SET privacy_level = 'anonymized', anonymized_at = datetime('now')
-         WHERE id = ?`,
-        [pattern.id]
-      );
+         WHERE id = ?`
+      ).bind(pattern.id).run();
       
       const anonymizedPattern = await db.get(
         'SELECT * FROM behavioral_patterns WHERE id = ?',
@@ -492,15 +473,14 @@ describe('Privacy Compliance Test Suite', () => {
       });
       
       // Simulate anonymization process
-      await db.run(
+      await db.getDb().prepare(
         `UPDATE behavioral_patterns 
          SET privacy_level = 'anonymized', 
              user_id = 'anonymous-' || substr(id, 1, 8),
              raw_data_encrypted = '[ANONYMIZED]',
              anonymized_at = datetime('now')
-         WHERE id = ?`,
-        [pattern.id]
-      );
+         WHERE id = ?`
+      ).bind(pattern.id).run();
       
       const anonymizedPattern = await db.get(
         'SELECT * FROM behavioral_patterns WHERE id = ?',
@@ -703,12 +683,11 @@ describe('Privacy Compliance Test Suite', () => {
       expect(storedPattern.raw_data_hash.length).toBe(64); // SHA-256
       
       // Simulate data tampering detection
-      await db.run(
+      await db.getDb().prepare(
         `UPDATE behavioral_patterns 
          SET raw_data_encrypted = 'tampered-data' 
-         WHERE id = ?`,
-        [pattern.id]
-      );
+         WHERE id = ?`
+      ).bind(pattern.id).run();
       
       const tamperedPattern = await db.get(
         'SELECT * FROM behavioral_patterns WHERE id = ?',
@@ -725,7 +704,7 @@ describe('Privacy Compliance Test Suite', () => {
 
   async function setupTestDatabase(): Promise<void> {
     // Initialize test tables (would use actual migration scripts in production)
-    await db.run(`
+    await db.getDb().prepare(`
       CREATE TABLE IF NOT EXISTS learner_dna_privacy_consent (
         id TEXT PRIMARY KEY,
         tenant_id TEXT NOT NULL,
@@ -748,9 +727,9 @@ describe('Privacy Compliance Test Suite', () => {
         ip_address TEXT,
         user_agent TEXT
       )
-    `);
+    `).run();
 
-    await db.run(`
+    await db.getDb().prepare(`
       CREATE TABLE IF NOT EXISTS behavioral_patterns (
         id TEXT PRIMARY KEY,
         tenant_id TEXT NOT NULL,
@@ -770,9 +749,9 @@ describe('Privacy Compliance Test Suite', () => {
         privacy_level TEXT DEFAULT 'identifiable',
         consent_verified BOOLEAN DEFAULT FALSE
       )
-    `);
+    `).run();
 
-    await db.run(`
+    await db.getDb().prepare(`
       CREATE TABLE IF NOT EXISTS learner_dna_profiles (
         id TEXT PRIMARY KEY,
         tenant_id TEXT NOT NULL,
@@ -803,9 +782,9 @@ describe('Privacy Compliance Test Suite', () => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `).run();
 
-    await db.run(`
+    await db.getDb().prepare(`
       CREATE TABLE IF NOT EXISTS learner_dna_audit_log (
         id TEXT PRIMARY KEY,
         tenant_id TEXT NOT NULL,
@@ -822,9 +801,9 @@ describe('Privacy Compliance Test Suite', () => {
         user_agent TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `).run();
 
-    await db.run(`
+    await db.getDb().prepare(`
       CREATE TABLE IF NOT EXISTS cognitive_processing_queue (
         id TEXT PRIMARY KEY,
         tenant_id TEXT NOT NULL,
@@ -836,7 +815,7 @@ describe('Privacy Compliance Test Suite', () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         privacy_sensitive BOOLEAN DEFAULT TRUE
       )
-    `);
+    `).run();
   }
 
   async function cleanupTestDatabase(): Promise<void> {
@@ -892,20 +871,19 @@ describe('Privacy Compliance Test Suite', () => {
       ...options
     };
 
-    await db.run(
+    await db.getDb().prepare(
       `INSERT INTO behavioral_patterns (
         id, tenant_id, user_id, session_id, pattern_type, context_type,
         raw_data_encrypted, raw_data_hash, aggregated_metrics, confidence_level,
         collected_at, privacy_level, consent_verified
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        pattern.id, pattern.tenantId, pattern.userId, pattern.sessionId,
-        pattern.patternType, pattern.contextType, pattern.rawDataEncrypted,
-        pattern.rawDataHash, JSON.stringify(pattern.aggregatedMetrics),
-        pattern.confidenceLevel, pattern.collectedAt.toISOString(),
-        pattern.privacyLevel, pattern.consentVerified
-      ]
-    );
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      pattern.id, pattern.tenantId, pattern.userId, pattern.sessionId,
+      pattern.patternType, pattern.contextType, pattern.rawDataEncrypted,
+      pattern.rawDataHash, JSON.stringify(pattern.aggregatedMetrics),
+      pattern.confidenceLevel, pattern.collectedAt.toISOString(),
+      pattern.privacyLevel, pattern.consentVerified
+    ).run();
 
     return pattern;
   }

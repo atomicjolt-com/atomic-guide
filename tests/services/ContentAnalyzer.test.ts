@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {  describe, it, expect, beforeEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { ContentAnalyzer } from '../../src/services/ContentAnalyzer';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('ContentAnalyzer', () => {
   let analyzer: ContentAnalyzer;
   let mockAI: any;
@@ -194,7 +195,7 @@ describe('ContentAnalyzer', () => {
     it('should calculate readability score', async () => {
       const text = 'This is a simple sentence. It has easy words. Students can read it well.';
 
-      const result = await (analyzer as any).analyzeContentMetrics(text);
+      const result = await (analyzer).analyzeContentMetrics(text);
 
       expect(result).toHaveProperty('readabilityScore');
       expect(result.readabilityScore).toBeGreaterThan(0);
@@ -204,7 +205,7 @@ describe('ContentAnalyzer', () => {
     it('should estimate reading time', async () => {
       const text = Array(500).fill('word').join(' '); // 500 words
 
-      const result = await (analyzer as any).analyzeContentMetrics(text);
+      const result = await (analyzer).analyzeContentMetrics(text);
 
       expect(result).toHaveProperty('estimatedReadingTime');
       expect(result.estimatedReadingTime).toBe(2); // 500 words / 250 wpm = 2 minutes
@@ -214,8 +215,8 @@ describe('ContentAnalyzer', () => {
       const simpleText = 'The cat sat on the mat. The dog ran fast.';
       const complexText = 'The epistemological ramifications of quantum entanglement necessitate a paradigmatic shift in our understanding of causality.';
 
-      const simpleResult = await (analyzer as any).analyzeContentMetrics(simpleText);
-      const complexResult = await (analyzer as any).analyzeContentMetrics(complexText);
+      const simpleResult = await (analyzer).analyzeContentMetrics(simpleText);
+      const complexResult = await (analyzer).analyzeContentMetrics(complexText);
 
       expect(simpleResult.contentComplexity).toBe('basic');
       expect(complexResult.contentComplexity).toBe('advanced');
@@ -225,8 +226,8 @@ describe('ContentAnalyzer', () => {
       const mathText = 'Solve the equation using algebra. Calculate the derivative of the function. Apply the theorem to prove the formula.';
       const scienceText = 'The experiment tested the hypothesis about molecular reactions in cells and organisms.';
 
-      const mathResult = await (analyzer as any).analyzeContentMetrics(mathText);
-      const scienceResult = await (analyzer as any).analyzeContentMetrics(scienceText);
+      const mathResult = await (analyzer).analyzeContentMetrics(mathText);
+      const scienceResult = await (analyzer).analyzeContentMetrics(scienceText);
 
       expect(mathResult.topicCategories).toContain('Mathematics');
       expect(scienceResult.topicCategories).toContain('Science');

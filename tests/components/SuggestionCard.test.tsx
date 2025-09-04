@@ -3,12 +3,13 @@
  * Validates accessibility, user interactions, and mobile responsiveness
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {  describe, it, expect, beforeEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SuggestionCard } from '../../src/features/chat/client/components/SuggestionCard';
 import type { Suggestion } from '../../src/features/chat/client/components/SuggestionCard';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock suggestion data
 const createMockSuggestion = (type: string = 'confusion', urgency: 'low' | 'medium' | 'high' | 'critical' = 'medium'): Suggestion => ({
   id: `test-${type}-${Date.now()}`,

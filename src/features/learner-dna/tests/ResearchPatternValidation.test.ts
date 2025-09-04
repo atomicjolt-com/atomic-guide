@@ -5,9 +5,47 @@
  * Validates that generated synthetic data matches established educational psychology research patterns
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import {  describe, it, expect, beforeAll , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { SyntheticDataGenerator } from '../server/services/SyntheticDataGenerator';
 import { CognitiveProfile, LearningSessionData } from '../shared/schemas/learner-dna.schema';
+
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
+// Helper functions for statistical calculations
+function calculateCorrelation(x: number[], y: number[]): number {
+  if (x.length !== y.length) throw new Error('Arrays must have same length');
+  const n = x.length;
+  
+  const meanX = x.reduce((a, b) => a + b, 0) / n;
+  const meanY = y.reduce((a, b) => a + b, 0) / n;
+  
+  const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
+  const denomX = Math.sqrt(x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0));
+  const denomY = Math.sqrt(y.reduce((sum, yi) => sum + Math.pow(yi - meanY, 2), 0));
+  
+  if (denomX === 0 || denomY === 0) return 0;
+  return numerator / (denomX * denomY);
+}
+
+function calculateAverageResponseTime(sessions: LearningSessionData[]): number {
+  const responseTimes = sessions.flatMap(s => s.responseTimesMs || []);
+  if (responseTimes.length === 0) return 0;
+  return responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+}
+
+function findPeakInRange(data: number[], startHour: number, endHour: number): number {
+  let peakHour = startHour;
+  let peakValue = data[startHour] || 0;
+  
+  for (let hour = startHour + 1; hour <= endHour && hour < data.length; hour++) {
+    if (data[hour] > peakValue) {
+      peakValue = data[hour];
+      peakHour = hour;
+    }
+  }
+  
+  return peakHour;
+}
+
 
 describe('Research Pattern Validation', () => {
   let generator: SyntheticDataGenerator;
@@ -188,7 +226,7 @@ describe('Research Pattern Validation', () => {
       const velocities = largeDataset.profiles.map(p => p.learningVelocity.baseRate);
       
       // Calculate correlation between capacity and velocity
-      const correlation = this.calculateCorrelation(capacities, velocities);
+      const correlation = calculateCorrelation(capacities, velocities);
       
       // Should show positive correlation (moderate strength expected)
       expect(correlation).toBeGreaterThan(0.2);
@@ -205,8 +243,8 @@ describe('Research Pattern Validation', () => {
       const singleConceptSessions = sessions.filter(s => s.conceptsStudied.length === 1);
       const multiConceptSessions = sessions.filter(s => s.conceptsStudied.length >= 2);
       
-      const avgSingleConceptTime = this.calculateAverageResponseTime(singleConceptSessions);
-      const avgMultiConceptTime = this.calculateAverageResponseTime(multiConceptSessions);
+      const avgSingleConceptTime = calculateAverageResponseTime(singleConceptSessions);
+      const avgMultiConceptTime = calculateAverageResponseTime(multiConceptSessions);
       
       // Multi-concept sessions should have longer response times
       expect(avgMultiConceptTime).toBeGreaterThan(avgSingleConceptTime);
@@ -237,8 +275,8 @@ describe('Research Pattern Validation', () => {
         calmProfiles.some(p => p.studentId === s.studentId)
       );
       
-      const avgAnxiousTime = this.calculateAverageResponseTime(anxiousSessions);
-      const avgCalmTime = this.calculateAverageResponseTime(calmSessions);
+      const avgAnxiousTime = calculateAverageResponseTime(anxiousSessions);
+      const avgCalmTime = calculateAverageResponseTime(calmSessions);
       
       // Anxious students should have longer response times
       expect(avgAnxiousTime).toBeGreaterThan(avgCalmTime);
@@ -320,9 +358,9 @@ describe('Research Pattern Validation', () => {
       });
       
       // Find peak hours
-      const morningPeakHour = this.findPeakInRange(avgEngagementByHour, 8, 12);
-      const eveningPeakHour = this.findPeakInRange(avgEngagementByHour, 18, 22);
-      const nightLowHour = this.findLowInRange(avgEngagementByHour, 23, 6);
+      const morningPeakHour = findPeakInRange(avgEngagementByHour, 8, 12);
+      const eveningPeakHour = findPeakInRange(avgEngagementByHour, 18, 22);
+      const nightLowHour = findLowInRange(avgEngagementByHour, 23, 6);
       
       // Morning peak should be higher than night low
       expect(avgEngagementByHour[morningPeakHour]).toBeGreaterThan(avgEngagementByHour[nightLowHour]);
@@ -405,17 +443,17 @@ describe('Research Pattern Validation', () => {
       // Cognitive load capacity should correlate with learning velocity
       const capacities = profiles.map(p => p.strugglePatterns.cognitiveLoadCapacity);
       const velocities = profiles.map(p => p.learningVelocity.baseRate);
-      const capacityVelocityCorr = this.calculateCorrelation(capacities, velocities);
+      const capacityVelocityCorr = calculateCorrelation(capacities, velocities);
       
       // Memory strength should correlate with initial retention
       const memoryStrengths = profiles.map(p => p.memoryRetention.memoryStrengthMultiplier);
       const initialRetentions = profiles.map(p => p.memoryRetention.initialRetention);
-      const memoryRetentionCorr = this.calculateCorrelation(memoryStrengths, initialRetentions);
+      const memoryRetentionCorr = calculateCorrelation(memoryStrengths, initialRetentions);
       
       // Frustration tolerance should negatively correlate with anxiety
       const frustrationTolerances = profiles.map(p => p.strugglePatterns.frustrationTolerance);
       const anxieties = profiles.map(p => p.strugglePatterns.anxietySensitivity);
-      const frustrationAnxietyCorr = this.calculateCorrelation(frustrationTolerances, anxieties);
+      const frustrationAnxietyCorr = calculateCorrelation(frustrationTolerances, anxieties);
       
       expect(capacityVelocityCorr).toBeGreaterThan(0.1); // Positive correlation
       expect(memoryRetentionCorr).toBeGreaterThan(0.1); // Positive correlation
@@ -423,42 +461,6 @@ describe('Research Pattern Validation', () => {
     });
   });
 });
-
-// Helper methods
-function calculateCorrelation(x: number[], y: number[]): number {
-    const n = Math.min(x.length, y.length);
-    const sumX = x.slice(0, n).reduce((a, b) => a + b);
-    const sumY = y.slice(0, n).reduce((a, b) => a + b);
-    const sumXY = x.slice(0, n).reduce((acc, xi, i) => acc + xi * y[i], 0);
-    const sumX2 = x.slice(0, n).reduce((acc, xi) => acc + xi * xi, 0);
-    const sumY2 = y.slice(0, n).reduce((acc, yi) => acc + yi * yi, 0);
-
-    const numerator = n * sumXY - sumX * sumY;
-    const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-
-    return denominator === 0 ? 0 : numerator / denominator;
-  }
-
-function calculateAverageResponseTime(sessions: LearningSessionData[]): number {
-    const allResponseTimes = sessions.flatMap(s => s.responseTimesMs);
-    return allResponseTimes.length > 0 
-      ? allResponseTimes.reduce((a, b) => a + b) / allResponseTimes.length 
-      : 0;
-  }
-
-function findPeakInRange(values: number[], startHour: number, endHour: number): number {
-    let peakHour = startHour;
-    let peakValue = values[startHour];
-    
-    for (let hour = startHour; hour <= endHour; hour++) {
-      if (values[hour] > peakValue) {
-        peakValue = values[hour];
-        peakHour = hour;
-      }
-    }
-    
-    return peakHour;
-  }
 
 function findLowInRange(values: number[], startHour: number, endHour: number): number {
     const hours = endHour < startHour 

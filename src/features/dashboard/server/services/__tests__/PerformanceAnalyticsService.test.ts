@@ -1,14 +1,16 @@
+// TODO: Consider using ServiceTestHarness for PerformanceAnalyticsService
 /**
  * @fileoverview Tests for PerformanceAnalyticsService
  * @module features/dashboard/server/services/__tests__/PerformanceAnalyticsService.test
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { PerformanceAnalyticsService } from '../PerformanceAnalyticsService';
 import type { 
   StudentPerformanceProfile
 } from '@features/dashboard/shared/types';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('PerformanceAnalyticsService', () => {
   let service: PerformanceAnalyticsService;
   let mockD1Database: any;

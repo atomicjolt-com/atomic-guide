@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import {  describe, it, expect , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
 import { ChatFAB } from '../../../src/features/chat/client/components/ChatFAB';
 import styles from '../../../src/features/chat/client/styles/chat.module.css';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('ChatFAB', () => {
   const createMockStore = () => {
     return configureStore({ jwt: 'test-jwt', settings: {} });

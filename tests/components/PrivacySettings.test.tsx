@@ -3,13 +3,8 @@
  * Validates privacy controls, data management, and accessibility
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom';
-import PrivacySettings from '../../src/features/dashboard/client/components/PrivacySettings';
-
-// Mock CSS modules
+// Mock CSS modules BEFORE other imports
+import { vi } from 'vitest';
 vi.mock('../../src/features/dashboard/styles/components/privacy-settings.module.css', () => ({
   default: {
     privacySettings: 'privacySettings',
@@ -58,6 +53,14 @@ vi.mock('../../src/features/dashboard/styles/components/privacy-settings.module.
     valid: 'valid',
   },
 }));
+
+import { describe, it, expect, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
+import PrivacySettings from '../../src/features/dashboard/client/components/PrivacySettings';
+
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 
 const mockSettings = {
   conversationRetention: true,

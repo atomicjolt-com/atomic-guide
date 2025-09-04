@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { FAQKnowledgeBase } from '../../src/services/FAQKnowledgeBase';
 import { AIService } from '../../src/services/AIService';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('FAQKnowledgeBase', () => {
   let faqService: FAQKnowledgeBase;
   let mockAIService: AIService;

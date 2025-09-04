@@ -704,21 +704,20 @@ export class LearnerDNAApiHandler {
     newLevel: 'minimal' | 'standard' | 'comprehensive'
   ): Promise<void> {
     // Add purging task to cognitive processing queue
-    await this.db.run(
+    await this.db.getDb().prepare(
       `INSERT INTO cognitive_processing_queue (
         id, tenant_id, task_type, task_data, priority_level,
         processing_complexity, privacy_sensitive
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        crypto.randomUUID(),
-        tenantId,
-        'data_anonymization',
-        JSON.stringify({ userId, targetLevel: newLevel, reason: 'consent_downgrade' }),
-        2, // High priority
-        'standard',
-        true
-      ]
-    );
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      crypto.randomUUID(),
+      tenantId,
+      'data_anonymization',
+      JSON.stringify({ userId, targetLevel: newLevel, reason: 'consent_downgrade' }),
+      2, // High priority
+      'standard',
+      true
+    ).run();
   }
 
   /**
@@ -726,11 +725,13 @@ export class LearnerDNAApiHandler {
    */
   private async generateDataExport(tenantId: string, userId: string): Promise<any> {
     // Get all user data for export
-    const [profile, consent, behavioralPatterns] = await Promise.all([
-      this.db.get('SELECT * FROM learner_dna_profiles WHERE tenant_id = ? AND user_id = ?', [tenantId, userId]),
-      this.db.get('SELECT * FROM learner_dna_privacy_consent WHERE tenant_id = ? AND user_id = ?', [tenantId, userId]),
-      this.db.all('SELECT * FROM behavioral_patterns WHERE tenant_id = ? AND user_id = ?', [tenantId, userId])
+    const [profile, consent, behavioralPatternsResult] = await Promise.all([
+      this.db.getDb().prepare('SELECT * FROM learner_dna_profiles WHERE tenant_id = ? AND user_id = ?').bind(tenantId, userId).first(),
+      this.db.getDb().prepare('SELECT * FROM learner_dna_privacy_consent WHERE tenant_id = ? AND user_id = ?').bind(tenantId, userId).first(),
+      this.db.getDb().prepare('SELECT * FROM behavioral_patterns WHERE tenant_id = ? AND user_id = ?').bind(tenantId, userId).all()
     ]);
+    
+    const behavioralPatterns = behavioralPatternsResult.results || [];
 
     return {
       userId,
@@ -772,27 +773,26 @@ export class LearnerDNAApiHandler {
     ipAddress?: string;
     userAgent?: string;
   }): Promise<void> {
-    await this.db.run(
+    await this.db.getDb().prepare(
       `INSERT INTO learner_dna_audit_log (
         id, tenant_id, actor_type, actor_id, action, resource_type,
         resource_id, privacy_level, consent_status, data_sensitivity_level,
         ip_address, user_agent, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        crypto.randomUUID(),
-        auditData.tenantId,
-        auditData.actorType,
-        auditData.actorId,
-        auditData.action,
-        auditData.resourceType,
-        auditData.resourceId,
-        'identifiable', // API access is identifiable
-        'active', // Assume active consent for successful API calls
-        'high', // API operations are high sensitivity
-        auditData.ipAddress,
-        auditData.userAgent,
-        new Date().toISOString()
-      ]
-    );
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      crypto.randomUUID(),
+      auditData.tenantId,
+      auditData.actorType,
+      auditData.actorId,
+      auditData.action,
+      auditData.resourceType,
+      auditData.resourceId,
+      'identifiable', // API access is identifiable
+      'active', // Assume active consent for successful API calls
+      'high', // API operations are high sensitivity
+      auditData.ipAddress,
+      auditData.userAgent,
+      new Date().toISOString()
+    ).run();
   }
 }

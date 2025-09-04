@@ -1,12 +1,14 @@
+// TODO: Consider using ServiceTestHarness for DatabaseService
 /**
  * Unit tests for DatabaseService tenant isolation
  * Story 1.1 Requirement: Verify tenant isolation cannot be bypassed
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {  describe, it, expect, beforeEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { DatabaseService } from '../../src/services/database';
 import type { D1Database } from '@cloudflare/workers-types';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock D1 Database
 const createMockD1 = () => {
   const mockResults = new Map<string, any>();
@@ -19,7 +21,7 @@ const createMockD1 = () => {
   };
 
   const mockD1: Partial<D1Database> = {
-    prepare: vi.fn(() => mockPreparedStatement as any),
+    prepare: vi.fn(() => mockPreparedStatement),
     batch: vi.fn(async (_statements) => []),
     dump: vi.fn(async () => new ArrayBuffer(0)),
     exec: vi.fn(async () => ({ count: 0, duration: 0 })),

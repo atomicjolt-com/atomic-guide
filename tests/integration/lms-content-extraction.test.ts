@@ -1,13 +1,21 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {  describe, it, expect, beforeEach, afterEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { LMSContentExtractor } from '@features/content/client/services/LMSContentExtractor';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('LMS Content Extraction Integration', () => {
   let extractor: LMSContentExtractor;
   let mockPostMessage: any;
   let originalPostMessage: any;
   let mockLocation: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Setup test infrastructure - testing LMSContentExtractor directly
+    const harness = ServiceTestHarness.withDefaults(LMSContentExtractor, {
+      database: false,
+      kvStore: false,
+      queue: false
+    }).build();
+    
     // Store original postMessage
     originalPostMessage = window.parent.postMessage;
 
@@ -88,13 +96,15 @@ describe('LMS Content Extraction Integration', () => {
     if (extractor) {
       extractor.destroy();
     }
-    vi.clearAllMocks();
+    
+    ;
+  
   });
 
   describe('PostMessage Security', () => {
     it('should send postMessage with specific origin instead of wildcard', async () => {
       // Simulate sending a message
-      const _messagePromise = (extractor as any).sendPostMessage('lti.getPageContent', {});
+      const _messagePromise = (extractor).sendPostMessage('lti.getPageContent', {});
 
       // Wait for postMessage to be called
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -117,25 +127,25 @@ describe('LMS Content Extraction Integration', () => {
       const invalidOrigin = 'https://malicious.com';
 
       // Test valid origin
-      const isValid = (extractor as any).isValidOrigin(validOrigin);
+      const isValid = (extractor).isValidOrigin(validOrigin);
       expect(isValid).toBe(true);
 
       // Test invalid origin
-      const isInvalid = (extractor as any).isValidOrigin(invalidOrigin);
+      const isInvalid = (extractor).isValidOrigin(invalidOrigin);
       expect(isInvalid).toBe(false);
     });
 
     it('should use cryptographic hashing for content', async () => {
       const content = '<h1>Test Content</h1><p>This is test content.</p>';
 
-      const hash = await (extractor as any).hashContent(content);
+      const hash = await (extractor).hashContent(content);
 
       // Should return a hex string (SHA-256 produces 64 hex characters)
       expect(hash).toMatch(/^[a-f0-9]+$/);
       expect(hash.length).toBeGreaterThan(0);
 
       // Same content should produce same hash
-      const hash2 = await (extractor as any).hashContent(content);
+      const hash2 = await (extractor).hashContent(content);
       expect(hash2).toBe(hash);
     });
   });
@@ -183,7 +193,7 @@ describe('LMS Content Extraction Integration', () => {
       ];
 
       for (const testCase of testCases) {
-        const pageType = (extractor as any).detectPageType(testCase.url, 'canvas');
+        const pageType = (extractor).detectPageType(testCase.url, 'canvas');
         expect(pageType).toBe(testCase.type);
       }
     });
@@ -198,7 +208,7 @@ describe('LMS Content Extraction Integration', () => {
         </div>
       `;
 
-      const sanitized = (extractor as any).sanitizeHtml(maliciousHtml);
+      const sanitized = (extractor).sanitizeHtml(maliciousHtml);
 
       // Should remove scripts
       expect(sanitized).not.toContain('<script>');
@@ -221,7 +231,7 @@ describe('LMS Content Extraction Integration', () => {
       let attemptCount = 0;
 
       // Mock sendPostMessage to fail first time, succeed second time
-      (extractor as any).sendPostMessage = vi.fn(async () => {
+      (extractor).sendPostMessage = vi.fn(async () => {
         attemptCount++;
         if (attemptCount === 1) {
           throw new Error('Network error');
@@ -270,7 +280,7 @@ describe('LMS Content Extraction Integration', () => {
       let callCount = 0;
 
       // Mock extractPageContent
-      (extractor as any).extractPageContent = vi.fn(async () => {
+      (extractor).extractPageContent = vi.fn(async () => {
         callCount++;
         const content = callCount === 1 ? initialContent : updatedContent;
         return {
@@ -299,7 +309,7 @@ describe('LMS Content Extraction Integration', () => {
       });
 
       // Start monitoring with short interval for testing
-      (extractor as any).options.monitoringInterval = 100;
+      (extractor).options.monitoringInterval = 100;
       extractor.startContentMonitoring();
     });
   });
@@ -320,7 +330,7 @@ describe('LMS Content Extraction Integration', () => {
         // Update the mock location hostname
         mockLocation.hostname = testCase.hostname;
 
-        const lmsType = (extractor as any).detectLMSType();
+        const lmsType = (extractor).detectLMSType();
         expect(lmsType).toBe(testCase.expected);
       }
     });

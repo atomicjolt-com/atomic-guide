@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { configureStore } from '../../client/store';
 import { chatApi } from '../../client/store/api/chatApi';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock fetch globally
 global.fetch = vi.fn();
 
@@ -17,7 +18,7 @@ describe.skip('chatApi', () => {
   it.skip('sends message successfully', async () => {
     // Skip this test due to RTK Query/fetch mock compatibility issues
     // The functionality is tested in chatApi.simple.test.ts
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         message_id: 'msg-123',
@@ -49,7 +50,7 @@ describe.skip('chatApi', () => {
   });
 
   it('handles rate limit errors', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch).mockResolvedValueOnce({
       ok: false,
       status: 429,
       json: async () => ({ error: 'Rate limit exceeded', retry_after: 60 }),
@@ -80,7 +81,7 @@ describe.skip('chatApi', () => {
   });
 
   it('handles generic errors', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch).mockResolvedValueOnce({
       ok: false,
       status: 500,
       json: async () => ({ error: 'Internal server error' }),
@@ -110,7 +111,7 @@ describe.skip('chatApi', () => {
   });
 
   it('includes JWT token in headers', async () => {
-    (global.fetch as any).mockImplementationOnce((url: string, options: any) => {
+    (global.fetch).mockImplementationOnce((url: string, options: any) => {
       expect(options.headers.get('authorization')).toBe('Bearer test-jwt-token');
       return Promise.resolve({
         ok: true,

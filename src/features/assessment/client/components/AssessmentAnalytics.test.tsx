@@ -3,11 +3,12 @@
  * @module features/assessment/client/components/AssessmentAnalytics.test
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AssessmentAnalytics } from './AssessmentAnalytics';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock fetch globally
 global.fetch = vi.fn();
 
@@ -49,8 +50,12 @@ describe('AssessmentAnalytics', () => {
     ],
   };
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+  beforeEach(async () => {
+    // Setup test infrastructure - removed ServiceTestHarness as this tests React components
+    
+    
+    ;
+  
   });
 
   it('should render loading state initially', () => {

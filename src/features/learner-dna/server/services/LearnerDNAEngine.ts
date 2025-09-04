@@ -464,10 +464,9 @@ export class LearnerDNAEngine {
   // Private helper methods
 
   private async getExistingProfile(tenantId: string, userId: string): Promise<LearnerDNAProfile | null> {
-    const result = await this.db.get<any>(
-      'SELECT * FROM learner_dna_profiles WHERE tenant_id = ? AND user_id = ?',
-      [tenantId, userId]
-    );
+    const result = await this.db.getDb().prepare(
+      'SELECT * FROM learner_dna_profiles WHERE tenant_id = ? AND user_id = ?'
+    ).bind(tenantId, userId).first<any>();
     
     if (!result) return null;
     
@@ -505,14 +504,13 @@ export class LearnerDNAEngine {
   }
 
   private async getBehavioralPatterns(tenantId: string, userId: string): Promise<BehavioralPattern[]> {
-    const results = await this.db.all<any>(
+    const results = await this.db.getDb().prepare(
       `SELECT * FROM behavioral_patterns 
        WHERE tenant_id = ? AND user_id = ? AND consent_verified = 1
-       ORDER BY collected_at DESC`,
-      [tenantId, userId]
-    );
+       ORDER BY collected_at DESC`
+    ).bind(tenantId, userId).all<any>();
     
-    return results.map(row => ({
+    return (results.results || []).map(row => ({
       id: row.id,
       tenantId: row.tenant_id,
       userId: row.user_id,
@@ -725,7 +723,7 @@ export class LearnerDNAEngine {
   }
 
   private async storeLearnerDNAProfile(profile: LearnerDNAProfile): Promise<void> {
-    await this.db.run(
+    await this.db.getDb().prepare(
       `INSERT OR REPLACE INTO learner_dna_profiles (
         id, tenant_id, user_id, learning_velocity_value, learning_velocity_confidence,
         learning_velocity_data_points, learning_velocity_last_updated,
@@ -736,8 +734,8 @@ export class LearnerDNAEngine {
         profile_confidence, total_data_points, analysis_quality_score,
         cross_course_patterns, multi_context_confidence, data_collection_level,
         profile_visibility, created_at, updated_at, last_analyzed_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
         profile.id, profile.tenantId, profile.userId,
         profile.learningVelocityValue, profile.learningVelocityConfidence,
         profile.learningVelocityDataPoints, profile.learningVelocityLastUpdated.toISOString(),
@@ -752,27 +750,25 @@ export class LearnerDNAEngine {
         profile.dataCollectionLevel, profile.profileVisibility,
         profile.createdAt.toISOString(), profile.updatedAt.toISOString(),
         profile.lastAnalyzedAt.toISOString()
-      ]
-    );
+    ).run();
   }
 
   private async storeCognitiveAttributes(profileId: string, attributes: Record<string, any>): Promise<void> {
     // Store individual cognitive attributes for detailed analysis
     for (const [attributeType, data] of Object.entries(attributes)) {
       if (typeof data === 'object' && data.value !== undefined) {
-        await this.db.run(
+        await this.db.getDb().prepare(
           `INSERT OR REPLACE INTO cognitive_attributes (
             id, profile_id, attribute_name, attribute_type, attribute_value,
             attribute_metadata, confidence_score, data_points_count,
             evidence_source, created_at, updated_at, last_evidence_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
             crypto.randomUUID(), profileId, attributeType, attributeType,
             data.value, JSON.stringify(data), data.confidence,
             data.dataPoints, 'behavioral_analysis',
             new Date().toISOString(), new Date().toISOString(), new Date().toISOString()
-          ]
-        );
+        ).run();
       }
     }
   }
@@ -864,21 +860,20 @@ export class LearnerDNAEngine {
   }
 
   private async storeProfileValidation(validation: CognitiveProfileValidation): Promise<void> {
-    await this.db.run(
+    await this.db.getDb().prepare(
       `INSERT INTO cognitive_profile_validation (
         id, tenant_id, profile_id, validation_type, accuracy_score,
         confidence_interval, validation_sample_size, validation_data,
         baseline_comparison, improvement_over_baseline, validated_at,
         validation_period_days, next_validation_due
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
         validation.id, validation.tenantId, validation.profileId, validation.validationType,
         validation.accuracyScore, validation.confidenceInterval, validation.validationSampleSize,
         JSON.stringify(validation.validationData), validation.baselineComparison,
         validation.improvementOverBaseline, validation.validatedAt.toISOString(),
         validation.validationPeriodDays, validation.nextValidationDue?.toISOString()
-      ]
-    );
+    ).run();
   }
 
   private async createProfileGenerationAudit(
@@ -887,16 +882,15 @@ export class LearnerDNAEngine {
     profileId: string,
     metrics: any
   ): Promise<void> {
-    await this.db.run(
+    await this.db.getDb().prepare(
       `INSERT INTO learner_dna_audit_log (
         id, tenant_id, actor_type, actor_id, action, resource_type,
         resource_id, privacy_level, consent_status, action_details, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
         crypto.randomUUID(), tenantId, 'system', 'LearnerDNAEngine',
         'profile_generated', 'cognitive_profile', profileId,
         'identifiable', 'active', JSON.stringify(metrics), new Date().toISOString()
-      ]
-    );
+    ).run();
   }
 }

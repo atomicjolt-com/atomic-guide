@@ -1,12 +1,14 @@
+// TODO: Consider using ServiceTestHarness for StorageFallbackService
 /**
  * Unit tests for StorageFallback service
  * Story 1.1 Requirement: Test fallback activates on D1 timeout
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import {  describe, it, expect, beforeEach, vi, afterEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { StorageFallbackService } from '../../src/services/StorageFallback';
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock KV Namespace
 const createMockKV = () => {
   const store = new Map<string, any>();
@@ -65,7 +67,7 @@ const createMockD1 = (shouldFail = false, shouldTimeout = false) => {
   };
 
   const mockD1: Partial<D1Database> = {
-    prepare: vi.fn(() => mockPreparedStatement as any),
+    prepare: vi.fn(() => mockPreparedStatement),
     batch: vi.fn(async () => []),
     dump: vi.fn(async () => new ArrayBuffer(0)),
     exec: vi.fn(async () => ({ count: 0, duration: 0 })),

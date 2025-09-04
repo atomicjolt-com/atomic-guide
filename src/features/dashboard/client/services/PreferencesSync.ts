@@ -38,11 +38,13 @@ export type DashboardPreferences = z.infer<typeof DashboardPreferencesSchema>;
 const _SyncStatusSchema = z.object({
   status: z.enum(['synced', 'syncing', 'offline', 'conflict', 'error']),
   lastSync: z.string().datetime().optional(),
-  conflictData: z.object({
-    local: z.unknown(),
-    remote: z.unknown(),
-    timestamp: z.string().datetime(),
-  }).optional(),
+  conflictData: z
+    .object({
+      local: z.unknown(),
+      remote: z.unknown(),
+      timestamp: z.string().datetime(),
+    })
+    .optional(),
   errorMessage: z.string().optional(),
 });
 
@@ -50,7 +52,7 @@ export type SyncStatus = z.infer<typeof _SyncStatusSchema>;
 
 /**
  * Cross-device preference synchronization service
- * 
+ *
  * Manages dashboard preferences across devices using Cloudflare KV storage
  * with conflict resolution and offline support.
  */
@@ -63,26 +65,34 @@ export class PreferencesSync {
   private syncCallbacks: Array<(status: SyncStatus) => void> = [];
   private syncInterval?: number;
   private lastKnownVersion: number = 0;
+  private onlineHandler: () => void;
+  private offlineHandler: () => void;
+  private visibilityHandler: () => void;
 
   constructor(userId: string, tenantId: string, jwt: string) {
     this.userId = userId;
     this.tenantId = tenantId;
     this.jwt = jwt;
     this.deviceId = this.generateDeviceId();
-    
+
+    // Bind event handlers to maintain correct context
+    this.onlineHandler = () => this.handleOnline();
+    this.offlineHandler = () => this.handleOffline();
+    this.visibilityHandler = () => {
+      if (!document.hidden) {
+        this.syncFromServer();
+      }
+    };
+
     // Start periodic sync
     this.startPeriodicSync();
 
     // Handle online/offline events
-    window.addEventListener('online', () => this.handleOnline());
-    window.addEventListener('offline', () => this.handleOffline());
-    
+    window.addEventListener('online', this.onlineHandler);
+    window.addEventListener('offline', this.offlineHandler);
+
     // Handle visibility change for sync on focus
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        this.syncFromServer();
-      }
-    });
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
 
   /**
@@ -137,7 +147,7 @@ export class PreferencesSync {
    */
   private updateSyncStatus(status: Partial<SyncStatus>): void {
     this.syncStatus = { ...this.syncStatus, ...status };
-    this.syncCallbacks.forEach(callback => callback(this.syncStatus));
+    this.syncCallbacks.forEach((callback) => callback(this.syncStatus));
   }
 
   /**
@@ -145,7 +155,7 @@ export class PreferencesSync {
    */
   public onSyncStatusChange(callback: (status: SyncStatus) => void): () => void {
     this.syncCallbacks.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.syncCallbacks.indexOf(callback);
@@ -183,10 +193,7 @@ export class PreferencesSync {
    */
   private saveLocalPreferences(preferences: DashboardPreferences): void {
     try {
-      localStorage.setItem(
-        `dashboard_prefs_${this.userId}`, 
-        JSON.stringify(preferences)
-      );
+      localStorage.setItem(`dashboard_prefs_${this.userId}`, JSON.stringify(preferences));
     } catch (error) {
       console.error('Failed to save local preferences:', error);
     }
@@ -197,7 +204,7 @@ export class PreferencesSync {
    */
   public getPreferences(): DashboardPreferences {
     const local = this.loadLocalPreferences();
-    
+
     if (local) {
       return local;
     }
@@ -232,9 +239,7 @@ export class PreferencesSync {
   /**
    * Update preferences and sync to server
    */
-  public async updatePreferences(
-    updates: Partial<DashboardPreferences['preferences']>
-  ): Promise<void> {
+  public async updatePreferences(updates: Partial<DashboardPreferences['preferences']>): Promise<void> {
     try {
       const current = this.getPreferences();
       const updated: DashboardPreferences = {
@@ -254,12 +259,11 @@ export class PreferencesSync {
 
       // Sync to server
       await this.syncToServer(updated);
-
     } catch (error) {
       console.error('Failed to update preferences:', error);
-      this.updateSyncStatus({ 
-        status: 'error', 
-        errorMessage: 'Failed to update preferences' 
+      this.updateSyncStatus({
+        status: 'error',
+        errorMessage: 'Failed to update preferences',
       });
     }
   }
@@ -267,9 +271,7 @@ export class PreferencesSync {
   /**
    * Update mobile settings
    */
-  public async updateMobileSettings(
-    updates: Partial<DashboardPreferences['mobileSettings']>
-  ): Promise<void> {
+  public async updateMobileSettings(updates: Partial<DashboardPreferences['mobileSettings']>): Promise<void> {
     try {
       const current = this.getPreferences();
       const updated: DashboardPreferences = {
@@ -286,12 +288,11 @@ export class PreferencesSync {
       this.saveLocalPreferences(updated);
       this.lastKnownVersion = updated.version;
       await this.syncToServer(updated);
-
     } catch (error) {
       console.error('Failed to update mobile settings:', error);
-      this.updateSyncStatus({ 
-        status: 'error', 
-        errorMessage: 'Failed to update mobile settings' 
+      this.updateSyncStatus({
+        status: 'error',
+        errorMessage: 'Failed to update mobile settings',
       });
     }
   }
@@ -306,7 +307,7 @@ export class PreferencesSync {
       const response = await fetch('/api/preferences/sync', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${this.jwt}`,
+          Authorization: `Bearer ${this.jwt}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -319,16 +320,15 @@ export class PreferencesSync {
         throw new Error(`Sync failed: ${response.statusText}`);
       }
 
-      this.updateSyncStatus({ 
-        status: 'synced', 
-        lastSync: new Date().toISOString() 
+      this.updateSyncStatus({
+        status: 'synced',
+        lastSync: new Date().toISOString(),
       });
-
     } catch (error) {
       console.error('Failed to sync to server:', error);
-      this.updateSyncStatus({ 
-        status: 'error', 
-        errorMessage: 'Failed to sync to server' 
+      this.updateSyncStatus({
+        status: 'error',
+        errorMessage: 'Failed to sync to server',
       });
     }
   }
@@ -345,21 +345,18 @@ export class PreferencesSync {
     try {
       this.updateSyncStatus({ status: 'syncing' });
 
-      const response = await fetch(
-        `/api/preferences/sync/${this.userId}?deviceId=${this.deviceId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.jwt}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/preferences/sync/${this.userId}?deviceId=${this.deviceId}`, {
+        headers: {
+          Authorization: `Bearer ${this.jwt}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Sync failed: ${response.statusText}`);
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         const serverPrefs = DashboardPreferencesSchema.parse(data.data);
         const localPrefs = this.loadLocalPreferences();
@@ -374,23 +371,22 @@ export class PreferencesSync {
             this.lastKnownVersion = serverPrefs.version;
           }
 
-          this.updateSyncStatus({ 
-            status: 'synced', 
-            lastSync: new Date().toISOString() 
+          this.updateSyncStatus({
+            status: 'synced',
+            lastSync: new Date().toISOString(),
           });
         }
       } else {
-        this.updateSyncStatus({ 
-          status: 'synced', 
-          lastSync: new Date().toISOString() 
+        this.updateSyncStatus({
+          status: 'synced',
+          lastSync: new Date().toISOString(),
         });
       }
-
     } catch (error) {
       console.error('Failed to sync from server:', error);
-      this.updateSyncStatus({ 
-        status: 'error', 
-        errorMessage: 'Failed to sync from server' 
+      this.updateSyncStatus({
+        status: 'error',
+        errorMessage: 'Failed to sync from server',
       });
     }
   }
@@ -401,11 +397,7 @@ export class PreferencesSync {
   private hasConflict(local: DashboardPreferences, server: DashboardPreferences): boolean {
     // Conflict exists if both have been modified since last known version
     // and they have different device sync IDs
-    return (
-      local.version > this.lastKnownVersion &&
-      server.version > this.lastKnownVersion &&
-      local.deviceSyncId !== server.deviceSyncId
-    );
+    return local.version > this.lastKnownVersion && server.version > this.lastKnownVersion && local.deviceSyncId !== server.deviceSyncId;
   }
 
   /**
@@ -451,17 +443,16 @@ export class PreferencesSync {
       if (useLocal) {
         await this.syncToServer(resolvedPrefs);
       } else {
-        this.updateSyncStatus({ 
-          status: 'synced', 
-          lastSync: new Date().toISOString() 
+        this.updateSyncStatus({
+          status: 'synced',
+          lastSync: new Date().toISOString(),
         });
       }
-
     } catch (error) {
       console.error('Failed to resolve conflict:', error);
-      this.updateSyncStatus({ 
-        status: 'error', 
-        errorMessage: 'Failed to resolve conflict' 
+      this.updateSyncStatus({
+        status: 'error',
+        errorMessage: 'Failed to resolve conflict',
       });
     }
   }
@@ -473,37 +464,33 @@ export class PreferencesSync {
     try {
       this.updateSyncStatus({ status: 'syncing' });
 
-      const response = await fetch(
-        `/api/preferences/sync/${this.userId}?force=true`,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.jwt}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/preferences/sync/${this.userId}?force=true`, {
+        headers: {
+          Authorization: `Bearer ${this.jwt}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Force sync failed: ${response.statusText}`);
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         const serverPrefs = DashboardPreferencesSchema.parse(data.data);
         this.saveLocalPreferences(serverPrefs);
         this.lastKnownVersion = serverPrefs.version;
       }
 
-      this.updateSyncStatus({ 
-        status: 'synced', 
-        lastSync: new Date().toISOString() 
+      this.updateSyncStatus({
+        status: 'synced',
+        lastSync: new Date().toISOString(),
       });
-
     } catch (error) {
       console.error('Failed to force sync from server:', error);
-      this.updateSyncStatus({ 
-        status: 'error', 
-        errorMessage: 'Failed to force sync from server' 
+      this.updateSyncStatus({
+        status: 'error',
+        errorMessage: 'Failed to force sync from server',
       });
     }
   }
@@ -525,8 +512,9 @@ export class PreferencesSync {
    */
   public destroy(): void {
     this.stopSync();
-    window.removeEventListener('online', this.handleOnline);
-    window.removeEventListener('offline', this.handleOffline);
+    window.removeEventListener('online', this.onlineHandler);
+    window.removeEventListener('offline', this.offlineHandler);
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
     this.syncCallbacks = [];
   }
 }

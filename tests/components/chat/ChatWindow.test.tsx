@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import {  describe, it, expect , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
 import { ChatWindow } from '../../../src/features/chat/client/components/ChatWindow';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('ChatWindow', () => {
   const createMockStore = (openChat = false) => {
     const store = configureStore({ jwt: 'test-jwt', settings: {} });

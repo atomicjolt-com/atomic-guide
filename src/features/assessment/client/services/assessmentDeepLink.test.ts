@@ -3,7 +3,14 @@
  * @module features/assessment/client/services/assessmentDeepLink.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// Mock modules BEFORE other imports
+import { vi } from 'vitest';
+vi.mock('@shared/client/services/deepLinkingService', () => ({
+  submitDeepLink: vi.fn(),
+  signDeepLink: vi.fn(),
+}));
+
+import { describe, it, expect, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import {
   createAssessmentDeepLink,
   submitAssessmentDeepLink,
@@ -14,14 +21,9 @@ import {
 } from './assessmentDeepLink';
 import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 
+import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock fetch globally
 global.fetch = vi.fn();
-
-// Mock the shared deep linking service
-vi.mock('@shared/client/services/deepLinkingService', () => ({
-  submitDeepLink: vi.fn(),
-  signDeepLink: vi.fn(),
-}));
 
 describe('assessmentDeepLink service', () => {
   const mockAssessmentConfig: AssessmentConfig = {
@@ -55,8 +57,12 @@ describe('assessmentDeepLink service', () => {
     showFeedback: true,
   };
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+  beforeEach(async () => {
+    // Setup test infrastructure - removed ServiceTestHarness as this tests client-side service functions
+    
+    
+    ;
+  
   });
 
   afterEach(() => {
