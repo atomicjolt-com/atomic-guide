@@ -23,9 +23,10 @@ interface LearningPattern {
 }
 
 interface LearningInsightsProps {
-  metrics: InsightMetric[];
-  topicFrequencies: TopicFrequency[];
-  learningPatterns: LearningPattern[];
+  jwt: string;
+  metrics?: InsightMetric[];
+  topicFrequencies?: TopicFrequency[];
+  learningPatterns?: LearningPattern[];
   learningStyle?: {
     type: 'visual' | 'auditory' | 'kinesthetic' | 'reading_writing';
     confidence: number;
@@ -33,10 +34,22 @@ interface LearningInsightsProps {
   isLoading?: boolean;
 }
 
+// Default mock data for development
+const defaultMetrics: InsightMetric[] = [
+  { label: 'Total Questions', value: '0', trend: 'neutral' },
+  { label: 'Topics Explored', value: '0', trend: 'neutral' },
+  { label: 'Avg Response Time', value: '0s', trend: 'neutral' },
+  { label: 'Study Sessions', value: '0', trend: 'neutral' }
+];
+
+const defaultTopicFrequencies: TopicFrequency[] = [];
+const defaultLearningPatterns: LearningPattern[] = [];
+
 export default function LearningInsights({
-  metrics,
-  topicFrequencies,
-  learningPatterns,
+  jwt,
+  metrics = defaultMetrics,
+  topicFrequencies = defaultTopicFrequencies,
+  learningPatterns = defaultLearningPatterns,
   learningStyle,
   isLoading = false
 }: LearningInsightsProps) {
@@ -149,6 +162,23 @@ export default function LearningInsights({
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
           <p>Analyzing your learning patterns...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no data
+  if (metrics.length === 0 && topicFrequencies.length === 0 && learningPatterns.length === 0) {
+    return (
+      <div className={styles.learningInsights}>
+        <div className={styles.header}>
+          <h2>Learning Insights</h2>
+          <p className={styles.subtitle}>
+            Track your progress and understand your learning patterns
+          </p>
+        </div>
+        <div className={styles.emptyState}>
+          <p>No learning data available yet. Start using the chat assistant to see your insights!</p>
         </div>
       </div>
     );

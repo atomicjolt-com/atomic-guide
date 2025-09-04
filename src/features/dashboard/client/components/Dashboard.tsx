@@ -4,13 +4,14 @@
  */
 
 import { ReactElement, useState } from 'react';
-import StudentPerformanceOverview from './StudentPerformanceOverview';
-import LearningInsights from './LearningInsights';
-import BenchmarkComparison from './BenchmarkComparison';
-import DataExportInterface from './DataExportInterface';
-import SuggestionAnalytics from './SuggestionAnalytics';
-import ChatHistory from './ChatHistory';
-import SyncStatusIndicator from './SyncStatusIndicator';
+import {
+  StudentPerformanceOverviewWrapper,
+  BenchmarkComparisonWrapper,
+  DataExportInterfaceWrapper,
+  ChatHistoryWrapper,
+  SuggestionAnalyticsWrapper,
+  LearningInsightsWrapper
+} from './DashboardWrapper';
 import type { LaunchSettings } from '@atomicjolt/lti-client';
 
 /**
@@ -38,32 +39,32 @@ export function Dashboard({ launchSettings }: { launchSettings: LaunchSettings }
     { 
       id: 'overview', 
       label: 'Performance Overview',
-      component: <StudentPerformanceOverview jwt={launchSettings.jwt} />
+      component: <StudentPerformanceOverviewWrapper jwt={launchSettings.jwt} />
     },
     { 
       id: 'insights', 
       label: 'Learning Insights',
-      component: <LearningInsights jwt={launchSettings.jwt} />
+      component: <LearningInsightsWrapper jwt={launchSettings.jwt} />
     },
     { 
       id: 'benchmarks', 
       label: 'Benchmarks',
-      component: <BenchmarkComparison jwt={launchSettings.jwt} />
+      component: <BenchmarkComparisonWrapper jwt={launchSettings.jwt} />
     },
     { 
       id: 'analytics', 
       label: 'Suggestion Analytics',
-      component: <SuggestionAnalytics jwt={launchSettings.jwt} />
+      component: <SuggestionAnalyticsWrapper jwt={launchSettings.jwt} />
     },
     { 
       id: 'history', 
       label: 'Chat History',
-      component: <ChatHistory jwt={launchSettings.jwt} />
+      component: <ChatHistoryWrapper jwt={launchSettings.jwt} />
     },
     { 
       id: 'export', 
       label: 'Export Data',
-      component: <DataExportInterface jwt={launchSettings.jwt} />
+      component: <DataExportInterfaceWrapper jwt={launchSettings.jwt} />
     }
   ];
 

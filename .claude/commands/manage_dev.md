@@ -168,7 +168,10 @@ next: story_review
 
 workflow-start:
 
-1. Find the latest story in docs/stories. Stories are numbered 1.1, 1.2 etc. Only read the most recent story 2. Determine story status by checking for "## Status" section 3. Route to appropriate workflow based on status:
+1. If you are given a specific story to work on. Then focus on that one story. Otherwise find the
+   latest story in docs/stories. Stories are numbered 1.1, 1.2 etc. Only read the most recent story
+2. Determine story status by checking for "## Status" section
+3. Route to appropriate workflow based on status:
 
 - If "Done": execute workflow-new
 - If "In Progress": execute workflow-in-progress
