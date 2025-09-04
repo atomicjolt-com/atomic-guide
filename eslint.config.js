@@ -18,6 +18,7 @@ export default [
       'public/manifest.json',
       'worker-configuration.d.ts',
       'types.d.ts',
+      '.*/**', // Ignore all hidden directories
     ],
   },
   js.configs.recommended,
