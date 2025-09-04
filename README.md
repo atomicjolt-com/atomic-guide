@@ -26,7 +26,7 @@ npm run dev
 
 Visit `http://localhost:5988/test` to see the application.
 
-**Live Demo**: [https://guide.atomicjolt.xyz](https://guide.atomicjolt.xyz)  
+**Live Demo**: [https://guide.atomicjolt.xyz](https://guide.atomicjolt.xyz)
 **LTI Registration**: `https://guide.atomicjolt.xyz/lti/register`
 
 ## 📖 Documentation
