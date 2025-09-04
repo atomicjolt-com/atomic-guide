@@ -4,21 +4,23 @@
  * @module client/app
  */
 
-import { ReactElement, StrictMode } from 'react';
+import { ReactElement, StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import type { LaunchSettings } from '@atomicjolt/lti-client';
 import { configureStore } from './store';
 import { ChatFAB, ChatWindow } from '@features/chat/client/components';
+import { Dashboard } from '@features/dashboard/client/components';
 import { DeepLinkingInterface } from '@features/assessment/client/components';
 import { LtiLaunchCheck } from '@atomicjolt/lti-components';
+import '@features/dashboard/styles/atomic-jolt-dashboard.css';
 
 /**
  * Main application component for LTI 1.3 tool.
  *
  * Conditionally renders based on launch context:
- * - Deep linking: Shows deep linking interface (currently placeholder)
- * - Standard launch: Renders chat interface components
+ * - Deep linking: Shows deep linking interface
+ * - Standard launch: Renders main application with chat and dashboard views
  *
  * @component
  * @param launchSettings - LTI launch configuration including JWT and deep linking flag
@@ -29,17 +31,44 @@ import { LtiLaunchCheck } from '@atomicjolt/lti-components';
  * ```
  */
 function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactElement {
+  const [activeView, setActiveView] = useState<'chat' | 'dashboard'>('chat');
+  
   if (launchSettings.deepLinking) {
     // Deep linking mode - show assessment builder interface
     return <DeepLinkingInterface launchSettings={launchSettings} />;
   }
 
   return (
-    <>
-      <h1>Chat</h1>
-      <ChatFAB />
-      <ChatWindow />
-    </>
+    <div className="app-container">
+      <nav className="app-navigation">
+        <button
+          className={`nav-button ${activeView === 'chat' ? 'active' : ''}`}
+          onClick={() => setActiveView('chat')}
+          aria-current={activeView === 'chat' ? 'page' : undefined}
+        >
+          Chat Assistant
+        </button>
+        <button
+          className={`nav-button ${activeView === 'dashboard' ? 'active' : ''}`}
+          onClick={() => setActiveView('dashboard')}
+          aria-current={activeView === 'dashboard' ? 'page' : undefined}
+        >
+          Analytics Dashboard
+        </button>
+      </nav>
+      
+      <main className="app-content">
+        {activeView === 'chat' ? (
+          <div className="chat-container">
+            <h1>Learning Assistant</h1>
+            <ChatFAB />
+            <ChatWindow />
+          </div>
+        ) : (
+          <Dashboard launchSettings={launchSettings} />
+        )}
+      </main>
+    </div>
   );
 }
 
