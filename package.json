@@ -12,6 +12,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint-fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write .",
     "tail": "wrangler tail --format pretty",
     "types": "wrangler types",
     "db:create": "wrangler d1 create atomic-guide-db",
