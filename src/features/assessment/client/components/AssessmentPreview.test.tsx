@@ -284,7 +284,22 @@ describe('AssessmentPreview', () => {
       const user = userEvent.setup();
       const onSubmit = vi.fn();
 
-      render(<AssessmentPreview {...defaultProps} onSubmit={onSubmit} />);
+      // Create config with questions so button is not disabled
+      const configWithQuestions: AssessmentConfig = {
+        ...defaultAssessmentConfig,
+        questions: [
+          {
+            id: '1',
+            text: 'Test question',
+            type: 'multiple_choice',
+            points: 10,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+          },
+        ],
+      };
+
+      render(<AssessmentPreview {...defaultProps} config={configWithQuestions} onSubmit={onSubmit} />);
 
       const submitButton = screen.getByRole('button', { name: /create link/i });
       await user.click(submitButton);

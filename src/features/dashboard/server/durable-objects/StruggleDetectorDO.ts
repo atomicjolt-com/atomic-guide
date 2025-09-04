@@ -434,7 +434,7 @@ export class StruggleDetectorDO {
   /**
    * Get realtime status
    */
-  private async getRealtimeStatus(request: Request): Promise<Response> {
+  private async getRealtimeStatus(_request: Request): Promise<Response> {
     try {
       // Get stored session data for the test
       const sessionData = await this.storage.get('current_session');
@@ -455,7 +455,7 @@ export class StruggleDetectorDO {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
-    } catch (error) {
+    } catch (_error) {
       return new Response(JSON.stringify({ error: 'Failed to get status' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
@@ -515,7 +515,7 @@ export class StruggleDetectorDO {
       try {
         const data = JSON.parse(event.data as string);
         await this.handleWebSocketMessage(data);
-      } catch (error) {
+      } catch (_error) {
         webSocket.send(JSON.stringify({ error: 'Invalid message format' }));
       }
     });

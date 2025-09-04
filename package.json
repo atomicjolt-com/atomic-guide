@@ -29,7 +29,8 @@
     "db:export": "wrangler d1 export atomic-guide-db --output=backup.sql",
     "db:local": "wrangler d1 execute atomic-guide-db --local --command",
     "kv:setup": "node scripts/kv-setup.cjs",
-    "kv:destroy": "node scripts/kv-cleanup.cjs"
+    "kv:destroy": "node scripts/kv-cleanup.cjs",
+    "generate-synthetic-data": "tsx scripts/generate-synthetic-data.ts"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.12.0",
@@ -67,6 +68,7 @@
     "@atomicjolt/lti-server": "^3.3.2",
     "@atomicjolt/lti-types": "^1.2.7",
     "@cloudflare/ai": "^1.2.2",
+    "@hono/zod-validator": "^0.7.2",
     "@reduxjs/toolkit": "^2.8.2",
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.8",

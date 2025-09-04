@@ -92,7 +92,7 @@ describe('DeepLinkingInterface', () => {
     await user.click(previewButton);
 
     // Should show error about needing questions
-    expect(screen.getByText(/Please add a title and at least one question before previewing/i)).toBeInTheDocument();
+    expect(screen.getByText(/You haven't added any questions yet/i)).toBeInTheDocument();
   });
 
   it('should handle assessment configuration changes', async () => {
@@ -182,7 +182,7 @@ describe('DeepLinkingInterface', () => {
     await user.click(previewButton);
 
     // Should show error message
-    expect(screen.getByText(/Please add a title/i)).toBeInTheDocument();
+    expect(screen.getByText(/Please add a title before previewing/i)).toBeInTheDocument();
   });
 
   it('should validate required fields before submission', async () => {
@@ -199,7 +199,7 @@ describe('DeepLinkingInterface', () => {
     await user.click(previewButton);
 
     // Should show validation error
-    expect(screen.getByText(/Please add a title/i)).toBeInTheDocument();
+    expect(screen.getByText(/Please add a title before previewing/i)).toBeInTheDocument();
 
     // Should not proceed to preview
     expect(screen.queryByText(/Assessment Preview/i)).not.toBeInTheDocument();
