@@ -20,6 +20,8 @@ Welcome to the Atomic Guide documentation! This is your comprehensive guide to u
 - [High-Level Architecture](./architecture/2-high-level-architecture.md) - Components and interactions
 - [Tech Stack](./architecture/3-tech-stack.md) - Technology choices and rationale
 - [Vertical Slice Architecture](./architecture/vertical-slice-refactoring.md) - Code organization
+- [Features Directory](./architecture/features-directory.md) - Feature module structure
+- [Shared Module](./architecture/shared-module.md) - Cross-cutting concerns
 - [Database Schema](./architecture/9-database-schema.md) - D1 database design
 
 ### [Features](./features/)
@@ -28,6 +30,7 @@ Welcome to the Atomic Guide documentation! This is your comprehensive guide to u
 - [Learning Analytics](./features/analytics.md) - Performance tracking dashboard
 - [Deep Linking](./features/deep-linking.md) - LTI content integration
 - [FAQ System](./features/faq.md) - Semantic search knowledge base
+- [Learner DNA](./features/learner-dna.md) - Synthetic data generation framework
 
 ### [API Reference](./api/)
 - [Endpoints](./api/endpoints.md) - Complete API documentation
