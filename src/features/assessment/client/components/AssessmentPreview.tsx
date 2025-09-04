@@ -112,11 +112,11 @@ export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting, isIn
         </div>
 
         {/* Questions Section - Always show */}
-        {config.questions && (
-          <div className={styles.questions}>
-            <h3>
-              Questions ({config.questions.length} question{config.questions.length !== 1 ? 's' : ''})
-            </h3>
+        <div className={styles.questions}>
+          <h3>
+            Questions ({config.questions?.length || 0} question{config.questions?.length !== 1 ? 's' : ''})
+          </h3>
+          {config.questions && config.questions.length > 0 ? (
             <div className={styles.questionList}>
               {config.questions.map((question, index) => (
                 <div key={question.id} className={styles.questionItem}>
@@ -133,8 +133,12 @@ export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting, isIn
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className={styles.noQuestions}>
+              <p>No questions have been added yet. Please go back and add questions before submitting.</p>
+            </div>
+          )}
+        </div>
 
         {/* AI Guidance Details */}
         {config.aiGuidance && (
@@ -184,7 +188,7 @@ export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting, isIn
                 <div className={styles.studentInfo}>
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>Questions:</span>
-                    <span>{config.questions.length}</span>
+                    <span>{config.questions?.length || 0}</span>
                   </div>
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>Points:</span>
@@ -204,7 +208,7 @@ export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting, isIn
               </div>
 
               <div className={styles.studentQuestions}>
-                {config.questions.map((question, index) => (
+                {config.questions && config.questions.length > 0 ? config.questions.map((question, index) => (
                   <div key={question.id} className={styles.studentQuestion}>
                     <div className={styles.studentQuestionHeader}>
                       <span className={styles.questionNum}>Question {index + 1}</span>
@@ -246,7 +250,11 @@ export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting, isIn
                       </div>
                     )}
                   </div>
-                ))}
+                )) : (
+                  <div className={styles.noQuestions}>
+                    <p>No questions have been added yet.</p>
+                  </div>
+                )}
               </div>
 
               <div className={styles.studentActions}>
@@ -266,7 +274,12 @@ export function AssessmentPreview({ config, onBack, onSubmit, isSubmitting, isIn
         <button className={styles.backButton} onClick={onBack} disabled={isSubmitting}>
           Back to Edit
         </button>
-        <button className={styles.submitButton} onClick={onSubmit} disabled={isSubmitting}>
+        <button 
+          className={styles.submitButton} 
+          onClick={onSubmit} 
+          disabled={isSubmitting || !config.questions || config.questions.length === 0}
+          title={!config.questions || config.questions.length === 0 ? 'Please add questions before submitting' : ''}
+        >
           {isSubmitting ? 'Creating...' : 'Create Link'}
         </button>
       </div>

@@ -65,9 +65,12 @@ export function DeepLinkingInterface({
    * Handles preview navigation
    */
   const handlePreview = (): void => {
-    if (!assessmentConfig.title || assessmentConfig.questions.length === 0) {
-      setError('Please add a title and at least one question before previewing');
+    if (!assessmentConfig.title) {
+      setError('Please add a title before previewing');
       return;
+    }
+    if (assessmentConfig.questions.length === 0) {
+      setError('Note: You haven\'t added any questions yet. You can preview the assessment structure, but you\'ll need to add questions before submitting.');
     }
     setCurrentStep('preview');
   };
@@ -153,6 +156,7 @@ export function DeepLinkingInterface({
           onConfigChange={handleConfigUpdate}
           onPreview={handlePreview}
           contentContext={launchSettings.customParameters?.content_context}
+          jwt={launchSettings.jwt}
         />
       )}
 
