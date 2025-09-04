@@ -19,7 +19,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
   onContentExtracted,
   onExtractionError,
   enableAutoExtraction = true,
-  enableMonitoring = true
+  enableMonitoring = true,
 }) => {
   const [status, setStatus] = useState<ExtractionStatus>('idle');
   const [analysisResults, setAnalysisResults] = useState<any>(null);
@@ -34,7 +34,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
     extract,
     startMonitoring,
     stopMonitoring,
-    isMonitoring
+    isMonitoring,
   } = useLMSContent({
     autoExtract: enableAutoExtraction,
     autoMonitor: false,
@@ -44,7 +44,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
       if (onExtractionError) {
         onExtractionError(err);
       }
-      
+
       if (retryCount >= 2) {
         setShowManualInput(true);
         setStatus('fallback');
@@ -53,7 +53,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
     onContentChange: (change) => {
       console.log('Content changed, re-analyzing...', change);
       analyzeContent(change.current);
-    }
+    },
   });
 
   useEffect(() => {
@@ -62,54 +62,57 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
     }
   }, [isExtracting]);
 
-  const analyzeContent = useCallback(async (contentData: any) => {
-    setStatus('analyzing');
-    
-    try {
-      const response = await fetch('/api/content/extract', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...contentData,
-          instructorConsent: true
-        })
-      });
+  const analyzeContent = useCallback(
+    async (contentData: any) => {
+      setStatus('analyzing');
 
-      if (!response.ok) {
-        throw new Error('Failed to analyze content');
-      }
+      try {
+        const response = await fetch('/api/content/extract', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...contentData,
+            instructorConsent: true,
+          }),
+        });
 
-      const result = await response.json();
-      
-      const contextResponse = await fetch(`/api/content/context/${encodeURIComponent(contentData.pageUrl)}`);
-      
-      if (contextResponse.ok) {
-        const contextData = await contextResponse.json();
-        setAnalysisResults(contextData);
-        setStatus('ready');
-        
-        if (onContentExtracted) {
-          onContentExtracted(contextData);
+        if (!response.ok) {
+          throw new Error('Failed to analyze content');
         }
-      } else {
-        setStatus('ready');
-        if (onContentExtracted) {
-          onContentExtracted(result);
+
+        const result = await response.json();
+
+        const contextResponse = await fetch(`/api/content/context/${encodeURIComponent(contentData.pageUrl)}`);
+
+        if (contextResponse.ok) {
+          const contextData = await contextResponse.json();
+          setAnalysisResults(contextData);
+          setStatus('ready');
+
+          if (onContentExtracted) {
+            onContentExtracted(contextData);
+          }
+        } else {
+          setStatus('ready');
+          if (onContentExtracted) {
+            onContentExtracted(result);
+          }
+        }
+      } catch (err) {
+        console.error('Content analysis error:', err);
+        setError('Failed to analyze content');
+        setStatus('error');
+
+        if (retryCount >= 2) {
+          setShowManualInput(true);
+          setStatus('fallback');
         }
       }
-    } catch (err) {
-      console.error('Content analysis error:', err);
-      setError('Failed to analyze content');
-      setStatus('error');
-      
-      if (retryCount >= 2) {
-        setShowManualInput(true);
-        setStatus('fallback');
-      }
-    }
-  }, [onContentExtracted, retryCount]);
+    },
+    [onContentExtracted, retryCount]
+  );
 
   useEffect(() => {
     if (content && !isExtracting) {
@@ -128,60 +131,63 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
   const handleRetry = useCallback(() => {
     setError(null);
     setStatus('idle');
-    setRetryCount(prev => prev + 1);
+    setRetryCount((prev) => prev + 1);
     extract();
   }, [extract]);
 
-  const handleManualSubmit = useCallback(async (content: string, metadata: any) => {
-    setStatus('analyzing');
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/content/extract', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pageUrl: metadata.url || pageUrl || window.location.href,
-          pageType: metadata.type || 'page',
-          content: {
-            html: content,
-            text: content,
-            title: metadata.title || 'Manual Content',
-            metadata: {
-              headings: [],
-              links: [],
-              images: [],
-              lists: [],
-              emphasis: [],
-              tables: []
-            }
+  const handleManualSubmit = useCallback(
+    async (content: string, metadata: any) => {
+      setStatus('analyzing');
+      setError(null);
+
+      try {
+        const response = await fetch('/api/content/extract', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          timestamp: new Date().toISOString(),
-          contentHash: btoa(content.substring(0, 100)),
-          instructorConsent: metadata.instructorConsent
-        })
-      });
+          body: JSON.stringify({
+            pageUrl: metadata.url || pageUrl || window.location.href,
+            pageType: metadata.type || 'page',
+            content: {
+              html: content,
+              text: content,
+              title: metadata.title || 'Manual Content',
+              metadata: {
+                headings: [],
+                links: [],
+                images: [],
+                lists: [],
+                emphasis: [],
+                tables: [],
+              },
+            },
+            timestamp: new Date().toISOString(),
+            contentHash: btoa(content.substring(0, 100)),
+            instructorConsent: metadata.instructorConsent,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to analyze content');
-      }
+        if (!response.ok) {
+          throw new Error('Failed to analyze content');
+        }
 
-      const result = await response.json();
-      setAnalysisResults(result);
-      setStatus('ready');
-      setShowManualInput(false);
-      
-      if (onContentExtracted) {
-        onContentExtracted(result);
+        const result = await response.json();
+        setAnalysisResults(result);
+        setStatus('ready');
+        setShowManualInput(false);
+
+        if (onContentExtracted) {
+          onContentExtracted(result);
+        }
+      } catch (err) {
+        console.error('Manual content analysis error:', err);
+        setError('Failed to analyze manual content');
+        setStatus('error');
       }
-    } catch (err) {
-      console.error('Manual content analysis error:', err);
-      setError('Failed to analyze manual content');
-      setStatus('error');
-    }
-  }, [pageUrl, onContentExtracted]);
+    },
+    [pageUrl, onContentExtracted]
+  );
 
   const renderStatus = () => {
     switch (status) {
@@ -192,7 +198,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
             <span>Waiting to extract content...</span>
           </div>
         );
-      
+
       case 'extracting':
         return (
           <div className={styles.status}>
@@ -200,7 +206,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
             <span>Extracting page content...</span>
           </div>
         );
-      
+
       case 'analyzing':
         return (
           <div className={styles.status}>
@@ -208,7 +214,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
             <span>Analyzing content...</span>
           </div>
         );
-      
+
       case 'ready':
         return (
           <div className={styles.status}>
@@ -222,7 +228,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
             )}
           </div>
         );
-      
+
       case 'error':
         return (
           <div className={styles.status}>
@@ -236,10 +242,10 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
             </div>
           </div>
         );
-      
+
       case 'fallback':
         return null;
-      
+
       default:
         return null;
     }
@@ -284,9 +290,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
               {contentData.processedContent.learningObjectives.slice(0, 3).map((obj: any, idx: number) => (
                 <li key={idx}>
                   <span className={styles.objectiveText}>{obj.objective}</span>
-                  <span className={`${styles.bloomLevel} ${styles[`bloom${obj.bloomLevel}`]}`}>
-                    {obj.bloomLevel}
-                  </span>
+                  <span className={`${styles.bloomLevel} ${styles[`bloom${obj.bloomLevel}`]}`}>{obj.bloomLevel}</span>
                 </li>
               ))}
             </ul>
@@ -308,12 +312,7 @@ export const ContentAwareness: React.FC<ContentAwarenessProps> = ({
   if (showManualInput) {
     return (
       <div className={styles.container}>
-        <ManualContentInput
-          onContentSubmit={handleManualSubmit}
-          isLoading={status === 'analyzing'}
-          error={error}
-          pageUrl={pageUrl}
-        />
+        <ManualContentInput onContentSubmit={handleManualSubmit} isLoading={status === 'analyzing'} error={error} pageUrl={pageUrl} />
       </div>
     );
   }

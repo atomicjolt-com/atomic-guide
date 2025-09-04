@@ -59,10 +59,6 @@ describe('assessmentDeepLink service', () => {
 
   beforeEach(async () => {
     // Setup test infrastructure - removed ServiceTestHarness as this tests client-side service functions
-    
-    
-    ;
-  
   });
 
   afterEach(() => {
@@ -105,9 +101,9 @@ describe('assessmentDeepLink service', () => {
         ...mockAssessmentConfig,
         title: undefined,
       };
-      
+
       const result = createAssessmentDeepLink(configWithoutTitle as AssessmentConfig, 'https://test.com');
-      
+
       expect(result.title).toBe('formative Assessment');
       expect(result.lineItem?.label).toBe('AI-Guided Assessment');
     });
@@ -115,7 +111,7 @@ describe('assessmentDeepLink service', () => {
     it('should generate unique resource IDs', () => {
       const link1 = createAssessmentDeepLink(mockAssessmentConfig, 'https://test.com');
       const link2 = createAssessmentDeepLink(mockAssessmentConfig, 'https://test.com');
-      
+
       expect(link1.lineItem?.resourceId).not.toBe(link2.lineItem?.resourceId);
     });
   });
@@ -133,13 +129,8 @@ describe('assessmentDeepLink service', () => {
       } as Response);
 
       const { submitDeepLink } = await import('@shared/client/services/deepLinkingService');
-      
-      const result = await submitAssessmentDeepLink(
-        mockAssessmentConfig,
-        mockJWT,
-        launchUrl,
-        returnUrl
-      );
+
+      const result = await submitAssessmentDeepLink(mockAssessmentConfig, mockJWT, launchUrl, returnUrl);
 
       expect(result).toBe(mockSignedJWT);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -163,12 +154,7 @@ describe('assessmentDeepLink service', () => {
       } as Response);
 
       await expect(
-        submitAssessmentDeepLink(
-          mockAssessmentConfig,
-          'invalid.jwt',
-          'https://test.com',
-          'https://canvas.test'
-        )
+        submitAssessmentDeepLink(mockAssessmentConfig, 'invalid.jwt', 'https://test.com', 'https://canvas.test')
       ).rejects.toThrow('Failed to sign deep link: Unauthorized');
     });
 
@@ -178,14 +164,9 @@ describe('assessmentDeepLink service', () => {
         json: async () => ({}),
       } as Response);
 
-      await expect(
-        submitAssessmentDeepLink(
-          mockAssessmentConfig,
-          'auth.jwt',
-          'https://test.com',
-          'https://canvas.test'
-        )
-      ).rejects.toThrow('No JWT received from signing endpoint');
+      await expect(submitAssessmentDeepLink(mockAssessmentConfig, 'auth.jwt', 'https://test.com', 'https://canvas.test')).rejects.toThrow(
+        'No JWT received from signing endpoint'
+      );
     });
   });
 
@@ -215,7 +196,7 @@ describe('assessmentDeepLink service', () => {
     it('should generate unique IDs', () => {
       const id1 = generateAssessmentId();
       const id2 = generateAssessmentId();
-      
+
       expect(id1).toMatch(/^asmt-\d+-[a-z0-9]+$/);
       expect(id2).toMatch(/^asmt-\d+-[a-z0-9]+$/);
       expect(id1).not.toBe(id2);
@@ -230,7 +211,7 @@ describe('assessmentDeepLink service', () => {
       };
 
       const result = extractAssessmentConfig(customParams);
-      
+
       expect(result).toEqual(mockAssessmentConfig);
     });
 
@@ -240,31 +221,28 @@ describe('assessmentDeepLink service', () => {
       };
 
       const result = extractAssessmentConfig(customParams);
-      
+
       expect(result).toBeNull();
     });
 
     it('should handle invalid JSON safely', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       const customParams = {
         assessment_config: 'not valid json{',
       };
 
       const result = extractAssessmentConfig(customParams);
-      
+
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Invalid JSON in assessment configuration:',
-        expect.any(Error)
-      );
-      
+      expect(consoleSpy).toHaveBeenCalledWith('Invalid JSON in assessment configuration:', expect.any(Error));
+
       consoleSpy.mockRestore();
     });
 
     it('should handle validation errors', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       const customParams = {
         assessment_config: JSON.stringify({
           // Invalid config - missing required fields
@@ -273,29 +251,26 @@ describe('assessmentDeepLink service', () => {
       };
 
       const result = extractAssessmentConfig(customParams);
-      
+
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Assessment configuration validation failed:',
-        expect.any(Object)
-      );
-      
+      expect(consoleSpy).toHaveBeenCalledWith('Assessment configuration validation failed:', expect.any(Object));
+
       consoleSpy.mockRestore();
     });
 
     it('should handle JSON injection attempts', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       // Attempt to inject malicious JSON
       const customParams = {
         assessment_config: '{"__proto__": {"isAdmin": true}, "assessmentType": "formative"}',
       };
 
       const result = extractAssessmentConfig(customParams);
-      
+
       // Should fail validation due to missing required fields
       expect(result).toBeNull();
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -303,7 +278,7 @@ describe('assessmentDeepLink service', () => {
   describe('createGradePassback', () => {
     it('should create passing grade passback', () => {
       const result = createGradePassback(85, mockAssessmentConfig);
-      
+
       expect(result).toEqual({
         scoreGiven: 85,
         scoreMaximum: 100,
@@ -315,7 +290,7 @@ describe('assessmentDeepLink service', () => {
 
     it('should create failing grade passback', () => {
       const result = createGradePassback(50, mockAssessmentConfig);
-      
+
       expect(result).toEqual({
         scoreGiven: 50,
         scoreMaximum: 100,
@@ -330,9 +305,9 @@ describe('assessmentDeepLink service', () => {
         ...mockAssessmentConfig,
         masteryThreshold: 90,
       };
-      
+
       const result = createGradePassback(75, config);
-      
+
       expect(result.comment).toBe('Assessment completed. Passed. Mastery not yet achieved.');
     });
 
@@ -340,7 +315,7 @@ describe('assessmentDeepLink service', () => {
       const result1 = createGradePassback(0, mockAssessmentConfig);
       expect(result1.scoreGiven).toBe(0);
       expect(result1.comment).toContain('Did not pass');
-      
+
       const result2 = createGradePassback(100, mockAssessmentConfig);
       expect(result2.scoreGiven).toBe(100);
       expect(result2.comment).toContain('Passed');

@@ -4,8 +4,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import type { 
-  LearnerProfile, 
+import type {
+  LearnerProfile,
   Tenant,
   LearnerDNAProfile,
   CognitiveProfile,
@@ -13,7 +13,7 @@ import type {
   LearningSessionData,
   PrivacyConsent,
   StudentPerformanceProfile,
-  LearningRecommendation
+  LearningRecommendation,
 } from '@/types';
 
 /**
@@ -72,15 +72,15 @@ export class UserBuilder extends BaseBuilder<LearnerProfile> {
         forgetting_curve_s: 1.0,
         learning_velocity: 1.0,
         optimal_difficulty: 0.7,
-        preferred_modality: 'mixed'
+        preferred_modality: 'mixed',
       },
       privacy_settings: {
         data_sharing_consent: true,
         ai_interaction_consent: true,
-        anonymous_analytics: true
+        anonymous_analytics: true,
       },
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
   }
 
@@ -118,7 +118,7 @@ export class UserBuilder extends BaseBuilder<LearnerProfile> {
     this.data.privacy_settings = {
       data_sharing_consent: false,
       ai_interaction_consent: false,
-      anonymous_analytics: false
+      anonymous_analytics: false,
     };
     return this;
   }
@@ -127,7 +127,7 @@ export class UserBuilder extends BaseBuilder<LearnerProfile> {
     this.data.privacy_settings = {
       data_sharing_consent: true,
       ai_interaction_consent: true,
-      anonymous_analytics: true
+      anonymous_analytics: true,
     };
     return this;
   }
@@ -165,16 +165,16 @@ export class TenantBuilder extends BaseBuilder<Tenant> {
         features: {
           aiEnabled: true,
           analyticsEnabled: true,
-          privacyEnhanced: false
-        }
+          privacyEnhanced: false,
+        },
       },
       features: {
         ai_enabled: true,
         analytics_enabled: true,
-        privacy_enhanced: false
+        privacy_enhanced: false,
       },
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
   }
 
@@ -222,12 +222,12 @@ export class CognitiveProfileBuilder extends BaseBuilder<CognitiveProfile> {
         subjectModifiers: {
           mathematics: 1.2,
           science: 1.1,
-          humanities: 0.9
+          humanities: 0.9,
         },
         timeOfDayFactors: Array(24).fill(1.0),
         currentRate: 2.5,
         confidence: 0.8,
-        dataPoints: 100
+        dataPoints: 100,
       },
       memoryRetention: {
         forgettingCurveS: 1.0,
@@ -235,19 +235,19 @@ export class CognitiveProfileBuilder extends BaseBuilder<CognitiveProfile> {
         optimalRepetitionIntervals: [1, 3, 7, 14, 30],
         lastReviewDate: new Date().toISOString(),
         confidence: 0.85,
-        dataPoints: 50
+        dataPoints: 50,
       },
       comprehensionStyle: {
         varkProfile: {
           visual: 0.3,
           auditory: 0.2,
           readingWriting: 0.3,
-          kinesthetic: 0.2
+          kinesthetic: 0.2,
         },
         bloomLevel: 'application',
         abstractionPreference: 0.6,
         confidence: 0.7,
-        dataPoints: 75
+        dataPoints: 75,
       },
       interactionTimingPatterns: {
         peakHours: [10, 14, 20],
@@ -256,7 +256,7 @@ export class CognitiveProfileBuilder extends BaseBuilder<CognitiveProfile> {
         focusDuration: 1200000, // 20 minutes
         dailyPatterns: Array(7).fill(1.0),
         confidence: 0.75,
-        dataPoints: 200
+        dataPoints: 200,
       },
       strugglePatterns: {
         frustrationThreshold: 0.7,
@@ -265,11 +265,11 @@ export class CognitiveProfileBuilder extends BaseBuilder<CognitiveProfile> {
         errorPatterns: {
           syntax: 0.2,
           logic: 0.3,
-          conceptual: 0.5
+          conceptual: 0.5,
         },
         recoveryRate: 0.6,
         confidence: 0.65,
-        dataPoints: 150
+        dataPoints: 150,
       },
       engagementMetrics: {
         intrinsicMotivation: 0.7,
@@ -277,15 +277,15 @@ export class CognitiveProfileBuilder extends BaseBuilder<CognitiveProfile> {
         socialLearningPreference: 0.6,
         competitiveIndex: 0.4,
         confidence: 0.8,
-        dataPoints: 100
+        dataPoints: 100,
       },
       demographicContext: {
         ageGroup: '18-24',
         educationLevel: 'undergraduate',
         fieldOfStudy: 'computer_science',
         priorKnowledge: 0.5,
-        languageProficiency: 1.0
-      }
+        languageProficiency: 1.0,
+      },
     });
   }
 
@@ -300,7 +300,7 @@ export class CognitiveProfileBuilder extends BaseBuilder<CognitiveProfile> {
       visual,
       auditory,
       readingWriting: reading,
-      kinesthetic
+      kinesthetic,
     };
     return this;
   }
@@ -346,12 +346,12 @@ export class SessionBuilder extends BaseBuilder<LearningSessionData> {
         { questionId: 'q2', correct: true, responseTime: 1500, attempts: 1 },
         { questionId: 'q3', correct: false, responseTime: 2000, attempts: 2 },
         { questionId: 'q4', correct: true, responseTime: 1200, attempts: 1 },
-        { questionId: 'q5', correct: true, responseTime: 1800, attempts: 1 }
+        { questionId: 'q5', correct: true, responseTime: 1800, attempts: 1 },
       ],
       metadata: {
         deviceType: 'desktop',
-        connectionQuality: 'good'
-      }
+        connectionQuality: 'good',
+      },
     });
   }
 
@@ -375,7 +375,7 @@ export class SessionBuilder extends BaseBuilder<LearningSessionData> {
     this.data.confusionEvents = Array.from({ length: count }, (_, i) => ({
       timestamp: new Date(Date.now() + i * 60000).toISOString(),
       type: 'high_response_time' as const,
-      severity: 0.5 + Math.random() * 0.5
+      severity: 0.5 + Math.random() * 0.5,
     }));
     return this;
   }
@@ -385,7 +385,7 @@ export class SessionBuilder extends BaseBuilder<LearningSessionData> {
     this.data.helpRequests = 5;
     this.data.confusionEvents = [
       { timestamp: new Date().toISOString(), type: 'repeated_errors', severity: 0.8 },
-      { timestamp: new Date().toISOString(), type: 'help_request', severity: 0.6 }
+      { timestamp: new Date().toISOString(), type: 'help_request', severity: 0.6 },
     ];
     return this;
   }
@@ -417,15 +417,15 @@ export class AnalyticsBuilder extends BaseBuilder<StudentPerformanceProfile> {
         arrays: 0.8,
         loops: 0.7,
         functions: 0.85,
-        objects: 0.65
+        objects: 0.65,
       },
       performanceData: {
         assessmentScores: [0.7, 0.75, 0.8, 0.85],
         averageResponseTime: 1500,
         struggledConcepts: ['recursion', 'async'],
-        masteredConcepts: ['variables', 'conditionals']
+        masteredConcepts: ['variables', 'conditionals'],
       },
-      recommendations: []
+      recommendations: [],
     });
   }
 
@@ -473,13 +473,13 @@ export class AssessmentBuilder {
       shuffleQuestions: false,
       showFeedback: true,
       timeLimit: null,
-      attempts: 1
+      attempts: 1,
     },
     metadata: {
       author: 'test-author',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+      updatedAt: new Date().toISOString(),
+    },
   };
 
   withTitle(title: string): this {
@@ -499,7 +499,7 @@ export class AssessmentBuilder {
       text: `Question ${i + 1}`,
       options: ['A', 'B', 'C', 'D'],
       correctAnswer: 'A',
-      points: 1
+      points: 1,
     }));
     return this;
   }
@@ -524,24 +524,12 @@ export class TestDataFactory {
   // Common presets for quick test data creation
   static presets = {
     // User presets
-    studentWithFullConsent: () => 
-      TestDataFactory.user()
-        .withFullConsent()
-        .withEmail('student@test.edu')
-        .withName('Test Student'),
-    
-    studentWithNoConsent: () =>
-      TestDataFactory.user()
-        .withNoConsent()
-        .withEmail('noconsent@test.edu')
-        .withName('No Consent Student'),
-    
-    minorStudent: () =>
-      TestDataFactory.user()
-        .asMinor(12)
-        .withEmail('minor@test.edu')
-        .withName('Minor Student'),
-    
+    studentWithFullConsent: () => TestDataFactory.user().withFullConsent().withEmail('student@test.edu').withName('Test Student'),
+
+    studentWithNoConsent: () => TestDataFactory.user().withNoConsent().withEmail('noconsent@test.edu').withName('No Consent Student'),
+
+    minorStudent: () => TestDataFactory.user().asMinor(12).withEmail('minor@test.edu').withName('Minor Student'),
+
     instructor: () =>
       TestDataFactory.user()
         .withEmail('instructor@test.edu')
@@ -549,48 +537,33 @@ export class TestDataFactory {
         .with({ role: 'instructor' } as any),
 
     // Cognitive profile presets
-    fastLearner: () =>
-      TestDataFactory.cognitiveProfile()
-        .withLearningVelocity(4.0)
-        .withStrugglePattern(0.9, 0.95),
-    
-    struggleLearner: () =>
-      TestDataFactory.cognitiveProfile()
-        .withLearningVelocity(1.0)
-        .withStrugglePattern(0.3, 0.4),
-    
-    visualLearner: () =>
-      TestDataFactory.cognitiveProfile()
-        .withVARKProfile(0.7, 0.1, 0.1, 0.1),
+    fastLearner: () => TestDataFactory.cognitiveProfile().withLearningVelocity(4.0).withStrugglePattern(0.9, 0.95),
+
+    struggleLearner: () => TestDataFactory.cognitiveProfile().withLearningVelocity(1.0).withStrugglePattern(0.3, 0.4),
+
+    visualLearner: () => TestDataFactory.cognitiveProfile().withVARKProfile(0.7, 0.1, 0.1, 0.1),
 
     // Session presets
-    successfulSession: () =>
-      TestDataFactory.session()
-        .withPerformance(1.0, 0.95)
-        .withConfusionEvents(0),
-    
-    strugglingSession: () =>
-      TestDataFactory.session()
-        .withStruggle()
-        .withPerformance(0.4, 0.3),
+    successfulSession: () => TestDataFactory.session().withPerformance(1.0, 0.95).withConfusionEvents(0),
+
+    strugglingSession: () => TestDataFactory.session().withStruggle().withPerformance(0.4, 0.3),
 
     // Analytics presets
     highPerformance: () =>
-      TestDataFactory.analytics()
-        .withMastery(0.9, {
-          arrays: 0.95,
-          loops: 0.9,
-          functions: 0.92,
-          objects: 0.88
-        }),
-    
+      TestDataFactory.analytics().withMastery(0.9, {
+        arrays: 0.95,
+        loops: 0.9,
+        functions: 0.92,
+        objects: 0.88,
+      }),
+
     needsHelp: () =>
       TestDataFactory.analytics()
         .withMastery(0.4, {
           arrays: 0.3,
           loops: 0.35,
           functions: 0.4,
-          objects: 0.45
+          objects: 0.45,
         })
         .withRecommendations([
           {
@@ -601,8 +574,8 @@ export class TestDataFactory {
             description: 'Focus on fundamental programming concepts',
             resourceUrl: '/resources/basics',
             estimatedTime: 30,
-            concepts: ['variables', 'loops', 'conditionals']
-          }
+            concepts: ['variables', 'loops', 'conditionals'],
+          },
         ] as any[]),
 
     // Multi-entity presets
@@ -610,47 +583,36 @@ export class TestDataFactory {
       tenant: TestDataFactory.tenant().build(),
       instructor: TestDataFactory.presets.instructor().build(),
       students: TestDataFactory.user().buildMany(20, (builder, i) => {
-        builder
-          .withEmail(`student${i + 1}@test.edu`)
-          .withName(`Student ${i + 1}`);
-      })
+        builder.withEmail(`student${i + 1}@test.edu`).withName(`Student ${i + 1}`);
+      }),
     }),
-    
+
     completeTestEnvironment: () => ({
       tenant: TestDataFactory.tenant().build(),
-      users: [
-        TestDataFactory.presets.instructor().build(),
-        ...TestDataFactory.presets.studentWithFullConsent().buildMany(10)
-      ],
+      users: [TestDataFactory.presets.instructor().build(), ...TestDataFactory.presets.studentWithFullConsent().buildMany(10)],
       sessions: TestDataFactory.session().buildMany(50),
-      analytics: TestDataFactory.analytics().buildMany(10)
-    })
+      analytics: TestDataFactory.analytics().buildMany(10),
+    }),
   };
 
   /**
    * Generate random test data for stress testing
    */
   static generateRandom = {
-    users: (count: number) => 
+    users: (count: number) =>
       TestDataFactory.user().buildMany(count, (builder, i) => {
         builder.withEmail(`random${i}@test.edu`);
       }),
-    
+
     sessions: (count: number, userId?: string) =>
       TestDataFactory.session().buildMany(count, (builder, i) => {
         if (userId) builder.withUserId(userId);
-        builder.withPerformance(
-          Math.random(),
-          Math.random()
-        );
+        builder.withPerformance(Math.random(), Math.random());
       }),
-    
+
     tenants: (count: number) =>
       TestDataFactory.tenant().buildMany(count, (builder, i) => {
-        builder.withInstitution(
-          `University ${i}`,
-          `https://lms${i}.edu`
-        );
-      })
+        builder.withInstitution(`University ${i}`, `https://lms${i}.edu`);
+      }),
   };
 }

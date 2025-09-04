@@ -46,7 +46,7 @@ class MigrationRunner {
     try {
       const result = execSync(
         `wrangler d1 execute ${this.dbName} ${flag} --command="SELECT version FROM migrations ORDER BY version DESC LIMIT 1"`,
-        { encoding: 'utf8' },
+        { encoding: 'utf8' }
       );
 
       const match = result.match(/"version":\s*"(\d+)"/);
@@ -126,7 +126,7 @@ class MigrationRunner {
     // Get migrations to rollback
     const result = execSync(
       `wrangler d1 execute ${this.dbName} ${flag} --command="SELECT * FROM migrations WHERE version > '${targetVersion}' ORDER BY version DESC"`,
-      { encoding: 'utf8' },
+      { encoding: 'utf8' }
     );
 
     const migrations = JSON.parse(result);

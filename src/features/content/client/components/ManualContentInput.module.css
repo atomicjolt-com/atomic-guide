@@ -30,8 +30,8 @@
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
-  background: #FEE4E2;
-  border: 1px solid #FECACA;
+  background: #fee4e2;
+  border: 1px solid #fecaca;
   border-radius: var(--radius-md);
   color: var(--color-error);
 }
@@ -79,7 +79,7 @@
   font-family: var(--font-family);
   font-size: var(--font-size-body);
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid #E5E5E5;
+  border: 1px solid #e5e5e5;
   border-radius: var(--radius-md);
   background: var(--color-bg);
   color: var(--color-text);
@@ -109,7 +109,7 @@
 
 .dropZone {
   position: relative;
-  border: 2px dashed #E5E5E5;
+  border: 2px dashed #e5e5e5;
   border-radius: var(--radius-md);
   padding: var(--spacing-xs);
   transition: var(--transition-micro);
@@ -161,7 +161,7 @@
   padding: var(--spacing-md);
   background: var(--color-bg-off-white);
   border-radius: var(--radius-md);
-  border: 1px solid #F0F0F0;
+  border: 1px solid #f0f0f0;
 }
 
 .checkboxLabel {
@@ -173,7 +173,7 @@
   cursor: pointer;
 }
 
-.checkboxLabel input[type="checkbox"] {
+.checkboxLabel input[type='checkbox'] {
   margin-top: 2px;
   cursor: pointer;
 }
@@ -183,7 +183,7 @@
   justify-content: flex-end;
   gap: var(--spacing-md);
   padding-top: var(--spacing-md);
-  border-top: 1px solid #E5E5E5;
+  border-top: 1px solid #e5e5e5;
 }
 
 .clearButton,
@@ -201,7 +201,7 @@
 .clearButton {
   background: var(--color-bg);
   color: var(--color-text-secondary);
-  border: 1px solid #E5E5E5;
+  border: 1px solid #e5e5e5;
 }
 
 .clearButton:hover:not(:disabled) {
@@ -236,7 +236,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .info {

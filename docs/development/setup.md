@@ -6,12 +6,12 @@ Complete guide for setting up your Atomic Guide development environment with all
 
 ### Required Software
 
-| Software | Minimum Version | Check Command | Installation |
-|----------|----------------|---------------|--------------|
-| Node.js | v18.0.0 | `node --version` | [nodejs.org](https://nodejs.org/) |
-| npm | v9.0.0 | `npm --version` | Comes with Node.js |
-| Git | v2.0.0 | `git --version` | [git-scm.com](https://git-scm.com/) |
-| Wrangler | Latest | `wrangler --version` | `npm install -g wrangler` |
+| Software | Minimum Version | Check Command        | Installation                        |
+| -------- | --------------- | -------------------- | ----------------------------------- |
+| Node.js  | v18.0.0         | `node --version`     | [nodejs.org](https://nodejs.org/)   |
+| npm      | v9.0.0          | `npm --version`      | Comes with Node.js                  |
+| Git      | v2.0.0          | `git --version`      | [git-scm.com](https://git-scm.com/) |
+| Wrangler | Latest          | `wrangler --version` | `npm install -g wrangler`           |
 
 ### Recommended Software
 
@@ -55,6 +55,7 @@ code .env
 ```
 
 Required environment variables:
+
 ```bash
 NODE_ENV=development
 LOG_LEVEL=debug
@@ -72,9 +73,10 @@ wrangler whoami
 ```
 
 Update `wrangler.jsonc`:
+
 ```jsonc
 {
-  "account_id": "YOUR_ACCOUNT_ID_HERE"
+  "account_id": "YOUR_ACCOUNT_ID_HERE",
 }
 ```
 
@@ -214,6 +216,7 @@ npx husky add .husky/commit-msg "npx commitlint --edit $1"
 ### Commit Convention
 
 Follow conventional commits:
+
 ```bash
 feat: Add new feature
 fix: Fix bug
@@ -285,6 +288,7 @@ Recommended extensions for development:
 ### Path Aliases
 
 Configure in `tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -302,6 +306,7 @@ Configure in `tsconfig.json`:
 ### Strict Mode Settings
 
 Ensure these are enabled:
+
 ```json
 {
   "compilerOptions": {
@@ -329,6 +334,7 @@ DATABASE_NAME=atomic-guide-test npm run db:migrate
 ### Configure Test Environment
 
 Create `test.env`:
+
 ```bash
 NODE_ENV=test
 DATABASE_NAME=atomic-guide-test
@@ -358,7 +364,7 @@ if (process.env.NODE_ENV === 'development') {
     console.table({
       'Used JS Heap': `${(memory.usedJSHeapSize / 1048576).toFixed(2)} MB`,
       'Total JS Heap': `${(memory.totalJSHeapSize / 1048576).toFixed(2)} MB`,
-      'Limit': `${(memory.jsHeapSizeLimit / 1048576).toFixed(2)} MB`
+      Limit: `${(memory.jsHeapSizeLimit / 1048576).toFixed(2)} MB`,
     });
   };
 }
@@ -430,6 +436,7 @@ server: {
 ### Common Issues
 
 #### Port Already in Use
+
 ```bash
 # Find process using port
 lsof -i :5988
@@ -442,6 +449,7 @@ PORT=3000 npm run dev
 ```
 
 #### TypeScript Errors
+
 ```bash
 # Clear TypeScript cache
 rm -rf node_modules/.cache/typescript
@@ -451,6 +459,7 @@ npm run check
 ```
 
 #### Database Issues
+
 ```bash
 # Reset database
 npm run db:reset

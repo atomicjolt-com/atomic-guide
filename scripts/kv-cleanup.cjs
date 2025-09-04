@@ -21,7 +21,7 @@ function parseJSONC(content) {
   cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '');
   // Remove trailing commas
   cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
-  
+
   try {
     return JSON.parse(cleaned);
   } catch {
@@ -35,7 +35,7 @@ function parseJSONC(content) {
         kvContent = kvContent.replace(/\/\/.*$/gm, '');
         kvContent = kvContent.replace(/\/\*[\s\S]*?\*\//g, '');
         kvContent = kvContent.replace(/,(\s*[}\]])/g, '$1');
-        
+
         // Wrap in array brackets and parse
         const kvArray = JSON.parse(`[${kvContent}]`);
         return { kv_namespaces: kvArray };
@@ -97,21 +97,21 @@ function deleteNamespace(namespace) {
 
 function readWranglerConfig() {
   const wranglerPath = path.join(process.cwd(), 'wrangler.jsonc');
-  
+
   try {
     const content = fs.readFileSync(wranglerPath, 'utf8');
     const config = parseJSONC(content);
-    
+
     if (!config) {
       console.error('❌ Failed to parse wrangler.jsonc');
       return null;
     }
-    
+
     if (!config.kv_namespaces || !Array.isArray(config.kv_namespaces)) {
       console.log('ℹ️  No KV namespaces defined in wrangler.jsonc');
       return [];
     }
-    
+
     return config.kv_namespaces;
   } catch (error) {
     console.error('❌ Failed to read wrangler.jsonc:', error.message);
@@ -126,20 +126,20 @@ async function main() {
   // Read KV namespaces from wrangler.jsonc
   console.log('📖 Reading project configuration from wrangler.jsonc...');
   const projectNamespaces = readWranglerConfig();
-  
+
   if (projectNamespaces === null) {
     console.error('\n❌ Could not read project configuration.');
     console.error('Make sure wrangler.jsonc exists and is valid.');
     process.exit(1);
   }
-  
+
   if (projectNamespaces.length === 0) {
     console.log('\nℹ️  No KV namespaces defined in this project.');
     process.exit(0);
   }
-  
+
   console.log(`\n📦 Found ${projectNamespaces.length} KV namespaces in project configuration:`);
-  projectNamespaces.forEach(ns => {
+  projectNamespaces.forEach((ns) => {
     console.log(`  - ${ns.binding}${ns.preview_id ? ' (with preview)' : ''}`);
   });
 
@@ -154,17 +154,17 @@ async function main() {
   // Match project namespaces with existing ones
   const namespacesToDelete = [];
   const previewNamespacesToDelete = [];
-  
-  projectNamespaces.forEach(projectNs => {
+
+  projectNamespaces.forEach((projectNs) => {
     // Find production namespace
-    const prodNs = existingNamespaces.find(ns => ns.id === projectNs.id);
+    const prodNs = existingNamespaces.find((ns) => ns.id === projectNs.id);
     if (prodNs) {
       namespacesToDelete.push(prodNs);
     }
-    
+
     // Find preview namespace
     if (projectNs.preview_id) {
-      const previewNs = existingNamespaces.find(ns => ns.id === projectNs.preview_id);
+      const previewNs = existingNamespaces.find((ns) => ns.id === projectNs.preview_id);
       if (previewNs) {
         previewNamespacesToDelete.push(previewNs);
       }
@@ -179,17 +179,17 @@ async function main() {
 
   // Display namespaces to be deleted
   console.log('\n🎯 The following project KV namespaces will be deleted:');
-  
+
   if (namespacesToDelete.length > 0) {
     console.log('\nProduction namespaces:');
-    namespacesToDelete.forEach(ns => {
+    namespacesToDelete.forEach((ns) => {
       console.log(`  - ${ns.title} (${ns.id})`);
     });
   }
-  
+
   if (previewNamespacesToDelete.length > 0) {
     console.log('\nPreview namespaces:');
-    previewNamespacesToDelete.forEach(ns => {
+    previewNamespacesToDelete.forEach((ns) => {
       console.log(`  - ${ns.title} (${ns.id})`);
     });
   }
@@ -213,7 +213,7 @@ async function main() {
     // Delete production namespaces
     if (namespacesToDelete.length > 0) {
       console.log('Deleting production namespaces:');
-      namespacesToDelete.forEach(namespace => {
+      namespacesToDelete.forEach((namespace) => {
         if (deleteNamespace(namespace)) {
           successCount++;
         } else {
@@ -225,7 +225,7 @@ async function main() {
     // Delete preview namespaces
     if (previewNamespacesToDelete.length > 0) {
       console.log('\nDeleting preview namespaces:');
-      previewNamespacesToDelete.forEach(namespace => {
+      previewNamespacesToDelete.forEach((namespace) => {
         if (deleteNamespace(namespace)) {
           successCount++;
         } else {
@@ -242,7 +242,7 @@ async function main() {
 
     console.log('\n✨ Cleanup complete!');
     console.log('Run "npm run kv:setup" to recreate the namespaces.\n');
-    
+
     // Update wrangler.jsonc to remove deleted namespace IDs
     if (successCount > 0) {
       rl.question('Remove deleted namespace IDs from wrangler.jsonc? (Y/n): ', (answer) => {
@@ -262,17 +262,17 @@ async function main() {
 
 function updateWranglerConfig(deletedProd, deletedPreview) {
   const wranglerPath = path.join(process.cwd(), 'wrangler.jsonc');
-  
+
   try {
     let content = fs.readFileSync(wranglerPath, 'utf8');
-    
+
     // Remove IDs of deleted namespaces
-    [...deletedProd, ...deletedPreview].forEach(ns => {
+    [...deletedProd, ...deletedPreview].forEach((ns) => {
       // Replace the ID with empty string in quotes
       const idRegex = new RegExp(`"${ns.id}"`, 'g');
       content = content.replace(idRegex, '""');
     });
-    
+
     fs.writeFileSync(wranglerPath, content);
   } catch (error) {
     console.error('Failed to update wrangler.jsonc:', error.message);
@@ -280,7 +280,7 @@ function updateWranglerConfig(deletedProd, deletedPreview) {
 }
 
 // Run the script
-main().catch(error => {
+main().catch((error) => {
   console.error('❌ Unexpected error:', error);
   process.exit(1);
 });

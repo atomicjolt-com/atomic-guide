@@ -20,10 +20,7 @@ const defaultConfig: Required<RetryConfig> = {
   },
 };
 
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  config?: RetryConfig
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, config?: RetryConfig): Promise<T> {
   const finalConfig = { ...defaultConfig, ...config };
   let lastError: any;
   let delay = finalConfig.initialDelay;
@@ -42,7 +39,7 @@ export async function withRetry<T>(
         delay = (error as any).retry_after * 1000;
       }
 
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
 
       delay = Math.min(delay * finalConfig.backoffMultiplier, finalConfig.maxDelay);
     }
@@ -52,14 +49,20 @@ export async function withRetry<T>(
 }
 
 export class NetworkError extends Error {
-  constructor(message: string, public readonly isRetryable: boolean = true) {
+  constructor(
+    message: string,
+    public readonly isRetryable: boolean = true
+  ) {
     super(message);
     this.name = 'NetworkError';
   }
 }
 
 export class RateLimitError extends Error {
-  constructor(message: string, public readonly retryAfter: number) {
+  constructor(
+    message: string,
+    public readonly retryAfter: number
+  ) {
     super(message);
     this.name = 'RateLimitError';
   }

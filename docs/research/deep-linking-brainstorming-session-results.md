@@ -15,6 +15,7 @@
 **Total Ideas Generated:** 62 ideas across 4 techniques
 
 ### Key Themes Identified:
+
 - Deep linking for seamless Canvas integration
 - Context-aware AI assistance
 - Formative assessment automation
@@ -32,6 +33,7 @@
 **Description:** Exploring feature ideas from different stakeholder perspectives (student, instructor, admin)
 
 #### Ideas Generated:
+
 1. **Adaptive Question Flow** - After reading content, student sees contextual question with input field; AI responds based on comprehension level
 2. **Intelligent Remediation** - When students struggle, AI refers back to specific page content with targeted follow-up questions
 3. **Conversational Assessment** - Creative, comfortable chat experience rather than traditional quiz format
@@ -53,6 +55,7 @@
 19. **Hybrid Configuration** - Mix of instructor-created and AI-generated content
 
 #### Ideas Generated (continued):
+
 20. **Deep Link Modal Configuration** - All setup happens in LTI modal with comprehensive UI
 21. **Unified Configuration Dashboard** - Single view for objectives, rubrics, and activities with inline editing
 22. **Template Library System** - Shareable instructor configurations across departments
@@ -61,6 +64,7 @@
 25. **Department Template Sharing** - Successful configs become reusable templates
 
 #### Insights Discovered:
+
 - Students need immediate, contextual help without leaving the assignment
 - Assessment should feel like learning, not testing
 - Dynamic content generation could personalize learning at scale
@@ -70,6 +74,7 @@
 - Analytics must integrate with existing systems, not create silos
 
 #### Notable Connections:
+
 - Dynamic activity generation connects to formative assessment goals
 - Conversational UI reduces assessment anxiety
 - Context-aware responses require deep Canvas page understanding
@@ -81,12 +86,14 @@
 **Description:** Mapping feature parameters and exploring powerful combinations
 
 #### Parameters Identified:
+
 1. **Content Analysis Method**: Canvas postMessage API (lti.getPageContent)
 2. **Assessment Timing**: Instructor-placed via deep linking at strategic content points
 3. **Feedback Mechanism**: Chat interface with contextual references
 4. **Grade Calculation**: Instructor-selectable (mastery-based default)
 
 #### Ideas Generated:
+
 26. **PostMessage Content Extraction** - Use lti.getPageContent for real-time page analysis
 27. **Strategic Placement Points** - Instructors embed at optimal learning checkpoints
 28. **Chat-Based Feedback Loop** - Conversational UI for all interactions and feedback
@@ -110,8 +117,9 @@
 **Description:** Systematically enhancing core features through structured improvement prompts
 
 #### Ideas Generated:
+
 43. **Visual Understanding Assessment** - Students sketch concepts for AI analysis (challenging but powerful for STEM)
-44. **Interactive Video Integration** - Embed questions within video content  
+44. **Interactive Video Integration** - Embed questions within video content
 45. **Historical Timeline Activities** - Dynamic timeline creation for sequential content
 46. **Image Hotspot Exploration** - Interactive diagram analysis and annotation
 47. **AI-Suggested Placement** - Optional AI recommendations for optimal content points (instructor retains control)
@@ -130,6 +138,7 @@
 **Description:** Collaborative expansion of the most promising ideas
 
 #### Ideas Generated:
+
 57. **Cross-System Intelligence** - Chat data feeds all Atomic Guide algorithms for comprehensive student understanding
 58. **Adaptive Persona Learning** - AI personas improve over time based on interaction success patterns
 59. **Predictive Content Recommendations** - System anticipates next learning needs based on chat struggles
@@ -142,7 +151,8 @@
 ## Idea Categorization
 
 ### Immediate Opportunities
-*Ideas ready to implement now*
+
+_Ideas ready to implement now_
 
 1. **Text-Based Chat Interface**
    - Description: Core conversational assessment with contextual page references
@@ -160,7 +170,8 @@
    - Resources needed: Activity templates, content parsing, generation algorithms
 
 ### Future Innovations
-*Ideas requiring development/research*
+
+_Ideas requiring development/research_
 
 1. **Conversation Personas**
    - Description: Instructor-configurable AI personalities for different learning needs
@@ -178,7 +189,8 @@
    - Timeline estimate: 9-15 months
 
 ### Moonshots
-*Ambitious, transformative concepts*
+
+_Ambitious, transformative concepts_
 
 1. **Visual Understanding Assessment**
    - Description: Students sketch concepts for AI analysis
@@ -191,7 +203,8 @@
    - Challenges to overcome: Cross-course data integration, privacy concerns, algorithmic bias prevention
 
 ### Insights & Learnings
-*Key realizations from the session*
+
+_Key realizations from the session_
 
 - **Integration over isolation**: LTI success depends on seamless Canvas workflow integration
 - **Instructor control is non-negotiable**: AI suggestions must enhance, not replace, instructor decision-making
@@ -204,18 +217,21 @@
 ## Action Planning
 
 ### #1 Priority: Core Chat Interface with Canvas Integration
+
 - **Rationale**: Foundation for all other features, immediate instructor value, proven demand
 - **Next steps**: Design postMessage integration, build chat UI, implement basic NLP
 - **Resources needed**: Frontend developer, backend developer, UX designer
 - **Timeline**: 3-4 months
 
 ### #2 Priority: Dynamic Activity Generation
+
 - **Rationale**: Differentiates from static assessment tools, scalable content creation
 - **Next steps**: Design activity templates, build generation algorithms, create instructor approval workflow
 - **Resources needed**: AI/ML engineer, educational content expert, testing infrastructure
 - **Timeline**: 4-6 months (parallel with Priority #1)
 
 ### #3 Priority: Instructor Misconception Dashboard
+
 - **Rationale**: Unique instructor value proposition, uses collected data intelligently
 - **Next steps**: Design analytics schema, build dashboard UI, implement pattern detection
 - **Resources needed**: Data analyst, dashboard developer, instructor user testing
@@ -226,33 +242,38 @@
 ## Reflection & Follow-up
 
 ### What Worked Well
+
 - **Role playing captured all stakeholder needs** effectively
 - **Morphological analysis** identified key technical architecture decisions
 - **SCAMPER method** generated enhancement ideas systematically
 - **"Yes, and..." building** revealed the strategic data collection opportunity
 
 ### Areas for Further Exploration
+
 - **Privacy and data governance**: How to handle sensitive student learning data across systems
 - **Accessibility compliance**: Ensuring all interactive features meet WCAG standards
 - **Performance optimization**: Chat responsiveness with large Canvas pages
 - **Instructor training**: Change management for new assessment paradigms
 
 ### Recommended Follow-up Techniques
+
 - **Assumption reversal**: Challenge core assumptions about formative assessment
 - **Forced relationships**: Connect LTI features with unexpected educational theories
 - **Time shifting**: How would this work in future educational paradigms?
 
 ### Questions That Emerged
+
 - How do we balance AI autonomy with instructor control?
 - What privacy frameworks are needed for cross-system data sharing?
 - How do we measure true learning vs. engagement metrics?
 - What happens when students become dependent on AI assistance?
 
 ### Next Session Planning
+
 - **Suggested topics**: Technical architecture deep-dive, privacy framework design, instructor adoption strategies
 - **Recommended timeframe**: 2-3 weeks (allow time for technical research)
 - **Preparation needed**: Review Canvas LTI documentation, research competitor analysis, interview potential instructor users
 
 ---
 
-*Session facilitated using the BMAD-METHOD™ brainstorming framework*
+_Session facilitated using the BMAD-METHOD™ brainstorming framework_

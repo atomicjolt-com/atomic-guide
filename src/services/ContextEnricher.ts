@@ -39,12 +39,7 @@ export class ContextEnricher {
 
   constructor() {}
 
-  async enrichContext(
-    pageContext: PageContext,
-    ltiClaims: any,
-    learnerProfile?: any,
-    sessionData?: any
-  ): Promise<EnrichedContext> {
+  async enrichContext(pageContext: PageContext, ltiClaims: any, learnerProfile?: any, sessionData?: any): Promise<EnrichedContext> {
     const ltiContext = this.extractLTIContext(ltiClaims);
     const extractedContent = this.extractRelevantContent(pageContext);
     const keywords = this.extractKeywords(extractedContent);
@@ -62,7 +57,7 @@ export class ContextEnricher {
       sessionData,
       extractedContent,
       keywords,
-      topics
+      topics,
     };
   }
 
@@ -76,7 +71,7 @@ export class ContextEnricher {
       roles: claims['https://purl.imsglobal.org/spec/lti/claim/roles'] || [],
       userId: claims.sub || '',
       userEmail: claims.email,
-      userName: claims.name
+      userName: claims.name,
     };
   }
 
@@ -128,8 +123,8 @@ export class ContextEnricher {
     // Normalize whitespace
     cleaned = cleaned
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
       .join('\n');
 
     // Limit length to prevent token overflow
@@ -145,7 +140,7 @@ export class ContextEnricher {
     // Smart truncation - try to keep complete sentences
     const sentences = content.match(/[^.!?]+[.!?]+/g) || [];
     let summary = '';
-    
+
     for (const sentence of sentences) {
       if (summary.length + sentence.length > maxLength) {
         break;
@@ -163,9 +158,10 @@ export class ContextEnricher {
 
   private extractKeywords(content: string): string[] {
     // Simple keyword extraction - can be enhanced with NLP
-    const words = content.toLowerCase()
+    const words = content
+      .toLowerCase()
       .split(/\W+/)
-      .filter(word => word.length > 4);
+      .filter((word) => word.length > 4);
 
     const wordFreq = new Map<string, number>();
     for (const word of words) {
@@ -179,10 +175,7 @@ export class ContextEnricher {
       .map(([word]) => word);
 
     // Add common educational keywords if present
-    const educationalKeywords = [
-      'assignment', 'quiz', 'exam', 'homework', 'project',
-      'discussion', 'module', 'lesson', 'chapter', 'test'
-    ];
+    const educationalKeywords = ['assignment', 'quiz', 'exam', 'homework', 'project', 'discussion', 'module', 'lesson', 'chapter', 'test'];
 
     for (const keyword of educationalKeywords) {
       if (content.toLowerCase().includes(keyword) && !keywords.includes(keyword)) {
@@ -210,7 +203,7 @@ export class ContextEnricher {
       { pattern: /literature|writing|essay/i, topic: 'Literature' },
       { pattern: /quiz|test|exam/i, topic: 'Assessment' },
       { pattern: /discussion|forum/i, topic: 'Discussion' },
-      { pattern: /video|lecture/i, topic: 'Lecture' }
+      { pattern: /video|lecture/i, topic: 'Lecture' },
     ];
 
     for (const { pattern, topic } of patterns) {
@@ -263,14 +256,14 @@ export class ContextEnricher {
   shouldIncludeFullContent(question: string, content: string): boolean {
     // Determine if full page content should be included in prompt
     const questionLower = question.toLowerCase();
-    
+
     // Include full content for specific question types
     const contentNeededPatterns = [
       /what does (this|the) (page|text|content|article) say/i,
       /explain (this|the) (content|material|text)/i,
       /summarize/i,
       /main (idea|point|concept)/i,
-      /according to (this|the)/i
+      /according to (this|the)/i,
     ];
 
     for (const pattern of contentNeededPatterns) {
@@ -282,7 +275,7 @@ export class ContextEnricher {
     // Check if question references specific content
     const contentWords = content.toLowerCase().split(/\W+/).slice(0, 100);
     const questionWords = questionLower.split(/\W+/);
-    
+
     let matches = 0;
     for (const qWord of questionWords) {
       if (qWord.length > 4 && contentWords.includes(qWord)) {

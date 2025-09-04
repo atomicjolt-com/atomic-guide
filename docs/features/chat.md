@@ -9,12 +9,14 @@ The chat system leverages Cloudflare Workers AI to deliver personalized learning
 ## Key Features
 
 ### Intelligent Responses
+
 - **AI-Powered**: Uses Cloudflare Workers AI models (Llama 3, Mistral, etc.)
 - **Context-Aware**: Incorporates course materials, assignment details, and learning objectives
 - **Personalized**: Adapts to individual learning styles and progress
 - **Multi-Modal**: Supports text, code, mathematical expressions, and diagrams
 
 ### Rich Formatting Support
+
 - **Markdown**: Headers, lists, emphasis, links
 - **LaTeX Math**: Mathematical equations and formulas
 - **Code Blocks**: Syntax highlighting for 20+ languages
@@ -22,6 +24,7 @@ The chat system leverages Cloudflare Workers AI to deliver personalized learning
 - **Media Embeds**: Images, videos, and interactive content
 
 ### Real-Time Features
+
 - **Streaming Responses**: Server-sent events for immediate feedback
 - **Typing Indicators**: Shows when AI is processing
 - **Conversation History**: Maintains context across messages
@@ -69,6 +72,7 @@ The chat system leverages Cloudflare Workers AI to deliver personalized learning
 ### API Endpoints
 
 #### Send Message
+
 ```typescript
 POST /api/chat/message
 Authorization: Bearer <jwt>
@@ -91,6 +95,7 @@ data: {"done": true, "tokenUsage": 45}
 ```
 
 #### Get Conversation History
+
 ```typescript
 GET /api/chat/history/{sessionId}
 Authorization: Bearer <jwt>
@@ -164,12 +169,14 @@ RESPONSE_TIMEOUT = 30000
 ## Security & Privacy
 
 ### Data Protection
+
 - **Encryption**: All messages encrypted in transit and at rest
 - **PII Handling**: Automatic redaction of sensitive information
 - **Data Retention**: Configurable retention policies (default 30 days)
 - **GDPR Compliance**: Right to deletion and data portability
 
 ### Access Control
+
 - **Authentication**: JWT-based with LTI context
 - **Authorization**: Role-based permissions (student, instructor, admin)
 - **Rate Limiting**: Per-user and per-IP limits
@@ -178,11 +185,13 @@ RESPONSE_TIMEOUT = 30000
 ## Performance Optimization
 
 ### Caching Strategy
+
 - **Response Cache**: Frequently asked questions cached in KV
 - **Context Cache**: Course materials cached for quick retrieval
 - **Model Cache**: AI model loaded in Durable Objects
 
 ### Scalability
+
 - **Edge Deployment**: Global distribution via Cloudflare Workers
 - **Auto-Scaling**: Automatic scaling based on demand
 - **Load Balancing**: Distributed across multiple regions
@@ -190,11 +199,13 @@ RESPONSE_TIMEOUT = 30000
 ## Integration Points
 
 ### LMS Integration
+
 - **LTI 1.3**: Full advantage/deep linking support
 - **Canvas API**: Direct integration for enhanced context
 - **Grade Passback**: Optional assessment integration
 
 ### External Services
+
 - **Knowledge Base**: FAQ integration via Vectorize
 - **Content Library**: Access to course materials
 - **Analytics Platform**: Usage data export
@@ -202,6 +213,7 @@ RESPONSE_TIMEOUT = 30000
 ## Monitoring & Analytics
 
 ### Metrics Tracked
+
 - Response time (p50, p95, p99)
 - Token usage per session/user/tenant
 - Error rates and types
@@ -209,6 +221,7 @@ RESPONSE_TIMEOUT = 30000
 - Common question patterns
 
 ### Dashboards
+
 - Real-time usage monitoring
 - Performance metrics
 - Cost analysis (token usage)
@@ -218,16 +231,17 @@ RESPONSE_TIMEOUT = 30000
 
 ### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| Slow responses | Check AI model latency, consider switching models |
-| Context lost | Verify session persistence, check Durable Object state |
-| Formatting issues | Update markdown parser, check CSP headers |
-| Rate limit errors | Adjust limits in configuration |
+| Issue             | Solution                                               |
+| ----------------- | ------------------------------------------------------ |
+| Slow responses    | Check AI model latency, consider switching models      |
+| Context lost      | Verify session persistence, check Durable Object state |
+| Formatting issues | Update markdown parser, check CSP headers              |
+| Rate limit errors | Adjust limits in configuration                         |
 
 ## Development
 
 ### Local Testing
+
 ```bash
 # Start dev server with mock AI
 MOCK_AI=true npm run dev
@@ -239,6 +253,7 @@ curl -X POST http://localhost:5988/api/chat/message \
 ```
 
 ### Adding Features
+
 1. Extend `AIService` for new capabilities
 2. Update `ChatWindow` component for UI changes
 3. Modify `PromptBuilder` for context enhancement

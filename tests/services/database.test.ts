@@ -4,7 +4,7 @@
  * Story 1.1 Requirement: Verify tenant isolation cannot be bypassed
  */
 
-import {  describe, it, expect, beforeEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { DatabaseService } from '../../src/services/database';
 import type { D1Database } from '@cloudflare/workers-types';
 
@@ -64,7 +64,7 @@ describe('DatabaseService - Tenant Isolation', () => {
         'client-456',
         'Example University',
         'canvas',
-        'https://canvas.example.edu',
+        'https://canvas.example.edu'
       );
 
       expect(tenant).toBeDefined();
@@ -98,7 +98,7 @@ describe('DatabaseService - Tenant Isolation', () => {
         'client-456',
         'New University',
         'canvas',
-        'https://canvas.example.edu',
+        'https://canvas.example.edu'
       );
 
       // Should return existing tenant instead of creating new one
@@ -191,7 +191,7 @@ describe('DatabaseService - Tenant Isolation', () => {
       mockD1.mockResults.set('first', null);
 
       await expect(dbService.updateLearnerCognitiveProfile('wrong-tenant', 'user-456', { learning_velocity: 1.5 })).rejects.toThrow(
-        'Learner profile not found',
+        'Learner profile not found'
       );
     });
 
@@ -200,7 +200,7 @@ describe('DatabaseService - Tenant Isolation', () => {
       mockD1.mockResults.set('first', null);
 
       await expect(dbService.updateLearnerPrivacySettings('wrong-tenant', 'user-456', { data_sharing_consent: true })).rejects.toThrow(
-        'Learner profile not found',
+        'Learner profile not found'
       );
     });
   });

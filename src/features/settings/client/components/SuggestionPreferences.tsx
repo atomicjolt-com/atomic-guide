@@ -27,7 +27,7 @@ const DEFAULT_PREFERENCES: SuggestionPreferencesData = {
   preferredSuggestionTypes: ['confusion', 'frustration', 'success_opportunity'],
   interruptionThreshold: 0.7,
   escalationConsent: false,
-  cooldownMinutes: 2
+  cooldownMinutes: 2,
 };
 
 const SUGGESTION_TYPES = [
@@ -35,43 +35,36 @@ const SUGGESTION_TYPES = [
     id: 'confusion',
     label: 'Confusion Detection',
     description: 'Get help when you seem confused about concepts',
-    icon: '🤔'
+    icon: '🤔',
   },
   {
     id: 'frustration',
     label: 'Frustration Support',
-    description: 'Receive encouragement when you\'re struggling',
-    icon: '😤'
+    description: "Receive encouragement when you're struggling",
+    icon: '😤',
   },
   {
     id: 'repetition',
     label: 'Repetition Patterns',
     description: 'Get suggestions when asking similar questions',
-    icon: '🔁'
+    icon: '🔁',
   },
   {
     id: 'engagement_decline',
     label: 'Engagement Boost',
     description: 'Suggestions when your focus starts to wane',
-    icon: '⚡'
+    icon: '⚡',
   },
   {
     id: 'success_opportunity',
     label: 'Growth Opportunities',
-    description: 'Suggestions for next steps when you\'re doing well',
-    icon: '🌟'
-  }
+    description: "Suggestions for next steps when you're doing well",
+    icon: '🌟',
+  },
 ];
 
-export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
-  initialPreferences,
-  onSave,
-  onCancel,
-  className = ''
-}) => {
-  const [preferences, setPreferences] = useState<SuggestionPreferencesData>(
-    initialPreferences || DEFAULT_PREFERENCES
-  );
+export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({ initialPreferences, onSave, onCancel, className = '' }) => {
+  const [preferences, setPreferences] = useState<SuggestionPreferencesData>(initialPreferences || DEFAULT_PREFERENCES);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -88,37 +81,37 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
   }, [preferences, initialPreferences]);
 
   const handleFrequencyChange = (frequency: SuggestionPreferences['frequency']) => {
-    setPreferences(prev => ({ ...prev, frequency }));
+    setPreferences((prev) => ({ ...prev, frequency }));
   };
 
   const handlePatternTrackingToggle = (enabled: boolean) => {
-    setPreferences(prev => ({ 
-      ...prev, 
+    setPreferences((prev) => ({
+      ...prev,
       patternTrackingEnabled: enabled,
       // If disabling pattern tracking, also disable escalation
-      escalationConsent: enabled ? prev.escalationConsent : false
+      escalationConsent: enabled ? prev.escalationConsent : false,
     }));
   };
 
   const handleSuggestionTypeToggle = (type: string, enabled: boolean) => {
-    setPreferences(prev => ({
+    setPreferences((prev) => ({
       ...prev,
       preferredSuggestionTypes: enabled
         ? [...prev.preferredSuggestionTypes, type]
-        : prev.preferredSuggestionTypes.filter(t => t !== type)
+        : prev.preferredSuggestionTypes.filter((t) => t !== type),
     }));
   };
 
   const handleInterruptionThresholdChange = (threshold: number) => {
-    setPreferences(prev => ({ ...prev, interruptionThreshold: threshold }));
+    setPreferences((prev) => ({ ...prev, interruptionThreshold: threshold }));
   };
 
   const handleEscalationConsentChange = (consent: boolean) => {
-    setPreferences(prev => ({ ...prev, escalationConsent: consent }));
+    setPreferences((prev) => ({ ...prev, escalationConsent: consent }));
   };
 
   const handleCooldownChange = (minutes: number) => {
-    setPreferences(prev => ({ ...prev, cooldownMinutes: minutes }));
+    setPreferences((prev) => ({ ...prev, cooldownMinutes: minutes }));
   };
 
   const handleSave = async () => {
@@ -147,7 +140,7 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
       high: 'Suggestions appear frequently to maximize learning support',
       medium: 'Balanced approach with helpful suggestions at key moments',
       low: 'Minimal suggestions, only for significant learning difficulties',
-      off: 'No proactive suggestions (you can still ask for help manually)'
+      off: 'No proactive suggestions (you can still ask for help manually)',
     };
     return descriptions[frequency as keyof typeof descriptions];
   };
@@ -160,11 +153,11 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
   };
 
   return (
-    <div className={`suggestion-preferences ${className} max-w-2xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700`}>
+    <div
+      className={`suggestion-preferences ${className} max-w-2xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700`}
+    >
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-          Learning Suggestions
-        </h2>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">Learning Suggestions</h2>
         <p className="text-gray-600 dark:text-gray-300 text-sm">
           Customize how the AI provides proactive learning support based on your preferences and patterns.
         </p>
@@ -174,9 +167,7 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
       <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Enable Proactive Suggestions
-            </h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Enable Proactive Suggestions</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               Allow the AI to analyze your learning patterns and offer helpful suggestions
             </p>
@@ -204,20 +195,16 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
             <span className="text-lg">📊</span>
             <div className="text-left">
               <h3 className="font-medium text-gray-900 dark:text-white">Suggestion Frequency</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                Currently: {preferences.frequency}
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">Currently: {preferences.frequency}</p>
             </div>
           </div>
-          <span className="text-gray-400">
-            {expandedSection === 'frequency' ? '▼' : '▶'}
-          </span>
+          <span className="text-gray-400">{expandedSection === 'frequency' ? '▼' : '▶'}</span>
         </button>
 
         {expandedSection === 'frequency' && preferences.patternTrackingEnabled && (
           <div className="mt-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div className="space-y-3">
-              {(['high', 'medium', 'low', 'off'] as const).map(frequency => (
+              {(['high', 'medium', 'low', 'off'] as const).map((frequency) => (
                 <label key={frequency} className="flex items-start space-x-3 cursor-pointer">
                   <input
                     type="radio"
@@ -228,12 +215,8 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
                     className="mt-1 w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 focus:ring-yellow-500 dark:focus:ring-yellow-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <div className="flex-1">
-                    <span className="font-medium text-gray-900 dark:text-white capitalize">
-                      {frequency}
-                    </span>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                      {getFrequencyDescription(frequency)}
-                    </p>
+                    <span className="font-medium text-gray-900 dark:text-white capitalize">{frequency}</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{getFrequencyDescription(frequency)}</p>
                   </div>
                 </label>
               ))}
@@ -258,15 +241,13 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
               </p>
             </div>
           </div>
-          <span className="text-gray-400">
-            {expandedSection === 'types' ? '▼' : '▶'}
-          </span>
+          <span className="text-gray-400">{expandedSection === 'types' ? '▼' : '▶'}</span>
         </button>
 
         {expandedSection === 'types' && preferences.patternTrackingEnabled && (
           <div className="mt-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div className="space-y-4">
-              {SUGGESTION_TYPES.map(type => (
+              {SUGGESTION_TYPES.map((type) => (
                 <label key={type.id} className="flex items-start space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -276,14 +257,12 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
                   />
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg" role="img" aria-hidden="true">{type.icon}</span>
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {type.label}
+                      <span className="text-lg" role="img" aria-hidden="true">
+                        {type.icon}
                       </span>
+                      <span className="font-medium text-gray-900 dark:text-white">{type.label}</span>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                      {type.description}
-                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{type.description}</p>
                   </div>
                 </label>
               ))}
@@ -303,23 +282,17 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
             <span className="text-lg">⚙️</span>
             <div className="text-left">
               <h3 className="font-medium text-gray-900 dark:text-white">Advanced Settings</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Timing and interruption preferences
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Timing and interruption preferences</p>
             </div>
           </div>
-          <span className="text-gray-400">
-            {expandedSection === 'advanced' ? '▼' : '▶'}
-          </span>
+          <span className="text-gray-400">{expandedSection === 'advanced' ? '▼' : '▶'}</span>
         </button>
 
         {expandedSection === 'advanced' && preferences.patternTrackingEnabled && (
           <div className="mt-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-6">
             {/* Interruption Threshold */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Focus Respect Level
-              </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Focus Respect Level</label>
               <input
                 type="range"
                 min="0"
@@ -333,16 +306,12 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
                 <span>Always suggest</span>
                 <span>Respect focus</span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                {getInterruptionLabel(preferences.interruptionThreshold)}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{getInterruptionLabel(preferences.interruptionThreshold)}</p>
             </div>
 
             {/* Cooldown Period */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Minimum Time Between Suggestions
-              </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minimum Time Between Suggestions</label>
               <select
                 value={preferences.cooldownMinutes}
                 onChange={(e) => handleCooldownChange(parseInt(e.target.value))}
@@ -370,7 +339,8 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
                   Allow Academic Support Notifications
                 </label>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  If you're struggling significantly, allow the system to notify your instructor so they can offer additional support. Your privacy is protected.
+                  If you're struggling significantly, allow the system to notify your instructor so they can offer additional support. Your
+                  privacy is protected.
                 </p>
               </div>
             </div>
@@ -387,7 +357,7 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
         >
           Reset to Defaults
         </button>
-        
+
         <div className="flex space-x-3">
           {onCancel && (
             <button
@@ -403,9 +373,10 @@ export const SuggestionPreferences: React.FC<SuggestionPreferencesProps> = ({
             disabled={!hasChanges || isSaving || !preferences.patternTrackingEnabled}
             className={`
               px-6 py-2 text-sm font-medium rounded-lg transition-colors
-              ${hasChanges && !isSaving && preferences.patternTrackingEnabled
-                ? 'bg-yellow-600 hover:bg-yellow-700 text-white' 
-                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              ${
+                hasChanges && !isSaving && preferences.patternTrackingEnabled
+                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               }
             `}
           >

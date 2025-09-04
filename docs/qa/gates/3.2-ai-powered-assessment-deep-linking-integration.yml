@@ -4,46 +4,46 @@
 
 # Required fields
 schema: 1
-story: "3.2"
-story_title: "AI-Powered Assessment Deep Linking Integration"
-gate: "CONDITIONAL PASS"
-status_reason: "Excellent progress with database migrations complete, security fixed, and 50% test coverage, but missing AGS integration and build issues remain"
-reviewer: "Quinn (Test Architect)"
-updated: "2025-08-31T06:35:00Z"
+story: '3.2'
+story_title: 'AI-Powered Assessment Deep Linking Integration'
+gate: 'CONDITIONAL PASS'
+status_reason: 'Excellent progress with database migrations complete, security fixed, and 50% test coverage, but missing AGS integration and build issues remain'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-08-31T06:35:00Z'
 
 # Waiver status
 waiver: { active: false }
 
 # Issues identified
 top_issues:
-  - id: "INT-001"
+  - id: 'INT-001'
     severity: high
-    finding: "LTI AGS grade passback service not implemented (AC 11)"
-    suggested_action: "Create src/services/gradePassback.ts with full AGS integration"
+    finding: 'LTI AGS grade passback service not implemented (AC 11)'
+    suggested_action: 'Create src/services/gradePassback.ts with full AGS integration'
     suggested_owner: dev
-    
-  - id: "CODE-001"
+
+  - id: 'CODE-001'
     severity: medium
-    finding: "Import path violations in 6 files using relative imports"
-    suggested_action: "Convert ../../../../../ imports to @features/ and @shared/ aliases"
+    finding: 'Import path violations in 6 files using relative imports'
+    suggested_action: 'Convert ../../../../../ imports to @features/ and @shared/ aliases'
     suggested_owner: dev
-    refs: ["DeepLinkingInterface.tsx:13", "assessmentDeepLink.ts", "test files"]
-    
-  - id: "TEST-001"
+    refs: ['DeepLinkingInterface.tsx:13', 'assessmentDeepLink.ts', 'test files']
+
+  - id: 'TEST-001'
     severity: medium
-    finding: "Test suite execution timeouts preventing full validation"
-    suggested_action: "Debug vitest configuration and fix timeout issues"
+    finding: 'Test suite execution timeouts preventing full validation'
+    suggested_action: 'Debug vitest configuration and fix timeout issues'
     suggested_owner: dev
-    
-  - id: "UI-001"
+
+  - id: 'UI-001'
     severity: medium
-    finding: "Instructor analytics dashboard not implemented (AC 12)"
-    suggested_action: "Create AssessmentAnalytics component with visualizations"
+    finding: 'Instructor analytics dashboard not implemented (AC 12)'
+    suggested_action: 'Create AssessmentAnalytics component with visualizations'
     suggested_owner: dev
 
 # Extended quality metrics
-quality_score: 70  # 100 - (20*1 high) - (10*3 medium)
-expires: "2025-09-14T00:00:00Z"
+quality_score: 70 # 100 - (20*1 high) - (10*3 medium)
+expires: '2025-09-14T00:00:00Z'
 
 # Evidence of review
 evidence:
@@ -51,67 +51,67 @@ evidence:
   risks_identified: 4
   files_analyzed: 12
   trace:
-    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16]  # 14 of 20 (70%)
-    ac_gaps: [11, 12, 17, 18, 19, 20]  # AGS, analytics, preview, AI gen, mobile, rate limit
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16] # 14 of 20 (70%)
+    ac_gaps: [11, 12, 17, 18, 19, 20] # AGS, analytics, preview, AI gen, mobile, rate limit
 
 # NFR validation results
 nfr_validation:
   security:
     status: PASS
-    notes: "JSON injection RESOLVED, Zod validation comprehensive, JWT auth implemented"
+    notes: 'JSON injection RESOLVED, Zod validation comprehensive, JWT auth implemented'
   performance:
     status: CONCERNS
-    notes: "Excellent DB indexing but no bundle splitting; test timeouts indicate issues"
+    notes: 'Excellent DB indexing but no bundle splitting; test timeouts indicate issues'
   reliability:
     status: PASS
-    notes: "Comprehensive error handling, DB constraints, proper transaction support"
+    notes: 'Comprehensive error handling, DB constraints, proper transaction support'
   maintainability:
     status: PASS
-    notes: "Clean vertical slice architecture, JSDoc complete, 50% test coverage"
+    notes: 'Clean vertical slice architecture, JSDoc complete, 50% test coverage'
 
 # Recommendations
 recommendations:
-  immediate:  # Must fix before production
-    - action: "Implement LTI AGS grade passback service"
-      refs: ["src/services/gradePassback.ts - does not exist"]
+  immediate: # Must fix before production
+    - action: 'Implement LTI AGS grade passback service'
+      refs: ['src/services/gradePassback.ts - does not exist']
       priority: critical
-      
-    - action: "Fix import path violations (6 files)"
-      refs: ["src/features/assessment/client/components/DeepLinkingInterface.tsx:13"]
+
+    - action: 'Fix import path violations (6 files)'
+      refs: ['src/features/assessment/client/components/DeepLinkingInterface.tsx:13']
       priority: high
-      
-    - action: "Resolve test execution timeout issues"
-      refs: ["vitest.config.ts", "npm test hangs"]
+
+    - action: 'Resolve test execution timeout issues'
+      refs: ['vitest.config.ts', 'npm test hangs']
       priority: high
-      
-  future:  # Can be addressed post-MVP
-    - action: "Implement AI question generation with content awareness"
-      refs: ["src/features/assessment/client/components/AIQuestionGenerator.tsx"]
+
+  future: # Can be addressed post-MVP
+    - action: 'Implement AI question generation with content awareness'
+      refs: ['src/features/assessment/client/components/AIQuestionGenerator.tsx']
       priority: medium
-      
-    - action: "Add instructor analytics dashboard"
-      refs: ["src/features/assessment/client/components/AssessmentAnalytics.tsx"]
+
+    - action: 'Add instructor analytics dashboard'
+      refs: ['src/features/assessment/client/components/AssessmentAnalytics.tsx']
       priority: medium
-      
-    - action: "Create Canvas mobile app integration tests"
-      refs: ["tests/integration/mobile/"]
+
+    - action: 'Create Canvas mobile app integration tests'
+      refs: ['tests/integration/mobile/']
       priority: low
 
 # Risk summary
 risk_summary:
   totals:
     critical: 0
-    high: 1  # Missing AGS
-    medium: 3  # Import paths, test timeouts, analytics
-    low: 2  # AI generation, mobile testing
+    high: 1 # Missing AGS
+    medium: 3 # Import paths, test timeouts, analytics
+    low: 2 # AI generation, mobile testing
   recommendations:
     must_fix:
-      - "AGS grade passback implementation"
-      - "Import path corrections"
-      - "Test suite stabilization"
+      - 'AGS grade passback implementation'
+      - 'Import path corrections'
+      - 'Test suite stabilization'
     monitor:
-      - "Performance under load"
-      - "Mobile compatibility"
+      - 'Performance under load'
+      - 'Mobile compatibility'
 
 # Progress tracking
 progress_summary: |
@@ -122,7 +122,7 @@ progress_summary: |
   ✅ Server handlers CREATED - deepLinking.ts and assessmentLaunch.ts
   ✅ Test coverage at 50% - 4 test files for 8 source files
   ✅ Vertical slice architecture MAINTAINED - clean separation of concerns
-  
+
   REMAINING GAPS:
   ❌ AGS Integration: Grade passback service not implemented
   ❌ Import Paths: 6 files using relative imports instead of aliases
@@ -130,7 +130,7 @@ progress_summary: |
   ❌ Analytics UI: Instructor dashboard not created
   ❌ AI Features: Question generation placeholder only
   ❌ Mobile Testing: Not validated for Canvas mobile apps
-  
+
   QUALITY METRICS:
   - Acceptance Criteria: 14/20 implemented (70%)
   - Test Coverage: 4/8 files tested (50%)
@@ -140,14 +140,14 @@ progress_summary: |
 
 # Historical context
 history:
-  - at: "2025-08-30T10:00:00Z"
+  - at: '2025-08-30T10:00:00Z'
     gate: FAIL
-    note: "Initial review - 0% test coverage, security issues"
-    
-  - at: "2025-08-30T14:30:00Z"
+    note: 'Initial review - 0% test coverage, security issues'
+
+  - at: '2025-08-30T14:30:00Z'
     gate: CONDITIONAL_PASS
-    note: "70% test coverage added, security fixed, DB missing"
-    
-  - at: "2025-08-31T06:35:00Z"
+    note: '70% test coverage added, security fixed, DB missing'
+
+  - at: '2025-08-31T06:35:00Z'
     gate: CONDITIONAL_PASS
-    note: "DB migrations complete, AGS and import paths remain"
+    note: 'DB migrations complete, AGS and import paths remain'

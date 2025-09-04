@@ -13,38 +13,50 @@ const contentExtractionSchema = z.object({
     text: z.string(),
     title: z.string(),
     metadata: z.object({
-      headings: z.array(z.object({
-        level: z.number(),
-        text: z.string(),
-        id: z.string().optional()
-      })),
-      links: z.array(z.object({
-        url: z.string(),
-        text: z.string(),
-        target: z.string().optional()
-      })),
-      images: z.array(z.object({
-        src: z.string(),
-        alt: z.string(),
-        title: z.string().optional()
-      })),
-      lists: z.array(z.object({
-        type: z.enum(['ordered', 'unordered']),
-        items: z.array(z.string())
-      })),
-      emphasis: z.array(z.object({
-        type: z.enum(['bold', 'italic', 'underline']),
-        text: z.string()
-      })),
-      tables: z.array(z.object({
-        headers: z.array(z.string()),
-        rows: z.array(z.array(z.string()))
-      }))
-    })
+      headings: z.array(
+        z.object({
+          level: z.number(),
+          text: z.string(),
+          id: z.string().optional(),
+        })
+      ),
+      links: z.array(
+        z.object({
+          url: z.string(),
+          text: z.string(),
+          target: z.string().optional(),
+        })
+      ),
+      images: z.array(
+        z.object({
+          src: z.string(),
+          alt: z.string(),
+          title: z.string().optional(),
+        })
+      ),
+      lists: z.array(
+        z.object({
+          type: z.enum(['ordered', 'unordered']),
+          items: z.array(z.string()),
+        })
+      ),
+      emphasis: z.array(
+        z.object({
+          type: z.enum(['bold', 'italic', 'underline']),
+          text: z.string(),
+        })
+      ),
+      tables: z.array(
+        z.object({
+          headers: z.array(z.string()),
+          rows: z.array(z.array(z.string())),
+        })
+      ),
+    }),
   }),
   timestamp: z.string(),
   contentHash: z.string(),
-  instructorConsent: z.boolean()
+  instructorConsent: z.boolean(),
 });
 
 const contentEngagementSchema = z.object({
@@ -54,14 +66,16 @@ const contentEngagementSchema = z.object({
   engagementData: z.object({
     scrollDepth: z.number().min(0).max(100),
     timeSpent: z.number().min(0),
-    interactions: z.array(z.object({
-      type: z.string(),
-      timestamp: z.string(),
-      element: z.string().optional()
-    })),
+    interactions: z.array(
+      z.object({
+        type: z.string(),
+        timestamp: z.string(),
+        element: z.string().optional(),
+      })
+    ),
     hoverEvents: z.number().default(0),
-    rapidScrollEvents: z.number().default(0)
-  })
+    rapidScrollEvents: z.number().default(0),
+  }),
 });
 
 const app = new Hono<Context>();
@@ -71,37 +85,31 @@ async function hashContent(content: string): Promise<string> {
   const data = encoder.encode(content);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   return hashHex;
 }
 
-async function checkInstructorPermissions(
-  env: any,
-  tenantId: string,
-  instructorId: string,
-  courseId: string
-): Promise<boolean> {
+async function checkInstructorPermissions(env: any, tenantId: string, instructorId: string, courseId: string): Promise<boolean> {
   const settings = await env.DB.prepare(
     `SELECT extraction_enabled, auto_extract FROM content_extraction_settings 
      WHERE tenant_id = ? AND instructor_id = ? AND course_id = ?`
-  ).bind(tenantId, instructorId, courseId).first();
+  )
+    .bind(tenantId, instructorId, courseId)
+    .first();
 
   return settings?.extraction_enabled || false;
 }
 
-async function checkCourseMembership(
-  env: any,
-  tenantId: string,
-  userId: string,
-  courseId: string
-): Promise<boolean> {
+async function checkCourseMembership(env: any, tenantId: string, userId: string, courseId: string): Promise<boolean> {
   // Check if user is enrolled in the course or is an instructor
   const membership = await env.DB.prepare(
     `SELECT role FROM course_enrollments 
      WHERE tenant_id = ? AND user_id = ? AND course_id = ? 
      AND status = 'active'`
-  ).bind(tenantId, userId, courseId).first();
-  
+  )
+    .bind(tenantId, userId, courseId)
+    .first();
+
   return membership !== null;
 }
 
@@ -120,17 +128,9 @@ async function logContentAudit(
       id, tenant_id, actor_id, actor_type, action, content_id, page_url,
       success, error_message, created_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
-  ).bind(
-    nanoid(),
-    tenantId,
-    actorId,
-    'instructor',
-    action,
-    contentId,
-    pageUrl,
-    success ? 1 : 0,
-    errorMessage
-  ).run();
+  )
+    .bind(nanoid(), tenantId, actorId, 'instructor', action, contentId, pageUrl, success ? 1 : 0, errorMessage)
+    .run();
 }
 
 async function trackProcessingMetrics(
@@ -148,16 +148,9 @@ async function trackProcessingMetrics(
       id, tenant_id, content_id, operation, duration_ms, content_size_bytes,
       success, error_type, timestamp
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
-  ).bind(
-    nanoid(),
-    tenantId,
-    contentId,
-    operation,
-    durationMs,
-    contentSizeBytes,
-    success ? 1 : 0,
-    errorType
-  ).run();
+  )
+    .bind(nanoid(), tenantId, contentId, operation, durationMs, contentSizeBytes, success ? 1 : 0, errorType)
+    .run();
 }
 
 app.post('/extract', async (c) => {
@@ -195,7 +188,9 @@ app.post('/extract', async (c) => {
     const existing = await c.env.DB.prepare(
       `SELECT id, version_number FROM lms_content 
        WHERE tenant_id = ? AND page_url = ? AND content_hash = ?`
-    ).bind(tenantId, validated.pageUrl, contentHash).first();
+    )
+      .bind(tenantId, validated.pageUrl, contentHash)
+      .first();
 
     if (existing) {
       await trackProcessingMetrics(c.env, tenantId, 'cache_hit', Date.now() - startTime, existing.id);
@@ -203,7 +198,7 @@ app.post('/extract', async (c) => {
         contentId: existing.id,
         analysisId: existing.id,
         extractionStatus: 'cached',
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       });
     }
 
@@ -211,7 +206,9 @@ app.post('/extract', async (c) => {
       `SELECT id, version_number, content_hash FROM lms_content 
        WHERE tenant_id = ? AND page_url = ? 
        ORDER BY version_number DESC LIMIT 1`
-    ).bind(tenantId, validated.pageUrl).first();
+    )
+      .bind(tenantId, validated.pageUrl)
+      .first();
 
     const versionNumber = existingPage ? existingPage.version_number + 1 : 1;
 
@@ -221,37 +218,35 @@ app.post('/extract', async (c) => {
         raw_content, processed_content, version_number, created_by,
         extraction_consent, extraction_method
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(
-      contentId,
-      tenantId,
-      validated.pageUrl,
-      validated.pageType,
-      validated.lmsType || 'unknown',
-      contentHash,
-      validated.content.html,
-      JSON.stringify({
-        title: validated.content.title,
-        text: validated.content.text,
-        metadata: validated.content.metadata
-      }),
-      versionNumber,
-      userId,
-      1,
-      'postmessage'
-    ).run();
+    )
+      .bind(
+        contentId,
+        tenantId,
+        validated.pageUrl,
+        validated.pageType,
+        validated.lmsType || 'unknown',
+        contentHash,
+        validated.content.html,
+        JSON.stringify({
+          title: validated.content.title,
+          text: validated.content.text,
+          metadata: validated.content.metadata,
+        }),
+        versionNumber,
+        userId,
+        1,
+        'postmessage'
+      )
+      .run();
 
     if (existingPage) {
       await c.env.DB.prepare(
         `INSERT INTO content_versions (
           id, content_id, version_number, content_hash, change_magnitude
         ) VALUES (?, ?, ?, ?, ?)`
-      ).bind(
-        nanoid(),
-        contentId,
-        versionNumber,
-        contentHash,
-        'moderate'
-      ).run();
+      )
+        .bind(nanoid(), contentId, versionNumber, contentHash, 'moderate')
+        .run();
     }
 
     const analyzer = new ContentAnalyzer(c.env.AI);
@@ -260,7 +255,7 @@ app.post('/extract', async (c) => {
       pageType: validated.pageType,
       content: validated.content,
       timestamp: validated.timestamp,
-      contentHash
+      contentHash,
     });
 
     await c.env.DB.prepare(
@@ -271,20 +266,22 @@ app.post('/extract', async (c) => {
         readability_score, estimated_reading_time,
         content_complexity, topic_categories
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(
-      nanoid(),
-      contentId,
-      JSON.stringify(analysis.keyConcepts),
-      JSON.stringify(analysis.learningObjectives),
-      JSON.stringify(analysis.prerequisiteKnowledge),
-      JSON.stringify({}),
-      JSON.stringify(analysis.assessmentOpportunities),
-      0.85,
-      analysis.readabilityScore,
-      analysis.estimatedReadingTime,
-      analysis.contentComplexity,
-      JSON.stringify(analysis.topicCategories)
-    ).run();
+    )
+      .bind(
+        nanoid(),
+        contentId,
+        JSON.stringify(analysis.keyConcepts),
+        JSON.stringify(analysis.learningObjectives),
+        JSON.stringify(analysis.prerequisiteKnowledge),
+        JSON.stringify({}),
+        JSON.stringify(analysis.assessmentOpportunities),
+        0.85,
+        analysis.readabilityScore,
+        analysis.estimatedReadingTime,
+        analysis.contentComplexity,
+        JSON.stringify(analysis.topicCategories)
+      )
+      .run();
 
     await logContentAudit(c.env, tenantId, userId, 'extract', contentId, validated.pageUrl, true);
     await trackProcessingMetrics(
@@ -301,12 +298,12 @@ app.post('/extract', async (c) => {
       contentId,
       analysisId: contentId,
       extractionStatus: 'success',
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
     });
   } catch (error) {
     await logContentAudit(c.env, tenantId, userId, 'extract', undefined, undefined, false, error.message);
     await trackProcessingMetrics(c.env, tenantId, 'extraction', Date.now() - startTime, undefined, undefined, false, 'extraction_error');
-    
+
     console.error('Content extraction error:', error);
     return c.json({ error: 'Failed to extract content' }, 500);
   }
@@ -336,7 +333,9 @@ app.get('/context/:pageUrl', async (c) => {
       WHERE lc.tenant_id = ? AND lc.page_url = ?
       ORDER BY lc.version_number DESC
       LIMIT 1`
-    ).bind(tenantId, pageUrl).first();
+    )
+      .bind(tenantId, pageUrl)
+      .first();
 
     if (!content) {
       await trackProcessingMetrics(c.env, tenantId, 'cache_miss', Date.now() - startTime);
@@ -352,7 +351,9 @@ app.get('/context/:pageUrl', async (c) => {
         SUM(rapid_scroll_events) as total_rapid_scrolls
       FROM content_engagement
       WHERE content_id = ? AND tenant_id = ?`
-    ).bind(content.id, tenantId).first();
+    )
+      .bind(content.id, tenantId)
+      .first();
 
     const assessmentData = await c.env.DB.prepare(
       `SELECT 
@@ -362,7 +363,9 @@ app.get('/context/:pageUrl', async (c) => {
       WHERE content_id = ?
       ORDER BY effectiveness_score DESC
       LIMIT 5`
-    ).bind(content.id).all();
+    )
+      .bind(content.id)
+      .all();
 
     const response = {
       content: {
@@ -377,31 +380,27 @@ app.get('/context/:pageUrl', async (c) => {
           readabilityScore: content.readability_score,
           estimatedReadingTime: content.estimated_reading_time,
           contentComplexity: content.content_complexity,
-          topicCategories: JSON.parse(content.topic_categories || '[]')
+          topicCategories: JSON.parse(content.topic_categories || '[]'),
         },
         extractedAt: content.extracted_at,
-        version: content.version_number
+        version: content.version_number,
       },
       engagement: {
         totalSessions: engagementStats?.total_sessions || 0,
         averageTimeSpent: engagementStats?.avg_time_spent || 0,
         averageScrollDepth: engagementStats?.avg_scroll_depth || 0,
         commonStruggles: [],
-        optimalAssessmentPoints: assessmentData.results.map(a => ({
+        optimalAssessmentPoints: assessmentData.results.map((a) => ({
           location: a.location_identifier,
           type: a.assessment_type,
           difficulty: a.difficulty_level,
           successThreshold: a.success_threshold,
-          effectivenessScore: a.effectiveness_score
-        }))
-      }
+          effectivenessScore: a.effectiveness_score,
+        })),
+      },
     };
 
-    await c.env.CONTENT_CACHE.put(
-      `context:${tenantId}:${pageUrl}`,
-      JSON.stringify(response),
-      { expirationTtl: 300 }
-    );
+    await c.env.CONTENT_CACHE.put(`context:${tenantId}:${pageUrl}`, JSON.stringify(response), { expirationTtl: 300 });
 
     await trackProcessingMetrics(c.env, tenantId, 'cache_miss', Date.now() - startTime, content.id);
 
@@ -429,27 +428,29 @@ app.post('/engagement', async (c) => {
         engagement_data, total_time_seconds, scroll_depth_percent,
         interaction_count, hover_confusion_events, rapid_scroll_events
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(
-      engagementId,
-      tenantId,
-      learnerId,
-      validated.contentId,
-      validated.pageUrl,
-      validated.sessionId,
-      JSON.stringify(validated.engagementData),
-      validated.engagementData.timeSpent,
-      validated.engagementData.scrollDepth,
-      validated.engagementData.interactions.length,
-      validated.engagementData.hoverEvents,
-      validated.engagementData.rapidScrollEvents
-    ).run();
+    )
+      .bind(
+        engagementId,
+        tenantId,
+        learnerId,
+        validated.contentId,
+        validated.pageUrl,
+        validated.sessionId,
+        JSON.stringify(validated.engagementData),
+        validated.engagementData.timeSpent,
+        validated.engagementData.scrollDepth,
+        validated.engagementData.interactions.length,
+        validated.engagementData.hoverEvents,
+        validated.engagementData.rapidScrollEvents
+      )
+      .run();
 
     if (validated.engagementData.hoverEvents > 3 || validated.engagementData.rapidScrollEvents > 2) {
       const assessmentOpportunity = {
         location: `High confusion area at ${validated.engagementData.scrollDepth}% scroll`,
         type: 'comprehension',
         difficulty: 0.3,
-        reasoning: 'Multiple confusion indicators detected'
+        reasoning: 'Multiple confusion indicators detected',
       };
 
       await c.env.DB.prepare(
@@ -457,21 +458,23 @@ app.post('/engagement', async (c) => {
           id, content_id, assessment_type, location_identifier,
           difficulty_level, suggested_questions, optimal_timing
         ) VALUES (?, ?, ?, ?, ?, ?, ?)`
-      ).bind(
-        nanoid(),
-        validated.contentId,
-        assessmentOpportunity.type,
-        assessmentOpportunity.location,
-        assessmentOpportunity.difficulty,
-        JSON.stringify([]),
-        'immediate'
-      ).run();
+      )
+        .bind(
+          nanoid(),
+          validated.contentId,
+          assessmentOpportunity.type,
+          assessmentOpportunity.location,
+          assessmentOpportunity.difficulty,
+          JSON.stringify([]),
+          'immediate'
+        )
+        .run();
     }
 
     return c.json({
       engagementId,
       tracked: true,
-      assessmentSuggested: validated.engagementData.hoverEvents > 3 || validated.engagementData.rapidScrollEvents > 2
+      assessmentSuggested: validated.engagementData.hoverEvents > 3 || validated.engagementData.rapidScrollEvents > 2,
     });
   } catch (error) {
     console.error('Engagement tracking error:', error);
@@ -520,20 +523,22 @@ app.get('/search', async (c) => {
     sql += ' ORDER BY lc.extracted_at DESC LIMIT ?';
     params.push(limit);
 
-    const results = await c.env.DB.prepare(sql).bind(...params).all();
+    const results = await c.env.DB.prepare(sql)
+      .bind(...params)
+      .all();
 
     return c.json({
       query,
-      results: results.results.map(r => ({
+      results: results.results.map((r) => ({
         id: r.id,
         pageUrl: r.page_url,
         pageType: r.page_type,
         title: JSON.parse(r.processed_content).title,
         keyConcepts: JSON.parse(r.key_concepts || '[]').slice(0, 5),
         learningObjectives: JSON.parse(r.learning_objectives || '[]').slice(0, 3),
-        complexity: r.content_complexity
+        complexity: r.content_complexity,
       })),
-      total: results.results.length
+      total: results.results.length,
     });
   } catch (error) {
     console.error('Content search error:', error);
@@ -552,7 +557,9 @@ app.post('/settings', async (c) => {
     const existing = await c.env.DB.prepare(
       `SELECT id FROM content_extraction_settings 
        WHERE tenant_id = ? AND instructor_id = ? AND course_id = ?`
-    ).bind(tenantId, instructorId, courseId).first();
+    )
+      .bind(tenantId, instructorId, courseId)
+      .first();
 
     if (existing) {
       await c.env.DB.prepare(
@@ -561,15 +568,17 @@ app.post('/settings', async (c) => {
              retention_days = ?, anonymize_engagement = ?, require_student_consent = ?,
              updated_at = datetime('now')
          WHERE id = ?`
-      ).bind(
-        body.extractionEnabled ? 1 : 0,
-        body.autoExtract ? 1 : 0,
-        JSON.stringify(body.contentTypesAllowed || ['assignment', 'page', 'module']),
-        body.retentionDays || 90,
-        body.anonymizeEngagement !== false ? 1 : 0,
-        body.requireStudentConsent ? 1 : 0,
-        existing.id
-      ).run();
+      )
+        .bind(
+          body.extractionEnabled ? 1 : 0,
+          body.autoExtract ? 1 : 0,
+          JSON.stringify(body.contentTypesAllowed || ['assignment', 'page', 'module']),
+          body.retentionDays || 90,
+          body.anonymizeEngagement !== false ? 1 : 0,
+          body.requireStudentConsent ? 1 : 0,
+          existing.id
+        )
+        .run();
     } else {
       await c.env.DB.prepare(
         `INSERT INTO content_extraction_settings (
@@ -577,18 +586,20 @@ app.post('/settings', async (c) => {
           auto_extract, content_types_allowed, retention_days,
           anonymize_engagement, require_student_consent
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(
-        nanoid(),
-        tenantId,
-        instructorId,
-        courseId,
-        body.extractionEnabled ? 1 : 0,
-        body.autoExtract ? 1 : 0,
-        JSON.stringify(body.contentTypesAllowed || ['assignment', 'page', 'module']),
-        body.retentionDays || 90,
-        body.anonymizeEngagement !== false ? 1 : 0,
-        body.requireStudentConsent ? 1 : 0
-      ).run();
+      )
+        .bind(
+          nanoid(),
+          tenantId,
+          instructorId,
+          courseId,
+          body.extractionEnabled ? 1 : 0,
+          body.autoExtract ? 1 : 0,
+          JSON.stringify(body.contentTypesAllowed || ['assignment', 'page', 'module']),
+          body.retentionDays || 90,
+          body.anonymizeEngagement !== false ? 1 : 0,
+          body.requireStudentConsent ? 1 : 0
+        )
+        .run();
     }
 
     await logContentAudit(c.env, tenantId, instructorId, 'settings_update', undefined, undefined, true);

@@ -19,32 +19,26 @@ interface AssessmentBuilderProps {
 /**
  * Assessment builder interface for configuring AI-guided assessments
  */
-export function AssessmentBuilder({ 
-  config, 
-  onConfigChange, 
-  onPreview,
-  contentContext,
-  jwt
-}: AssessmentBuilderProps): ReactElement {
+export function AssessmentBuilder({ config, onConfigChange, onPreview, contentContext, jwt }: AssessmentBuilderProps): ReactElement {
   const [isGenerating, setIsGenerating] = useState(false);
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     onConfigChange({
       ...config,
-      title: e.target.value
+      title: e.target.value,
     });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     onConfigChange({
       ...config,
-      description: e.target.value
+      description: e.target.value,
     });
   };
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     onConfigChange({
       ...config,
-      assessmentType: e.target.value as 'formative' | 'summative' | 'diagnostic'
+      assessmentType: e.target.value as 'formative' | 'summative' | 'diagnostic',
     });
   };
 
@@ -54,10 +48,10 @@ export function AssessmentBuilder({
     }
 
     setIsGenerating(true);
-    
+
     try {
       const questionApi = createQuestionGenerationApi(jwt);
-      
+
       const options: QuestionGenerationOptions = {
         count: 5,
         difficulty: 3,
@@ -87,11 +81,10 @@ export function AssessmentBuilder({
     }
   };
 
-
   const handleRemoveQuestion = (questionId: string): void => {
     onConfigChange({
       ...config,
-      questions: config.questions.filter(q => q.id !== questionId),
+      questions: config.questions.filter((q) => q.id !== questionId),
     });
   };
 
@@ -99,17 +92,10 @@ export function AssessmentBuilder({
     <div className={styles.builder}>
       <div className={styles.section}>
         <h2>Assessment Details</h2>
-        
+
         <div className={styles.field}>
           <label htmlFor="title">Assessment Title *</label>
-          <input
-            id="title"
-            type="text"
-            value={config.title}
-            onChange={handleTitleChange}
-            placeholder="Enter assessment title"
-            required
-          />
+          <input id="title" type="text" value={config.title} onChange={handleTitleChange} placeholder="Enter assessment title" required />
         </div>
 
         <div className={styles.field}>
@@ -125,11 +111,7 @@ export function AssessmentBuilder({
 
         <div className={styles.field}>
           <label htmlFor="type">Assessment Type</label>
-          <select 
-            id="type"
-            value={config.assessmentType} 
-            onChange={handleTypeChange}
-          >
+          <select id="type" value={config.assessmentType} onChange={handleTypeChange}>
             <option value="formative">Formative (Practice)</option>
             <option value="summative">Summative (Graded)</option>
             <option value="diagnostic">Diagnostic</option>
@@ -146,13 +128,13 @@ export function AssessmentBuilder({
 
       <div className={styles.section}>
         <h2>AI-Powered Questions</h2>
-        
+
         {contentContext ? (
           <div className={styles.aiSection}>
             <p className={styles.aiDescription}>
               Generate questions automatically based on the current page content and your learning objectives.
             </p>
-            
+
             <button
               className={styles.generateButton}
               onClick={handleGenerateQuestions}
@@ -165,9 +147,7 @@ export function AssessmentBuilder({
                   Generating Questions...
                 </>
               ) : (
-                <>
-                  🤖 Generate AI Questions
-                </>
+                <>🤖 Generate AI Questions</>
               )}
             </button>
 
@@ -189,9 +169,7 @@ export function AssessmentBuilder({
                         ×
                       </button>
                     </div>
-                    <div className={styles.questionText}>
-                      {question.text}
-                    </div>
+                    <div className={styles.questionText}>{question.text}</div>
                     {question.options && (
                       <div className={styles.questionOptions}>
                         {question.options.map((option, i) => (
@@ -209,19 +187,15 @@ export function AssessmentBuilder({
         ) : (
           <div className={styles.noContent}>
             <p>
-              AI question generation will be available when launched from LMS content pages.
-              Questions will be automatically generated based on the page content.
+              AI question generation will be available when launched from LMS content pages. Questions will be automatically generated based
+              on the page content.
             </p>
           </div>
         )}
       </div>
 
       <div className={styles.actions}>
-        <button 
-          className={styles.previewButton}
-          onClick={onPreview}
-          disabled={!config.title}
-        >
+        <button className={styles.previewButton} onClick={onPreview} disabled={!config.title}>
           Preview Assessment
         </button>
       </div>

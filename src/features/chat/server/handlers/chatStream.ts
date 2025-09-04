@@ -13,7 +13,7 @@ function escapeHtml(text: string): string {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    '\'': '&#039;',
+    "'": '&#039;',
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
@@ -78,58 +78,53 @@ export async function handleChatStream(c: Context): Promise<Response> {
     const chatDO = c.env.CHAT_CONVERSATIONS.get(doId);
 
     // Store user message
-    await chatDO.fetch(new Request('https://do/add-message', {
-      method: 'POST',
-      body: JSON.stringify({
-        role: 'user',
-        content: sanitizedMessage,
-        timestamp: new Date().toISOString()
+    await chatDO.fetch(
+      new Request('https://do/add-message', {
+        method: 'POST',
+        body: JSON.stringify({
+          role: 'user',
+          content: sanitizedMessage,
+          timestamp: new Date().toISOString(),
+        }),
       })
-    }));
+    );
 
     // Initialize services
     const aiService = new AIService(c.env.AI);
     const promptBuilder = new PromptBuilder();
     const contextEnricher = new ContextEnricher();
-    const faqKnowledgeBase = new FAQKnowledgeBase(
-      aiService,
-      c.env.FAQ_INDEX,
-      c.env.CLIENT_AUTH_TOKENS,
-      c.env.DB
-    );
+    const faqKnowledgeBase = new FAQKnowledgeBase(aiService, c.env.FAQ_INDEX, c.env.CLIENT_AUTH_TOKENS, c.env.DB);
 
     // Get AI configuration
     const aiConfig = await getAIConfig(c.env.DB, tenantId);
 
     // Check FAQ first
-    const faqs = await faqKnowledgeBase.searchSimilarFAQs(
-      sanitizedMessage,
-      tenantId,
-      body.page_context.course_id || undefined,
-      1
-    );
+    const faqs = await faqKnowledgeBase.searchSimilarFAQs(sanitizedMessage, tenantId, body.page_context.course_id || undefined, 1);
 
     // If high confidence FAQ match, return it immediately
     if (faqs.length > 0 && faqs[0].similarity && faqs[0].similarity > 0.9) {
-      return new Response(createSSEMessage({
-        type: 'complete',
-        content: faqs[0].answer,
-        messageId,
-        conversationId,
-        cached: true,
-        tokensUsed: 0
-      }), {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
+      return new Response(
+        createSSEMessage({
+          type: 'complete',
+          content: faqs[0].answer,
+          messageId,
+          conversationId,
+          cached: true,
+          tokensUsed: 0,
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
         }
-      });
+      );
     }
 
     // Get conversation history
     const historyResponse = await chatDO.fetch(new Request('https://do/get-history'));
-    const conversationHistory = await historyResponse.json() as Array<{ role: string; content: string }>;
+    const conversationHistory = (await historyResponse.json()) as Array<{ role: string; content: string }>;
 
     // Get learner profile
     const learnerProfile = await getLearnerProfile(c.env.DB, userId, tenantId);
@@ -140,15 +135,10 @@ export async function handleChatStream(c: Context): Promise<Response> {
       moduleId: body.page_context.module_id || undefined,
       pageContent: body.page_context.page_content || undefined,
       currentElement: body.page_context.current_element || undefined,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
-    const enrichedContext = await contextEnricher.enrichContext(
-      pageContext,
-      payload,
-      learnerProfile,
-      { sessionId: body.session_id }
-    );
+    const enrichedContext = await contextEnricher.enrichContext(pageContext, payload, learnerProfile, { sessionId: body.session_id });
 
     // Build prompt
     const promptContext = {
@@ -158,7 +148,7 @@ export async function handleChatStream(c: Context): Promise<Response> {
       pageContent: enrichedContext.extractedContent,
       learnerProfile: learnerProfile,
       conversationHistory: conversationHistory.slice(-10),
-      currentQuestion: sanitizedMessage
+      currentQuestion: sanitizedMessage,
     };
 
     const templateId = promptBuilder.selectTemplateForContext(promptContext);
@@ -176,22 +166,22 @@ export async function handleChatStream(c: Context): Promise<Response> {
 
       try {
         // Send initial message
-        await writer.write(encoder.encode(createSSEMessage({
-          type: 'start',
-          messageId,
-          conversationId
-        })));
+        await writer.write(
+          encoder.encode(
+            createSSEMessage({
+              type: 'start',
+              messageId,
+              conversationId,
+            })
+          )
+        );
 
         // Stream AI response
-        const stream = aiService.generateStreamingResponse(
-          userPrompt,
-          systemPrompt,
-          {
-            modelName: aiConfig.modelName,
-            maxTokens: Math.min(2048, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday),
-            temperature: 0.7
-          }
-        );
+        const stream = aiService.generateStreamingResponse(userPrompt, systemPrompt, {
+          modelName: aiConfig.modelName,
+          maxTokens: Math.min(2048, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday),
+          temperature: 0.7,
+        });
 
         for await (const chunk of stream) {
           if (chunk.done) {
@@ -202,21 +192,27 @@ export async function handleChatStream(c: Context): Promise<Response> {
           tokensUsed += Math.ceil(chunk.text.length / 4);
 
           // Send chunk
-          await writer.write(encoder.encode(createSSEMessage({
-            type: 'chunk',
-            content: chunk.text
-          })));
+          await writer.write(
+            encoder.encode(
+              createSSEMessage({
+                type: 'chunk',
+                content: chunk.text,
+              })
+            )
+          );
         }
 
         // Store complete response in conversation
-        await chatDO.fetch(new Request('https://do/add-message', {
-          method: 'POST',
-          body: JSON.stringify({
-            role: 'assistant',
-            content: fullResponse,
-            timestamp: new Date().toISOString()
+        await chatDO.fetch(
+          new Request('https://do/add-message', {
+            method: 'POST',
+            body: JSON.stringify({
+              role: 'assistant',
+              content: fullResponse,
+              timestamp: new Date().toISOString(),
+            }),
           })
-        }));
+        );
 
         // Track token usage
         if (tokensUsed > 0) {
@@ -232,19 +228,26 @@ export async function handleChatStream(c: Context): Promise<Response> {
         );
 
         // Send completion message with metadata
-        await writer.write(encoder.encode(createSSEMessage({
-          type: 'complete',
-          suggestions: suggestions.map(s => s.description),
-          tokensUsed,
-          tokensRemaining: Math.max(0, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday - tokensUsed)
-        })));
-
+        await writer.write(
+          encoder.encode(
+            createSSEMessage({
+              type: 'complete',
+              suggestions: suggestions.map((s) => s.description),
+              tokensUsed,
+              tokensRemaining: Math.max(0, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday - tokensUsed),
+            })
+          )
+        );
       } catch {
         console.error('Streaming error:', error);
-        await writer.write(encoder.encode(createSSEMessage({
-          type: 'error',
-          error: 'An error occurred while generating the response'
-        })));
+        await writer.write(
+          encoder.encode(
+            createSSEMessage({
+              type: 'error',
+              error: 'An error occurred while generating the response',
+            })
+          )
+        );
       } finally {
         await writer.close();
       }
@@ -254,11 +257,10 @@ export async function handleChatStream(c: Context): Promise<Response> {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         'X-Accel-Buffering': 'no', // Disable Nginx buffering
-      }
+      },
     });
-
   } catch {
     console.error('Chat stream error:', error);
     return c.json({ error: 'Internal server error' }, 500);
@@ -272,17 +274,20 @@ function createSSEMessage(data: any): string {
 
 // Helper function to get AI config
 async function getAIConfig(db: any, tenantId: string): Promise<any> {
-  const result = await db.prepare(
-    'SELECT * FROM ai_config WHERE tenant_id = ?'
-  ).bind(tenantId).first();
+  const result = await db.prepare('SELECT * FROM ai_config WHERE tenant_id = ?').bind(tenantId).first();
 
   if (result) {
     const today = new Date().toISOString().split('T')[0];
-    const usageResult = await db.prepare(`
+    const usageResult = await db
+      .prepare(
+        `
       SELECT SUM(tokens_used) as total 
       FROM token_usage 
       WHERE tenant_id = ? AND DATE(created_at) = ?
-    `).bind(tenantId, today).first();
+    `
+      )
+      .bind(tenantId, today)
+      .first();
 
     return {
       modelName: result.model_name || '@cf/meta/llama-3.1-8b-instruct',
@@ -290,7 +295,7 @@ async function getAIConfig(db: any, tenantId: string): Promise<any> {
       tokenLimitPerDay: result.token_limit_per_day || 100000,
       rateLimitPerMinute: result.rate_limit_per_minute || 10,
       enabled: result.enabled !== false,
-      tokensUsedToday: usageResult?.total || 0
+      tokensUsedToday: usageResult?.total || 0,
     };
   }
 
@@ -300,23 +305,28 @@ async function getAIConfig(db: any, tenantId: string): Promise<any> {
     tokenLimitPerDay: 100000,
     rateLimitPerMinute: 10,
     enabled: true,
-    tokensUsedToday: 0
+    tokensUsedToday: 0,
   };
 }
 
 // Helper function to get learner profile
 async function getLearnerProfile(db: any, userId: string, tenantId: string): Promise<any> {
-  const result = await db.prepare(`
+  const result = await db
+    .prepare(
+      `
     SELECT * FROM learner_profiles 
     WHERE user_id = ? AND tenant_id = ?
-  `).bind(userId, tenantId).first();
+  `
+    )
+    .bind(userId, tenantId)
+    .first();
 
   if (result) {
     return {
       learningStyle: result.learning_style,
       performanceLevel: result.performance_level,
       struggleAreas: result.struggle_areas ? JSON.parse(result.struggle_areas) : [],
-      preferredLanguage: result.preferred_language || 'en'
+      preferredLanguage: result.preferred_language || 'en',
     };
   }
 
@@ -333,17 +343,14 @@ async function trackTokenUsage(
   modelName: string
 ): Promise<void> {
   const id = `usage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  await db.prepare(`
+
+  await db
+    .prepare(
+      `
     INSERT INTO token_usage (id, tenant_id, user_id, conversation_id, tokens_used, model_name, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    id,
-    tenantId,
-    userId,
-    conversationId,
-    tokensUsed,
-    modelName,
-    new Date().toISOString()
-  ).run();
+  `
+    )
+    .bind(id, tenantId, userId, conversationId, tokensUsed, modelName, new Date().toISOString())
+    .run();
 }

@@ -43,10 +43,7 @@ try {
 
   if (searchPattern.test(workerContent)) {
     console.log('✓ Found manifestData declaration, injecting data...');
-    workerContent = workerContent.replace(
-      searchPattern,
-      `let manifestData = ${manifestDataString};`
-    );
+    workerContent = workerContent.replace(searchPattern, `let manifestData = ${manifestDataString};`);
 
     // Write the updated worker file
     writeFileSync(WORKER_JS_PATH, workerContent);
@@ -62,7 +59,6 @@ try {
       console.log('ℹ️  manifestData declaration not found at all');
     }
   }
-
 } catch (error) {
   console.error('Error injecting manifest:', error);
   process.exit(1);

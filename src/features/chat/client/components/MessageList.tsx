@@ -17,9 +17,9 @@ export const MessageList: React.FC = () => {
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -57,7 +57,7 @@ export const MessageList: React.FC = () => {
                   created_at: message.timestamp,
                   rich_media: message.rich_media,
                   from_faq: message.from_faq,
-                  media_load_time_ms: message.media_load_time_ms
+                  media_load_time_ms: message.media_load_time_ms,
                 }}
                 learnerPreferences={mediaPreferences}
                 onMediaLoad={handleMediaLoad}
@@ -67,13 +67,11 @@ export const MessageList: React.FC = () => {
             ) : (
               <div>{message.content}</div>
             )}
-            <div className={styles.messageTimestamp}>
-              {formatTimestamp(message.timestamp)}
-            </div>
+            <div className={styles.messageTimestamp}>{formatTimestamp(message.timestamp)}</div>
           </div>
         </div>
       ))}
-      
+
       {isLoading && (
         <div className={`${styles.message} ${styles.ai}`}>
           <div className={styles.loadingIndicator} aria-label="Atomic Guide is typing">
@@ -83,7 +81,7 @@ export const MessageList: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       <div ref={messagesEndRef} />
     </div>
   );

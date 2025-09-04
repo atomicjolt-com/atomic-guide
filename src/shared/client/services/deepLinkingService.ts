@@ -6,16 +6,11 @@
 
 import type { LaunchSettings } from '@atomicjolt/lti-client';
 import { LTI_SIGN_DEEP_LINK_PATH } from '../../../../definitions';
-import { 
-  deepLinkSchema, 
-  deepLinkResponseSchema,
-  type DeepLink,
-  type DeepLinkResponse 
-} from '@shared/schemas/deepLink.schema';
+import { deepLinkSchema, deepLinkResponseSchema, type DeepLink, type DeepLinkResponse } from '@shared/schemas/deepLink.schema';
 
 /**
  * Creates the appropriate deep link based on accepted types.
- * 
+ *
  * @param acceptTypes - Array of accepted content types from platform
  * @returns Default deep link object based on platform capabilities
  */
@@ -57,16 +52,13 @@ export function createDeepLink(acceptTypes?: string[]): DeepLink {
 
 /**
  * Signs a deep link with JWT and returns signed response.
- * 
+ *
  * @param deepLink - Deep link object to sign
  * @param jwt - Bearer token for authorization
  * @returns Promise resolving to signed deep link response
  * @throws {Error} If API request fails or response validation fails
  */
-export async function signDeepLink(
-  deepLink: DeepLink, 
-  jwt: string
-): Promise<DeepLinkResponse> {
+export async function signDeepLink(deepLink: DeepLink, jwt: string): Promise<DeepLinkResponse> {
   const response = await fetch('/' + LTI_SIGN_DEEP_LINK_PATH, {
     method: 'POST',
     body: JSON.stringify([deepLink]),
@@ -87,7 +79,7 @@ export async function signDeepLink(
 
 /**
  * Submits a signed deep link to the platform.
- * 
+ *
  * @param signedJwt - Signed JWT from deep link API
  * @param returnUrl - Platform's deep link return URL
  * @throws {Error} If form elements are not found
@@ -107,13 +99,13 @@ export function submitDeepLink(signedJwt: string, returnUrl: string): void {
 
 /**
  * Sets up deep linking button handler.
- * 
+ *
  * @param launchSettings - Launch settings containing JWT and deep linking config
  * @returns Cleanup function to remove event listener
  */
 export function setupDeepLinkingButton(launchSettings: LaunchSettings): (() => void) | null {
   const button = document.getElementById('deep-linking-button');
-  
+
   if (!button || !launchSettings.jwt || !launchSettings.deepLinking?.deep_link_return_url) {
     return null;
   }
@@ -129,7 +121,7 @@ export function setupDeepLinkingButton(launchSettings: LaunchSettings): (() => v
   };
 
   button.addEventListener('click', handleClick);
-  
+
   return () => {
     button.removeEventListener('click', handleClick);
   };

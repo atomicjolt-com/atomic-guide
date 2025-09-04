@@ -1,4 +1,4 @@
-import {  describe, it, expect , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import chatReducer, {
   toggleChat,
   openChat,
@@ -33,7 +33,7 @@ describe('chatSlice', () => {
   it('should handle toggleChat', () => {
     const state = chatReducer(initialState, toggleChat());
     expect(state.isOpen).toBe(true);
-    
+
     const nextState = chatReducer(state, toggleChat());
     expect(nextState.isOpen).toBe(false);
   });
@@ -76,7 +76,7 @@ describe('chatSlice', () => {
   it('should handle setLoading', () => {
     const state = chatReducer(initialState, setLoading(true));
     expect(state.isLoading).toBe(true);
-    
+
     const nextState = chatReducer(state, setLoading(false));
     expect(nextState.isLoading).toBe(false);
   });
@@ -84,7 +84,7 @@ describe('chatSlice', () => {
   it('should handle setError', () => {
     const state = chatReducer(initialState, setError('Test error'));
     expect(state.error).toBe('Test error');
-    
+
     const nextState = chatReducer(state, setError(null));
     expect(nextState.error).toBeNull();
   });

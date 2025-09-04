@@ -20,18 +20,18 @@ export const RichMessage: React.FC<RichMessageProps> = ({
   onMediaLoad,
   onMediaInteraction,
   onMediaError,
-  className = ''
+  className = '',
 }) => {
   const [loadedMedia, setLoadedMedia] = useState<Set<string>>(new Set());
   const [mediaErrors, setMediaErrors] = useState<Map<string, string>>(new Map());
   const [totalLoadTime, setTotalLoadTime] = useState<number>(0);
   const [bandwidth, setBandwidth] = useState<'high' | 'medium' | 'low'>('high');
-  
+
   // Intersection observer for progressive loading
   const { ref, inView } = useInView({
     threshold: 0,
     triggerOnce: true,
-    rootMargin: '200px' // Load 200px before viewport
+    rootMargin: '200px', // Load 200px before viewport
   });
 
   // Detect bandwidth (simplified)
@@ -52,54 +52,66 @@ export const RichMessage: React.FC<RichMessageProps> = ({
     }
   }, [learnerPreferences.bandwidth_preference]);
 
-  const handleMediaLoad = useCallback((type: string, loadTime: number) => {
-    setLoadedMedia(prev => new Set(prev).add(type));
-    setTotalLoadTime(prev => prev + loadTime);
-    onMediaLoad?.(type, loadTime);
-  }, [onMediaLoad]);
+  const handleMediaLoad = useCallback(
+    (type: string, loadTime: number) => {
+      setLoadedMedia((prev) => new Set(prev).add(type));
+      setTotalLoadTime((prev) => prev + loadTime);
+      onMediaLoad?.(type, loadTime);
+    },
+    [onMediaLoad]
+  );
 
-  const handleMediaError = useCallback((type: string, error: Error) => {
-    setMediaErrors(prev => new Map(prev).set(type, error.message));
-    onMediaError?.(type, error);
-  }, [onMediaError]);
+  const handleMediaError = useCallback(
+    (type: string, error: Error) => {
+      setMediaErrors((prev) => new Map(prev).set(type, error.message));
+      onMediaError?.(type, error);
+    },
+    [onMediaError]
+  );
 
-  const handleMediaInteraction = useCallback((type: string, action: string) => {
-    onMediaInteraction?.(type, action);
-  }, [onMediaInteraction]);
+  const handleMediaInteraction = useCallback(
+    (type: string, action: string) => {
+      onMediaInteraction?.(type, action);
+    },
+    [onMediaInteraction]
+  );
 
   // Process text content to identify and replace inline LaTeX
-  const processTextContent = useCallback((text: string) => {
-    if (!learnerPreferences.prefers_visual || learnerPreferences.math_notation_style === 'ascii') {
-      return { processedText: text, inlineElements: [] };
-    }
+  const processTextContent = useCallback(
+    (text: string) => {
+      if (!learnerPreferences.prefers_visual || learnerPreferences.math_notation_style === 'ascii') {
+        return { processedText: text, inlineElements: [] };
+      }
 
-    const inlineElements: JSX.Element[] = [];
-    let processedText = text;
-    let elementIndex = 0;
+      const inlineElements: JSX.Element[] = [];
+      let processedText = text;
+      let elementIndex = 0;
 
-    // Replace inline LaTeX (single $ delimiters)
-    processedText = processedText.replace(/\$([^$]+)\$/g, (match, latex) => {
-      const placeholder = `__INLINE_LATEX_${elementIndex}__`;
-      inlineElements.push(
-        <LaTeXRenderer
-          key={`inline-${elementIndex}`}
-          content={latex}
-          inline={true}
-          onLoad={(time) => handleMediaLoad('latex-inline', time)}
-          onError={(error) => handleMediaError('latex-inline', error)}
-          onInteraction={() => handleMediaInteraction('latex', 'click')}
-        />
-      );
-      elementIndex++;
-      return placeholder;
-    });
+      // Replace inline LaTeX (single $ delimiters)
+      processedText = processedText.replace(/\$([^$]+)\$/g, (match, latex) => {
+        const placeholder = `__INLINE_LATEX_${elementIndex}__`;
+        inlineElements.push(
+          <LaTeXRenderer
+            key={`inline-${elementIndex}`}
+            content={latex}
+            inline={true}
+            onLoad={(time) => handleMediaLoad('latex-inline', time)}
+            onError={(error) => handleMediaError('latex-inline', error)}
+            onInteraction={() => handleMediaInteraction('latex', 'click')}
+          />
+        );
+        elementIndex++;
+        return placeholder;
+      });
 
-    return { processedText, inlineElements };
-  }, [learnerPreferences, handleMediaLoad, handleMediaError, handleMediaInteraction]);
+      return { processedText, inlineElements };
+    },
+    [learnerPreferences, handleMediaLoad, handleMediaError, handleMediaInteraction]
+  );
 
   const renderTextWithInlineMedia = (text: string) => {
     const { processedText, inlineElements } = processTextContent(text);
-    
+
     if (inlineElements.length === 0) {
       return <span>{text}</span>;
     }
@@ -123,23 +135,27 @@ export const RichMessage: React.FC<RichMessageProps> = ({
     // Progressive loading based on bandwidth and viewport
     if (!inView && bandwidth === 'low') {
       return (
-        <div key={`${media.type}-${index}`} className="media-placeholder" style={{
-          background: '#f0f0f0',
-          padding: '16px',
-          borderRadius: '8px',
-          textAlign: 'center',
-          margin: '8px 0'
-        }}>
+        <div
+          key={`${media.type}-${index}`}
+          className="media-placeholder"
+          style={{
+            background: '#f0f0f0',
+            padding: '16px',
+            borderRadius: '8px',
+            textAlign: 'center',
+            margin: '8px 0',
+          }}
+        >
           <p>📄 {media.type.charAt(0).toUpperCase() + media.type.slice(1)} content available</p>
-          <button 
-            onClick={() => setLoadedMedia(prev => new Set(prev).add(`${media.type}-${index}`))}
+          <button
+            onClick={() => setLoadedMedia((prev) => new Set(prev).add(`${media.type}-${index}`))}
             style={{
               padding: '8px 16px',
               border: '1px solid #0052cc',
               background: 'white',
               color: '#0052cc',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             Load {media.type}
@@ -149,7 +165,7 @@ export const RichMessage: React.FC<RichMessageProps> = ({
     }
 
     const mediaKey = `${media.type}-${index}`;
-    
+
     switch (media.type) {
       case 'latex':
         return (
@@ -181,14 +197,18 @@ export const RichMessage: React.FC<RichMessageProps> = ({
 
       case 'diagram':
         return (
-          <div key={mediaKey} className="rich-media-diagram" style={{
-            margin: '16px 0',
-            padding: '16px',
-            border: '1px solid #e0e0e0',
-            borderRadius: '8px',
-            textAlign: 'center',
-            background: 'white'
-          }}>
+          <div
+            key={mediaKey}
+            className="rich-media-diagram"
+            style={{
+              margin: '16px 0',
+              padding: '16px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              textAlign: 'center',
+              background: 'white',
+            }}
+          >
             {media.content.startsWith('http') ? (
               <img
                 src={media.content}
@@ -196,7 +216,7 @@ export const RichMessage: React.FC<RichMessageProps> = ({
                 style={{
                   maxWidth: '100%',
                   height: 'auto',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
                 }}
                 onLoad={() => handleMediaLoad('diagram', 0)}
                 onError={() => handleMediaError('diagram', new Error('Failed to load image'))}
@@ -208,8 +228,8 @@ export const RichMessage: React.FC<RichMessageProps> = ({
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(media.content, {
                     ALLOWED_TAGS: ['svg', 'g', 'path', 'circle', 'rect', 'text', 'line'],
-                    ALLOWED_ATTR: ['viewBox', 'width', 'height', 'd', 'cx', 'cy', 'r', 'x', 'y', 'fill', 'stroke', 'stroke-width']
-                  })
+                    ALLOWED_ATTR: ['viewBox', 'width', 'height', 'd', 'cx', 'cy', 'r', 'x', 'y', 'fill', 'stroke', 'stroke-width'],
+                  }),
                 }}
                 onClick={() => handleMediaInteraction('diagram', 'click')}
                 style={{ cursor: 'pointer' }}
@@ -220,11 +240,15 @@ export const RichMessage: React.FC<RichMessageProps> = ({
 
       case 'video':
         return (
-          <div key={mediaKey} className="rich-media-video" style={{
-            margin: '16px 0',
-            borderRadius: '8px',
-            overflow: 'hidden'
-          }}>
+          <div
+            key={mediaKey}
+            className="rich-media-video"
+            style={{
+              margin: '16px 0',
+              borderRadius: '8px',
+              overflow: 'hidden',
+            }}
+          >
             <video
               controls
               style={{ width: '100%', height: 'auto' }}
@@ -240,14 +264,18 @@ export const RichMessage: React.FC<RichMessageProps> = ({
 
       default:
         return (
-          <div key={mediaKey} className="rich-media-unknown" style={{
-            margin: '16px 0',
-            padding: '16px',
-            background: '#fff3cd',
-            border: '1px solid #ffeaa7',
-            borderRadius: '8px',
-            color: '#856404'
-          }}>
+          <div
+            key={mediaKey}
+            className="rich-media-unknown"
+            style={{
+              margin: '16px 0',
+              padding: '16px',
+              background: '#fff3cd',
+              border: '1px solid #ffeaa7',
+              borderRadius: '8px',
+              color: '#856404',
+            }}
+          >
             <p>⚠️ Unsupported media type: {media.type}</p>
             <details>
               <summary>Show raw content</summary>
@@ -262,15 +290,18 @@ export const RichMessage: React.FC<RichMessageProps> = ({
     <div ref={ref} className={`rich-message ${className}`}>
       {/* FAQ indicator */}
       {message.from_faq && (
-        <div className="faq-badge" style={{
-          display: 'inline-block',
-          background: 'linear-gradient(135deg, #4CAF50, #45A049)',
-          color: 'white',
-          fontSize: '12px',
-          padding: '4px 8px',
-          borderRadius: '12px',
-          marginBottom: '8px'
-        }}>
+        <div
+          className="faq-badge"
+          style={{
+            display: 'inline-block',
+            background: 'linear-gradient(135deg, #4CAF50, #45A049)',
+            color: 'white',
+            fontSize: '12px',
+            padding: '4px 8px',
+            borderRadius: '12px',
+            marginBottom: '8px',
+          }}
+        >
           ⚡ FAQ • {Math.round(message.from_faq.confidence * 100)}% match
         </div>
       )}
@@ -282,27 +313,30 @@ export const RichMessage: React.FC<RichMessageProps> = ({
 
       {/* Rich media blocks */}
       {message.rich_media && message.rich_media.length > 0 && (
-        <div className="rich-media-container">
-          {message.rich_media.map((media, index) => renderRichMedia(media, index))}
-        </div>
+        <div className="rich-media-container">{message.rich_media.map((media, index) => renderRichMedia(media, index))}</div>
       )}
 
       {/* Error summary */}
       {mediaErrors.size > 0 && (
-        <div className="media-errors" style={{
-          marginTop: '8px',
-          padding: '8px',
-          background: '#f8d7da',
-          border: '1px solid #f5c6cb',
-          borderRadius: '4px',
-          fontSize: '12px',
-          color: '#721c24'
-        }}>
+        <div
+          className="media-errors"
+          style={{
+            marginTop: '8px',
+            padding: '8px',
+            background: '#f8d7da',
+            border: '1px solid #f5c6cb',
+            borderRadius: '4px',
+            fontSize: '12px',
+            color: '#721c24',
+          }}
+        >
           <details>
             <summary>{mediaErrors.size} media error(s)</summary>
             <ul style={{ margin: '4px 0', paddingLeft: '16px' }}>
               {Array.from(mediaErrors.entries()).map(([type, error]) => (
-                <li key={type}>{type}: {error}</li>
+                <li key={type}>
+                  {type}: {error}
+                </li>
               ))}
             </ul>
           </details>
@@ -311,11 +345,14 @@ export const RichMessage: React.FC<RichMessageProps> = ({
 
       {/* Performance info (development only) */}
       {process.env.NODE_ENV === 'development' && totalLoadTime > 0 && (
-        <div className="performance-info" style={{
-          marginTop: '8px',
-          fontSize: '11px',
-          color: '#6c757d'
-        }}>
+        <div
+          className="performance-info"
+          style={{
+            marginTop: '8px',
+            fontSize: '11px',
+            color: '#6c757d',
+          }}
+        >
           Media load time: {totalLoadTime}ms • Loaded: {loadedMedia.size} items • Bandwidth: {bandwidth}
         </div>
       )}

@@ -60,9 +60,11 @@ src/
 ## Feature Domains
 
 ### 1. Chat Feature
+
 **Purpose**: AI-powered conversational interface
 
 **Components**:
+
 - Chat UI (FAB, Window, Messages)
 - Message streaming
 - Conversation management
@@ -70,14 +72,17 @@ src/
 - Suggestion system
 
 **Shared Dependencies**:
+
 - AIService (from shared)
 - ErrorBoundary (from shared)
 - CodeBlock component (from shared)
 
 ### 2. Assessment Feature
+
 **Purpose**: Deep linking and assessment configuration
 
 **Components**:
+
 - Assessment builder UI
 - Question management
 - Rubric configuration
@@ -85,75 +90,92 @@ src/
 - LTI content item creation
 
 **Shared Dependencies**:
+
 - Form components (from shared)
 - Validation utilities (from shared)
 
 ### 3. Content Feature
+
 **Purpose**: LMS content extraction and awareness
 
 **Components**:
+
 - Content extractor
 - Privacy controls
 - Manual content input
 - Content analysis
 
 **Shared Dependencies**:
+
 - Sanitization utilities (from shared)
 - Parsing utilities (from shared)
 
 ### 4. Dashboard Feature
+
 **Purpose**: Analytics and learning insights
 
 **Components**:
+
 - Learning patterns visualization
 - Chat history
 - Privacy settings
 - Suggestion analytics
 
 **Shared Dependencies**:
+
 - Chart components (from shared)
 - Analytics utilities (from shared)
 
 ### 5. LTI Feature
+
 **Purpose**: LTI protocol implementation
 
 **Components**:
+
 - Launch handling
 - Registration
 - JWT management
 - Platform configuration
 
 **Shared Dependencies**:
+
 - JWT utilities (from shared)
 - Authentication hooks (from shared)
 
 ### 6. Settings Feature
+
 **Purpose**: User preferences management
 
 **Components**:
+
 - Preference UI
 - Settings persistence
 - Theme management
 
 **Shared Dependencies**:
+
 - Form components (from shared)
 - Storage utilities (from shared)
 
 ### 7. FAQ Feature
+
 **Purpose**: Knowledge base and FAQ system
 
 **Components**:
+
 - FAQ search
 - Vector-based retrieval
 - FAQ management
 
 **Shared Dependencies**:
+
 - AIService (from shared)
 - Search utilities (from shared)
 
 ## Shared Module Organization
 
 ### Shared Client Components
+
 - `Button`, `Input`, `Select` - Form primitives
 - `Modal`, `Dialog` - Overlay components
 - `ErrorBoundary` - Error handling
@@ -162,6 +184,7 @@ src/
 - `Card`, `Panel` - Layout components
 
 ### Shared Server Services
+
 - `AIService` - Core AI interactions
 - `DatabaseService` - Common DB operations
 - `ModelRegistry` - AI model management
@@ -169,6 +192,7 @@ src/
 - `StorageFallback` - Storage abstraction
 
 ### Shared Utilities
+
 - `responseFormatter` - API response standardization
 - `sanitizer` - Input sanitization
 - `tokenizer` - Text processing
@@ -177,6 +201,7 @@ src/
 - `validators` - Common validation functions
 
 ### Shared Schemas
+
 - `userSchema` - User data validation
 - `apiResponseSchema` - API response structure
 - `paginationSchema` - Pagination parameters
@@ -185,6 +210,7 @@ src/
 ## Import Patterns
 
 ### TypeScript Path Aliases
+
 ```json
 {
   "compilerOptions": {
@@ -199,6 +225,7 @@ src/
 ```
 
 ### Import Examples
+
 ```typescript
 // Importing from shared
 import { AIService } from '@shared/server/services';
@@ -216,18 +243,21 @@ import type { ChatMessage } from '@features/chat/shared/types';
 ## Migration Strategy
 
 ### Phase 1: Foundation (Week 1)
+
 1. Create directory structure
 2. Setup TypeScript paths
 3. Move shared utilities
 4. Configure build system
 
 ### Phase 2: Shared Module (Week 1-2)
+
 1. Extract common components
 2. Move shared services
 3. Consolidate utilities
 4. Setup shared schemas
 
 ### Phase 3: Feature Migration (Weeks 2-4)
+
 1. Chat feature (isolated, good starting point)
 2. Assessment feature (newer, fewer dependencies)
 3. Content feature
@@ -236,6 +266,7 @@ import type { ChatMessage } from '@features/chat/shared/types';
 6. LTI feature (most integrated, do last)
 
 ### Phase 4: Cleanup (Week 4)
+
 1. Remove old directories
 2. Update all imports
 3. Fix tests
@@ -244,6 +275,7 @@ import type { ChatMessage } from '@features/chat/shared/types';
 ## Testing Strategy
 
 ### Test Organization
+
 ```
 features/
 └── chat/
@@ -254,6 +286,7 @@ features/
 ```
 
 ### Test Guidelines
+
 - Each feature maintains its own test suite
 - Shared modules have comprehensive test coverage
 - Integration tests verify feature interactions
@@ -262,13 +295,14 @@ features/
 ## Build Configuration Updates
 
 ### Vite Configuration
+
 ```typescript
 export default defineConfig({
   resolve: {
     alias: {
       '@features': '/src/features',
       '@shared': '/src/shared',
-    }
+    },
   },
   build: {
     rollupOptions: {
@@ -276,9 +310,9 @@ export default defineConfig({
         app: 'client/app.tsx',
         appInit: 'client/app-init.ts',
         home: 'client/home.ts',
-      }
-    }
-  }
+      },
+    },
+  },
 });
 ```
 
@@ -312,9 +346,9 @@ export default defineConfig({
 
 ## Decision Log
 
-| Decision | Rationale | Date |
-|----------|-----------|------|
-| Vertical Slice Architecture | Better feature cohesion and team autonomy | 2024-12-29 |
-| Shared module approach | Prevent code duplication while maintaining boundaries | 2024-12-29 |
-| Incremental migration | Minimize disruption to ongoing development | 2024-12-29 |
-| Feature-first organization | Align code structure with business domains | 2024-12-29 |
+| Decision                    | Rationale                                             | Date       |
+| --------------------------- | ----------------------------------------------------- | ---------- |
+| Vertical Slice Architecture | Better feature cohesion and team autonomy             | 2024-12-29 |
+| Shared module approach      | Prevent code duplication while maintaining boundaries | 2024-12-29 |
+| Incremental migration       | Minimize disruption to ongoing development            | 2024-12-29 |
+| Feature-first organization  | Align code structure with business domains            | 2024-12-29 |

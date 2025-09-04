@@ -68,10 +68,10 @@ export type PrivacyConsent = z.infer<typeof PrivacyConsentSchema>;
 
 /**
  * Privacy-preserving analytics service implementing differential privacy
- * 
+ *
  * Provides FERPA-compliant analytics with granular consent controls and
  * differential privacy techniques for cross-student benchmarking.
- * 
+ *
  * @class PrivacyPreservingAnalytics
  */
 export class PrivacyPreservingAnalytics {
@@ -100,14 +100,14 @@ export class PrivacyPreservingAnalytics {
 
   /**
    * Generate Laplace noise for differential privacy
-   * 
+   *
    * @param sensitivity - Sensitivity of the query
    * @param epsilon - Privacy budget
    * @returns Random noise value
    */
   private generateLaplaceNoise(sensitivity: number, epsilon: number): number {
     const scale = sensitivity / epsilon;
-    
+
     // Generate Laplace distributed random number using inverse transform
     const u = Math.random() - 0.5;
     return -scale * Math.sign(u) * Math.log(1 - 2 * Math.abs(u));
@@ -115,7 +115,7 @@ export class PrivacyPreservingAnalytics {
 
   /**
    * Generate Gaussian noise for differential privacy
-   * 
+   *
    * @param sensitivity - Sensitivity of the query
    * @param epsilon - Privacy budget
    * @param delta - Privacy parameter delta
@@ -123,18 +123,18 @@ export class PrivacyPreservingAnalytics {
    */
   private generateGaussianNoise(sensitivity: number, epsilon: number, delta: number): number {
     const sigma = (sensitivity * Math.sqrt(2 * Math.log(1.25 / delta))) / epsilon;
-    
+
     // Box-Muller transform for Gaussian random numbers
     const u1 = Math.random();
     const u2 = Math.random();
     const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-    
+
     return sigma * z0;
   }
 
   /**
    * Validate privacy consent for analytics operations
-   * 
+   *
    * @param studentId - Student's LTI user ID
    * @param courseId - Course identifier (optional)
    * @param operationType - Type of analytics operation
@@ -150,13 +150,15 @@ export class PrivacyPreservingAnalytics {
     reason?: string;
   }> {
     const consentResult = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM analytics_privacy_consent 
         WHERE tenant_id = ? AND student_id = ? 
           AND (course_id = ? OR course_id IS NULL)
         ORDER BY consent_updated_at DESC
         LIMIT 1
-      `)
+      `
+      )
       .bind(this.tenantId, studentId, courseId || null)
       .first();
 
@@ -204,7 +206,7 @@ export class PrivacyPreservingAnalytics {
 
   /**
    * Create anonymized benchmark data with differential privacy
-   * 
+   *
    * @param courseId - Course identifier
    * @param benchmarkType - Type of benchmark to create
    * @param aggregationLevel - Level of aggregation
@@ -221,26 +223,21 @@ export class PrivacyPreservingAnalytics {
   ): Promise<AnonymizedBenchmark | null> {
     // Validate minimum sample size requirements
     const minSampleSize = PrivacyPreservingAnalytics.MIN_SAMPLE_SIZES[benchmarkType];
-    
+
     // Get raw data with consent filtering
-    const rawDataResult = await this.getRawBenchmarkData(
-      courseId,
-      benchmarkType,
-      aggregationLevel,
-      conceptId,
-      assessmentId
-    );
+    const rawDataResult = await this.getRawBenchmarkData(courseId, benchmarkType, aggregationLevel, conceptId, assessmentId);
 
     if (!rawDataResult || rawDataResult.scores.length < minSampleSize) {
       return null; // Insufficient data for privacy-preserving analysis
     }
 
     // Choose privacy parameters based on sensitivity
-    const privacyLevel = rawDataResult.scores.length < 50 
-      ? PrivacyPreservingAnalytics.PRIVACY_PARAMS.HIGH_PRIVACY
-      : rawDataResult.scores.length < 100
-      ? PrivacyPreservingAnalytics.PRIVACY_PARAMS.MEDIUM_PRIVACY
-      : PrivacyPreservingAnalytics.PRIVACY_PARAMS.LOW_PRIVACY;
+    const privacyLevel =
+      rawDataResult.scores.length < 50
+        ? PrivacyPreservingAnalytics.PRIVACY_PARAMS.HIGH_PRIVACY
+        : rawDataResult.scores.length < 100
+          ? PrivacyPreservingAnalytics.PRIVACY_PARAMS.MEDIUM_PRIVACY
+          : PrivacyPreservingAnalytics.PRIVACY_PARAMS.LOW_PRIVACY;
 
     const { epsilon, sensitivity } = privacyLevel;
     const noiseScale = sensitivity / epsilon;
@@ -250,46 +247,27 @@ export class PrivacyPreservingAnalytics {
     const n = sortedScores.length;
 
     // Add Laplace noise to aggregates
-    const meanScore = this.addNoiseToStatistic(
-      sortedScores.reduce((a, b) => a + b, 0) / n,
-      sensitivity,
-      epsilon
-    );
+    const meanScore = this.addNoiseToStatistic(sortedScores.reduce((a, b) => a + b, 0) / n, sensitivity, epsilon);
 
     const medianScore = this.addNoiseToStatistic(
-      n % 2 === 0 
-        ? (sortedScores[n / 2 - 1] + sortedScores[n / 2]) / 2
-        : sortedScores[Math.floor(n / 2)],
+      n % 2 === 0 ? (sortedScores[n / 2 - 1] + sortedScores[n / 2]) / 2 : sortedScores[Math.floor(n / 2)],
       sensitivity,
       epsilon
     );
 
     // Calculate standard deviation with noise
-    const variance = sortedScores.reduce((acc, score) => 
-      acc + Math.pow(score - (meanScore - this.generateLaplaceNoise(sensitivity, epsilon)), 2), 0
-    ) / (n - 1);
-    
-    const stdDeviation = Math.sqrt(Math.abs(variance)) + 
-      Math.abs(this.generateLaplaceNoise(sensitivity / Math.sqrt(n), epsilon));
+    const variance =
+      sortedScores.reduce((acc, score) => acc + Math.pow(score - (meanScore - this.generateLaplaceNoise(sensitivity, epsilon)), 2), 0) /
+      (n - 1);
+
+    const stdDeviation = Math.sqrt(Math.abs(variance)) + Math.abs(this.generateLaplaceNoise(sensitivity / Math.sqrt(n), epsilon));
 
     // Calculate percentiles with noise
-    const percentile25 = this.addNoiseToStatistic(
-      this.calculatePercentile(sortedScores, 0.25),
-      sensitivity,
-      epsilon
-    );
+    const percentile25 = this.addNoiseToStatistic(this.calculatePercentile(sortedScores, 0.25), sensitivity, epsilon);
 
-    const percentile75 = this.addNoiseToStatistic(
-      this.calculatePercentile(sortedScores, 0.75),
-      sensitivity,
-      epsilon
-    );
+    const percentile75 = this.addNoiseToStatistic(this.calculatePercentile(sortedScores, 0.75), sensitivity, epsilon);
 
-    const percentile90 = this.addNoiseToStatistic(
-      this.calculatePercentile(sortedScores, 0.90),
-      sensitivity,
-      epsilon
-    );
+    const percentile90 = this.addNoiseToStatistic(this.calculatePercentile(sortedScores, 0.9), sensitivity, epsilon);
 
     // Create anonymized benchmark record
     const benchmarkId = crypto.randomUUID();
@@ -320,7 +298,8 @@ export class PrivacyPreservingAnalytics {
 
     // Store in database
     await this.db
-      .prepare(`
+      .prepare(
+        `
         INSERT INTO anonymized_benchmarks (
           id, tenant_id, course_id, concept_id, assessment_id,
           benchmark_type, aggregation_level, sample_size,
@@ -328,7 +307,8 @@ export class PrivacyPreservingAnalytics {
           percentile_25, percentile_75, percentile_90,
           epsilon, noise_scale, calculated_at, valid_until, confidence_interval
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
+      `
+      )
       .bind(
         benchmark.id,
         benchmark.tenantId,
@@ -420,11 +400,12 @@ export class PrivacyPreservingAnalytics {
         return null;
     }
 
-    const result = await this.db.prepare(query).bind(...params).all();
+    const result = await this.db
+      .prepare(query)
+      .bind(...params)
+      .all();
 
-    const scores = result.results
-      .map(row => Number(row.normalized_score))
-      .filter(score => !isNaN(score) && score >= 0 && score <= 1);
+    const scores = result.results.map((row) => Number(row.normalized_score)).filter((score) => !isNaN(score) && score >= 0 && score <= 1);
 
     return {
       scores,
@@ -463,7 +444,7 @@ export class PrivacyPreservingAnalytics {
 
   /**
    * Get cached anonymized benchmark or create new one
-   * 
+   *
    * @param courseId - Course identifier
    * @param benchmarkType - Type of benchmark
    * @param aggregationLevel - Level of aggregation
@@ -480,7 +461,8 @@ export class PrivacyPreservingAnalytics {
   ): Promise<AnonymizedBenchmark | null> {
     // First check for cached valid benchmark
     const cachedResult = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM anonymized_benchmarks 
         WHERE tenant_id = ? AND course_id = ? 
           AND benchmark_type = ? AND aggregation_level = ?
@@ -489,7 +471,8 @@ export class PrivacyPreservingAnalytics {
           AND valid_until > datetime('now')
         ORDER BY calculated_at DESC
         LIMIT 1
-      `)
+      `
+      )
       .bind(
         this.tenantId,
         courseId,
@@ -511,18 +494,12 @@ export class PrivacyPreservingAnalytics {
     }
 
     // Create new anonymized benchmark
-    return this.createAnonymizedBenchmark(
-      courseId,
-      benchmarkType,
-      aggregationLevel,
-      conceptId,
-      assessmentId
-    );
+    return this.createAnonymizedBenchmark(courseId, benchmarkType, aggregationLevel, conceptId, assessmentId);
   }
 
   /**
    * Audit privacy-sensitive analytics access
-   * 
+   *
    * @param actorId - ID of user accessing data
    * @param actorType - Type of user (student, instructor, admin)
    * @param operation - Type of operation performed
@@ -541,12 +518,14 @@ export class PrivacyPreservingAnalytics {
     userAgent?: string;
   }): Promise<void> {
     await this.db
-      .prepare(`
+      .prepare(
+        `
         INSERT INTO privacy_audit_log (
           tenant_id, user_id, target_student_id, operation, data_category, 
           timestamp, ip_address, user_agent
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `)
+      `
+      )
       .bind(
         params.tenantId,
         params.userId,
@@ -562,7 +541,7 @@ export class PrivacyPreservingAnalytics {
 
   /**
    * Check if data export is allowed for student
-   * 
+   *
    * @param studentId - Student's LTI user ID
    * @param exportType - Type of data export requested
    * @returns Promise resolving to export permission result
@@ -576,11 +555,7 @@ export class PrivacyPreservingAnalytics {
     anonymizationRequired: boolean;
     dataRetentionDays: number;
   }> {
-    const consentValidation = await this.validatePrivacyConsent(
-      studentId,
-      undefined,
-      'performance'
-    );
+    const consentValidation = await this.validatePrivacyConsent(studentId, undefined, 'performance');
 
     if (!consentValidation.isAllowed || !consentValidation.consent) {
       return {
@@ -609,9 +584,7 @@ export class PrivacyPreservingAnalytics {
         break;
 
       case 'full_analytics':
-        allowed = consent.performanceAnalyticsConsent && 
-                 consent.predictiveAnalyticsConsent &&
-                 consent.benchmarkComparisonConsent;
+        allowed = consent.performanceAnalyticsConsent && consent.predictiveAnalyticsConsent && consent.benchmarkComparisonConsent;
         reason = allowed ? undefined : 'Full analytics requires all consent types';
         break;
     }
@@ -627,14 +600,11 @@ export class PrivacyPreservingAnalytics {
   /**
    * Anonymize benchmark data with differential privacy
    */
-  public anonymizeBenchmarkData(
-    studentData: any[],
-    epsilon: number
-  ): any[] {
+  public anonymizeBenchmarkData(studentData: any[], epsilon: number): any[] {
     return studentData.map((data) => {
       const anonymousId = crypto.randomUUID();
       const { studentId, name, email, ...rest } = data;
-      
+
       // Add noise to numeric fields
       const noisyData = { ...rest };
       if (typeof rest.score === 'number') {
@@ -643,10 +613,10 @@ export class PrivacyPreservingAnalytics {
       if (typeof rest.timeSpent === 'number') {
         noisyData.timeSpent = Math.round(rest.timeSpent + this.generateLaplaceNoise(100, epsilon));
       }
-      
+
       return {
         ...noisyData,
-        anonymousId
+        anonymousId,
       };
     });
   }
@@ -657,15 +627,15 @@ export class PrivacyPreservingAnalytics {
   public applyKAnonymity(studentData: any[], k: number): any[] {
     // Group by demographic if present
     const groups = new Map<string, any[]>();
-    
-    studentData.forEach(data => {
+
+    studentData.forEach((data) => {
       const key = data.demographic || 'default';
       if (!groups.has(key)) {
         groups.set(key, []);
       }
       groups.get(key)!.push(data);
     });
-    
+
     // Filter out groups with less than k members
     const result: any[] = [];
     groups.forEach((group) => {
@@ -673,36 +643,34 @@ export class PrivacyPreservingAnalytics {
         result.push(...group);
       }
     });
-    
+
     return result;
   }
 
   /**
    * Validate privacy compliance
    */
-  public async validatePrivacyCompliance(
-    tenantId: string,
-    studentId: string,
-    operation: string
-  ): Promise<boolean> {
+  public async validatePrivacyCompliance(tenantId: string, studentId: string, operation: string): Promise<boolean> {
     const result = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM analytics_privacy_consent 
         WHERE tenant_id = ? AND student_id = ?
         ORDER BY consent_updated_at DESC
         LIMIT 1
-      `)
+      `
+      )
       .bind(tenantId, studentId)
       .first();
-    
+
     if (!result) return false;
-    
+
     // Check the specific operation type
     const operationMap: Record<string, string> = {
-      'performance_tracking': 'performance_analytics_consent',
-      'any_operation': 'analytics_enabled'
+      performance_tracking: 'performance_analytics_consent',
+      any_operation: 'analytics_enabled',
     };
-    
+
     const consentField = operationMap[operation] || 'analytics_enabled';
     return result[consentField] === 1 || result[consentField] === true;
   }
@@ -710,43 +678,40 @@ export class PrivacyPreservingAnalytics {
   /**
    * Validate FERPA compliance
    */
-  public async validateFERPACompliance(
-    tenantId: string,
-    instructorId: string,
-    studentId: string
-  ): Promise<boolean> {
+  public async validateFERPACompliance(tenantId: string, instructorId: string, studentId: string): Promise<boolean> {
     const result = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM analytics_privacy_consent 
         WHERE tenant_id = ? AND student_id = ?
         ORDER BY consent_updated_at DESC
         LIMIT 1
-      `)
+      `
+      )
       .bind(tenantId, studentId)
       .first();
-    
+
     if (!result) return false;
-    
+
     return result.instructor_access === true && result.ferpa_acknowledged === true;
   }
 
   /**
    * Detect suspicious access patterns
    */
-  public async detectSuspiciousAccess(
-    tenantId: string,
-    userId: string
-  ): Promise<boolean> {
+  public async detectSuspiciousAccess(tenantId: string, userId: string): Promise<boolean> {
     const result = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT COUNT(*) as count FROM audit_logs 
         WHERE tenant_id = ? AND actor_id = ? 
         AND action = 'export_data'
         AND created_at > datetime('now', '-1 hour')
-      `)
+      `
+      )
       .bind(tenantId, userId)
       .first();
-    
+
     // More than 50 exports in an hour is suspicious
     return result && result.count > 50;
   }
@@ -754,59 +719,64 @@ export class PrivacyPreservingAnalytics {
   /**
    * Handle consent withdrawal
    */
-  public async handleConsentWithdrawal(
-    tenantId: string,
-    studentId: string,
-    consentTypes: string[]
-  ): Promise<void> {
+  public async handleConsentWithdrawal(tenantId: string, studentId: string, consentTypes: string[]): Promise<void> {
     const statements = [];
-    
+
     // Update consent record
     statements.push(
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         UPDATE analytics_privacy_consent 
         SET withdrawal_requested_at = datetime('now')
         WHERE tenant_id = ? AND student_id = ?
-      `).bind(tenantId, studentId)
+      `
+        )
+        .bind(tenantId, studentId)
     );
-    
+
     // Delete or anonymize data based on consent types
     if (consentTypes.includes('performance_tracking')) {
       statements.push(
-        this.db.prepare(`
+        this.db
+          .prepare(
+            `
           DELETE FROM student_performance_profiles 
           WHERE tenant_id = ? AND student_id = ?
-        `).bind(tenantId, studentId)
+        `
+          )
+          .bind(tenantId, studentId)
       );
     }
-    
+
     if (consentTypes.includes('data_sharing')) {
       statements.push(
-        this.db.prepare(`
+        this.db
+          .prepare(
+            `
           DELETE FROM anonymized_benchmarks 
           WHERE tenant_id = ? 
           AND id IN (
             SELECT benchmark_id FROM benchmark_contributions 
             WHERE student_id = ?
           )
-        `).bind(tenantId, studentId)
+        `
+          )
+          .bind(tenantId, studentId)
       );
     }
-    
+
     await this.db.batch(statements);
   }
 
   /**
    * Update consent status
    */
-  public async updateConsentStatus(
-    tenantId: string,
-    studentId: string,
-    consentOptions: any
-  ): Promise<void> {
+  public async updateConsentStatus(tenantId: string, studentId: string, consentOptions: any): Promise<void> {
     // Update consent record
     await this.db
-      .prepare(`
+      .prepare(
+        `
         INSERT OR REPLACE INTO analytics_privacy_consent (
           tenant_id, student_id, 
           analytics_enabled, performance_analytics_consent,
@@ -815,7 +785,8 @@ export class PrivacyPreservingAnalytics {
           anonymization_required, consent_given_at, consent_updated_at,
           consent_version, instructor_access, ferpa_acknowledged, ai_processing
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), '1.0', ?, ?, ?)
-      `)
+      `
+      )
       .bind(
         tenantId,
         studentId,
@@ -831,41 +802,39 @@ export class PrivacyPreservingAnalytics {
         consentOptions.ai_processing || false
       )
       .run();
-    
+
     // Audit the consent change
     await this.db
-      .prepare(`
+      .prepare(
+        `
         INSERT INTO consent_audit (
           tenant_id, student_id, action, details, created_at
         ) VALUES (?, ?, 'consent_updated', ?, datetime('now'))
-      `)
-      .bind(
-        tenantId,
-        studentId,
-        JSON.stringify(consentOptions)
+      `
       )
+      .bind(tenantId, studentId, JSON.stringify(consentOptions))
       .run();
   }
 
   /**
    * Generate privacy report
    */
-  public async generatePrivacyReport(
-    tenantId: string,
-    studentId: string
-  ): Promise<any> {
+  public async generatePrivacyReport(tenantId: string, studentId: string): Promise<any> {
     const consentStatus = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM analytics_privacy_consent 
         WHERE tenant_id = ? AND student_id = ?
         ORDER BY consent_updated_at DESC
         LIMIT 1
-      `)
+      `
+      )
       .bind(tenantId, studentId)
       .first();
-    
+
     const dataCollected = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT 
           COUNT(DISTINCT assessment_id) as assessment_attempts,
           COUNT(DISTINCT chat_message_id) as chat_messages,
@@ -880,12 +849,14 @@ export class PrivacyPreservingAnalytics {
           SELECT null, null, id
           FROM student_performance_profiles WHERE student_id = ? AND tenant_id = ?
         )
-      `)
+      `
+      )
       .bind(studentId, tenantId, studentId, tenantId, studentId, tenantId)
       .first();
-    
+
     const dataShared = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT 
           COUNT(DISTINCT actor_id) as instructor_views,
           COUNT(DISTINCT benchmark_id) as benchmark_contributions
@@ -898,80 +869,82 @@ export class PrivacyPreservingAnalytics {
           FROM benchmark_contributions
           WHERE student_id = ? AND tenant_id = ?
         )
-      `)
+      `
+      )
       .bind(tenantId, `%${studentId}%`, studentId, tenantId)
       .first();
-    
+
     const accessHistory = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT action as operation, created_at as timestamp
         FROM audit_logs 
         WHERE tenant_id = ? AND (actor_id = ? OR resource_id LIKE ?)
         ORDER BY created_at DESC
         LIMIT 100
-      `)
+      `
+      )
       .bind(tenantId, studentId, `%${studentId}%`)
       .all();
-    
+
     return {
       consentStatus,
       dataCollected,
       dataShared,
-      accessHistory: accessHistory.results
+      accessHistory: accessHistory.results,
     };
   }
 
   /**
    * Export user data in GDPR format
    */
-  public async exportUserDataGDPR(
-    tenantId: string,
-    studentId: string
-  ): Promise<any> {
+  public async exportUserDataGDPR(tenantId: string, studentId: string): Promise<any> {
     const personalInfo = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM students 
         WHERE tenant_id = ? AND id = ?
         LIMIT 1
-      `)
+      `
+      )
       .bind(tenantId, studentId)
       .first();
-    
+
     const performanceData = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT score, created_at as date
         FROM assessment_attempts 
         WHERE tenant_id = ? AND student_id = ?
         ORDER BY created_at DESC
-      `)
+      `
+      )
       .bind(tenantId, studentId)
       .all();
-    
+
     const chatHistory = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT message, created_at as timestamp
         FROM chat_messages 
         WHERE tenant_id = ? AND student_id = ?
         ORDER BY created_at DESC
-      `)
+      `
+      )
       .bind(tenantId, studentId)
       .all();
-    
+
     return {
       personalInfo,
       performanceData: performanceData.results,
-      chatHistory: chatHistory.results
+      chatHistory: chatHistory.results,
     };
   }
 
   /**
    * Add Laplace noise to a value
    */
-  public addLaplaceNoise(
-    value: number,
-    sensitivity: number,
-    epsilon: number
-  ): number {
+  public addLaplaceNoise(value: number, sensitivity: number, epsilon: number): number {
     const noise = this.generateLaplaceNoise(sensitivity, epsilon);
     return value + noise;
   }
@@ -979,12 +952,7 @@ export class PrivacyPreservingAnalytics {
   /**
    * Add Gaussian noise to a value
    */
-  public addGaussianNoise(
-    value: number,
-    sensitivity: number,
-    epsilon: number,
-    delta: number
-  ): number {
+  public addGaussianNoise(value: number, sensitivity: number, epsilon: number, delta: number): number {
     const noise = this.generateGaussianNoise(sensitivity, epsilon, delta);
     return value + noise;
   }
@@ -992,10 +960,7 @@ export class PrivacyPreservingAnalytics {
   /**
    * Apply randomized response
    */
-  public randomizedResponse(
-    truthfulAnswer: boolean,
-    probability: number
-  ): boolean {
+  public randomizedResponse(truthfulAnswer: boolean, probability: number): boolean {
     const random = Math.random();
     if (random < probability) {
       return truthfulAnswer;
@@ -1006,13 +971,9 @@ export class PrivacyPreservingAnalytics {
   /**
    * Cache benchmark data
    */
-  public async cacheBenchmark(
-    tenantId: string,
-    courseId: string,
-    benchmarkData: any
-  ): Promise<void> {
+  public async cacheBenchmark(tenantId: string, courseId: string, benchmarkData: any): Promise<void> {
     if (!this.kvNamespace) return;
-    
+
     const key = `benchmark:${tenantId}:${courseId}`;
     await this.kvNamespace.put(
       key,
@@ -1024,19 +985,16 @@ export class PrivacyPreservingAnalytics {
   /**
    * Get cached benchmark
    */
-  public async getCachedBenchmark(
-    tenantId: string,
-    courseId: string
-  ): Promise<any> {
+  public async getCachedBenchmark(tenantId: string, courseId: string): Promise<any> {
     if (!this.kvNamespace) return null;
-    
+
     const key = `benchmark:${tenantId}:${courseId}`;
     const cached = await this.kvNamespace.get(key);
-    
+
     if (!cached) return null;
-    
+
     const data = JSON.parse(cached);
-    
+
     // Check if data is stale (older than 7 days)
     if (data.timestamp) {
       const age = Date.now() - new Date(data.timestamp).getTime();
@@ -1045,7 +1003,7 @@ export class PrivacyPreservingAnalytics {
         return null;
       }
     }
-    
+
     return data;
   }
 }

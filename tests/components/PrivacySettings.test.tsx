@@ -106,7 +106,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       expect(screen.getByText('Privacy & Data Management')).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           isLoading={true}
-        />,
+        />
       );
 
       expect(screen.getByText('Loading privacy settings...')).toBeInTheDocument();
@@ -136,7 +136,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       expect(screen.getByText('Conversation History')).toBeInTheDocument();
@@ -153,7 +153,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       expect(screen.getByText('Export Your Data')).toBeInTheDocument();
@@ -175,7 +175,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       const toggle = screen.getByRole('switch', { name: /Conversation History: Enabled/i });
@@ -195,7 +195,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       const toggles = screen.getAllByRole('switch');
@@ -216,7 +216,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       await user.click(screen.getByText('Export as JSON'));
@@ -233,7 +233,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       await user.click(screen.getByText('Export as CSV'));
@@ -251,7 +251,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />,
+        />
       );
 
       expect(screen.getByText('Manage Conversations')).toBeInTheDocument();
@@ -268,7 +268,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={[]}
-        />,
+        />
       );
 
       expect(screen.queryByText('Manage Conversations')).not.toBeInTheDocument();
@@ -285,7 +285,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />,
+        />
       );
 
       const checkbox = screen.getByRole('checkbox', { name: /Select Math help session/i });
@@ -305,7 +305,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />,
+        />
       );
 
       const selectAllButton = screen.getByText('Select All');
@@ -331,7 +331,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       await user.click(screen.getByText('Delete Everything'));
@@ -350,7 +350,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       // Click the initial delete button
@@ -377,7 +377,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />,
+        />
       );
 
       // Select a conversation
@@ -401,7 +401,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />,
+        />
       );
 
       // Select a conversation
@@ -426,7 +426,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       await user.click(screen.getByText('Delete Everything'));
@@ -446,7 +446,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       expect(screen.getByText('Data Retention Policy')).toBeInTheDocument();
@@ -466,7 +466,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       const switches = screen.getAllByRole('switch');
@@ -483,7 +483,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       expect(screen.getByRole('heading', { level: 2, name: 'Privacy & Data Management' })).toBeInTheDocument();
@@ -500,7 +500,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />,
+        />
       );
 
       const checkboxes = screen.getAllByRole('checkbox');
@@ -522,7 +522,7 @@ describe('PrivacySettings', () => {
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
           conversations={mockConversations}
-        />,
+        />
       );
 
       const endTime = performance.now();
@@ -548,7 +548,7 @@ describe('PrivacySettings', () => {
             onExportData={mockOnExportData}
             onDeleteConversations={mockOnDeleteConversations}
             conversations={largeConversationList}
-          />,
+          />
         );
       }).not.toThrow();
     });
@@ -564,7 +564,7 @@ describe('PrivacySettings', () => {
             onDeleteAllData={mockOnDeleteAllData}
             onExportData={mockOnExportData}
             onDeleteConversations={mockOnDeleteConversations}
-          />,
+          />
         );
       }).not.toThrow();
     });
@@ -582,7 +582,7 @@ describe('PrivacySettings', () => {
           onDeleteAllData={mockOnDeleteAllData}
           onExportData={mockOnExportData}
           onDeleteConversations={mockOnDeleteConversations}
-        />,
+        />
       );
 
       // Should not crash the component

@@ -98,7 +98,7 @@ export async function getOrCreateLearnerProfile(
   ltiUserId: string,
   ltiDeploymentId: string,
   email?: string,
-  name?: string,
+  name?: string
 ): Promise<LearnerProfile | null> {
   // First try to get existing profile
   const existing = await db
@@ -106,7 +106,7 @@ export async function getOrCreateLearnerProfile(
       `
     SELECT * FROM learner_profiles
     WHERE tenant_id = ? AND lti_user_id = ? AND lti_deployment_id = ?
-  `,
+  `
     )
     .bind(tenantId, ltiUserId, ltiDeploymentId)
     .first<LearnerProfile>();
@@ -120,7 +120,7 @@ export async function getOrCreateLearnerProfile(
       SET last_active_at = CURRENT_TIMESTAMP,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `,
+    `
       )
       .bind(existing.id)
       .run();
@@ -136,7 +136,7 @@ export async function getOrCreateLearnerProfile(
       tenant_id, lti_user_id, lti_deployment_id, email, name
     ) VALUES (?, ?, ?, ?, ?)
     RETURNING *
-  `,
+  `
     )
     .bind(tenantId, ltiUserId, ltiDeploymentId, email, name)
     .first<LearnerProfile>();
@@ -154,7 +154,7 @@ export async function createLearningSession(
   ltiContextId: string,
   contentType?: string,
   contentId?: string,
-  contentTitle?: string,
+  contentTitle?: string
 ): Promise<string> {
   const sessionId = generateSessionId();
 
@@ -165,7 +165,7 @@ export async function createLearningSession(
       tenant_id, learner_profile_id, lti_context_id, session_id,
       content_type, content_id, content_title
     ) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `,
+  `
     )
     .bind(tenantId, learnerProfileId, ltiContextId, sessionId, contentType, contentId, contentTitle)
     .run();
@@ -184,7 +184,7 @@ export async function endLearningSession(db: D1Database, sessionId: string): Pro
     SET ended_at = CURRENT_TIMESTAMP,
         duration_seconds = CAST((julianday(CURRENT_TIMESTAMP) - julianday(started_at)) * 86400 AS INTEGER)
     WHERE session_id = ?
-  `,
+  `
     )
     .bind(sessionId)
     .run();
@@ -202,7 +202,7 @@ export async function recordStruggleEvent(
   confidence: number,
   pageElement?: string,
   contentContext?: string,
-  durationMs?: number,
+  durationMs?: number
 ): Promise<number> {
   const result = await db
     .prepare(
@@ -212,7 +212,7 @@ export async function recordStruggleEvent(
       event_type, confidence_score, page_element, content_context, duration_ms
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING id
-  `,
+  `
     )
     .bind(tenantId, learnerProfileId, sessionId, eventType, confidence, pageElement, contentContext, durationMs)
     .first<{ id: number }>();
@@ -257,7 +257,7 @@ export async function updateConceptMastery(db: D1Database, learnerProfileId: num
       `
     SELECT * FROM concept_mastery
     WHERE learner_profile_id = ? AND concept_id = ?
-  `,
+  `
     )
     .bind(learnerProfileId, conceptId)
     .first<any>();
@@ -274,7 +274,7 @@ export async function updateConceptMastery(db: D1Database, learnerProfileId: num
         (SELECT tenant_id FROM learner_profiles WHERE id = ?),
         ?, ?, ?, 1, ?, CURRENT_TIMESTAMP
       )
-    `,
+    `
       )
       .bind(learnerProfileId, learnerProfileId, conceptId, success ? 0.6 : 0.3, success ? 1 : 0)
       .run();
@@ -308,7 +308,7 @@ export async function updateConceptMastery(db: D1Database, learnerProfileId: num
           next_review_at = datetime('now', '+' || ? || ' days'),
           risk_score = ?
       WHERE learner_profile_id = ? AND concept_id = ?
-    `,
+    `
       )
       .bind(
         newMastery,
@@ -319,7 +319,7 @@ export async function updateConceptMastery(db: D1Database, learnerProfileId: num
         newInterval,
         1 - newMastery, // Risk score is inverse of mastery
         learnerProfileId,
-        conceptId,
+        conceptId
       )
       .run();
   }
@@ -348,7 +348,7 @@ export async function getAtRiskLearners(db: D1Database, tenantId: string, ltiCon
     GROUP BY lp.id
     HAVING avg_mastery < ? OR max_risk > ? OR recent_struggles > 5
     ORDER BY max_risk DESC, avg_mastery ASC
-  `,
+  `
     )
     .bind(ltiContextId, tenantId, threshold, 1 - threshold)
     .all();
@@ -369,7 +369,7 @@ export async function getCourseAnalytics(db: D1Database, tenantId: string, ltiCo
       AND calculated_at > datetime('now', '-1 hour')
     ORDER BY calculated_at DESC
     LIMIT 1
-  `,
+  `
     )
     .bind(tenantId, ltiContextId)
     .first();
@@ -407,7 +407,7 @@ export async function getCourseAnalytics(db: D1Database, tenantId: string, ltiCo
     LEFT JOIN chat_conversations cc ON lp.id = cc.learner_profile_id
       AND cc.lti_context_id = ?
     WHERE lp.tenant_id = ?
-  `,
+  `
     )
     .bind(ltiContextId, ltiContextId, tenantId)
     .first();
@@ -424,7 +424,7 @@ export async function getCourseAnalytics(db: D1Database, tenantId: string, ltiCo
         chat_sessions_total, chat_satisfaction_avg, chat_resolution_rate,
         period_start, period_end
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-7 days'), datetime('now'))
-    `,
+    `
       )
       .bind(
         tenantId,
@@ -437,7 +437,7 @@ export async function getCourseAnalytics(db: D1Database, tenantId: string, ltiCo
         analytics.struggle_event_rate,
         analytics.chat_sessions_total,
         analytics.chat_satisfaction_avg,
-        analytics.chat_resolution_rate,
+        analytics.chat_resolution_rate
       )
       .run();
   }
@@ -458,7 +458,7 @@ export async function logAuditEvent(
   resourceId?: string,
   details?: any,
   ipAddress?: string,
-  userAgent?: string,
+  userAgent?: string
 ): Promise<void> {
   await db
     .prepare(
@@ -468,7 +468,7 @@ export async function logAuditEvent(
       action, resource_type, resource_id,
       ip_address, user_agent, details
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `,
+  `
     )
     .bind(tenantId, actorType, actorId, action, resourceType, resourceId, ipAddress, userAgent, JSON.stringify(details || {}))
     .run();
@@ -489,7 +489,7 @@ export async function batchInsert<T>(
   table: string,
   columns: string[],
   values: T[][],
-  batchSize: number = 100,
+  batchSize: number = 100
 ): Promise<void> {
   const placeholders = columns.map(() => '?').join(', ');
   const query = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`;

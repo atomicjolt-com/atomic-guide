@@ -5,22 +5,26 @@ import { z } from 'zod';
 // Schema for query parameters
 const paginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(20),
-  offset: z.coerce.number().min(0).default(0)
+  offset: z.coerce.number().min(0).default(0),
 });
 
 const insightsQuerySchema = z.object({
   startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional()
+  endDate: z.string().datetime().optional(),
 });
 
 // Schema for learning style update
 const learningStyleUpdateSchema = z.object({
   styleType: z.enum(['visual', 'auditory', 'kinesthetic', 'reading_writing']),
-  manualOverride: z.boolean().default(true)
+  manualOverride: z.boolean().default(true),
 });
 
 // Schema for conversation ID parameter
-const conversationIdSchema = z.string().min(1).max(100).regex(/^[a-zA-Z0-9_-]+$/);
+const conversationIdSchema = z
+  .string()
+  .min(1)
+  .max(100)
+  .regex(/^[a-zA-Z0-9_-]+$/);
 
 // Helper function to validate JWT payload
 function validateJWTPayload(payload: any): { tenantId: string; learnerId: string } {
@@ -30,10 +34,10 @@ function validateJWTPayload(payload: any): { tenantId: string; learnerId: string
   if (!payload.sub && !payload.user_id) {
     throw new Error('Invalid user information in token');
   }
-  
+
   const tenantId = payload.tenant_id || payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
   const learnerId = payload.sub || payload.user_id;
-  
+
   // Validate that IDs are reasonable strings
   if (typeof tenantId !== 'string' || tenantId.length === 0 || tenantId.length > 255) {
     throw new Error('Invalid tenant ID format');
@@ -41,7 +45,7 @@ function validateJWTPayload(payload: any): { tenantId: string; learnerId: string
   if (typeof learnerId !== 'string' || learnerId.length === 0 || learnerId.length > 255) {
     throw new Error('Invalid learner ID format');
   }
-  
+
   return { tenantId, learnerId };
 }
 
@@ -74,7 +78,8 @@ export async function getConversations(c: Context) {
     const { tenantId, learnerId } = validateJWTPayload(payload);
 
     // Get conversations with summaries
-    const result = await DB.prepare(`
+    const result = await DB.prepare(
+      `
       SELECT 
         cs.id,
         cs.conversation_id,
@@ -91,14 +96,21 @@ export async function getConversations(c: Context) {
       WHERE cs.tenant_id = ? AND cs.learner_id = ?
       ORDER BY cs.updated_at DESC
       LIMIT ? OFFSET ?
-    `).bind(tenantId, learnerId, limit, offset).all();
+    `
+    )
+      .bind(tenantId, learnerId, limit, offset)
+      .all();
 
     // Get total count
-    const countResult = await DB.prepare(`
+    const countResult = await DB.prepare(
+      `
       SELECT COUNT(*) as total
       FROM conversation_summaries
       WHERE tenant_id = ? AND learner_id = ?
-    `).bind(tenantId, learnerId).first();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .first();
 
     const conversations = result.results.map((row: any) => ({
       id: row.id,
@@ -110,7 +122,7 @@ export async function getConversations(c: Context) {
       startedAt: row.started_at,
       lastMessageAt: row.last_message_at,
       status: row.status || 'closed',
-      satisfactionRating: row.satisfaction_rating
+      satisfactionRating: row.satisfaction_rating,
     }));
 
     return c.json({
@@ -119,8 +131,8 @@ export async function getConversations(c: Context) {
         total: countResult?.total || 0,
         limit,
         offset,
-        hasMore: offset + limit < (countResult?.total || 0)
-      }
+        hasMore: offset + limit < (countResult?.total || 0),
+      },
     });
   } catch {
     console.error('Error fetching conversations:', error);
@@ -169,19 +181,23 @@ export async function getLearningInsights(c: Context) {
     }
 
     // Get topic frequencies
-    const topicsResult = await DB.prepare(`
+    const topicsResult = await DB.prepare(
+      `
       SELECT 
         topics,
         COUNT(*) as count
       FROM conversation_summaries
       WHERE tenant_id = ? AND learner_id = ?
       GROUP BY topics
-    `).bind(tenantId, learnerId).all();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .all();
 
     // Process topics (they're stored as JSON arrays)
     const topicFrequencyMap = new Map<string, number>();
     let totalTopicCount = 0;
-    
+
     topicsResult.results.forEach((row: any) => {
       if (row.topics) {
         const topics = JSON.parse(row.topics);
@@ -196,12 +212,13 @@ export async function getLearningInsights(c: Context) {
       .map(([topic, count]) => ({
         topic,
         count,
-        percentage: Math.round((count / totalTopicCount) * 100)
+        percentage: Math.round((count / totalTopicCount) * 100),
       }))
       .sort((a, b) => b.count - a.count);
 
     // Get learning patterns (messages per day for last 7 days)
-    const learningPatternsResult = await DB.prepare(`
+    const learningPatternsResult = await DB.prepare(
+      `
       SELECT 
         DATE(created_at) as date,
         COUNT(*) as questions_asked,
@@ -212,44 +229,59 @@ export async function getLearningInsights(c: Context) {
         AND created_at >= datetime('now', '-7 days')
       GROUP BY DATE(created_at)
       ORDER BY date DESC
-    `).bind(tenantId, learnerId).all();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .all();
 
     const learningPatterns = learningPatternsResult.results.map((row: any) => ({
       date: row.date,
       questionsAsked: row.questions_asked,
       topicsExplored: 0, // Would need more complex query
       averageResponseTime: 0, // Would need response time tracking
-      conversationsStarted: row.conversations
+      conversationsStarted: row.conversations,
     }));
 
     // Get learning style
-    const learningStyleResult = await DB.prepare(`
+    const learningStyleResult = await DB.prepare(
+      `
       SELECT 
         style_type,
         confidence_score
       FROM learning_styles
       WHERE learner_id = ?
-    `).bind(learnerId).first();
+    `
+    )
+      .bind(learnerId)
+      .first();
 
     // Calculate metrics
-    const totalMessagesResult = await DB.prepare(`
+    const totalMessagesResult = await DB.prepare(
+      `
       SELECT COUNT(*) as total
       FROM chat_messages
       WHERE tenant_id = ? AND learner_id = ? AND sender_type = 'learner'
-    `).bind(tenantId, learnerId).first();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .first();
 
-    const totalConversationsResult = await DB.prepare(`
+    const totalConversationsResult = await DB.prepare(
+      `
       SELECT COUNT(*) as total
       FROM conversation_summaries
       WHERE tenant_id = ? AND learner_id = ?
-    `).bind(tenantId, learnerId).first();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .first();
 
-    const avgMessagesPerConversation = totalConversationsResult?.total > 0
-      ? Math.round(totalMessagesResult?.total / totalConversationsResult?.total)
-      : 0;
+    const avgMessagesPerConversation =
+      totalConversationsResult?.total > 0 ? Math.round(totalMessagesResult?.total / totalConversationsResult?.total) : 0;
 
     // Get recent activity trend (compare last 7 days to previous 7 days)
-    const recentActivityResult = await DB.prepare(`
+    const recentActivityResult = await DB.prepare(
+      `
       SELECT 
         (SELECT COUNT(*) FROM chat_messages 
          WHERE tenant_id = ? AND learner_id = ? 
@@ -258,43 +290,53 @@ export async function getLearningInsights(c: Context) {
          WHERE tenant_id = ? AND learner_id = ? 
          AND created_at >= datetime('now', '-14 days')
          AND created_at < datetime('now', '-7 days')) as previous
-    `).bind(tenantId, learnerId, tenantId, learnerId).first();
+    `
+    )
+      .bind(tenantId, learnerId, tenantId, learnerId)
+      .first();
 
-    const trend = recentActivityResult?.recent > recentActivityResult?.previous ? 'up' : 
-                  recentActivityResult?.recent < recentActivityResult?.previous ? 'down' : 'neutral';
-    const changePercent = recentActivityResult?.previous > 0
-      ? Math.round(((recentActivityResult?.recent - recentActivityResult?.previous) / recentActivityResult?.previous) * 100)
-      : 0;
+    const trend =
+      recentActivityResult?.recent > recentActivityResult?.previous
+        ? 'up'
+        : recentActivityResult?.recent < recentActivityResult?.previous
+          ? 'down'
+          : 'neutral';
+    const changePercent =
+      recentActivityResult?.previous > 0
+        ? Math.round(((recentActivityResult?.recent - recentActivityResult?.previous) / recentActivityResult?.previous) * 100)
+        : 0;
 
     const metrics = [
       {
         label: 'Total Questions',
         value: totalMessagesResult?.total || 0,
         trend: trend,
-        change: `${changePercent > 0 ? '+' : ''}${changePercent}%`
+        change: `${changePercent > 0 ? '+' : ''}${changePercent}%`,
       },
       {
         label: 'Conversations',
-        value: totalConversationsResult?.total || 0
+        value: totalConversationsResult?.total || 0,
       },
       {
         label: 'Avg Messages/Conv',
-        value: avgMessagesPerConversation
+        value: avgMessagesPerConversation,
       },
       {
         label: 'Topics Explored',
-        value: topicFrequencyMap.size
-      }
+        value: topicFrequencyMap.size,
+      },
     ];
 
     return c.json({
       metrics,
       topicFrequencies: topicFrequencies.slice(0, 10), // Top 10 topics
       learningPatterns,
-      learningStyle: learningStyleResult ? {
-        type: learningStyleResult.style_type,
-        confidence: learningStyleResult.confidence_score
-      } : null
+      learningStyle: learningStyleResult
+        ? {
+            type: learningStyleResult.style_type,
+            confidence: learningStyleResult.confidence_score,
+          }
+        : null,
     });
   } catch {
     console.error('Error fetching learning insights:', error);
@@ -333,23 +375,35 @@ export async function updateLearningStyle(c: Context) {
     const id = `style_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Check if style exists
-    const existing = await DB.prepare(`
+    const existing = await DB.prepare(
+      `
       SELECT id FROM learning_styles WHERE learner_id = ?
-    `).bind(learnerId).first();
+    `
+    )
+      .bind(learnerId)
+      .first();
 
     if (existing) {
       // Update existing
-      await DB.prepare(`
+      await DB.prepare(
+        `
         UPDATE learning_styles
         SET style_type = ?, manual_override = ?, updated_at = CURRENT_TIMESTAMP
         WHERE learner_id = ?
-      `).bind(styleType, manualOverride ? 1 : 0, learnerId).run();
+      `
+      )
+        .bind(styleType, manualOverride ? 1 : 0, learnerId)
+        .run();
     } else {
       // Insert new
-      await DB.prepare(`
+      await DB.prepare(
+        `
         INSERT INTO learning_styles (id, learner_id, style_type, manual_override)
         VALUES (?, ?, ?, ?)
-      `).bind(id, learnerId, styleType, manualOverride ? 1 : 0).run();
+      `
+      )
+        .bind(id, learnerId, styleType, manualOverride ? 1 : 0)
+        .run();
     }
 
     return c.json({ success: true, styleType });
@@ -385,7 +439,7 @@ export async function getConversationSummary(c: Context) {
     if (!rawConversationId) {
       return c.json({ error: 'Conversation ID required' }, 400);
     }
-    
+
     // Validate conversation ID format
     const validationResult = conversationIdSchema.safeParse(rawConversationId);
     if (!validationResult.success) {
@@ -396,7 +450,8 @@ export async function getConversationSummary(c: Context) {
     const { DB } = c.env;
     const { tenantId, learnerId } = validateJWTPayload(payload);
 
-    const result = await DB.prepare(`
+    const result = await DB.prepare(
+      `
       SELECT 
         id,
         conversation_id,
@@ -407,7 +462,10 @@ export async function getConversationSummary(c: Context) {
         updated_at
       FROM conversation_summaries
       WHERE tenant_id = ? AND learner_id = ? AND conversation_id = ?
-    `).bind(tenantId, learnerId, conversationId).first();
+    `
+    )
+      .bind(tenantId, learnerId, conversationId)
+      .first();
 
     if (!result) {
       return c.json({ error: 'Conversation summary not found' }, 404);
@@ -420,7 +478,7 @@ export async function getConversationSummary(c: Context) {
       topics: result.topics ? JSON.parse(result.topics) : [],
       messageCount: result.message_count,
       createdAt: result.created_at,
-      updatedAt: result.updated_at
+      updatedAt: result.updated_at,
     });
   } catch {
     console.error('Error fetching conversation summary:', error);

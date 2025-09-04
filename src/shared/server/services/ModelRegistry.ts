@@ -16,7 +16,7 @@ export class ModelRegistry {
       description: 'Fast, efficient instruction-following model',
       category: 'text-generation',
       maxTokens: 4096,
-      defaultTokens: 2048
+      defaultTokens: 2048,
     },
     {
       id: '@cf/meta/llama-3.1-70b-instruct',
@@ -24,7 +24,7 @@ export class ModelRegistry {
       description: 'Large, powerful instruction-following model',
       category: 'text-generation',
       maxTokens: 8192,
-      defaultTokens: 2048
+      defaultTokens: 2048,
     },
     {
       id: '@cf/mistral/mistral-7b-instruct-v0.2',
@@ -32,7 +32,7 @@ export class ModelRegistry {
       description: 'Efficient open-source instruction model',
       category: 'text-generation',
       maxTokens: 4096,
-      defaultTokens: 2048
+      defaultTokens: 2048,
     },
     {
       id: '@cf/microsoft/phi-2',
@@ -40,7 +40,7 @@ export class ModelRegistry {
       description: 'Small, efficient model for basic tasks',
       category: 'text-generation',
       maxTokens: 2048,
-      defaultTokens: 1024
+      defaultTokens: 1024,
     },
     {
       id: '@cf/qwen/qwen1.5-14b-chat-awq',
@@ -48,7 +48,7 @@ export class ModelRegistry {
       description: 'Multilingual chat model',
       category: 'text-generation',
       maxTokens: 4096,
-      defaultTokens: 2048
+      defaultTokens: 2048,
     },
     {
       id: '@cf/deepseek/deepseek-coder-6.7b-instruct-awq',
@@ -56,7 +56,7 @@ export class ModelRegistry {
       description: 'Specialized code generation model',
       category: 'code-generation',
       maxTokens: 4096,
-      defaultTokens: 2048
+      defaultTokens: 2048,
     },
     {
       id: '@cf/thebloke/codellama-7b-instruct-awq',
@@ -64,7 +64,7 @@ export class ModelRegistry {
       description: 'Code-focused instruction model',
       category: 'code-generation',
       maxTokens: 4096,
-      defaultTokens: 2048
+      defaultTokens: 2048,
     },
     {
       id: '@cf/baai/bge-base-en-v1.5',
@@ -72,7 +72,7 @@ export class ModelRegistry {
       description: 'Text embedding model for semantic search',
       category: 'embeddings',
       maxTokens: 512,
-      defaultTokens: 512
+      defaultTokens: 512,
     },
     {
       id: '@cf/baai/bge-large-en-v1.5',
@@ -80,7 +80,7 @@ export class ModelRegistry {
       description: 'Large text embedding model',
       category: 'embeddings',
       maxTokens: 512,
-      defaultTokens: 512
+      defaultTokens: 512,
     },
     {
       id: '@cf/baai/bge-small-en-v1.5',
@@ -88,8 +88,8 @@ export class ModelRegistry {
       description: 'Compact text embedding model',
       category: 'embeddings',
       maxTokens: 512,
-      defaultTokens: 512
-    }
+      defaultTokens: 512,
+    },
   ];
 
   private cachedModels: Map<string, AIModel> = new Map();
@@ -101,7 +101,7 @@ export class ModelRegistry {
   }
 
   private initializeCache(): void {
-    ModelRegistry.models.forEach(model => {
+    ModelRegistry.models.forEach((model) => {
       this.cachedModels.set(model.id, model);
     });
     this.lastFetch = Date.now();
@@ -113,11 +113,11 @@ export class ModelRegistry {
     }
 
     const models = Array.from(this.cachedModels.values());
-    
+
     if (category) {
-      return models.filter(m => m.category === category);
+      return models.filter((m) => m.category === category);
     }
-    
+
     return models;
   }
 
@@ -155,7 +155,7 @@ export class ModelRegistry {
   }
 
   getDefaultModel(category: string = 'text-generation'): string {
-    const models = ModelRegistry.models.filter(m => m.category === category);
+    const models = ModelRegistry.models.filter((m) => m.category === category);
     return models[0]?.id || '@cf/meta/llama-3.1-8b-instruct';
   }
 

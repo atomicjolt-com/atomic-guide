@@ -17,11 +17,7 @@ export interface SuggestionQueue {
   currentIndex: number;
 }
 
-export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
-  isVisible,
-  onClose,
-  className = ''
-}) => {
+export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({ isVisible, onClose, className = '' }) => {
   const [currentSuggestion, setCurrentSuggestion] = useState<Suggestion | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -86,7 +82,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
 
     const handleTouchEnd = () => {
       const deltaY = startY - currentY;
-      
+
       // Swipe up to expand, swipe down to dismiss
       if (deltaY < -100) {
         handleClose();
@@ -109,7 +105,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
 
   const fetchNextSuggestion = useCallback(async () => {
     setIsLoading(true);
-    
+
     try {
       const response = await fetch('/api/chat/suggestions/next', {
         headers: {
@@ -142,7 +138,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
         body: JSON.stringify({
           suggestionId: currentSuggestion.id,
           action: 'accepted',
-          followupBehavior: `executed_${action.type}`
+          followupBehavior: `executed_${action.type}`,
         }),
       });
 
@@ -151,7 +147,6 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
 
       // Close overlay
       handleClose();
-
     } catch (error) {
       console.error('Error accepting suggestion:', error);
     }
@@ -173,13 +168,12 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
           contextData: {
             dismissedAt: new Date().toISOString(),
             pageType: getCurrentPageType(),
-            mobile: isMobile
-          }
+            mobile: isMobile,
+          },
         }),
       });
 
       handleClose();
-
     } catch (error) {
       console.error('Error dismissing suggestion:', error);
       handleClose(); // Still close even if logging fails
@@ -199,12 +193,11 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
           suggestionId: currentSuggestion.id,
           action: 'feedback_provided',
           feedback: feedback,
-          details: `User provided ${feedback} feedback`
+          details: `User provided ${feedback} feedback`,
         }),
       });
 
       handleClose();
-
     } catch (error) {
       console.error('Error submitting feedback:', error);
       handleClose(); // Still close even if logging fails
@@ -224,7 +217,7 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
         if (chatInput) {
           chatInput.value = action.data;
           chatInput.focus();
-          
+
           // Trigger input event to notify React
           const event = new Event('input', { bubbles: true });
           chatInput.dispatchEvent(event);
@@ -325,12 +318,8 @@ export const SuggestionOverlay: React.FC<SuggestionOverlayProps> = ({
       {isMobile && (
         <>
           {/* Backdrop for mobile */}
-          <div 
-            className="overlay-backdrop"
-            onClick={handleClose}
-            aria-hidden="true"
-          />
-          
+          <div className="overlay-backdrop" onClick={handleClose} aria-hidden="true" />
+
           {/* Handle for swipe gesture indication */}
           <div className="mobile-handle" aria-hidden="true">
             <div className="handle-bar" />

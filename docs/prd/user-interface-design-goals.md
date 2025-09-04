@@ -41,15 +41,17 @@ Full compliance with WCAG AA standards including keyboard navigation, screen rea
 Atomic Guide follows the Atomic Jolt brand identity to maintain consistency across the product portfolio:
 
 **Visual Identity:**
+
 - **Primary Brand Color:** Atomic Jolt Yellow (#FFDD00) for key interactive elements and CTAs
 - **Typography:** Rubik font family for all UI text, ensuring readability and modern aesthetic
-- **Color System:** 
+- **Color System:**
   - Success indicators: Green (#027A48) for achievements and progress
   - Error/alert states: Red (#B42318) for critical warnings
   - Neutral UI: Grays (#666666, #333333) for secondary elements
   - Background: Off-white (#FFFDF0) for reduced eye strain during long study sessions
 
 **Design Principles:**
+
 - Clean, academic aesthetic that complements the LMS interface without competing for attention
 - Subtle use of color psychology to indicate cognitive states (green for optimal learning zone, yellow for engagement, red for intervention needed)
 - Positive framing that celebrates growth rather than highlighting deficits

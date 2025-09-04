@@ -56,7 +56,7 @@ const AdaptiveRecommendationsSchema = z.object({
 
 /**
  * Create analytics API router with all endpoints
- * 
+ *
  * @param tenantId - Tenant identifier for multi-tenancy
  * @returns Hono router with analytics endpoints
  */
@@ -65,17 +65,10 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
 
   // Middleware to initialize services
   api.use('*', async (c, next) => {
-    const analyticsService = new PerformanceAnalyticsService(
-      c.env.DB,
-      c.env.ANALYTICS_QUEUE,
-      tenantId
-    );
-    
-    const privacyService = new PrivacyPreservingAnalytics(
-      c.env.DB,
-      tenantId
-    );
-    
+    const analyticsService = new PerformanceAnalyticsService(c.env.DB, c.env.ANALYTICS_QUEUE, tenantId);
+
+    const privacyService = new PrivacyPreservingAnalytics(c.env.DB, tenantId);
+
     const adaptiveLearningService = new AdaptiveLearningService(
       c.env.DB,
       c.env.AI,
@@ -86,7 +79,7 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
     c.set('analyticsService', analyticsService);
     c.set('privacyService', privacyService);
     c.set('adaptiveLearningService', adaptiveLearningService);
-    
+
     await next();
   });
 
@@ -94,130 +87,116 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
    * GET /analytics/student/:studentId/performance
    * Get comprehensive student performance analytics
    */
-  api.get(
-    '/student/:studentId/performance',
-    zValidator('param', StudentAnalyticsParamsSchema),
-    async (c) => {
-      try {
-        const { studentId } = c.req.valid('param');
-        const courseId = c.req.query('courseId');
-        
-        const analyticsService = c.get('analyticsService') as PerformanceAnalyticsService;
-        const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
+  api.get('/student/:studentId/performance', zValidator('param', StudentAnalyticsParamsSchema), async (c) => {
+    try {
+      const { studentId } = c.req.valid('param');
+      const courseId = c.req.query('courseId');
 
-        // Validate privacy consent
-        const consentResult = await privacyService.validatePrivacyConsent(
-          studentId,
-          courseId,
-          'performance'
-        );
+      const analyticsService = c.get('analyticsService') as PerformanceAnalyticsService;
+      const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
 
-        if (!consentResult.isAllowed) {
-          return c.json({
+      // Validate privacy consent
+      const consentResult = await privacyService.validatePrivacyConsent(studentId, courseId, 'performance');
+
+      if (!consentResult.isAllowed) {
+        return c.json(
+          {
             success: false,
             error: 'Access denied: ' + consentResult.reason,
-          }, 403);
-        }
+          },
+          403
+        );
+      }
 
-        if (!courseId) {
-          return c.json({
+      if (!courseId) {
+        return c.json(
+          {
             success: false,
             error: 'courseId query parameter is required',
-          }, 400);
-        }
-
-        // Get student analytics
-        const analytics = await analyticsService.getStudentAnalytics(studentId, courseId);
-
-        // Audit access
-        await privacyService.auditDataAccess(
-          studentId,
-          'student',
-          'view_profile',
-          `Student performance analytics for course ${courseId}`
+          },
+          400
         );
+      }
 
-        return c.json({
-          success: true,
-          data: analytics,
-        });
+      // Get student analytics
+      const analytics = await analyticsService.getStudentAnalytics(studentId, courseId);
 
-      } catch (error) {
-        console.error('Student analytics error:', error);
-        return c.json({
+      // Audit access
+      await privacyService.auditDataAccess(studentId, 'student', 'view_profile', `Student performance analytics for course ${courseId}`);
+
+      return c.json({
+        success: true,
+        data: analytics,
+      });
+    } catch (error) {
+      console.error('Student analytics error:', error);
+      return c.json(
+        {
           success: false,
           error: 'Failed to retrieve student analytics',
-        }, 500);
-      }
+        },
+        500
+      );
     }
-  );
+  });
 
   /**
    * GET /analytics/instructor/:courseId/overview
    * Get course-wide analytics for instructors
    */
-  api.get(
-    '/instructor/:courseId/overview',
-    zValidator('param', InstructorAnalyticsParamsSchema),
-    async (c) => {
-      try {
-        const { courseId } = c.req.valid('param');
-        const instructorId = c.req.header('X-Instructor-ID'); // From JWT or context
+  api.get('/instructor/:courseId/overview', zValidator('param', InstructorAnalyticsParamsSchema), async (c) => {
+    try {
+      const { courseId } = c.req.valid('param');
+      const instructorId = c.req.header('X-Instructor-ID'); // From JWT or context
 
-        if (!instructorId) {
-          return c.json({
+      if (!instructorId) {
+        return c.json(
+          {
             success: false,
             error: 'Instructor authentication required',
-          }, 401);
-        }
-
-        const _analyticsService = c.get('analyticsService') as PerformanceAnalyticsService;
-        const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
-
-        // Get aggregated course metrics
-        const courseMetrics = await getCourseMetrics(c.env.DB, tenantId, courseId);
-        
-        // Get student summaries with privacy filtering
-        const studentSummaries = await getStudentSummaries(
-          c.env.DB,
-          tenantId,
-          courseId,
-          privacyService
-        );
-
-        // Get instructor alerts
-        const alerts = await getInstructorAlerts(c.env.DB, tenantId, instructorId, courseId);
-
-        // Get content engagement analytics
-        const contentEngagement = await getContentEngagement(c.env.DB, tenantId, courseId);
-
-        // Audit access
-        await privacyService.auditDataAccess(
-          instructorId,
-          'instructor',
-          'view_profile',
-          `Course analytics overview for ${courseId}`
-        );
-
-        return c.json({
-          success: true,
-          data: {
-            classMetrics: courseMetrics,
-            studentSummaries,
-            alerts,
-            contentEngagement,
           },
-        });
+          401
+        );
+      }
 
-      } catch (error) {
-        console.error('Instructor analytics error:', error);
-        return c.json({
+      const _analyticsService = c.get('analyticsService') as PerformanceAnalyticsService;
+      const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
+
+      // Get aggregated course metrics
+      const courseMetrics = await getCourseMetrics(c.env.DB, tenantId, courseId);
+
+      // Get student summaries with privacy filtering
+      const studentSummaries = await getStudentSummaries(c.env.DB, tenantId, courseId, privacyService);
+
+      // Get instructor alerts
+      const alerts = await getInstructorAlerts(c.env.DB, tenantId, instructorId, courseId);
+
+      // Get content engagement analytics
+      const contentEngagement = await getContentEngagement(c.env.DB, tenantId, courseId);
+
+      // Audit access
+      await privacyService.auditDataAccess(instructorId, 'instructor', 'view_profile', `Course analytics overview for ${courseId}`);
+
+      return c.json({
+        success: true,
+        data: {
+          classMetrics: courseMetrics,
+          studentSummaries,
+          alerts,
+          contentEngagement,
+        },
+      });
+    } catch (error) {
+      console.error('Instructor analytics error:', error);
+      return c.json(
+        {
           success: false,
           error: 'Failed to retrieve instructor analytics',
-        }, 500);
-      }
+        },
+        500
+      );
     }
-  );
+  });
 
   /**
    * POST /analytics/recommendations/:studentId/action
@@ -235,8 +214,8 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
         const analyticsService = c.get('analyticsService') as PerformanceAnalyticsService;
 
         // Update recommendation status
-        await c.env.DB
-          .prepare(`
+        await c.env.DB.prepare(
+          `
             UPDATE learning_recommendations 
             SET status = ?, updated_at = datetime('now'),
                 effectiveness_score = CASE 
@@ -245,31 +224,22 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
                   ELSE effectiveness_score
                 END
             WHERE id = ?
-          `)
-          .bind(
-            action === 'completed' ? 'completed' : 
-            action === 'dismissed' ? 'dismissed' : 'active',
-            action,
-            action,
-            recommendationId
-          )
+          `
+        )
+          .bind(action === 'completed' ? 'completed' : action === 'dismissed' ? 'dismissed' : 'active', action, action, recommendationId)
           .run();
 
         // Log feedback if provided
         if (feedback) {
-          await c.env.DB
-            .prepare(`
+          await c.env.DB.prepare(
+            `
               INSERT INTO audit_logs (
                 tenant_id, actor_type, actor_id, action, resource_type,
                 resource_id, details, created_at
               ) VALUES (?, 'student', ?, 'recommendation_feedback', 'learning_recommendation', ?, ?, datetime('now'))
-            `)
-            .bind(
-              tenantId,
-              studentId,
-              recommendationId,
-              JSON.stringify({ action, feedback })
-            )
+            `
+          )
+            .bind(tenantId, studentId, recommendationId, JSON.stringify({ action, feedback }))
             .run();
         }
 
@@ -289,13 +259,15 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
           success: true,
           message: 'Recommendation action processed successfully',
         });
-
       } catch (error) {
         console.error('Recommendation action error:', error);
-        return c.json({
-          success: false,
-          error: 'Failed to process recommendation action',
-        }, 500);
+        return c.json(
+          {
+            success: false,
+            error: 'Failed to process recommendation action',
+          },
+          500
+        );
       }
     }
   );
@@ -304,136 +276,128 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
    * GET /analytics/benchmarks
    * Get anonymized benchmark data for comparison
    */
-  api.get(
-    '/benchmarks',
-    zValidator('query', BenchmarkRequestSchema),
-    async (c) => {
-      try {
-        const params = c.req.valid('query');
-        const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
+  api.get('/benchmarks', zValidator('query', BenchmarkRequestSchema), async (c) => {
+    try {
+      const params = c.req.valid('query');
+      const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
 
-        // Get anonymized benchmark
-        const benchmark = await privacyService.getAnonymizedBenchmark(
-          params.courseId,
-          params.benchmarkType,
-          params.aggregationLevel,
-          params.conceptId,
-          params.assessmentId
-        );
+      // Get anonymized benchmark
+      const benchmark = await privacyService.getAnonymizedBenchmark(
+        params.courseId,
+        params.benchmarkType,
+        params.aggregationLevel,
+        params.conceptId,
+        params.assessmentId
+      );
 
-        if (!benchmark) {
-          return c.json({
+      if (!benchmark) {
+        return c.json(
+          {
             success: false,
             error: 'Insufficient data for privacy-preserving benchmark',
-          }, 404);
-        }
-
-        // Audit benchmark access
-        await privacyService.auditDataAccess(
-          'anonymous',
-          'system',
-          'generate_benchmark',
-          `Benchmark: ${params.benchmarkType} for ${params.courseId}`
+          },
+          404
         );
+      }
 
-        return c.json({
-          success: true,
-          data: benchmark,
-        });
+      // Audit benchmark access
+      await privacyService.auditDataAccess(
+        'anonymous',
+        'system',
+        'generate_benchmark',
+        `Benchmark: ${params.benchmarkType} for ${params.courseId}`
+      );
 
-      } catch (error) {
-        console.error('Benchmark error:', error);
-        return c.json({
+      return c.json({
+        success: true,
+        data: benchmark,
+      });
+    } catch (error) {
+      console.error('Benchmark error:', error);
+      return c.json(
+        {
           success: false,
           error: 'Failed to generate benchmark data',
-        }, 500);
-      }
+        },
+        500
+      );
     }
-  );
+  });
 
   /**
    * POST /analytics/recommendations/adaptive
    * Generate adaptive learning recommendations
    */
-  api.post(
-    '/recommendations/adaptive',
-    zValidator('json', AdaptiveRecommendationsSchema),
-    async (c) => {
-      try {
-        const params = c.req.valid('json');
-        const adaptiveLearningService = c.get('adaptiveLearningService') as AdaptiveLearningService;
-        const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
+  api.post('/recommendations/adaptive', zValidator('json', AdaptiveRecommendationsSchema), async (c) => {
+    try {
+      const params = c.req.valid('json');
+      const adaptiveLearningService = c.get('adaptiveLearningService') as AdaptiveLearningService;
+      const privacyService = c.get('privacyService') as PrivacyPreservingAnalytics;
 
-        // Validate privacy consent
-        const consentResult = await privacyService.validatePrivacyConsent(
-          params.studentId,
-          params.courseId,
-          'performance'
-        );
+      // Validate privacy consent
+      const consentResult = await privacyService.validatePrivacyConsent(params.studentId, params.courseId, 'performance');
 
-        if (!consentResult.isAllowed) {
-          return c.json({
+      if (!consentResult.isAllowed) {
+        return c.json(
+          {
             success: false,
             error: 'Access denied: ' + consentResult.reason,
-          }, 403);
-        }
-
-        // Get student performance context
-        const analyticsService = c.get('analyticsService') as PerformanceAnalyticsService;
-        const analytics = await analyticsService.getStudentAnalytics(
-          params.studentId,
-          params.courseId
+          },
+          403
         );
+      }
 
-        if (!analytics.profile) {
-          return c.json({
+      // Get student performance context
+      const analyticsService = c.get('analyticsService') as PerformanceAnalyticsService;
+      const analytics = await analyticsService.getStudentAnalytics(params.studentId, params.courseId);
+
+      if (!analytics.profile) {
+        return c.json(
+          {
             success: false,
             error: 'Student performance profile not found',
-          }, 404);
-        }
-
-        // Generate adaptive recommendations
-        const recommendations = await adaptiveLearningService.generateAdaptiveRecommendations({
-          studentId: params.studentId,
-          courseId: params.courseId,
-          currentMastery: analytics.profile.overallMastery,
-          learningVelocity: analytics.profile.learningVelocity,
-          confidenceLevel: analytics.profile.confidenceLevel,
-          strugglingConcepts: analytics.conceptMasteries
-            .filter(cm => cm.masteryLevel < 0.7)
-            .map(cm => cm.conceptId),
-          strongConcepts: analytics.conceptMasteries
-            .filter(cm => cm.masteryLevel >= 0.8)
-            .map(cm => cm.conceptId),
-          timeAvailable: params.timeAvailable,
-          difficultyPreference: params.difficultyPreference,
-          goalType: params.goalType,
-        });
-
-        return c.json({
-          success: true,
-          data: {
-            recommendations,
-            generatedAt: new Date().toISOString(),
-            context: {
-              overallMastery: analytics.profile.overallMastery,
-              strugglingConceptsCount: analytics.conceptMasteries
-                .filter(cm => cm.masteryLevel < 0.7).length,
-              strongConceptsCount: analytics.conceptMasteries
-                .filter(cm => cm.masteryLevel >= 0.8).length,
-            },
           },
-        });
+          404
+        );
+      }
 
-      } catch (error) {
-        console.error('Adaptive recommendations error:', error);
-        return c.json({
+      // Generate adaptive recommendations
+      const recommendations = await adaptiveLearningService.generateAdaptiveRecommendations({
+        studentId: params.studentId,
+        courseId: params.courseId,
+        currentMastery: analytics.profile.overallMastery,
+        learningVelocity: analytics.profile.learningVelocity,
+        confidenceLevel: analytics.profile.confidenceLevel,
+        strugglingConcepts: analytics.conceptMasteries.filter((cm) => cm.masteryLevel < 0.7).map((cm) => cm.conceptId),
+        strongConcepts: analytics.conceptMasteries.filter((cm) => cm.masteryLevel >= 0.8).map((cm) => cm.conceptId),
+        timeAvailable: params.timeAvailable,
+        difficultyPreference: params.difficultyPreference,
+        goalType: params.goalType,
+      });
+
+      return c.json({
+        success: true,
+        data: {
+          recommendations,
+          generatedAt: new Date().toISOString(),
+          context: {
+            overallMastery: analytics.profile.overallMastery,
+            strugglingConceptsCount: analytics.conceptMasteries.filter((cm) => cm.masteryLevel < 0.7).length,
+            strongConceptsCount: analytics.conceptMasteries.filter((cm) => cm.masteryLevel >= 0.8).length,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Adaptive recommendations error:', error);
+      return c.json(
+        {
           success: false,
           error: 'Failed to generate adaptive recommendations',
-        }, 500);
-      }
+        },
+        500
+      );
     }
-  );
+  });
 
   /**
    * POST /analytics/queue/process
@@ -441,12 +405,15 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
    */
   api.post(
     '/queue/process',
-    zValidator('json', z.object({
-      studentId: z.string().min(1),
-      courseId: z.string().min(1),
-      taskTypes: z.array(z.enum(['performance_update', 'recommendation_generation', 'pattern_detection', 'alert_check'])),
-      priority: z.number().int().min(1).max(10).default(5),
-    })),
+    zValidator(
+      'json',
+      z.object({
+        studentId: z.string().min(1),
+        courseId: z.string().min(1),
+        taskTypes: z.array(z.enum(['performance_update', 'recommendation_generation', 'pattern_detection', 'alert_check'])),
+        priority: z.number().int().min(1).max(10).default(5),
+      })
+    ),
     async (c) => {
       try {
         const { studentId, courseId, taskTypes, priority } = c.req.valid('json');
@@ -475,13 +442,15 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
             queuedAt: new Date().toISOString(),
           },
         });
-
       } catch (error) {
         console.error('Queue processing error:', error);
-        return c.json({
-          success: false,
-          error: 'Failed to queue analytics processing',
-        }, 500);
+        return c.json(
+          {
+            success: false,
+            error: 'Failed to queue analytics processing',
+          },
+          500
+        );
       }
     }
   );
@@ -502,19 +471,22 @@ async function getCourseMetrics(
   strugglingConcepts: string[];
 }> {
   const metricsResult = await db
-    .prepare(`
+    .prepare(
+      `
       SELECT 
         COUNT(*) as total_students,
         AVG(overall_mastery) as average_mastery,
         COUNT(CASE WHEN overall_mastery < 0.5 THEN 1 END) as at_risk_count
       FROM student_performance_profiles 
       WHERE tenant_id = ? AND course_id = ?
-    `)
+    `
+    )
     .bind(tenantId, courseId)
     .first();
 
   const strugglingConceptsResult = await db
-    .prepare(`
+    .prepare(
+      `
       SELECT cm.concept_name, COUNT(*) as struggling_count
       FROM concept_masteries cm
       JOIN student_performance_profiles spp ON cm.profile_id = spp.id
@@ -522,7 +494,8 @@ async function getCourseMetrics(
       GROUP BY cm.concept_name
       ORDER BY struggling_count DESC
       LIMIT 5
-    `)
+    `
+    )
     .bind(tenantId, courseId)
     .all();
 
@@ -530,7 +503,7 @@ async function getCourseMetrics(
     totalStudents: Number(metricsResult?.total_students) || 0,
     averageMastery: Number(metricsResult?.average_mastery) || 0,
     atRiskCount: Number(metricsResult?.at_risk_count) || 0,
-    strugglingConcepts: strugglingConceptsResult.results.map(row => row.concept_name as string),
+    strugglingConcepts: strugglingConceptsResult.results.map((row) => row.concept_name as string),
   };
 }
 
@@ -539,15 +512,18 @@ async function getStudentSummaries(
   tenantId: string,
   courseId: string,
   _privacyService: PrivacyPreservingAnalytics
-): Promise<Array<{
-  studentId: string;
-  name?: string;
-  overallMastery: number;
-  riskLevel: 'low' | 'medium' | 'high';
-  lastActive: string;
-}>> {
+): Promise<
+  Array<{
+    studentId: string;
+    name?: string;
+    overallMastery: number;
+    riskLevel: 'low' | 'medium' | 'high';
+    lastActive: string;
+  }>
+> {
   const result = await db
-    .prepare(`
+    .prepare(
+      `
       SELECT 
         spp.student_id,
         spp.overall_mastery,
@@ -565,11 +541,12 @@ async function getStudentSummaries(
         AND apc.withdrawal_requested_at IS NULL
       GROUP BY spp.student_id, spp.overall_mastery, spp.last_calculated, lp.name
       ORDER BY spp.overall_mastery ASC
-    `)
+    `
+    )
     .bind(tenantId, courseId)
     .all();
 
-  return result.results.map(row => ({
+  return result.results.map((row) => ({
     studentId: row.student_id as string,
     name: row.name as string | undefined,
     overallMastery: Number(row.overall_mastery) || 0,
@@ -583,17 +560,20 @@ async function getInstructorAlerts(
   tenantId: string,
   instructorId: string,
   courseId: string
-): Promise<Array<{
-  id: string;
-  alertType: string;
-  priority: string;
-  studentIds: string[];
-  alertData: Record<string, unknown>;
-  createdAt: string;
-  acknowledged: boolean;
-}>> {
+): Promise<
+  Array<{
+    id: string;
+    alertType: string;
+    priority: string;
+    studentIds: string[];
+    alertData: Record<string, unknown>;
+    createdAt: string;
+    acknowledged: boolean;
+  }>
+> {
   const result = await db
-    .prepare(`
+    .prepare(
+      `
       SELECT 
         id, alert_type, priority, student_ids, alert_data,
         created_at, acknowledged
@@ -608,11 +588,12 @@ async function getInstructorAlerts(
         END,
         created_at DESC
       LIMIT 20
-    `)
+    `
+    )
     .bind(tenantId, courseId)
     .all();
 
-  return result.results.map(row => ({
+  return result.results.map((row) => ({
     id: row.id as string,
     alertType: row.alert_type as string,
     priority: row.priority as string,
@@ -627,14 +608,17 @@ async function getContentEngagement(
   db: D1Database,
   tenantId: string,
   courseId: string
-): Promise<Array<{
-  contentId: string;
-  averageTime: number;
-  strugglingStudents: number;
-  recommendedTiming: number;
-}>> {
+): Promise<
+  Array<{
+    contentId: string;
+    averageTime: number;
+    strugglingStudents: number;
+    recommendedTiming: number;
+  }>
+> {
   const result = await db
-    .prepare(`
+    .prepare(
+      `
       SELECT 
         ce.content_id,
         AVG(ce.total_time_seconds) as average_time,
@@ -649,11 +633,12 @@ async function getContentEngagement(
       HAVING COUNT(*) >= 5  -- Minimum sample size
       ORDER BY struggling_students DESC
       LIMIT 10
-    `)
+    `
+    )
     .bind(tenantId, courseId)
     .all();
 
-  return result.results.map(row => ({
+  return result.results.map((row) => ({
     contentId: row.content_id as string,
     averageTime: Number(row.average_time) || 0,
     strugglingStudents: Number(row.struggling_students) || 0,
@@ -671,14 +656,10 @@ function getRiskLevel(mastery: number): 'low' | 'medium' | 'high' {
   return 'low';
 }
 
-function calculateRecommendedTiming(
-  averageTime: number,
-  strugglingCount: number,
-  totalStudents: number
-): number {
+function calculateRecommendedTiming(averageTime: number, strugglingCount: number, totalStudents: number): number {
   const struggleRate = strugglingCount / totalStudents;
   const baseTime = averageTime / 60; // Convert to minutes
-  
+
   // Add buffer time based on struggle rate
   return Math.ceil(baseTime * (1 + struggleRate * 0.5));
 }

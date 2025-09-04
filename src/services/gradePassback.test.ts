@@ -45,13 +45,10 @@ describe('GradePassbackService', () => {
     const harness = ServiceTestHarness.withDefaults(GradePassbackService, {
       database: true,
       kvStore: true,
-      queue: false
+      queue: false,
     }).build();
-    
+
     service = new GradePassbackService(mockEnv as Env);
-    
-    ;
-  
   });
 
   afterEach(() => {
@@ -61,16 +58,20 @@ describe('GradePassbackService', () => {
   describe('submitGrade', () => {
     it('should successfully submit a grade', async () => {
       // Mock platform configuration
-      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
-        token_endpoint: 'https://canvas.test/token',
-        client_id: 'test-client',
-        key_id: 'test-key',
-      }));
+      mockEnv.PLATFORMS!.get.mockResolvedValue(
+        JSON.stringify({
+          token_endpoint: 'https://canvas.test/token',
+          client_id: 'test-client',
+          key_id: 'test-key',
+        })
+      );
 
       // Mock key set
-      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
-        privateKey: 'test-private-key',
-      }));
+      mockEnv.KEY_SETS!.get.mockResolvedValue(
+        JSON.stringify({
+          privateKey: 'test-private-key',
+        })
+      );
 
       // Mock successful getLtiToken response
       vi.mocked(getLtiToken).mockResolvedValue({ access_token: 'test-token' });
@@ -112,15 +113,19 @@ describe('GradePassbackService', () => {
 
     it('should retry on server errors', async () => {
       // Mock platform and key setup
-      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
-        token_endpoint: 'https://canvas.test/token',
-        client_id: 'test-client',
-        key_id: 'test-key',
-      }));
+      mockEnv.PLATFORMS!.get.mockResolvedValue(
+        JSON.stringify({
+          token_endpoint: 'https://canvas.test/token',
+          client_id: 'test-client',
+          key_id: 'test-key',
+        })
+      );
 
-      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
-        privateKey: 'test-private-key',
-      }));
+      mockEnv.KEY_SETS!.get.mockResolvedValue(
+        JSON.stringify({
+          privateKey: 'test-private-key',
+        })
+      );
 
       // Mock getLtiToken response
       vi.mocked(getLtiToken).mockResolvedValue({ access_token: 'test-token' });
@@ -164,15 +169,19 @@ describe('GradePassbackService', () => {
 
     it('should fail after max retries', async () => {
       // Mock platform and key setup
-      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
-        token_endpoint: 'https://canvas.test/token',
-        client_id: 'test-client',
-        key_id: 'test-key',
-      }));
+      mockEnv.PLATFORMS!.get.mockResolvedValue(
+        JSON.stringify({
+          token_endpoint: 'https://canvas.test/token',
+          client_id: 'test-client',
+          key_id: 'test-key',
+        })
+      );
 
-      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
-        privateKey: 'test-private-key',
-      }));
+      mockEnv.KEY_SETS!.get.mockResolvedValue(
+        JSON.stringify({
+          privateKey: 'test-private-key',
+        })
+      );
 
       // Mock getLtiToken response
       vi.mocked(getLtiToken).mockResolvedValue({ access_token: 'test-token' });
@@ -201,15 +210,19 @@ describe('GradePassbackService', () => {
 
     it('should not retry on client errors', async () => {
       // Mock platform and key setup
-      (mockEnv.PLATFORMS!.get).mockResolvedValue(JSON.stringify({
-        token_endpoint: 'https://canvas.test/token',
-        client_id: 'test-client',
-        key_id: 'test-key',
-      }));
+      mockEnv.PLATFORMS!.get.mockResolvedValue(
+        JSON.stringify({
+          token_endpoint: 'https://canvas.test/token',
+          client_id: 'test-client',
+          key_id: 'test-key',
+        })
+      );
 
-      (mockEnv.KEY_SETS!.get).mockResolvedValue(JSON.stringify({
-        privateKey: 'test-private-key',
-      }));
+      mockEnv.KEY_SETS!.get.mockResolvedValue(
+        JSON.stringify({
+          privateKey: 'test-private-key',
+        })
+      );
 
       // Mock getLtiToken response
       vi.mocked(getLtiToken).mockResolvedValue({ access_token: 'test-token' });
@@ -283,7 +296,7 @@ describe('GradePassbackService', () => {
       const mockRun = vi.fn();
       const mockBind = vi.fn(() => ({ run: mockRun }));
       const mockPrepare = vi.fn(() => ({ bind: mockBind }));
-      
+
       (mockEnv.DB as MockD1Database).prepare = mockPrepare;
 
       await service.trackGradeStatus('attempt123', 'submitted');
@@ -297,12 +310,11 @@ describe('GradePassbackService', () => {
       const mockPrepare = vi.fn(() => {
         throw new Error('Database error');
       });
-      
+
       (mockEnv.DB as MockD1Database).prepare = mockPrepare;
 
       // Should not throw
-      await expect(service.trackGradeStatus('attempt123', 'failed', 'Test error'))
-        .resolves.toBeUndefined();
+      await expect(service.trackGradeStatus('attempt123', 'failed', 'Test error')).resolves.toBeUndefined();
     });
   });
 

@@ -27,7 +27,7 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
   isLoading = false,
   error = null,
   pageUrl = '',
-  pageType
+  pageType,
 }) => {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
@@ -38,47 +38,56 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    if (newContent.length <= maxLength) {
-      setContent(newContent);
-      setCharCount(newContent.length);
-    }
-  }, [maxLength]);
-
-  const handleFileUpload = useCallback((file: File) => {
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const fileContent = e.target?.result as string;
-      if (fileContent.length <= maxLength) {
-        setContent(fileContent);
-        setCharCount(fileContent.length);
-        if (!title) {
-          setTitle(file.name.replace(/\.[^/.]+$/, ''));
-        }
-      } else {
-        alert(`File content exceeds maximum length of ${maxLength} characters`);
+  const handleContentChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newContent = e.target.value;
+      if (newContent.length <= maxLength) {
+        setContent(newContent);
+        setCharCount(newContent.length);
       }
-    };
+    },
+    [maxLength]
+  );
 
-    if (file.type === 'text/html' || file.type === 'text/plain' || file.type === 'text/markdown') {
-      reader.readAsText(file);
-    } else {
-      alert('Please upload a text, HTML, or Markdown file');
-    }
-  }, [maxLength, title]);
+  const handleFileUpload = useCallback(
+    (file: File) => {
+      if (!file) return;
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const fileContent = e.target?.result as string;
+        if (fileContent.length <= maxLength) {
+          setContent(fileContent);
+          setCharCount(fileContent.length);
+          if (!title) {
+            setTitle(file.name.replace(/\.[^/.]+$/, ''));
+          }
+        } else {
+          alert(`File content exceeds maximum length of ${maxLength} characters`);
+        }
+      };
 
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFileUpload(files[0]);
-    }
-  }, [handleFileUpload]);
+      if (file.type === 'text/html' || file.type === 'text/plain' || file.type === 'text/markdown') {
+        reader.readAsText(file);
+      } else {
+        alert('Please upload a text, HTML, or Markdown file');
+      }
+    },
+    [maxLength, title]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragging(false);
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    },
+    [handleFileUpload]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -90,12 +99,15 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
     setIsDragging(false);
   }, []);
 
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFileUpload(files[0]);
-    }
-  }, [handleFileUpload]);
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    },
+    [handleFileUpload]
+  );
 
   const handleSubmit = useCallback(() => {
     if (!content.trim()) {
@@ -113,7 +125,7 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
       type: contentType,
       url: url || undefined,
       extractionMethod: 'manual',
-      instructorConsent: consent
+      instructorConsent: consent,
     };
 
     onContentSubmit(content, metadata);
@@ -136,9 +148,7 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <h3 className={styles.title}>Manual Content Input</h3>
-        <p className={styles.subtitle}>
-          The automatic content extraction is unavailable. Please provide the content manually.
-        </p>
+        <p className={styles.subtitle}>The automatic content extraction is unavailable. Please provide the content manually.</p>
       </div>
 
       {error && (
@@ -207,7 +217,7 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
               {charCount} / {maxLength}
             </span>
           </label>
-          
+
           <div
             className={`${styles.dropZone} ${isDragging ? styles.dragging : ''}`}
             onDrop={handleDrop}
@@ -223,16 +233,11 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
               disabled={isLoading}
               rows={12}
             />
-            
+
             {!content && (
               <div className={styles.dropOverlay}>
                 <p>Drop a file here or</p>
-                <button
-                  type="button"
-                  className={styles.uploadButton}
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                >
+                <button type="button" className={styles.uploadButton} onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
                   Choose File
                 </button>
               </div>
@@ -251,35 +256,20 @@ export const ManualContentInput: React.FC<ManualContentInputProps> = ({
 
         <div className={styles.consent}>
           <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              disabled={isLoading}
-            />
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={isLoading} />
             <span>
-              I confirm that I have permission to analyze this content and that it does not contain
-              sensitive or personally identifiable information that should not be processed.
+              I confirm that I have permission to analyze this content and that it does not contain sensitive or personally identifiable
+              information that should not be processed.
             </span>
           </label>
         </div>
 
         <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.clearButton}
-            onClick={handleClear}
-            disabled={isLoading}
-          >
+          <button type="button" className={styles.clearButton} onClick={handleClear} disabled={isLoading}>
             Clear
           </button>
-          
-          <button
-            type="button"
-            className={styles.submitButton}
-            onClick={handleSubmit}
-            disabled={!isValid || isLoading}
-          >
+
+          <button type="button" className={styles.submitButton} onClick={handleSubmit} disabled={!isValid || isLoading}>
             {isLoading ? (
               <>
                 <span className={styles.spinner} />

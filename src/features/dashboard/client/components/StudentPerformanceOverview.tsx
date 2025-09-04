@@ -17,52 +17,62 @@ const SyncStatusIndicator = lazy(() => import('./SyncStatusIndicator'));
  * Schema for student performance data from API
  */
 const StudentAnalyticsSchema = z.object({
-  profile: z.object({
-    id: z.string(),
-    tenantId: z.string(),
-    studentId: z.string(),
-    courseId: z.string(),
-    overallMastery: z.number().min(0).max(1),
-    learningVelocity: z.number().min(0),
-    confidenceLevel: z.number().min(0).max(1),
-    performanceData: z.record(z.unknown()),
-    lastCalculated: z.string(),
-  }).nullable(),
-  conceptMasteries: z.array(z.object({
-    id: z.string(),
-    conceptId: z.string(),
-    conceptName: z.string(),
-    masteryLevel: z.number().min(0).max(1),
-    confidenceScore: z.number().min(0).max(1),
-    assessmentCount: z.number().int().min(0),
-    improvementTrend: z.enum(['improving', 'stable', 'declining']),
-    lastAssessed: z.string(),
-  })),
-  recommendations: z.array(z.object({
-    id: z.string(),
-    recommendationType: z.enum(['review', 'practice', 'advance', 'seek_help']),
-    priority: z.enum(['high', 'medium', 'low']),
-    conceptsInvolved: z.array(z.string()),
-    suggestedActions: z.array(z.string()),
-    estimatedTimeMinutes: z.number().int().optional(),
-    reasoning: z.string(),
-    status: z.enum(['active', 'completed', 'dismissed']),
-    createdAt: z.string(),
-    expiresAt: z.string().optional(),
-  })),
-  strugglesIdentified: z.array(z.object({
-    id: z.string(),
-    patternType: z.enum(['misconception', 'knowledge_gap', 'skill_deficit', 'confidence_issue']),
-    conceptsInvolved: z.array(z.string()),
-    severity: z.number().min(0).max(1),
-    detectedAt: z.string(),
-    confidenceScore: z.number().min(0).max(1),
-  })),
-  progressHistory: z.array(z.object({
-    date: z.string(),
-    overallMastery: z.number().min(0).max(1),
-    conceptScores: z.record(z.number()),
-  })),
+  profile: z
+    .object({
+      id: z.string(),
+      tenantId: z.string(),
+      studentId: z.string(),
+      courseId: z.string(),
+      overallMastery: z.number().min(0).max(1),
+      learningVelocity: z.number().min(0),
+      confidenceLevel: z.number().min(0).max(1),
+      performanceData: z.record(z.unknown()),
+      lastCalculated: z.string(),
+    })
+    .nullable(),
+  conceptMasteries: z.array(
+    z.object({
+      id: z.string(),
+      conceptId: z.string(),
+      conceptName: z.string(),
+      masteryLevel: z.number().min(0).max(1),
+      confidenceScore: z.number().min(0).max(1),
+      assessmentCount: z.number().int().min(0),
+      improvementTrend: z.enum(['improving', 'stable', 'declining']),
+      lastAssessed: z.string(),
+    })
+  ),
+  recommendations: z.array(
+    z.object({
+      id: z.string(),
+      recommendationType: z.enum(['review', 'practice', 'advance', 'seek_help']),
+      priority: z.enum(['high', 'medium', 'low']),
+      conceptsInvolved: z.array(z.string()),
+      suggestedActions: z.array(z.string()),
+      estimatedTimeMinutes: z.number().int().optional(),
+      reasoning: z.string(),
+      status: z.enum(['active', 'completed', 'dismissed']),
+      createdAt: z.string(),
+      expiresAt: z.string().optional(),
+    })
+  ),
+  strugglesIdentified: z.array(
+    z.object({
+      id: z.string(),
+      patternType: z.enum(['misconception', 'knowledge_gap', 'skill_deficit', 'confidence_issue']),
+      conceptsInvolved: z.array(z.string()),
+      severity: z.number().min(0).max(1),
+      detectedAt: z.string(),
+      confidenceScore: z.number().min(0).max(1),
+    })
+  ),
+  progressHistory: z.array(
+    z.object({
+      date: z.string(),
+      overallMastery: z.number().min(0).max(1),
+      conceptScores: z.record(z.number()),
+    })
+  ),
 });
 
 type StudentAnalytics = z.infer<typeof StudentAnalyticsSchema>;
@@ -76,7 +86,7 @@ interface StudentPerformanceOverviewProps {
 
 /**
  * Student performance overview component with analytics integration
- * 
+ *
  * Displays personalized performance metrics, learning recommendations,
  * concept mastery levels, and progress tracking with visual charts.
  */
@@ -84,7 +94,7 @@ export default function StudentPerformanceOverview({
   userId,
   tenantId: _tenantId,
   courseId,
-  jwt
+  jwt,
 }: StudentPerformanceOverviewProps): React.ReactElement {
   const [analytics, setAnalytics] = useState<StudentAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,29 +113,25 @@ export default function StudentPerformanceOverview({
         setLoading(true);
         setError(null);
 
-        const response = await fetch(
-          `/api/analytics/student/${userId}/performance?courseId=${courseId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${jwt}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+        const response = await fetch(`/api/analytics/student/${userId}/performance?courseId=${courseId}`, {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to fetch analytics: ${response.statusText}`);
         }
 
         const data = await response.json();
-        
+
         if (!data.success) {
           throw new Error(data.error || 'Failed to load analytics');
         }
 
         const validatedData = StudentAnalyticsSchema.parse(data.data);
         setAnalytics(validatedData);
-
       } catch (err) {
         console.error('Analytics fetch error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load analytics');
@@ -156,11 +162,7 @@ export default function StudentPerformanceOverview({
 
   // Handle section expansion for mobile progressive disclosure
   const toggleSection = (sectionId: string): void => {
-    setExpandedSections(prev => 
-      prev.includes(sectionId) 
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
-    );
+    setExpandedSections((prev) => (prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId]));
   };
 
   // Handle view navigation for mobile
@@ -206,11 +208,7 @@ export default function StudentPerformanceOverview({
   );
 
   // Render collapsible section header for mobile
-  const renderSectionHeader = (
-    sectionId: string, 
-    title: string, 
-    icon?: string
-  ): React.ReactElement => (
+  const renderSectionHeader = (sectionId: string, title: string, icon?: string): React.ReactElement => (
     <button
       type="button"
       className={`${styles.sectionHeader} ${isMobile ? styles.collapsible : ''}`}
@@ -219,11 +217,7 @@ export default function StudentPerformanceOverview({
     >
       {icon && <span className={styles.sectionIcon}>{icon}</span>}
       <h3>{title}</h3>
-      {isMobile && (
-        <span className={`${styles.expandIcon} ${expandedSections.includes(sectionId) ? styles.expanded : ''}`}>
-          ▼
-        </span>
-      )}
+      {isMobile && <span className={`${styles.expandIcon} ${expandedSections.includes(sectionId) ? styles.expanded : ''}`}>▼</span>}
     </button>
   );
 
@@ -237,7 +231,7 @@ export default function StudentPerformanceOverview({
       const response = await fetch(`/api/analytics/recommendations/${userId}/action`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          Authorization: `Bearer ${jwt}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -253,7 +247,6 @@ export default function StudentPerformanceOverview({
 
       // Refresh analytics data
       window.location.reload();
-
     } catch (err) {
       console.error('Recommendation action error:', err);
       // Show error notification
@@ -273,17 +266,10 @@ export default function StudentPerformanceOverview({
             <span className={styles.metricIcon}>🎯</span>
             <h3>Overall Mastery</h3>
           </div>
-          <div className={styles.metricValue}>
-            {Math.round(profile.overallMastery * 100)}%
-          </div>
-          <div className={styles.metricDescription}>
-            Course concepts mastered
-          </div>
+          <div className={styles.metricValue}>{Math.round(profile.overallMastery * 100)}%</div>
+          <div className={styles.metricDescription}>Course concepts mastered</div>
           <div className={styles.progressBar}>
-            <div 
-              className={styles.progressFill}
-              style={{ width: `${profile.overallMastery * 100}%` }}
-            />
+            <div className={styles.progressFill} style={{ width: `${profile.overallMastery * 100}%` }} />
           </div>
         </div>
 
@@ -292,12 +278,8 @@ export default function StudentPerformanceOverview({
             <span className={styles.metricIcon}>⚡</span>
             <h3>Learning Velocity</h3>
           </div>
-          <div className={styles.metricValue}>
-            {profile.learningVelocity.toFixed(1)}
-          </div>
-          <div className={styles.metricDescription}>
-            Concepts per day
-          </div>
+          <div className={styles.metricValue}>{profile.learningVelocity.toFixed(1)}</div>
+          <div className={styles.metricDescription}>Concepts per day</div>
         </div>
 
         <div className={styles.metricCard}>
@@ -305,17 +287,10 @@ export default function StudentPerformanceOverview({
             <span className={styles.metricIcon}>💪</span>
             <h3>Confidence Level</h3>
           </div>
-          <div className={styles.metricValue}>
-            {Math.round(profile.confidenceLevel * 100)}%
-          </div>
-          <div className={styles.metricDescription}>
-            Learning confidence
-          </div>
+          <div className={styles.metricValue}>{Math.round(profile.confidenceLevel * 100)}%</div>
+          <div className={styles.metricDescription}>Learning confidence</div>
           <div className={styles.progressBar}>
-            <div 
-              className={styles.progressFill}
-              style={{ width: `${profile.confidenceLevel * 100}%` }}
-            />
+            <div className={styles.progressFill} style={{ width: `${profile.confidenceLevel * 100}%` }} />
           </div>
         </div>
 
@@ -324,12 +299,8 @@ export default function StudentPerformanceOverview({
             <span className={styles.metricIcon}>📚</span>
             <h3>Concepts Tracked</h3>
           </div>
-          <div className={styles.metricValue}>
-            {analytics.conceptMasteries.length}
-          </div>
-          <div className={styles.metricDescription}>
-            Active learning concepts
-          </div>
+          <div className={styles.metricValue}>{analytics.conceptMasteries.length}</div>
+          <div className={styles.metricDescription}>Active learning concepts</div>
         </div>
       </div>
     );
@@ -341,8 +312,7 @@ export default function StudentPerformanceOverview({
       return <div className={styles.emptyState}>No concept data available</div>;
     }
 
-    const sortedConcepts = [...analytics.conceptMasteries]
-      .sort((a, b) => a.masteryLevel - b.masteryLevel);
+    const sortedConcepts = [...analytics.conceptMasteries].sort((a, b) => a.masteryLevel - b.masteryLevel);
 
     return (
       <div className={styles.conceptMasteries}>
@@ -354,19 +324,15 @@ export default function StudentPerformanceOverview({
                 <span className={styles.conceptName}>{concept.conceptName}</span>
                 <div className={styles.conceptMeta}>
                   <span className={`${styles.trend} ${styles[concept.improvementTrend]}`}>
-                    {concept.improvementTrend === 'improving' ? '↗️' : 
-                     concept.improvementTrend === 'declining' ? '↘️' : '→'}
+                    {concept.improvementTrend === 'improving' ? '↗️' : concept.improvementTrend === 'declining' ? '↘️' : '→'}
                   </span>
-                  <span className={styles.masteryScore}>
-                    {Math.round(concept.masteryLevel * 100)}%
-                  </span>
+                  <span className={styles.masteryScore}>{Math.round(concept.masteryLevel * 100)}%</span>
                 </div>
               </div>
               <div className={styles.conceptProgress}>
-                <div 
+                <div
                   className={`${styles.conceptBar} ${
-                    concept.masteryLevel < 0.5 ? styles.low :
-                    concept.masteryLevel < 0.8 ? styles.medium : styles.high
+                    concept.masteryLevel < 0.5 ? styles.low : concept.masteryLevel < 0.8 ? styles.medium : styles.high
                   }`}
                   style={{ width: `${concept.masteryLevel * 100}%` }}
                 />
@@ -389,7 +355,7 @@ export default function StudentPerformanceOverview({
     }
 
     const activeRecommendations = analytics.recommendations
-      .filter(rec => rec.status === 'active')
+      .filter((rec) => rec.status === 'active')
       .sort((a, b) => {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
         return priorityOrder[b.priority] - priorityOrder[a.priority];
@@ -404,23 +370,24 @@ export default function StudentPerformanceOverview({
               <div className={styles.recommendationHeader}>
                 <div className={styles.recommendationType}>
                   <span className={styles.typeIcon}>
-                    {recommendation.recommendationType === 'review' ? '📖' :
-                     recommendation.recommendationType === 'practice' ? '✏️' :
-                     recommendation.recommendationType === 'advance' ? '🚀' : '🆘'}
+                    {recommendation.recommendationType === 'review'
+                      ? '📖'
+                      : recommendation.recommendationType === 'practice'
+                        ? '✏️'
+                        : recommendation.recommendationType === 'advance'
+                          ? '🚀'
+                          : '🆘'}
                   </span>
                   <span className={styles.typeName}>
-                    {recommendation.recommendationType.charAt(0).toUpperCase() + 
-                     recommendation.recommendationType.slice(1)}
+                    {recommendation.recommendationType.charAt(0).toUpperCase() + recommendation.recommendationType.slice(1)}
                   </span>
                 </div>
-                <span className={`${styles.priority} ${styles[recommendation.priority]}`}>
-                  {recommendation.priority}
-                </span>
+                <span className={`${styles.priority} ${styles[recommendation.priority]}`}>{recommendation.priority}</span>
               </div>
 
               <div className={styles.recommendationContent}>
                 <p className={styles.reasoning}>{recommendation.reasoning}</p>
-                
+
                 <div className={styles.suggestedActions}>
                   <h4>Suggested Actions:</h4>
                   <ul>
@@ -431,9 +398,7 @@ export default function StudentPerformanceOverview({
                 </div>
 
                 {recommendation.estimatedTimeMinutes && (
-                  <div className={styles.timeEstimate}>
-                    ⏱️ Estimated time: {recommendation.estimatedTimeMinutes} minutes
-                  </div>
+                  <div className={styles.timeEstimate}>⏱️ Estimated time: {recommendation.estimatedTimeMinutes} minutes</div>
                 )}
               </div>
 
@@ -472,23 +437,34 @@ export default function StudentPerformanceOverview({
             <div key={pattern.id} className={styles.patternCard}>
               <div className={styles.patternHeader}>
                 <span className={styles.patternIcon}>
-                  {pattern.patternType === 'knowledge_gap' ? '❓' :
-                   pattern.patternType === 'skill_deficit' ? '🔧' :
-                   pattern.patternType === 'confidence_issue' ? '😟' : '❌'}
+                  {pattern.patternType === 'knowledge_gap'
+                    ? '❓'
+                    : pattern.patternType === 'skill_deficit'
+                      ? '🔧'
+                      : pattern.patternType === 'confidence_issue'
+                        ? '😟'
+                        : '❌'}
                 </span>
                 <h4>{pattern.patternType.replace('_', ' ').toUpperCase()}</h4>
-                <span className={`${styles.severity} ${
-                  pattern.severity > 0.7 ? styles.high :
-                  pattern.severity > 0.4 ? styles.medium : styles.low
-                }`}>
+                <span
+                  className={`${styles.severity} ${
+                    pattern.severity > 0.7 ? styles.high : pattern.severity > 0.4 ? styles.medium : styles.low
+                  }`}
+                >
                   {Math.round(pattern.severity * 100)}% severity
                 </span>
               </div>
-              
+
               <div className={styles.patternDetails}>
-                <p><strong>Concepts involved:</strong> {pattern.conceptsInvolved.join(', ')}</p>
-                <p><strong>Detected:</strong> {new Date(pattern.detectedAt).toLocaleDateString()}</p>
-                <p><strong>Confidence:</strong> {Math.round(pattern.confidenceScore * 100)}%</p>
+                <p>
+                  <strong>Concepts involved:</strong> {pattern.conceptsInvolved.join(', ')}
+                </p>
+                <p>
+                  <strong>Detected:</strong> {new Date(pattern.detectedAt).toLocaleDateString()}
+                </p>
+                <p>
+                  <strong>Confidence:</strong> {Math.round(pattern.confidenceScore * 100)}%
+                </p>
               </div>
             </div>
           ))}
@@ -503,15 +479,14 @@ export default function StudentPerformanceOverview({
       return <div className={styles.emptyState}>No progress history available</div>;
     }
 
-    const timeframeData = analytics.progressHistory
-      .slice(selectedTimeframe === 'week' ? -7 : selectedTimeframe === 'month' ? -30 : -90);
+    const timeframeData = analytics.progressHistory.slice(selectedTimeframe === 'week' ? -7 : selectedTimeframe === 'month' ? -30 : -90);
 
     return (
       <div className={styles.progressTimeline}>
         <div className={styles.timelineHeader}>
           <h3>Progress Over Time</h3>
           <div className={styles.timeframeSelector}>
-            {(['week', 'month', 'semester'] as const).map(tf => (
+            {(['week', 'month', 'semester'] as const).map((tf) => (
               <button
                 key={tf}
                 className={`${styles.timeframeBtn} ${selectedTimeframe === tf ? styles.active : ''}`}
@@ -526,16 +501,9 @@ export default function StudentPerformanceOverview({
         <div className={styles.timeline}>
           {timeframeData.map((point, index) => (
             <div key={index} className={styles.timelinePoint}>
-              <div className={styles.pointDate}>
-                {new Date(point.date).toLocaleDateString()}
-              </div>
-              <div 
-                className={styles.pointBar}
-                style={{ height: `${point.overallMastery * 100}px` }}
-              />
-              <div className={styles.pointValue}>
-                {Math.round(point.overallMastery * 100)}%
-              </div>
+              <div className={styles.pointDate}>{new Date(point.date).toLocaleDateString()}</div>
+              <div className={styles.pointBar} style={{ height: `${point.overallMastery * 100}px` }} />
+              <div className={styles.pointValue}>{Math.round(point.overallMastery * 100)}%</div>
             </div>
           ))}
         </div>
@@ -585,19 +553,12 @@ export default function StudentPerformanceOverview({
         <div className={styles.headerTop}>
           <div className={styles.headerContent}>
             <h1>Your Learning Analytics</h1>
-            <p className={styles.subtitle}>
-              Track your progress and get personalized recommendations
-            </p>
-            <div className={styles.lastUpdated}>
-              Last updated: {new Date(analytics.profile.lastCalculated).toLocaleString()}
-            </div>
+            <p className={styles.subtitle}>Track your progress and get personalized recommendations</p>
+            <div className={styles.lastUpdated}>Last updated: {new Date(analytics.profile.lastCalculated).toLocaleString()}</div>
           </div>
           <div className={styles.headerActions}>
             <Suspense fallback={<div className={styles.syncPlaceholder}>⏳</div>}>
-              <SyncStatusIndicator
-                preferencesSync={preferencesSync}
-                compact={isMobile}
-              />
+              <SyncStatusIndicator preferencesSync={preferencesSync} compact={isMobile} />
             </Suspense>
           </div>
         </div>
@@ -617,36 +578,28 @@ export default function StudentPerformanceOverview({
             <section className={`${styles.section} ${styles.collapsibleSection}`}>
               {renderSectionHeader('concepts', 'Concept Mastery', '🎯')}
               {(!isMobile || expandedSections.includes('concepts')) && (
-                <div className={styles.sectionContent}>
-                  {renderConceptMasteries()}
-                </div>
+                <div className={styles.sectionContent}>{renderConceptMasteries()}</div>
               )}
             </section>
 
             <section className={`${styles.section} ${styles.collapsibleSection}`}>
               {renderSectionHeader('progress', 'Progress Timeline', '📈')}
               {(!isMobile || expandedSections.includes('progress')) && (
-                <div className={styles.sectionContent}>
-                  {renderProgressTimeline()}
-                </div>
+                <div className={styles.sectionContent}>{renderProgressTimeline()}</div>
               )}
             </section>
 
             <section className={`${styles.section} ${styles.collapsibleSection}`}>
               {renderSectionHeader('recommendations', 'Learning Recommendations', '💡')}
               {(!isMobile || expandedSections.includes('recommendations')) && (
-                <div className={styles.sectionContent}>
-                  {renderRecommendations()}
-                </div>
+                <div className={styles.sectionContent}>{renderRecommendations()}</div>
               )}
             </section>
 
             <section className={`${styles.section} ${styles.collapsibleSection}`}>
               {renderSectionHeader('struggles', 'Learning Challenges', '🎯')}
               {(!isMobile || expandedSections.includes('struggles')) && (
-                <div className={styles.sectionContent}>
-                  {renderStrugglePatterns()}
-                </div>
+                <div className={styles.sectionContent}>{renderStrugglePatterns()}</div>
               )}
             </section>
           </div>
@@ -656,17 +609,15 @@ export default function StudentPerformanceOverview({
       {/* Benchmark Comparison View */}
       {(!isMobile || activeView === 'benchmarks') && (
         <section className={styles.section}>
-          <Suspense fallback={
-            <div className={styles.loadingSection}>
-              <div className={styles.spinner} />
-              <p>Loading benchmark comparison...</p>
-            </div>
-          }>
-            <BenchmarkComparison
-              userId={userId}
-              courseId={courseId}
-              jwt={jwt}
-            />
+          <Suspense
+            fallback={
+              <div className={styles.loadingSection}>
+                <div className={styles.spinner} />
+                <p>Loading benchmark comparison...</p>
+              </div>
+            }
+          >
+            <BenchmarkComparison userId={userId} courseId={courseId} jwt={jwt} />
           </Suspense>
         </section>
       )}
@@ -674,17 +625,15 @@ export default function StudentPerformanceOverview({
       {/* Data Export View */}
       {(!isMobile || activeView === 'export') && (
         <section className={styles.section}>
-          <Suspense fallback={
-            <div className={styles.loadingSection}>
-              <div className={styles.spinner} />
-              <p>Loading data export interface...</p>
-            </div>
-          }>
-            <DataExportInterface
-              userId={userId}
-              courseId={courseId}
-              jwt={jwt}
-            />
+          <Suspense
+            fallback={
+              <div className={styles.loadingSection}>
+                <div className={styles.spinner} />
+                <p>Loading data export interface...</p>
+              </div>
+            }
+          >
+            <DataExportInterface userId={userId} courseId={courseId} jwt={jwt} />
           </Suspense>
         </section>
       )}

@@ -1,4 +1,4 @@
-import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { configureStore } from '../../client/store';
 import { chatApi } from '../../client/store/api/chatApi';
 
@@ -18,7 +18,7 @@ describe.skip('chatApi', () => {
   it.skip('sends message successfully', async () => {
     // Skip this test due to RTK Query/fetch mock compatibility issues
     // The functionality is tested in chatApi.simple.test.ts
-    (global.fetch).mockResolvedValueOnce({
+    global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         message_id: 'msg-123',
@@ -28,18 +28,20 @@ describe.skip('chatApi', () => {
       }),
     });
 
-    const result = await store.dispatch(
-      chatApi.endpoints.sendMessage.initiate({
-        session_id: 'session-123',
-        message: 'Test message',
-        page_context: {
-          course_id: 'course-1',
-          module_id: 'module-1',
-          page_content: 'Page content',
-          current_element: null,
-        },
-      })
-    ).unwrap();
+    const result = await store
+      .dispatch(
+        chatApi.endpoints.sendMessage.initiate({
+          session_id: 'session-123',
+          message: 'Test message',
+          page_context: {
+            course_id: 'course-1',
+            module_id: 'module-1',
+            page_content: 'Page content',
+            current_element: null,
+          },
+        })
+      )
+      .unwrap();
 
     expect(result).toEqual({
       message_id: 'msg-123',
@@ -50,7 +52,7 @@ describe.skip('chatApi', () => {
   });
 
   it('handles rate limit errors', async () => {
-    (global.fetch).mockResolvedValueOnce({
+    global.fetch.mockResolvedValueOnce({
       ok: false,
       status: 429,
       json: async () => ({ error: 'Rate limit exceeded', retry_after: 60 }),
@@ -58,18 +60,20 @@ describe.skip('chatApi', () => {
 
     let error;
     try {
-      await store.dispatch(
-        chatApi.endpoints.sendMessage.initiate({
-          session_id: 'session-123',
-          message: 'Test message',
-          page_context: {
-            course_id: null,
-            module_id: null,
-            page_content: null,
-            current_element: null,
-          },
-        })
-      ).unwrap();
+      await store
+        .dispatch(
+          chatApi.endpoints.sendMessage.initiate({
+            session_id: 'session-123',
+            message: 'Test message',
+            page_context: {
+              course_id: null,
+              module_id: null,
+              page_content: null,
+              current_element: null,
+            },
+          })
+        )
+        .unwrap();
     } catch (e) {
       error = e;
     }
@@ -81,7 +85,7 @@ describe.skip('chatApi', () => {
   });
 
   it('handles generic errors', async () => {
-    (global.fetch).mockResolvedValueOnce({
+    global.fetch.mockResolvedValueOnce({
       ok: false,
       status: 500,
       json: async () => ({ error: 'Internal server error' }),
@@ -89,18 +93,20 @@ describe.skip('chatApi', () => {
 
     let error;
     try {
-      await store.dispatch(
-        chatApi.endpoints.sendMessage.initiate({
-          session_id: 'session-123',
-          message: 'Test message',
-          page_context: {
-            course_id: null,
-            module_id: null,
-            page_content: null,
-            current_element: null,
-          },
-        })
-      ).unwrap();
+      await store
+        .dispatch(
+          chatApi.endpoints.sendMessage.initiate({
+            session_id: 'session-123',
+            message: 'Test message',
+            page_context: {
+              course_id: null,
+              module_id: null,
+              page_content: null,
+              current_element: null,
+            },
+          })
+        )
+        .unwrap();
     } catch (e) {
       error = e;
     }
@@ -111,7 +117,7 @@ describe.skip('chatApi', () => {
   });
 
   it('includes JWT token in headers', async () => {
-    (global.fetch).mockImplementationOnce((url: string, options: any) => {
+    global.fetch.mockImplementationOnce((url: string, options: any) => {
       expect(options.headers.get('authorization')).toBe('Bearer test-jwt-token');
       return Promise.resolve({
         ok: true,

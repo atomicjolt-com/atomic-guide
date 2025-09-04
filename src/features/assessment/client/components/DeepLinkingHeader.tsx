@@ -14,15 +14,12 @@ interface DeepLinkingHeaderProps {
 /**
  * Header component showing deep linking workflow steps
  */
-export function DeepLinkingHeader({ 
-  currentStep, 
-  onStepChange 
-}: DeepLinkingHeaderProps): ReactElement {
+export function DeepLinkingHeader({ currentStep, onStepChange }: DeepLinkingHeaderProps): ReactElement {
   return (
     <div className={styles.header}>
       <h1>Create AI-Powered Assessment</h1>
       <div className={styles.steps}>
-        <button 
+        <button
           className={`${styles.step} ${currentStep === 'build' ? styles.active : ''}`}
           onClick={() => onStepChange('build')}
           disabled={currentStep === 'submitting'}
@@ -31,7 +28,7 @@ export function DeepLinkingHeader({
           <span>Build Assessment</span>
         </button>
         <div className={styles.stepDivider} />
-        <button 
+        <button
           className={`${styles.step} ${currentStep === 'preview' ? styles.active : ''}`}
           onClick={() => onStepChange('preview')}
           disabled={currentStep === 'submitting'}

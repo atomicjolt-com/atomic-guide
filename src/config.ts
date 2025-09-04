@@ -6,12 +6,9 @@ import {
   NAMES_AND_ROLES_SCOPE,
   LTI_PLATFORM_CONFIGURATION,
   PlatformConfiguration,
-  type ToolConfiguration
+  type ToolConfiguration,
 } from '@atomicjolt/lti-types';
-import {
-  buildToolConfiguration,
-  ToolConfigurationParams
-} from '@atomicjolt/lti-server';
+import { buildToolConfiguration, ToolConfigurationParams } from '@atomicjolt/lti-server';
 import {
   APPLICATION_NAME,
   LTI_INIT_PATH,
@@ -25,13 +22,7 @@ import {
 } from '../definitions';
 
 export function getToolConfiguration(platformConfig: PlatformConfiguration, host: string): ToolConfiguration {
-  const scope = [
-    AGS_SCOPE_LINE_ITEM,
-    AGS_SCOPE_LINE_ITEM_READONLY,
-    AGS_SCOPE_RESULT,
-    AGS_SCOPE_SCORE,
-    NAMES_AND_ROLES_SCOPE,
-  ].join(' ');
+  const scope = [AGS_SCOPE_LINE_ITEM, AGS_SCOPE_LINE_ITEM_READONLY, AGS_SCOPE_RESULT, AGS_SCOPE_SCORE, NAMES_AND_ROLES_SCOPE].join(' ');
 
   const ltiPlatformConfig = platformConfig[LTI_PLATFORM_CONFIGURATION];
 

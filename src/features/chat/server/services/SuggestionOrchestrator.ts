@@ -86,21 +86,21 @@ export class SuggestionOrchestrator {
   private readonly COOLDOWN_RULES: Record<string, CooldownRule[]> = {
     confusion: [
       { type: 'same_type', durationMinutes: 2, conditions: ['same_pattern'] },
-      { type: 'any_type', durationMinutes: 1, conditions: ['recent_activity'] }
+      { type: 'any_type', durationMinutes: 1, conditions: ['recent_activity'] },
     ],
     frustration: [
       { type: 'same_type', durationMinutes: 5, conditions: ['high_severity'] },
       { type: 'same_type', durationMinutes: 3, conditions: ['medium_severity'] },
-      { type: 'escalation', durationMinutes: 15, conditions: ['escalation_triggered'] }
+      { type: 'escalation', durationMinutes: 15, conditions: ['escalation_triggered'] },
     ],
     repetition: [
       { type: 'same_type', durationMinutes: 3, conditions: ['pattern_detected'] },
-      { type: 'resource', durationMinutes: 5, conditions: ['resource_suggested'] }
+      { type: 'resource', durationMinutes: 5, conditions: ['resource_suggested'] },
     ],
     engagement_decline: [
       { type: 'break_suggestion', durationMinutes: 10, conditions: ['break_suggested'] },
-      { type: 'any_type', durationMinutes: 5, conditions: ['low_engagement'] }
-    ]
+      { type: 'any_type', durationMinutes: 5, conditions: ['low_engagement'] },
+    ],
   };
 
   private suggestionQueue: Map<string, SuggestionQueue[]> = new Map();
@@ -133,34 +133,16 @@ export class SuggestionOrchestrator {
     }
 
     // Generate candidate suggestions from struggles
-    const candidateSuggestions = await this.generateCandidateSuggestions(
-      analysis,
-      learnerProfile,
-      context
-    );
+    const candidateSuggestions = await this.generateCandidateSuggestions(analysis, learnerProfile, context);
 
     // Filter by cooldown rules
-    const availableSuggestions = await this.filterByCooldowns(
-      candidateSuggestions,
-      tenantId,
-      learnerId
-    );
+    const availableSuggestions = await this.filterByCooldowns(candidateSuggestions, tenantId, learnerId);
 
     // Prioritize and queue suggestions
-    const prioritizedSuggestions = this.prioritizeSuggestions(
-      availableSuggestions,
-      preferences,
-      context
-    );
+    const prioritizedSuggestions = this.prioritizeSuggestions(availableSuggestions, preferences, context);
 
     // Add to queue with scheduling
-    const scheduledSuggestions = await this.scheduleAndQueue(
-      prioritizedSuggestions,
-      tenantId,
-      learnerId,
-      conversationId,
-      context
-    );
+    const scheduledSuggestions = await this.scheduleAndQueue(prioritizedSuggestions, tenantId, learnerId, conversationId, context);
 
     // Ensure performance target
     const processingTime = Date.now() - startTime;
@@ -224,38 +206,39 @@ export class SuggestionOrchestrator {
             pageType: context.pageType,
             topic: context.topic,
             conversationLength: analysis.messageCount,
-            userEngagementScore: context.userFocusScore
+            userEngagementScore: context.userFocusScore,
           },
           actions: [
             {
               type: 'prompt',
               label: 'Explain simply',
               data: 'Can you explain this in simpler terms with an example?',
-              icon: '💡'
+              icon: '💡',
             },
             {
               type: 'resource',
               label: 'See examples',
               data: `/examples/${context.topic || 'general'}`,
-              icon: '📚'
-            }
+              icon: '📚',
+            },
           ],
           displaySettings: {
             urgency: struggle.severity === 'critical' ? 'critical' : struggle.severity === 'high' ? 'high' : 'medium',
             displayDurationSeconds: 30,
             allowDismiss: true,
-            requireFeedback: struggle.severity === 'high' || struggle.severity === 'critical'
-          }
+            requireFeedback: struggle.severity === 'high' || struggle.severity === 'critical',
+          },
         };
 
       case 'frustration':
         return {
           id: baseId,
           type: 'help',
-          title: struggle.severity === 'critical' ? 'Let\'s get you some help' : 'Take a different approach',
-          description: struggle.severity === 'critical' 
-            ? 'It seems like you\'re really struggling. Let\'s get you the support you need.'
-            : 'Let\'s try solving this step by step together',
+          title: struggle.severity === 'critical' ? "Let's get you some help" : 'Take a different approach',
+          description:
+            struggle.severity === 'critical'
+              ? "It seems like you're really struggling. Let's get you the support you need."
+              : "Let's try solving this step by step together",
           priority: this.calculatePriority(struggle, context),
           confidence: struggle.confidence,
           triggerPattern: struggle.type,
@@ -264,41 +247,44 @@ export class SuggestionOrchestrator {
             pageType: context.pageType,
             topic: context.topic,
             conversationLength: analysis.messageCount,
-            userEngagementScore: context.userFocusScore
+            userEngagementScore: context.userFocusScore,
           },
-          actions: struggle.severity === 'critical' ? [
-            {
-              type: 'escalation',
-              label: 'Get instructor help',
-              data: { escalationType: 'immediate', reason: 'high_frustration' },
-              icon: '🆘'
-            },
-            {
-              type: 'break',
-              label: 'Take a break',
-              data: 'Sometimes stepping away helps. Your progress is saved.',
-              icon: '☕'
-            }
-          ] : [
-            {
-              type: 'prompt',
-              label: 'Work together',
-              data: 'Can we work through this problem together step by step?',
-              icon: '🤝'
-            },
-            {
-              type: 'practice',
-              label: 'Try easier version',
-              data: { difficulty: 'beginner', topic: context.topic },
-              icon: '🎯'
-            }
-          ],
+          actions:
+            struggle.severity === 'critical'
+              ? [
+                  {
+                    type: 'escalation',
+                    label: 'Get instructor help',
+                    data: { escalationType: 'immediate', reason: 'high_frustration' },
+                    icon: '🆘',
+                  },
+                  {
+                    type: 'break',
+                    label: 'Take a break',
+                    data: 'Sometimes stepping away helps. Your progress is saved.',
+                    icon: '☕',
+                  },
+                ]
+              : [
+                  {
+                    type: 'prompt',
+                    label: 'Work together',
+                    data: 'Can we work through this problem together step by step?',
+                    icon: '🤝',
+                  },
+                  {
+                    type: 'practice',
+                    label: 'Try easier version',
+                    data: { difficulty: 'beginner', topic: context.topic },
+                    icon: '🎯',
+                  },
+                ],
           displaySettings: {
             urgency: struggle.severity === 'critical' ? 'critical' : 'high',
             displayDurationSeconds: struggle.severity === 'critical' ? 60 : 45,
             allowDismiss: struggle.severity !== 'critical',
-            requireFeedback: true
-          }
+            requireFeedback: true,
+          },
         };
 
       case 'repetition':
@@ -306,7 +292,7 @@ export class SuggestionOrchestrator {
           id: baseId,
           type: 'clarification',
           title: 'Try a different question',
-          description: 'It looks like you\'re asking similar questions. Let me help you rephrase.',
+          description: "It looks like you're asking similar questions. Let me help you rephrase.",
           priority: this.calculatePriority(struggle, context),
           confidence: struggle.confidence,
           triggerPattern: struggle.type,
@@ -315,28 +301,28 @@ export class SuggestionOrchestrator {
             pageType: context.pageType,
             topic: context.topic,
             conversationLength: analysis.messageCount,
-            userEngagementScore: context.userFocusScore
+            userEngagementScore: context.userFocusScore,
           },
           actions: [
             {
               type: 'prompt',
               label: 'Rephrase question',
               data: 'Can you help me rephrase my question to get better results?',
-              icon: '🔄'
+              icon: '🔄',
             },
             {
               type: 'resource',
               label: 'Review fundamentals',
               data: '/fundamentals',
-              icon: '📖'
-            }
+              icon: '📖',
+            },
           ],
           displaySettings: {
             urgency: 'medium',
             displayDurationSeconds: 25,
             allowDismiss: true,
-            requireFeedback: false
-          }
+            requireFeedback: false,
+          },
         };
 
       case 'engagement_decline':
@@ -344,7 +330,7 @@ export class SuggestionOrchestrator {
           id: baseId,
           type: 'help',
           title: 'Need a break?',
-          description: 'You\'ve been working hard. Sometimes a short break helps with learning.',
+          description: "You've been working hard. Sometimes a short break helps with learning.",
           priority: this.calculatePriority(struggle, context),
           confidence: struggle.confidence,
           triggerPattern: struggle.type,
@@ -353,28 +339,28 @@ export class SuggestionOrchestrator {
             pageType: context.pageType,
             topic: context.topic,
             conversationLength: analysis.messageCount,
-            userEngagementScore: context.userFocusScore
+            userEngagementScore: context.userFocusScore,
           },
           actions: [
             {
               type: 'break',
               label: 'Save and take a break',
               data: 'Your progress is saved. Research shows breaks improve retention.',
-              icon: '🌟'
+              icon: '🌟',
             },
             {
               type: 'prompt',
               label: 'Summarize what we learned',
-              data: 'Would you like me to summarize what we\'ve covered so far?',
-              icon: '📝'
-            }
+              data: "Would you like me to summarize what we've covered so far?",
+              icon: '📝',
+            },
           ],
           displaySettings: {
             urgency: 'low',
             displayDurationSeconds: 35,
             allowDismiss: true,
-            requireFeedback: false
-          }
+            requireFeedback: false,
+          },
         };
 
       default:
@@ -385,14 +371,11 @@ export class SuggestionOrchestrator {
   /**
    * Create success opportunity suggestion
    */
-  private createSuccessOpportunitySuggestion(
-    analysis: ConversationAnalysis,
-    context: SuggestionContext
-  ): EnhancedSuggestion {
+  private createSuccessOpportunitySuggestion(analysis: ConversationAnalysis, context: SuggestionContext): EnhancedSuggestion {
     return {
       id: `success-${Date.now()}`,
       type: 'next-step',
-      title: 'You\'re doing great!',
+      title: "You're doing great!",
       description: 'Ready to try something more challenging?',
       priority: 5, // Lower priority than struggle-based suggestions
       confidence: 0.8,
@@ -402,39 +385,35 @@ export class SuggestionOrchestrator {
         pageType: context.pageType,
         topic: context.topic,
         conversationLength: analysis.messageCount,
-        userEngagementScore: context.userFocusScore
+        userEngagementScore: context.userFocusScore,
       },
       actions: [
         {
           type: 'practice',
           label: 'Try advanced problems',
           data: { difficulty: 'advanced', topic: context.topic },
-          icon: '🚀'
+          icon: '🚀',
         },
         {
           type: 'resource',
           label: 'Explore related topics',
           data: `/topics/related/${context.topic}`,
-          icon: '🔍'
-        }
+          icon: '🔍',
+        },
       ],
       displaySettings: {
         urgency: 'low',
         displayDurationSeconds: 20,
         allowDismiss: true,
-        requireFeedback: false
-      }
+        requireFeedback: false,
+      },
     };
   }
 
   /**
    * Filter suggestions by cooldown rules
    */
-  private async filterByCooldowns(
-    suggestions: EnhancedSuggestion[],
-    tenantId: string,
-    learnerId: string
-  ): Promise<EnhancedSuggestion[]> {
+  private async filterByCooldowns(suggestions: EnhancedSuggestion[], tenantId: string, learnerId: string): Promise<EnhancedSuggestion[]> {
     const filtered: EnhancedSuggestion[] = [];
     const learnerKey = `${tenantId}:${learnerId}`;
     const lastSuggestions = this.lastSuggestionTimes.get(learnerKey) || new Map();
@@ -471,9 +450,9 @@ export class SuggestionOrchestrator {
     context: SuggestionContext
   ): EnhancedSuggestion[] {
     return suggestions
-      .map(suggestion => ({
+      .map((suggestion) => ({
         ...suggestion,
-        priority: this.recalculatePriority(suggestion, preferences, context)
+        priority: this.recalculatePriority(suggestion, preferences, context),
       }))
       .sort((a, b) => b.priority - a.priority);
   }
@@ -493,11 +472,11 @@ export class SuggestionOrchestrator {
 
     for (let i = 0; i < Math.min(suggestions.length, 2); i++) {
       const suggestion = suggestions[i];
-      
+
       // Calculate optimal delay based on urgency and context
       const delaySeconds = this.calculateOptimalDelay(suggestion, context, i);
       const scheduledFor = new Date(now.getTime() + delaySeconds * 1000);
-      
+
       // Add to queue
       const queueItem: SuggestionQueue = {
         id: `queue-${suggestion.id}`,
@@ -509,7 +488,7 @@ export class SuggestionOrchestrator {
         scheduledFor,
         status: 'pending',
         createdAt: now,
-        expiresAt: new Date(scheduledFor.getTime() + suggestion.displaySettings.displayDurationSeconds * 1000)
+        expiresAt: new Date(scheduledFor.getTime() + suggestion.displaySettings.displayDurationSeconds * 1000),
       };
 
       // Store in database for persistence
@@ -529,10 +508,7 @@ export class SuggestionOrchestrator {
   /**
    * Check if we should avoid interrupting the user
    */
-  private shouldAvoidInterruption(
-    context: SuggestionContext,
-    preferences: SuggestionPreferences
-  ): boolean {
+  private shouldAvoidInterruption(context: SuggestionContext, preferences: SuggestionPreferences): boolean {
     // Check user focus score
     if (context.userFocusScore > preferences.interruptionThreshold) {
       return true;
@@ -559,10 +535,10 @@ export class SuggestionOrchestrator {
 
     // Adjust for severity
     const severityMultiplier = {
-      'critical': 2.0,
-      'high': 1.5,
-      'medium': 1.0,
-      'low': 0.7
+      critical: 2.0,
+      high: 1.5,
+      medium: 1.0,
+      low: 0.7,
     };
     priority *= severityMultiplier[struggle.severity];
 
@@ -581,19 +557,15 @@ export class SuggestionOrchestrator {
   /**
    * Recalculate priority based on preferences and context
    */
-  private recalculatePriority(
-    suggestion: EnhancedSuggestion,
-    preferences: SuggestionPreferences,
-    _context: SuggestionContext
-  ): number {
+  private recalculatePriority(suggestion: EnhancedSuggestion, preferences: SuggestionPreferences, _context: SuggestionContext): number {
     let priority = suggestion.priority;
 
     // Adjust for user preferences
     const frequencyMultiplier = {
-      'high': 1.2,
-      'medium': 1.0,
-      'low': 0.7,
-      'off': 0
+      high: 1.2,
+      medium: 1.0,
+      low: 0.7,
+      off: 0,
     };
     priority *= frequencyMultiplier[preferences.frequency];
 
@@ -608,19 +580,15 @@ export class SuggestionOrchestrator {
   /**
    * Calculate optimal delay for suggestion display
    */
-  private calculateOptimalDelay(
-    suggestion: EnhancedSuggestion,
-    context: SuggestionContext,
-    queuePosition: number
-  ): number {
+  private calculateOptimalDelay(suggestion: EnhancedSuggestion, context: SuggestionContext, queuePosition: number): number {
     let delay = 3; // Base delay of 3 seconds
 
     // Adjust for urgency
     const urgencyDelays = {
-      'critical': 1,
-      'high': 2,
-      'medium': 3,
-      'low': 5
+      critical: 1,
+      high: 2,
+      medium: 3,
+      low: 5,
     };
     delay = urgencyDelays[suggestion.displaySettings.urgency];
 
@@ -649,18 +617,21 @@ export class SuggestionOrchestrator {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    await this.db.prepare(query).bind(
-      queueItem.id,
-      queueItem.tenantId,
-      queueItem.learnerId,
-      queueItem.conversationId,
-      JSON.stringify(queueItem.suggestionData),
-      queueItem.priorityScore,
-      queueItem.scheduledFor.toISOString(),
-      queueItem.status,
-      queueItem.createdAt.toISOString(),
-      queueItem.expiresAt.toISOString()
-    ).run();
+    await this.db
+      .prepare(query)
+      .bind(
+        queueItem.id,
+        queueItem.tenantId,
+        queueItem.learnerId,
+        queueItem.conversationId,
+        JSON.stringify(queueItem.suggestionData),
+        queueItem.priorityScore,
+        queueItem.scheduledFor.toISOString(),
+        queueItem.status,
+        queueItem.createdAt.toISOString(),
+        queueItem.expiresAt.toISOString()
+      )
+      .run();
   }
 
   /**
@@ -668,7 +639,7 @@ export class SuggestionOrchestrator {
    */
   async getNextSuggestion(tenantId: string, learnerId: string): Promise<EnhancedSuggestion | null> {
     const now = new Date();
-    
+
     const query = `
       SELECT * FROM suggestion_queue 
       WHERE tenant_id = ? AND learner_id = ? AND status = 'pending' 
@@ -677,12 +648,7 @@ export class SuggestionOrchestrator {
       LIMIT 1
     `;
 
-    const result = await this.db.prepare(query).bind(
-      tenantId,
-      learnerId,
-      now.toISOString(),
-      now.toISOString()
-    ).first();
+    const result = await this.db.prepare(query).bind(tenantId, learnerId, now.toISOString(), now.toISOString()).first();
 
     if (!result) {
       return null;
@@ -710,7 +676,7 @@ export class SuggestionOrchestrator {
       SET status = 'shown' 
       WHERE id = ?
     `;
-    
+
     await this.db.prepare(query).bind(queueId).run();
   }
 
@@ -725,7 +691,7 @@ export class SuggestionOrchestrator {
   ): Promise<void> {
     // This would integrate with the suggestion_logs table
     // const now = new Date();
-    
+
     const logQuery = `
       INSERT INTO suggestion_logs 
       (id, tenant_id, learner_id, conversation_id, suggestion_type, suggestion_content, 
@@ -742,12 +708,10 @@ export class SuggestionOrchestrator {
       WHERE suggestion_data->>'$.id' = ?
     `;
 
-    await this.db.prepare(logQuery).bind(
-      `log-${suggestionId}`,
-      action,
-      feedback || null,
-      suggestionId
-    ).run();
+    await this.db
+      .prepare(logQuery)
+      .bind(`log-${suggestionId}`, action, feedback || null, suggestionId)
+      .run();
   }
 
   /**
@@ -755,13 +719,13 @@ export class SuggestionOrchestrator {
    */
   async cleanupExpiredSuggestions(): Promise<void> {
     const now = new Date();
-    
+
     const query = `
       UPDATE suggestion_queue 
       SET status = 'expired' 
       WHERE status = 'pending' AND expires_at <= ?
     `;
-    
+
     await this.db.prepare(query).bind(now.toISOString()).run();
   }
 }

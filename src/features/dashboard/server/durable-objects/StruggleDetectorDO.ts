@@ -198,7 +198,7 @@ export class StruggleDetectorDO {
       }),
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     );
   }
 
@@ -223,7 +223,7 @@ export class StruggleDetectorDO {
         acc[signal.type] = (acc[signal.type] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
 
     // Calculate weighted score
@@ -237,7 +237,7 @@ export class StruggleDetectorDO {
     // Consider recency of signals (recent signals have more weight)
     const now = Date.now();
     const recentSignals = session.signals.filter(
-      (s) => now - s.timestamp < 60000, // Last minute
+      (s) => now - s.timestamp < 60000 // Last minute
     );
 
     if (recentSignals.length > 3) {
@@ -326,7 +326,7 @@ export class StruggleDetectorDO {
       }),
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     );
   }
 
@@ -362,7 +362,7 @@ export class StruggleDetectorDO {
       }),
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     );
   }
 
@@ -420,7 +420,7 @@ export class StruggleDetectorDO {
 
     // Get all interactions for the student
     const interactions = await this.storage.list({ prefix: `interaction:${studentId}:` });
-    
+
     const patterns = [];
     for (const [_, value] of interactions) {
       patterns.push(value);
@@ -438,23 +438,26 @@ export class StruggleDetectorDO {
     try {
       // Get stored session data for the test
       const sessionData = await this.storage.get('current_session');
-      
+
       if (sessionData) {
         return new Response(JSON.stringify(sessionData), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
       }
-      
+
       // Default response for tests
-      return new Response(JSON.stringify({ 
-        activeStudents: [],
-        recentPatterns: [],
-        alertsGenerated: 0
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          activeStudents: [],
+          recentPatterns: [],
+          alertsGenerated: 0,
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     } catch (_error) {
       return new Response(JSON.stringify({ error: 'Failed to get status' }), {
         status: 500,
@@ -484,7 +487,7 @@ export class StruggleDetectorDO {
         status: 101,
         webSocket: client,
         ok: true,
-        headers: new Headers({ 'Upgrade': 'websocket' }),
+        headers: new Headers({ Upgrade: 'websocket' }),
         statusText: 'Switching Protocols',
         // Add methods to make it behave like a Response
         text: async () => '',
@@ -493,14 +496,14 @@ export class StruggleDetectorDO {
         arrayBuffer: async () => new ArrayBuffer(0),
         formData: async () => new FormData(),
       };
-      
+
       return response as Response;
     } catch (error) {
       // Fallback for test environment
       console.error('WebSocket upgrade error:', error);
-      return new Response(JSON.stringify({ error: 'WebSocket upgrade failed' }), { 
+      return new Response(JSON.stringify({ error: 'WebSocket upgrade failed' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -525,7 +528,6 @@ export class StruggleDetectorDO {
     });
   }
 
-
   /**
    * Analyze interaction patterns
    */
@@ -535,8 +537,8 @@ export class StruggleDetectorDO {
     // Check for repeated errors
     const errorsByConceptId: Record<string, number> = {};
     const timesByConceptId: Record<string, number[]> = {};
-    
-    interactions.forEach(interaction => {
+
+    interactions.forEach((interaction) => {
       const conceptId = interaction.conceptId;
       if (conceptId) {
         if (!interaction.correct) {
@@ -556,7 +558,7 @@ export class StruggleDetectorDO {
           type: 'repeated_errors',
           conceptId,
           severity: Math.min(count / 5, 1),
-          evidenceCount: count
+          evidenceCount: count,
         });
       }
     });
@@ -570,39 +572,38 @@ export class StruggleDetectorDO {
             type: 'increasing_time',
             conceptId,
             severity: 0.6,
-            evidenceCount: times.length
+            evidenceCount: times.length,
           });
         }
       }
     });
 
     // Detect confidence drop
-    const confidences = interactions
-      .filter(i => i.confidence !== undefined)
-      .map(i => i.confidence);
-    
+    const confidences = interactions.filter((i) => i.confidence !== undefined).map((i) => i.confidence);
+
     if (confidences.length >= 3) {
       const isDecreasing = confidences.every((conf, i) => i === 0 || conf <= confidences[i - 1]);
       if (isDecreasing && confidences[confidences.length - 1] < 0.5) {
         patterns.push({
           type: 'confidence_drop',
           severity: 0.8,
-          evidenceCount: confidences.length
+          evidenceCount: confidences.length,
         });
       }
     }
 
     // Detect excessive help seeking
-    const helpRequests = interactions.filter(i => 
-      i.type === 'hint_request' || 
-      i.type === 'chat_message' && (i.message?.includes('help') || i.message?.includes('stuck') || i.message?.includes('understand'))
+    const helpRequests = interactions.filter(
+      (i) =>
+        i.type === 'hint_request' ||
+        (i.type === 'chat_message' && (i.message?.includes('help') || i.message?.includes('stuck') || i.message?.includes('understand')))
     );
-    
+
     if (helpRequests.length >= 3) {
       patterns.push({
         type: 'excessive_help_seeking',
         severity: 0.5,
-        evidenceCount: helpRequests.length
+        evidenceCount: helpRequests.length,
       });
     }
 
@@ -616,15 +617,15 @@ export class StruggleDetectorDO {
     const alertKey = `alert:${studentId}:${pattern.type}:${pattern.conceptId || 'default'}`;
     const lastAlert = await this.storage.get<number>(alertKey);
     const now = Date.now();
-    
+
     // Throttle alerts - don't send same alert type within 5 minutes
     if (lastAlert && now - lastAlert < 5 * 60 * 1000) {
       console.log(`Alert throttled for ${studentId} - pattern: ${pattern.type}`);
       return;
     }
-    
+
     await this.storage.put(alertKey, now);
-    
+
     if (pattern.severity > 0.7 && this.env?.DB) {
       // High severity - create instructor alert
       await this.env.DB.prepare(
@@ -638,7 +639,7 @@ export class StruggleDetectorDO {
       await this.env.ANALYTICS_QUEUE.send({
         type: 'generate_intervention',
         studentId,
-        pattern
+        pattern,
       });
     }
   }
@@ -649,9 +650,10 @@ export class StruggleDetectorDO {
   public broadcastPattern(pattern: any): void {
     console.log('Broadcasting pattern:', pattern);
     const message = JSON.stringify({ type: 'struggle_detected', data: pattern });
-    
+
     for (const client of this.connectedClients) {
-      if (client.readyState === 1) { // OPEN
+      if (client.readyState === 1) {
+        // OPEN
         client.send(message);
       }
     }
@@ -663,14 +665,15 @@ export class StruggleDetectorDO {
   public cleanupDisconnectedClients(): void {
     console.log('Cleaning up disconnected clients');
     const toRemove = [];
-    
+
     for (const client of this.connectedClients) {
-      if (client.readyState !== 1) { // Not OPEN
+      if (client.readyState !== 1) {
+        // Not OPEN
         toRemove.push(client);
       }
     }
-    
-    toRemove.forEach(client => this.connectedClients.delete(client));
+
+    toRemove.forEach((client) => this.connectedClients.delete(client));
   }
 
   /**
@@ -679,11 +682,11 @@ export class StruggleDetectorDO {
   public async handleWebSocketMessage(webSocket: any, message: string): Promise<void> {
     try {
       const data = JSON.parse(message);
-      
+
       if (data.type === 'subscribe') {
         this.subscriptions.set(webSocket, {
           courseId: data.courseId,
-          role: data.role
+          role: data.role,
         });
       }
     } catch (error) {
@@ -696,21 +699,21 @@ export class StruggleDetectorDO {
    */
   public async persistInteraction(studentId: string, interaction: any): Promise<void> {
     const key = `interactions:${studentId}`;
-    let interactions = await this.storage.get<any[]>(key) || [];
-    
+    let interactions = (await this.storage.get<any[]>(key)) || [];
+
     // Add timestamp if not present
     if (!interaction.timestamp) {
       interaction.timestamp = new Date().toISOString();
     }
-    
+
     // Add new interaction
     interactions.push(interaction);
-    
+
     // Limit to 50 most recent interactions
     if (interactions.length > 50) {
       interactions = interactions.slice(-50);
     }
-    
+
     await this.storage.put(key, interactions);
   }
 
@@ -721,27 +724,27 @@ export class StruggleDetectorDO {
     const allInteractions = await this.storage.list({ prefix: 'interactions:' });
     const now = Date.now();
     const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-    
+
     for (const [key, value] of allInteractions) {
       const interactions = value as any[];
       if (interactions && interactions.length > 0) {
         const lastInteraction = interactions[interactions.length - 1];
         const timestamp = new Date(lastInteraction.timestamp || 0).getTime();
-        
+
         if (now - timestamp > maxAge) {
           await this.storage.delete(key);
         }
       }
     }
-    
+
     // Send analytics if needed
     if (this.env?.ANALYTICS_QUEUE) {
       await this.env.ANALYTICS_QUEUE.send({
         type: 'periodic_analysis',
-        timestamp: now
+        timestamp: now,
       });
     }
-    
+
     // Schedule next alarm
     await this.storage.setAlarm(Date.now() + 300000); // 5 minutes
   }

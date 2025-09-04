@@ -10,16 +10,16 @@
 
 /* Brand Colors */
 :root {
-  --ag-primary: #1E3A5F;      /* Deep Navy */
-  --ag-secondary: #4A90E2;     /* Bright Blue */
-  --ag-success: #27AE60;       /* Green */
-  --ag-warning: #F39C12;       /* Orange */
-  --ag-error: #E74C3C;         /* Red */
-  --ag-background: #FFFFFF;     /* White */
-  --ag-light-gray: #F5F7FA;    /* Light Gray */
-  --ag-text-primary: #1E3A5F;
-  --ag-text-secondary: #64748B;
-  --ag-text-muted: #94A3B8;
+  --ag-primary: #1e3a5f; /* Deep Navy */
+  --ag-secondary: #4a90e2; /* Bright Blue */
+  --ag-success: #27ae60; /* Green */
+  --ag-warning: #f39c12; /* Orange */
+  --ag-error: #e74c3c; /* Red */
+  --ag-background: #ffffff; /* White */
+  --ag-light-gray: #f5f7fa; /* Light Gray */
+  --ag-text-primary: #1e3a5f;
+  --ag-text-secondary: #64748b;
+  --ag-text-muted: #94a3b8;
 }
 
 /* Main Container */
@@ -28,7 +28,13 @@
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 4px 16px rgba(30, 58, 95, 0.08);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
   font-size: 14px;
   color: var(--ag-text-primary);
 }
@@ -74,8 +80,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading p {
@@ -581,18 +591,18 @@
   .benchmarkComparison {
     padding: 20px;
   }
-  
+
   .protectionMethods {
     flex-direction: row;
     gap: 20px;
   }
-  
+
   .protectionMethod {
     flex: 1;
     flex-direction: column;
     text-align: center;
   }
-  
+
   .methodIcon {
     align-self: center;
     margin-bottom: 8px;
@@ -603,25 +613,25 @@
   .benchmarkComparison {
     padding: 24px;
   }
-  
+
   .header h2 {
     font-size: 1.75rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
   }
-  
+
   .metricHeader {
     flex-direction: row;
     align-items: center;
   }
-  
+
   .privacyMetadata {
     justify-content: center;
     gap: 24px;
   }
-  
+
   .consentSection {
     flex-direction: row;
     align-items: center;
@@ -633,22 +643,22 @@
   .comparisonChart {
     padding: 24px;
   }
-  
+
   .chartContainer {
     gap: 20px;
   }
-  
+
   .performanceBar {
     flex-direction: row;
     align-items: center;
     gap: 16px;
   }
-  
+
   .barLabel {
     min-width: 180px;
     flex-shrink: 0;
   }
-  
+
   .barWrapper {
     flex: 1;
   }
@@ -659,12 +669,12 @@
   .consentToggle {
     padding: 12px;
   }
-  
+
   .privacyExplanationBtn {
     padding: 12px 16px;
     min-height: 44px;
   }
-  
+
   .metricSelect {
     padding: 12px 16px;
     min-height: 44px;
@@ -676,15 +686,15 @@
   .benchmarkComparison {
     border: 2px solid #000;
   }
-  
+
   .performanceLevel.student {
     background: #000;
   }
-  
+
   .performanceLevel.average {
     background: #666;
   }
-  
+
   .privacyCheckbox:checked + .checkboxCustom {
     background: #000;
     border-color: #000;
@@ -696,11 +706,11 @@
   .spinner {
     animation: none;
   }
-  
+
   .performanceLevel {
     transition: none;
   }
-  
+
   .retryBtn:hover,
   .enableBtn:hover {
     transform: none;

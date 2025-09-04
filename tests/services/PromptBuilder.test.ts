@@ -1,4 +1,4 @@
-import {  describe, it, expect, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { PromptBuilder, PromptContext } from '../../src/services/PromptBuilder';
 
 import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
@@ -135,7 +135,7 @@ describe('PromptBuilder', () => {
 
     it('should default to default template', () => {
       const context: PromptContext = {
-        currentQuestion: 'This is a longer question that doesn\'t fit specific patterns',
+        currentQuestion: "This is a longer question that doesn't fit specific patterns",
       };
 
       const templateId = promptBuilder.selectTemplateForContext(context);
@@ -168,20 +168,20 @@ describe('PromptBuilder', () => {
       const context: PromptContext = {
         courseName: 'Physics 101',
         moduleName: 'Mechanics',
-        assignmentTitle: 'Newton\'s Laws',
+        assignmentTitle: "Newton's Laws",
         currentQuestion: 'What is F = ma?',
         learnerProfile: {
           learningStyle: 'visual',
           struggleAreas: ['equations'],
         },
-        pageContent: 'Newton\'s second law states that force equals mass times acceleration.',
+        pageContent: "Newton's second law states that force equals mass times acceleration.",
       };
 
       const { userPrompt } = promptBuilder.buildPrompt(context, 'contextual');
 
       expect(userPrompt).toContain('Physics 101');
       expect(userPrompt).toContain('Mechanics');
-      expect(userPrompt).toContain('Newton\'s Laws');
+      expect(userPrompt).toContain("Newton's Laws");
       expect(userPrompt).toContain('visual');
       expect(userPrompt).toContain('equations');
       expect(userPrompt).toContain('force equals mass times acceleration');

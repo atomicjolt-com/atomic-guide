@@ -9,7 +9,9 @@ Complete reference for all npm scripts and CLI commands used in Atomic Guide dev
 ```bash
 npm run dev
 ```
+
 Starts the Vite development server with hot module replacement (HMR).
+
 - URL: `http://localhost:5988`
 - Watches for file changes
 - Provides instant updates
@@ -19,7 +21,9 @@ Starts the Vite development server with hot module replacement (HMR).
 ```bash
 npm run build
 ```
+
 Creates production-optimized build with:
+
 - TypeScript compilation
 - Minification and tree-shaking
 - Asset optimization
@@ -30,6 +34,7 @@ Creates production-optimized build with:
 ```bash
 npm run preview
 ```
+
 Preview the production build locally before deployment.
 
 ### Type Checking
@@ -37,6 +42,7 @@ Preview the production build locally before deployment.
 ```bash
 npm run check
 ```
+
 Validates TypeScript types and performs a dry-run deployment.
 
 ### Deployment
@@ -44,38 +50,39 @@ Validates TypeScript types and performs a dry-run deployment.
 ```bash
 npm run deploy
 ```
+
 Deploys to Cloudflare Workers (requires authentication).
 
 ## Database Commands
 
 ### Setup & Management
 
-| Command | Description |
-|---------|-------------|
-| `npm run db:create` | Create atomic-guide-db D1 database |
-| `npm run db:destroy` | Delete atomic-guide-db D1 database |
-| `npm run db:reset` | Destroy, create, migrate and seed database |
-| `npm run db:setup` | Create D1 database and update wrangler.jsonc |
+| Command              | Description                                  |
+| -------------------- | -------------------------------------------- |
+| `npm run db:create`  | Create atomic-guide-db D1 database           |
+| `npm run db:destroy` | Delete atomic-guide-db D1 database           |
+| `npm run db:reset`   | Destroy, create, migrate and seed database   |
+| `npm run db:setup`   | Create D1 database and update wrangler.jsonc |
 
 ### Migrations
 
-| Command | Description |
-|---------|-------------|
-| `npm run db:migrate` | Run database migrations locally |
-| `npm run db:migrate:remote` | Run migrations on remote database |
-| `npm run db:rollback` | Rollback database to previous version |
-| `npm run db:status` | Check migration status |
+| Command                     | Description                           |
+| --------------------------- | ------------------------------------- |
+| `npm run db:migrate`        | Run database migrations locally       |
+| `npm run db:migrate:remote` | Run migrations on remote database     |
+| `npm run db:rollback`       | Rollback database to previous version |
+| `npm run db:status`         | Check migration status                |
 
 ### Data Operations
 
-| Command | Description |
-|---------|-------------|
-| `npm run db:seed` | Seed database with test data (local) |
-| `npm run db:seed:remote` | Seed remote database |
-| `npm run db:query` | Interactive SQL console for D1 database |
-| `npm run db:list` | List all database tables |
-| `npm run db:export` | Export database to backup.sql |
-| `npm run db:local` | Execute commands on local database |
+| Command                  | Description                             |
+| ------------------------ | --------------------------------------- |
+| `npm run db:seed`        | Seed database with test data (local)    |
+| `npm run db:seed:remote` | Seed remote database                    |
+| `npm run db:query`       | Interactive SQL console for D1 database |
+| `npm run db:list`        | List all database tables                |
+| `npm run db:export`      | Export database to backup.sql           |
+| `npm run db:local`       | Execute commands on local database      |
 
 ### Example Usage
 
@@ -106,6 +113,7 @@ npm run kv:destroy
 ```
 
 Creates/destroys these namespaces:
+
 - `KEY_SETS` - Tool RSA key pairs
 - `REMOTE_JWKS` - Cached platform JWK sets
 - `CLIENT_AUTH_TOKENS` - OAuth tokens

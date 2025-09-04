@@ -35,11 +35,13 @@ export const BatchProcessingResultSchema = z.object({
   failedCount: z.number().int().min(0),
   totalCount: z.number().int().min(0),
   processingDurationMs: z.number().int().min(0),
-  errors: z.array(z.object({
-    taskId: z.string(),
-    error: z.string(),
-    retryable: z.boolean(),
-  })),
+  errors: z.array(
+    z.object({
+      taskId: z.string(),
+      error: z.string(),
+      retryable: z.boolean(),
+    })
+  ),
   metrics: z.record(z.unknown()),
 });
 
@@ -47,11 +49,11 @@ export type BatchProcessingResult = z.infer<typeof BatchProcessingResultSchema>;
 
 /**
  * Analytics queue consumer for processing performance analytics tasks
- * 
+ *
  * Handles async processing of student performance updates, pattern detection,
  * recommendation generation, and instructor alerts with proper error handling
  * and retry logic.
- * 
+ *
  * @class AnalyticsQueueConsumer
  */
 export class AnalyticsQueueConsumer {
@@ -66,14 +68,14 @@ export class AnalyticsQueueConsumer {
 
   /**
    * Process analytics queue message batch
-   * 
+   *
    * @param batch - Message batch from Cloudflare Queue
    * @returns Promise resolving to processing result
    */
   public async processBatch(batch: MessageBatch<AnalyticsQueueMessage>): Promise<BatchProcessingResult> {
     const batchId = crypto.randomUUID();
     const startTime = Date.now();
-    
+
     let processedCount = 0;
     let failedCount = 0;
     const errors: Array<{ taskId: string; error: string; retryable: boolean }> = [];
@@ -92,13 +94,13 @@ export class AnalyticsQueueConsumer {
       const chunks = this.chunkArray(batch.messages, concurrencyLimit);
 
       for (const chunk of chunks) {
-        const chunkPromises = chunk.map(message => this.processMessage(message));
+        const chunkPromises = chunk.map((message) => this.processMessage(message));
         const chunkResults = await Promise.allSettled(chunkPromises);
 
         for (let i = 0; i < chunkResults.length; i++) {
           const result = chunkResults[i];
           const message = chunk[i];
-          
+
           // Track task types
           const taskType = message.body.taskType;
           metrics.taskTypes[taskType] = (metrics.taskTypes[taskType] || 0) + 1;
@@ -115,7 +117,7 @@ export class AnalyticsQueueConsumer {
                 error: result.value.error || 'Unknown error',
                 retryable: result.value.retryable || false,
               });
-              
+
               if (result.value.retryable) {
                 // Let message retry
                 message.retry();
@@ -135,28 +137,19 @@ export class AnalyticsQueueConsumer {
           }
         }
       }
-
     } catch (error) {
       console.error('Analytics batch processing error:', error);
-      
+
       // Retry all messages on batch-level failure
-      batch.messages.forEach(message => message.retry());
-      
+      batch.messages.forEach((message) => message.retry());
+
       throw error;
     }
 
     const processingDurationMs = Date.now() - startTime;
 
     // Log batch completion
-    await this.logBatchCompletion(
-      batchId,
-      processedCount,
-      failedCount,
-      batch.messages.length,
-      processingDurationMs,
-      errors,
-      metrics
-    );
+    await this.logBatchCompletion(batchId, processedCount, failedCount, batch.messages.length, processingDurationMs, errors, metrics);
 
     return {
       batchId,
@@ -171,7 +164,7 @@ export class AnalyticsQueueConsumer {
 
   /**
    * Process individual analytics message
-   * 
+   *
    * @param message - Queue message to process
    * @returns Promise resolving to processing result
    */
@@ -181,11 +174,11 @@ export class AnalyticsQueueConsumer {
     retryable?: boolean;
   }> {
     const taskStartTime = Date.now();
-    
+
     try {
       // Validate message
       const validatedMessage = AnalyticsQueueMessageSchema.parse(message.body);
-      
+
       // Update task status to processing
       await this.updateTaskStatus(validatedMessage.taskId, 'processing');
 
@@ -194,47 +187,37 @@ export class AnalyticsQueueConsumer {
         case 'performance_update':
           await this.handlePerformanceUpdate(validatedMessage);
           break;
-          
+
         case 'recommendation_generation':
           await this.handleRecommendationGeneration(validatedMessage);
           break;
-          
+
         case 'pattern_detection':
           await this.handlePatternDetection(validatedMessage);
           break;
-          
+
         case 'alert_check':
           await this.handleAlertCheck(validatedMessage);
           break;
-          
+
         default:
           throw new Error(`Unknown task type: ${validatedMessage.taskType}`);
       }
 
       const processingDuration = Date.now() - taskStartTime;
-      
+
       // Update task status to completed
-      await this.updateTaskStatus(
-        validatedMessage.taskId, 
-        'completed', 
-        undefined, 
-        processingDuration
-      );
+      await this.updateTaskStatus(validatedMessage.taskId, 'completed', undefined, processingDuration);
 
       return { success: true };
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       // Determine if error is retryable
       const retryable = this.isRetryableError(error);
-      
+
       // Update task status to failed
-      await this.updateTaskStatus(
-        message.body.taskId,
-        'failed',
-        errorMessage
-      );
+      await this.updateTaskStatus(message.body.taskId, 'failed', errorMessage);
 
       return {
         success: false,
@@ -253,21 +236,14 @@ export class AnalyticsQueueConsumer {
     }
 
     // Validate privacy consent
-    const consentResult = await this.privacyService.validatePrivacyConsent(
-      message.studentId,
-      message.courseId,
-      'performance'
-    );
+    const consentResult = await this.privacyService.validatePrivacyConsent(message.studentId, message.courseId, 'performance');
 
     if (!consentResult.isAllowed) {
       throw new Error(`Privacy consent validation failed: ${consentResult.reason}`);
     }
 
     // Update performance profile
-    await this.analyticsService.updatePerformanceProfile(
-      message.studentId,
-      message.courseId
-    );
+    await this.analyticsService.updatePerformanceProfile(message.studentId, message.courseId);
 
     // Audit the operation
     await this.privacyService.auditDataAccess(
@@ -287,21 +263,19 @@ export class AnalyticsQueueConsumer {
     }
 
     // Generate recommendations
-    const recommendations = await this.analyticsService.generateRecommendations(
-      message.studentId,
-      message.courseId
-    );
+    const recommendations = await this.analyticsService.generateRecommendations(message.studentId, message.courseId);
 
     // Store recommendations in database
     for (const recommendation of recommendations) {
-      await this.env.DB
-        .prepare(`
+      await this.env.DB.prepare(
+        `
           INSERT INTO learning_recommendations (
             id, profile_id, recommendation_type, priority, concepts_involved,
             suggested_actions, estimated_time_minutes, content_references,
             reasoning, status, created_at, updated_at, expires_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `)
+        `
+      )
         .bind(
           recommendation.id,
           recommendation.profileId,
@@ -330,21 +304,19 @@ export class AnalyticsQueueConsumer {
     }
 
     // Detect learning patterns
-    const patterns = await this.analyticsService.detectLearningPatterns(
-      message.studentId,
-      message.courseId
-    );
+    const patterns = await this.analyticsService.detectLearningPatterns(message.studentId, message.courseId);
 
     // Store detected patterns
     for (const pattern of patterns) {
-      await this.env.DB
-        .prepare(`
+      await this.env.DB.prepare(
+        `
           INSERT INTO struggle_patterns (
             id, tenant_id, student_id, pattern_type, concepts_involved,
             evidence_count, severity, suggested_interventions,
             detected_at, confidence_score
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `)
+        `
+      )
         .bind(
           pattern.id,
           pattern.tenantId,
@@ -370,28 +342,26 @@ export class AnalyticsQueueConsumer {
     }
 
     // Check for at-risk students
-    const atRiskStudents = await this.identifyAtRiskStudents(
-      message.tenantId,
-      message.courseId
-    );
+    const atRiskStudents = await this.identifyAtRiskStudents(message.tenantId, message.courseId);
 
     // Create instructor alerts for at-risk students
     if (atRiskStudents.length > 0) {
       const alertId = crypto.randomUUID();
-      
-      await this.env.DB
-        .prepare(`
+
+      await this.env.DB.prepare(
+        `
           INSERT INTO instructor_alerts (
             id, tenant_id, instructor_id, course_id, alert_type,
             priority, student_ids, alert_data, created_at
           ) VALUES (?, ?, ?, ?, 'at_risk_student', 'high', ?, ?, datetime('now'))
-        `)
+        `
+      )
         .bind(
           alertId,
           message.tenantId,
           'system', // Will be routed to course instructors
           message.courseId,
-          JSON.stringify(atRiskStudents.map(s => s.studentId)),
+          JSON.stringify(atRiskStudents.map((s) => s.studentId)),
           JSON.stringify({
             message: `${atRiskStudents.length} students identified as at-risk`,
             students: atRiskStudents,
@@ -405,13 +375,18 @@ export class AnalyticsQueueConsumer {
   /**
    * Identify at-risk students in a course
    */
-  private async identifyAtRiskStudents(tenantId: string, courseId: string): Promise<Array<{
-    studentId: string;
-    riskScore: number;
-    reasons: string[];
-  }>> {
-    const result = await this.env.DB
-      .prepare(`
+  private async identifyAtRiskStudents(
+    tenantId: string,
+    courseId: string
+  ): Promise<
+    Array<{
+      studentId: string;
+      riskScore: number;
+      reasons: string[];
+    }>
+  > {
+    const result = await this.env.DB.prepare(
+      `
         SELECT 
           spp.student_id,
           spp.overall_mastery,
@@ -424,7 +399,8 @@ export class AnalyticsQueueConsumer {
           AND sp.resolved_at IS NULL
         WHERE spp.tenant_id = ? AND spp.course_id = ?
         GROUP BY spp.student_id, spp.overall_mastery, spp.learning_velocity, spp.confidence_level
-      `)
+      `
+    )
       .bind(tenantId, courseId)
       .all();
 
@@ -499,11 +475,11 @@ export class AnalyticsQueueConsumer {
     const params = [status];
 
     if (status === 'processing') {
-      updateFields.push('started_at = datetime(\'now\')');
+      updateFields.push("started_at = datetime('now')");
     }
 
     if (status === 'completed' || status === 'failed') {
-      updateFields.push('completed_at = datetime(\'now\')');
+      updateFields.push("completed_at = datetime('now')");
     }
 
     if (errorMessage) {
@@ -519,12 +495,13 @@ export class AnalyticsQueueConsumer {
     params.push(taskId);
 
     try {
-      await this.env.DB
-        .prepare(`
+      await this.env.DB.prepare(
+        `
           UPDATE analytics_processing_queue 
           SET ${updateFields.join(', ')}
           WHERE id = ?
-        `)
+        `
+      )
         .bind(...params)
         .run();
     } catch (error) {
@@ -538,12 +515,13 @@ export class AnalyticsQueueConsumer {
    */
   private async logBatchStart(batchId: string, messageCount: number): Promise<void> {
     try {
-      await this.env.DB
-        .prepare(`
+      await this.env.DB.prepare(
+        `
           INSERT INTO analytics_batch_logs (
             id, tenant_id, batch_id, batch_type, total_count, started_at
           ) VALUES (?, 'system', ?, 'queue_processing', ?, datetime('now'))
-        `)
+        `
+      )
         .bind(crypto.randomUUID(), batchId, messageCount)
         .run();
     } catch (error) {
@@ -565,8 +543,8 @@ export class AnalyticsQueueConsumer {
     metrics: Record<string, unknown>
   ): Promise<void> {
     try {
-      await this.env.DB
-        .prepare(`
+      await this.env.DB.prepare(
+        `
           UPDATE analytics_batch_logs 
           SET 
             processed_count = ?,
@@ -576,15 +554,9 @@ export class AnalyticsQueueConsumer {
             error_summary = ?,
             performance_metrics = ?
           WHERE batch_id = ?
-        `)
-        .bind(
-          processedCount,
-          failedCount,
-          processingDurationMs,
-          JSON.stringify(errors),
-          JSON.stringify(metrics),
-          batchId
-        )
+        `
+      )
+        .bind(processedCount, failedCount, processingDurationMs, JSON.stringify(errors), JSON.stringify(metrics), batchId)
         .run();
     } catch (error) {
       console.error('Failed to log batch completion:', error);
@@ -598,24 +570,28 @@ export class AnalyticsQueueConsumer {
   private isRetryableError(error: unknown): boolean {
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
-      
+
       // Network/temporary errors are retryable
-      if (message.includes('network') || 
-          message.includes('timeout') || 
-          message.includes('rate limit') ||
-          message.includes('service unavailable')) {
+      if (
+        message.includes('network') ||
+        message.includes('timeout') ||
+        message.includes('rate limit') ||
+        message.includes('service unavailable')
+      ) {
         return true;
       }
-      
+
       // Data/validation errors are not retryable
-      if (message.includes('validation') || 
-          message.includes('invalid') || 
-          message.includes('not found') ||
-          message.includes('privacy consent')) {
+      if (
+        message.includes('validation') ||
+        message.includes('invalid') ||
+        message.includes('not found') ||
+        message.includes('privacy consent')
+      ) {
         return false;
       }
     }
-    
+
     // Default to retryable for unknown errors
     return true;
   }
@@ -635,14 +611,11 @@ export class AnalyticsQueueConsumer {
 /**
  * Export handler function for queue consumer
  */
-export async function analyticsQueueHandler(
-  batch: MessageBatch<AnalyticsQueueMessage>,
-  env: any
-): Promise<BatchProcessingResult> {
+export async function analyticsQueueHandler(batch: MessageBatch<AnalyticsQueueMessage>, env: any): Promise<BatchProcessingResult> {
   const analyticsService = new PerformanceAnalyticsService(env.DB, env.ANALYTICS_QUEUE, 'default');
   const privacyService = new PrivacyPreservingAnalytics(env.DB, env.KV_ANALYTICS);
   const consumer = new AnalyticsQueueConsumer(analyticsService, privacyService, env);
-  
+
   return consumer.processBatch(batch);
 }
 

@@ -23,7 +23,7 @@ export async function encryptData(plaintext: string, key: string): Promise<strin
   const encryptedData = await crypto.subtle.encrypt(
     {
       name: 'AES-GCM',
-      iv
+      iv,
     },
     encodedKey,
     encodedData
@@ -53,7 +53,7 @@ export async function decryptData(encryptedData: string, key: string): Promise<s
     const combined = new Uint8Array(
       atob(encryptedData)
         .split('')
-        .map(c => c.charCodeAt(0))
+        .map((c) => c.charCodeAt(0))
     );
 
     // Extract IV and data
@@ -64,7 +64,7 @@ export async function decryptData(encryptedData: string, key: string): Promise<s
     const decryptedData = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
-        iv
+        iv,
       },
       encodedKey,
       data
@@ -92,11 +92,5 @@ async function createKey(key: string): Promise<CryptoKey> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
 
   // Import the key
-  return await crypto.subtle.importKey(
-    'raw',
-    hashBuffer,
-    { name: 'AES-GCM' },
-    false,
-    ['encrypt', 'decrypt']
-  );
+  return await crypto.subtle.importKey('raw', hashBuffer, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
 }

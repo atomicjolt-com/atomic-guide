@@ -78,11 +78,14 @@ export default [
       'block-spacing': ['error', 'never'],
       'object-curly-spacing': ['error', 'always'],
       'array-bracket-spacing': ['error', 'never'],
-      'space-before-function-paren': ['error', {
-        anonymous: 'never',
-        named: 'never',
-        asyncArrow: 'always'
-      }],
+      'space-before-function-paren': [
+        'error',
+        {
+          anonymous: 'never',
+          named: 'never',
+          asyncArrow: 'always',
+        },
+      ],
       'space-in-parens': ['error', 'never'],
       indent: 'off', // Disabled due to stack overflow issue with TSX files
       'linebreak-style': ['error', 'unix'],

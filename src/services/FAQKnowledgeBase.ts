@@ -63,7 +63,7 @@ export class FAQKnowledgeBase {
     options: FAQSearchOptions = {}
   ): Promise<FAQEntry[]> {
     const startTime = Date.now();
-    
+
     try {
       // Check cache first for performance requirement (<100ms)
       const cacheKey = this.getCacheKey(question, tenantId, courseId, options);
@@ -87,14 +87,16 @@ export class FAQKnowledgeBase {
       if (results.length === 0 || options.fuzzySearch) {
         const fuzzyResults = await this.fuzzyTextSearch(question, tenantId, courseId, limit, options);
         results = results.concat(fuzzyResults);
-        
+
         // Remove duplicates and limit
         const seen = new Set<string>();
-        results = results.filter(faq => {
-          if (seen.has(faq.id)) return false;
-          seen.add(faq.id);
-          return true;
-        }).slice(0, limit);
+        results = results
+          .filter((faq) => {
+            if (seen.has(faq.id)) return false;
+            seen.add(faq.id);
+            return true;
+          })
+          .slice(0, limit);
       }
 
       // Sort based on options
@@ -105,7 +107,7 @@ export class FAQKnowledgeBase {
 
       // Update usage statistics and effectiveness tracking asynchronously
       if (results.length > 0) {
-        this.updateUsageStats(results.map(f => f.id));
+        this.updateUsageStats(results.map((f) => f.id));
         this.trackFAQUsagePatterns(question, tenantId, courseId, results);
       }
 
@@ -148,16 +150,18 @@ export class FAQKnowledgeBase {
       const questionHash = this.generateQuestionHash(question);
 
       // Store in Vectorize
-      await this.vectorizeIndex.insert([{
-        id: vectorId,
-        values: embedding,
-        metadata: {
-          tenantId,
-          courseId: courseId || '',
-          moduleId: moduleId || '',
-          faqId: id
-        }
-      }]);
+      await this.vectorizeIndex.insert([
+        {
+          id: vectorId,
+          values: embedding,
+          metadata: {
+            tenantId,
+            courseId: courseId || '',
+            moduleId: moduleId || '',
+            faqId: id,
+          },
+        },
+      ]);
 
       // Store in database with enhanced schema
       const faqEntry: FAQEntry = {
@@ -173,30 +177,35 @@ export class FAQKnowledgeBase {
         usageCount: 0,
         effectivenessScore: 0.5, // Default effectiveness
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
-      await this.db.prepare(`
+      await this.db
+        .prepare(
+          `
         INSERT INTO faq_entries (
           id, tenant_id, course_id, module_id, question, answer, question_hash, 
           rich_media_content, vector_id, usage_count, effectiveness_score, 
           created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        faqEntry.id,
-        faqEntry.tenantId,
-        faqEntry.courseId || null,
-        faqEntry.moduleId || null,
-        faqEntry.question,
-        faqEntry.answer,
-        faqEntry.questionHash,
-        JSON.stringify(faqEntry.richMediaContent || []),
-        faqEntry.vectorId,
-        faqEntry.usageCount,
-        faqEntry.effectivenessScore,
-        faqEntry.createdAt.toISOString(),
-        faqEntry.updatedAt.toISOString()
-      ).run();
+      `
+        )
+        .bind(
+          faqEntry.id,
+          faqEntry.tenantId,
+          faqEntry.courseId || null,
+          faqEntry.moduleId || null,
+          faqEntry.question,
+          faqEntry.answer,
+          faqEntry.questionHash,
+          JSON.stringify(faqEntry.richMediaContent || []),
+          faqEntry.vectorId,
+          faqEntry.usageCount,
+          faqEntry.effectivenessScore,
+          faqEntry.createdAt.toISOString(),
+          faqEntry.updatedAt.toISOString()
+        )
+        .run();
 
       // Invalidate cache
       await this.invalidateCache(tenantId, courseId);
@@ -208,11 +217,7 @@ export class FAQKnowledgeBase {
     }
   }
 
-  async updateFAQ(
-    id: string,
-    updates: Partial<{ question: string; answer: string }>,
-    tenantId: string
-  ): Promise<FAQEntry> {
+  async updateFAQ(id: string, updates: Partial<{ question: string; answer: string }>, tenantId: string): Promise<FAQEntry> {
     try {
       // Fetch existing FAQ
       const existing = await this.getFAQById(id, tenantId);
@@ -223,18 +228,20 @@ export class FAQKnowledgeBase {
       // Update embedding if question changed
       if (updates.question && updates.question !== existing.question) {
         const newEmbedding = await this.aiService.generateEmbedding(updates.question);
-        
+
         // Update in Vectorize
         if (existing.vectorId) {
-          await this.vectorizeIndex.upsert([{
-            id: existing.vectorId,
-            values: newEmbedding,
-            metadata: {
-              tenantId,
-              courseId: existing.courseId || '',
-              faqId: id
-            }
-          }]);
+          await this.vectorizeIndex.upsert([
+            {
+              id: existing.vectorId,
+              values: newEmbedding,
+              metadata: {
+                tenantId,
+                courseId: existing.courseId || '',
+                faqId: id,
+              },
+            },
+          ]);
         }
       }
 
@@ -242,20 +249,19 @@ export class FAQKnowledgeBase {
       const updatedFAQ = {
         ...existing,
         ...updates,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
-      await this.db.prepare(`
+      await this.db
+        .prepare(
+          `
         UPDATE faq_entries 
         SET question = ?, answer = ?, updated_at = ?
         WHERE id = ? AND tenant_id = ?
-      `).bind(
-        updatedFAQ.question,
-        updatedFAQ.answer,
-        updatedFAQ.updatedAt.toISOString(),
-        id,
-        tenantId
-      ).run();
+      `
+        )
+        .bind(updatedFAQ.question, updatedFAQ.answer, updatedFAQ.updatedAt.toISOString(), id, tenantId)
+        .run();
 
       // Invalidate cache
       await this.invalidateCache(tenantId, existing.courseId);
@@ -281,9 +287,14 @@ export class FAQKnowledgeBase {
       }
 
       // Delete from database
-      await this.db.prepare(`
+      await this.db
+        .prepare(
+          `
         DELETE FROM faq_entries WHERE id = ? AND tenant_id = ?
-      `).bind(id, tenantId).run();
+      `
+        )
+        .bind(id, tenantId)
+        .run();
 
       // Invalidate cache
       await this.invalidateCache(tenantId, faq.courseId);
@@ -311,7 +322,7 @@ export class FAQKnowledgeBase {
       const results = await this.vectorizeIndex.query(embedding, {
         topK: limit,
         filter,
-        returnMetadata: true
+        returnMetadata: true,
       });
 
       return results.matches || [];
@@ -321,12 +332,15 @@ export class FAQKnowledgeBase {
     }
   }
 
-
-
   private async getFAQById(id: string, tenantId: string): Promise<FAQEntry | null> {
-    const result = await this.db.prepare(`
+    const result = await this.db
+      .prepare(
+        `
       SELECT * FROM faq_entries WHERE id = ? AND tenant_id = ?
-    `).bind(id, tenantId).first();
+    `
+      )
+      .bind(id, tenantId)
+      .first();
 
     if (!result) {
       return null;
@@ -345,7 +359,7 @@ export class FAQKnowledgeBase {
       usageCount: result.usage_count,
       effectivenessScore: result.effectiveness_score || 0.5,
       createdAt: new Date(result.created_at),
-      updatedAt: new Date(result.updated_at)
+      updatedAt: new Date(result.updated_at),
     };
   }
 
@@ -354,25 +368,29 @@ export class FAQKnowledgeBase {
 
     try {
       const placeholders = faqIds.map(() => '?').join(',');
-      await this.db.prepare(`
+      await this.db
+        .prepare(
+          `
         UPDATE faq_entries 
         SET usage_count = usage_count + 1, updated_at = ?
         WHERE id IN (${placeholders})
-      `).bind(new Date().toISOString(), ...faqIds).run();
+      `
+        )
+        .bind(new Date().toISOString(), ...faqIds)
+        .run();
     } catch (error) {
       console.error('Failed to update usage stats:', error);
     }
   }
 
-
   private async getFromCache(key: string): Promise<FAQEntry[] | null> {
     try {
       const cached = await this.kvCache.get(key);
       if (!cached) return null;
-      
+
       // Parse if it's a string
       const parsedCache = typeof cached === 'string' ? JSON.parse(cached) : cached;
-      
+
       // Handle both formats (with and without timestamp)
       if (parsedCache.data && parsedCache.timestamp) {
         if (parsedCache.timestamp > Date.now() - this.cacheTTL) {
@@ -390,12 +408,16 @@ export class FAQKnowledgeBase {
 
   private async cacheResults(key: string, results: FAQEntry[]): Promise<void> {
     try {
-      await this.kvCache.put(key, JSON.stringify({
-        data: results,
-        timestamp: Date.now()
-      }), {
-        expirationTtl: this.cacheTTL / 1000
-      });
+      await this.kvCache.put(
+        key,
+        JSON.stringify({
+          data: results,
+          timestamp: Date.now(),
+        }),
+        {
+          expirationTtl: this.cacheTTL / 1000,
+        }
+      );
     } catch (error) {
       console.error('Cache storage failed:', error);
     }
@@ -414,7 +436,7 @@ export class FAQKnowledgeBase {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash).toString(36);
@@ -424,7 +446,8 @@ export class FAQKnowledgeBase {
 
   private generateQuestionHash(question: string): string {
     // Normalize question for consistent hashing
-    const normalized = question.toLowerCase()
+    const normalized = question
+      .toLowerCase()
       .replace(/[^\w\s]/g, '') // Remove punctuation
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
@@ -469,13 +492,24 @@ export class FAQKnowledgeBase {
       const exactMatch = `%${searchTerm}%`;
       const fuzzyMatch = `%${searchTerm.split(' ').join('%')}%`;
 
-      const results = await this.db.prepare(query).bind(
-        exactMatch, fuzzyMatch, exactMatch, fuzzyMatch, // for confidence calculation
-        tenantId, courseId, courseId,
-        exactMatch, fuzzyMatch, exactMatch, fuzzyMatch, // for WHERE clause
-        minConfidence,
-        limit
-      ).all();
+      const results = await this.db
+        .prepare(query)
+        .bind(
+          exactMatch,
+          fuzzyMatch,
+          exactMatch,
+          fuzzyMatch, // for confidence calculation
+          tenantId,
+          courseId,
+          courseId,
+          exactMatch,
+          fuzzyMatch,
+          exactMatch,
+          fuzzyMatch, // for WHERE clause
+          minConfidence,
+          limit
+        )
+        .all();
 
       const faqs: FAQEntry[] = [];
       const resultRows = results?.results || results || [];
@@ -494,7 +528,7 @@ export class FAQKnowledgeBase {
           effectivenessScore: row.effectiveness_score || 0.5,
           similarity: row.confidence_score, // Use confidence as similarity
           createdAt: new Date(row.created_at),
-          updatedAt: new Date(row.updated_at)
+          updatedAt: new Date(row.updated_at),
         };
         faqs.push(faq);
       }
@@ -507,9 +541,10 @@ export class FAQKnowledgeBase {
   }
 
   private normalizeSearchTerm(question: string): string {
-    return question.toLowerCase()
+    return question
+      .toLowerCase()
       .replace(/[^\w\s]/g, '') // Remove punctuation
-      .replace(/\s+/g, ' ') // Normalize whitespace  
+      .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
   }
 
@@ -531,28 +566,33 @@ export class FAQKnowledgeBase {
     }
   }
 
-  private async trackFAQUsagePatterns(
-    question: string,
-    tenantId: string,
-    courseId?: string,
-    results: FAQEntry[]
-  ): Promise<void> {
+  private async trackFAQUsagePatterns(question: string, tenantId: string, courseId?: string, results: FAQEntry[]): Promise<void> {
     try {
       const questionPattern = this.normalizeSearchTerm(question);
-      
+
       // Check if this pattern already exists
-      const existing = await this.db.prepare(`
+      const existing = await this.db
+        .prepare(
+          `
         SELECT id, occurrence_count FROM faq_usage_analytics 
         WHERE tenant_id = ? AND course_id = ? AND question_pattern = ?
-      `).bind(tenantId, courseId || '', questionPattern).first();
+      `
+        )
+        .bind(tenantId, courseId || '', questionPattern)
+        .first();
 
       if (existing) {
         // Update existing pattern
-        await this.db.prepare(`
+        await this.db
+          .prepare(
+            `
           UPDATE faq_usage_analytics 
           SET occurrence_count = occurrence_count + 1, last_asked = ?
           WHERE id = ?
-        `).bind(new Date().toISOString(), existing.id).run();
+        `
+          )
+          .bind(new Date().toISOString(), existing.id)
+          .run();
 
         // Auto-generate FAQ if threshold reached (5+ occurrences) and no FAQ exists
         if (existing.occurrence_count >= 4 && results.length === 0) {
@@ -561,27 +601,24 @@ export class FAQKnowledgeBase {
       } else {
         // Create new pattern tracking
         const id = this.generateId();
-        await this.db.prepare(`
+        await this.db
+          .prepare(
+            `
           INSERT INTO faq_usage_analytics (
             id, tenant_id, course_id, question_pattern, occurrence_count, 
             last_asked, manual_review_needed, created_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(
-          id, tenantId, courseId || '', questionPattern, 1,
-          new Date().toISOString(), true, new Date().toISOString()
-        ).run();
+        `
+          )
+          .bind(id, tenantId, courseId || '', questionPattern, 1, new Date().toISOString(), true, new Date().toISOString())
+          .run();
       }
     } catch (error) {
       console.error('Failed to track FAQ usage patterns:', error);
     }
   }
 
-  private async autoGenerateFAQ(
-    question: string,
-    tenantId: string,
-    courseId?: string,
-    questionPattern?: string
-  ): Promise<void> {
+  private async autoGenerateFAQ(question: string, tenantId: string, courseId?: string, questionPattern?: string): Promise<void> {
     try {
       // Generate FAQ answer using AI service
       const prompt = `Generate a helpful FAQ answer for the question: "${question}". 
@@ -589,7 +626,7 @@ export class FAQKnowledgeBase {
         Include relevant examples if helpful. Keep the answer concise but comprehensive.`;
 
       const aiAnswer = await this.aiService.generateResponse(prompt, []);
-      
+
       // Create auto-generated FAQ entry
       const generatedFAQ = await this.addFAQ(
         question,
@@ -602,13 +639,16 @@ export class FAQKnowledgeBase {
 
       // Update usage analytics to reference the generated FAQ
       if (questionPattern) {
-        await this.db.prepare(`
+        await this.db
+          .prepare(
+            `
           UPDATE faq_usage_analytics 
           SET generated_faq_id = ?, manual_review_needed = ?
           WHERE tenant_id = ? AND course_id = ? AND question_pattern = ?
-        `).bind(
-          generatedFAQ.id, true, tenantId, courseId || '', questionPattern
-        ).run();
+        `
+          )
+          .bind(generatedFAQ.id, true, tenantId, courseId || '', questionPattern)
+          .run();
       }
 
       console.log(`Auto-generated FAQ for pattern: ${questionPattern}`);
@@ -627,28 +667,30 @@ export class FAQKnowledgeBase {
   private filterRelevantFAQs(faqs: FAQEntry[], question: string, limit: number, options: FAQSearchOptions = {}): FAQEntry[] {
     // Filter by minimum similarity threshold
     const minSimilarity = options.minConfidence || 0.7;
-    const relevant = faqs.filter(faq => (faq.similarity || 0) >= minSimilarity);
+    const relevant = faqs.filter((faq) => (faq.similarity || 0) >= minSimilarity);
 
     // Sort based on options
     return this.sortFAQResults(relevant, options.sortBy || 'relevance').slice(0, limit);
   }
 
   // Update fetchFAQsByVectorIds to handle rich media
-  private async fetchFAQsByVectorIds(
-    searchResults: VectorSearchResult[],
-    tenantId: string
-  ): Promise<FAQEntry[]> {
+  private async fetchFAQsByVectorIds(searchResults: VectorSearchResult[], tenantId: string): Promise<FAQEntry[]> {
     if (searchResults.length === 0) {
       return [];
     }
 
-    const vectorIds = searchResults.map(r => r.id);
+    const vectorIds = searchResults.map((r) => r.id);
     const placeholders = vectorIds.map(() => '?').join(',');
 
-    const results = await this.db.prepare(`
+    const results = await this.db
+      .prepare(
+        `
       SELECT * FROM faq_entries 
       WHERE tenant_id = ? AND vector_id IN (${placeholders})
-    `).bind(tenantId, ...vectorIds).all();
+    `
+      )
+      .bind(tenantId, ...vectorIds)
+      .all();
 
     // Map results with similarity scores and parse rich media
     const faqMap = new Map<string, FAQEntry>();
@@ -667,7 +709,7 @@ export class FAQKnowledgeBase {
         usageCount: row.usage_count,
         effectivenessScore: row.effectiveness_score || 0.5,
         createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at)
+        updatedAt: new Date(row.updated_at),
       };
       faqMap.set(row.vector_id, faq);
     }
@@ -681,7 +723,7 @@ export class FAQKnowledgeBase {
         orderedFAQs.push(faq);
       }
     }
-    
+
     return orderedFAQs;
   }
 
@@ -728,7 +770,9 @@ export class FAQKnowledgeBase {
       const dampingFactor = 0.1;
       const actualAdjustment = effectivenessAdjustment * dampingFactor;
 
-      await this.db.prepare(`
+      await this.db
+        .prepare(
+          `
         UPDATE faq_entries 
         SET effectiveness_score = CASE
           WHEN effectiveness_score + ? > 1.0 THEN 1.0
@@ -737,17 +781,16 @@ export class FAQKnowledgeBase {
         END,
         updated_at = ?
         WHERE id = ? AND tenant_id = ?
-      `).bind(
-        actualAdjustment, actualAdjustment, actualAdjustment,
-        new Date().toISOString(), faqId, tenantId
-      ).run();
+      `
+        )
+        .bind(actualAdjustment, actualAdjustment, actualAdjustment, new Date().toISOString(), faqId, tenantId)
+        .run();
 
       // Invalidate related cache
       const faq = await this.getFAQById(faqId, tenantId);
       if (faq) {
         await this.invalidateCache(tenantId, faq.courseId);
       }
-
     } catch (error) {
       console.error('Failed to update FAQ effectiveness:', error);
     }

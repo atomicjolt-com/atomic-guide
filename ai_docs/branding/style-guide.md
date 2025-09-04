@@ -12,47 +12,38 @@ Supports **uppercase, lowercase, numbers, and symbols** (`abcdefghijklmnopqrstuv
 ### Headings
 
 - **Heading 1 (Desktop)**
-
   - Font size: 56px / 3.5rem
   - Line height: 120%
 
 - **Heading 1 (Mobile)**
-
   - Font size: 40px / 2.5rem
   - Line height: 120%
 
 - **Heading 2 (Desktop)**
-
   - Font size: 48px / 3rem
   - Line height: 120%
 
 - **Heading 2 (Mobile)**
-
   - Font size: 36px / 2.25rem
   - Line height: 120%
 
 - **Heading 3 (Desktop)**
-
   - Font size: 32px / 2rem
   - Line height: 120%
 
 - **Heading 3 (Mobile)**
-
   - Font size: 32px / 2rem
   - Line height: 130%
 
 - **Heading 4**
-
   - Font size: 24px / 1.5rem
   - Line height: 140%
 
 - **Heading 5**
-
   - Font size: 20px / 1.25rem
   - Line height: 140%
 
 - **Heading 6 (Desktop)**
-
   - Font size: 18px / 1.125rem
   - Line height: 140%
 
@@ -68,17 +59,14 @@ Supports **uppercase, lowercase, numbers, and symbols** (`abcdefghijklmnopqrstuv
 ### Body Text
 
 - **Large**
-
   - Font size: 24px
   - Line height: 150%
 
 - **Regular**
-
   - Font size: 16px
   - Line height: 150%
 
 - **Small**
-
   - Font size: 14px
   - Line height: 150%
 
@@ -135,13 +123,11 @@ They should **not be altered directly**; instead, build semantic roles (e.g., `b
 ### Buttons
 
 - **Variants:**
-
   - Solid filled (brand yellow or black background)
   - Outline (border with transparent background)
   - Ghost (minimal, text-only with hover/active states)
 
 - **Affordances:**
-
   - Support arrow icons (→) to indicate action.
   - Active and hover states use **yellow highlights**.
 
@@ -154,13 +140,11 @@ They should **not be altered directly**; instead, build semantic roles (e.g., `b
 ### Inputs
 
 - **Text Fields** (Name, Email, Message)
-
   - Labels above inputs.
   - Placeholder text inside.
   - Helper text below when needed.
 
 - **Dropdowns**
-
   - Label above, selection styled with neutral borders.
   - Active states highlight with brand yellow.
 

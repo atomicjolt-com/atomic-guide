@@ -4,7 +4,7 @@
  * Story 1.1 Requirement: Test fallback activates on D1 timeout
  */
 
-import {  describe, it, expect, beforeEach, vi, afterEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, vi, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { StorageFallbackService } from '../../src/services/StorageFallback';
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
 
@@ -331,11 +331,11 @@ describe('StorageFallbackService', () => {
       // Store data in KV for successful fallback
       await mockKV.kv.put(
         'fallback:learner:tenant-123:user-456',
-        JSON.stringify({ id: 'test1', tenant_id: 'tenant-123', lti_user_id: 'user-456' }),
+        JSON.stringify({ id: 'test1', tenant_id: 'tenant-123', lti_user_id: 'user-456' })
       );
       await mockKV.kv.put(
         'fallback:learner:tenant-123:user-789',
-        JSON.stringify({ id: 'test2', tenant_id: 'tenant-123', lti_user_id: 'user-789' }),
+        JSON.stringify({ id: 'test2', tenant_id: 'tenant-123', lti_user_id: 'user-789' })
       );
 
       await service.getLearnerProfile('tenant-123', 'user-456');
@@ -356,7 +356,7 @@ describe('StorageFallbackService', () => {
       // Store data in KV
       await mockKV.kv.put(
         'fallback:learner:tenant-123:user-hit',
-        JSON.stringify({ id: 'test', tenant_id: 'tenant-123', lti_user_id: 'user-hit' }),
+        JSON.stringify({ id: 'test', tenant_id: 'tenant-123', lti_user_id: 'user-hit' })
       );
 
       // Second request - KV hit
@@ -409,7 +409,7 @@ describe('StorageFallbackService', () => {
       expect(mockKV.kv.put).toHaveBeenCalledWith(
         'fallback:learner:tenant-123:user-ttl',
         expect.any(String),
-        { expirationTtl: 86400 }, // 24 hours
+        { expirationTtl: 86400 } // 24 hours
       );
     });
   });

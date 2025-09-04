@@ -39,7 +39,7 @@ const defaultMetrics: InsightMetric[] = [
   { label: 'Total Questions', value: '0', trend: 'neutral' },
   { label: 'Topics Explored', value: '0', trend: 'neutral' },
   { label: 'Avg Response Time', value: '0s', trend: 'neutral' },
-  { label: 'Study Sessions', value: '0', trend: 'neutral' }
+  { label: 'Study Sessions', value: '0', trend: 'neutral' },
 ];
 
 const defaultTopicFrequencies: TopicFrequency[] = [];
@@ -51,20 +51,20 @@ export default function LearningInsights({
   topicFrequencies = defaultTopicFrequencies,
   learningPatterns = defaultLearningPatterns,
   learningStyle,
-  isLoading = false
+  isLoading = false,
 }: LearningInsightsProps) {
   const maxTopicCount = useMemo(() => {
-    return Math.max(...topicFrequencies.map(t => t.count), 1);
+    return Math.max(...topicFrequencies.map((t) => t.count), 1);
   }, [topicFrequencies]);
 
   const chartData = useMemo(() => {
-    return learningPatterns.slice(-7).map(pattern => ({
+    return learningPatterns.slice(-7).map((pattern) => ({
       ...pattern,
-      date: new Date(pattern.date).toLocaleDateString('en-US', { 
+      date: new Date(pattern.date).toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
-        day: 'numeric'
-      })
+        day: 'numeric',
+      }),
     }));
   }, [learningPatterns]);
 
@@ -87,7 +87,7 @@ export default function LearningInsights({
 
   const renderTopicBar = (topic: TopicFrequency) => {
     const width = (topic.count / maxTopicCount) * 100;
-    
+
     return (
       <div key={topic.topic} className={styles.topicBar}>
         <div className={styles.topicHeader}>
@@ -97,29 +97,25 @@ export default function LearningInsights({
           </span>
         </div>
         <div className={styles.barContainer}>
-          <div 
-            className={styles.barFill}
-            style={{ width: `${width}%` }}
-            aria-label={`${topic.topic}: ${topic.count} questions`}
-          />
+          <div className={styles.barFill} style={{ width: `${width}%` }} aria-label={`${topic.topic}: ${topic.count} questions`} />
         </div>
       </div>
     );
   };
 
   const renderTimelineChart = () => {
-    const maxQuestions = Math.max(...chartData.map(d => d.questionsAsked), 1);
-    
+    const maxQuestions = Math.max(...chartData.map((d) => d.questionsAsked), 1);
+
     return (
       <div className={styles.timeline}>
         <div className={styles.timelineChart}>
           {chartData.map((day, index) => {
             const height = (day.questionsAsked / maxQuestions) * 100;
-            
+
             return (
               <div key={index} className={styles.timelineDay}>
                 <div className={styles.barWrapper}>
-                  <div 
+                  <div
                     className={styles.timelineBar}
                     style={{ height: `${height}%` }}
                     aria-label={`${day.date}: ${day.questionsAsked} questions`}
@@ -141,7 +137,7 @@ export default function LearningInsights({
       visual: 'You learn best through diagrams, charts, and visual representations',
       auditory: 'You prefer verbal explanations and learn through listening',
       kinesthetic: 'You learn by doing and prefer hands-on practice',
-      reading_writing: 'You excel with written materials and note-taking'
+      reading_writing: 'You excel with written materials and note-taking',
     };
     return descriptions[type] || 'Your learning style is being analyzed';
   };
@@ -151,7 +147,7 @@ export default function LearningInsights({
       visual: '👁️',
       auditory: '👂',
       kinesthetic: '✋',
-      reading_writing: '📝'
+      reading_writing: '📝',
     };
     return icons[type] || '🧠';
   };
@@ -173,9 +169,7 @@ export default function LearningInsights({
       <div className={styles.learningInsights}>
         <div className={styles.header}>
           <h2>Learning Insights</h2>
-          <p className={styles.subtitle}>
-            Track your progress and understand your learning patterns
-          </p>
+          <p className={styles.subtitle}>Track your progress and understand your learning patterns</p>
         </div>
         <div className={styles.emptyState}>
           <p>No learning data available yet. Start using the chat assistant to see your insights!</p>
@@ -188,31 +182,20 @@ export default function LearningInsights({
     <div className={styles.learningInsights}>
       <div className={styles.header}>
         <h2>Learning Insights</h2>
-        <p className={styles.subtitle}>
-          Track your progress and understand your learning patterns
-        </p>
+        <p className={styles.subtitle}>Track your progress and understand your learning patterns</p>
       </div>
 
       {learningStyle && (
         <div className={styles.learningStyleCard}>
           <div className={styles.styleHeader}>
-            <span className={styles.styleIcon}>
-              {getLearningStyleIcon(learningStyle.type)}
-            </span>
+            <span className={styles.styleIcon}>{getLearningStyleIcon(learningStyle.type)}</span>
             <div>
               <h3>Your Learning Style: {learningStyle.type.replace('_', ' ').toUpperCase()}</h3>
-              <p className={styles.styleDescription}>
-                {getLearningStyleDescription(learningStyle.type)}
-              </p>
+              <p className={styles.styleDescription}>{getLearningStyleDescription(learningStyle.type)}</p>
               <div className={styles.confidenceBar}>
-                <span className={styles.confidenceLabel}>
-                  Confidence: {Math.round(learningStyle.confidence * 100)}%
-                </span>
+                <span className={styles.confidenceLabel}>Confidence: {Math.round(learningStyle.confidence * 100)}%</span>
                 <div className={styles.confidenceTrack}>
-                  <div 
-                    className={styles.confidenceFill}
-                    style={{ width: `${learningStyle.confidence * 100}%` }}
-                  />
+                  <div className={styles.confidenceFill} style={{ width: `${learningStyle.confidence * 100}%` }} />
                 </div>
               </div>
             </div>
@@ -220,9 +203,7 @@ export default function LearningInsights({
         </div>
       )}
 
-      <div className={styles.metricsGrid}>
-        {metrics.map(renderMetricCard)}
-      </div>
+      <div className={styles.metricsGrid}>{metrics.map(renderMetricCard)}</div>
 
       <div className={styles.insightsGrid}>
         <div className={styles.insightSection}>
@@ -241,9 +222,7 @@ export default function LearningInsights({
           <h3>Top Topics</h3>
           <p className={styles.sectionSubtitle}>Your most frequently discussed subjects</p>
           {topicFrequencies.length > 0 ? (
-            <div className={styles.topicsList}>
-              {topicFrequencies.slice(0, 5).map(renderTopicBar)}
-            </div>
+            <div className={styles.topicsList}>{topicFrequencies.slice(0, 5).map(renderTopicBar)}</div>
           ) : (
             <div className={styles.emptyState}>
               <p>Topics will appear as you ask questions</p>

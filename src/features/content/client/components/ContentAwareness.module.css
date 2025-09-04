@@ -26,7 +26,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .monitoring {
@@ -47,8 +49,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .errorContent {
@@ -84,7 +91,7 @@
 .results {
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
-  border-top: 1px solid #E5E5E5;
+  border-top: 1px solid #e5e5e5;
 }
 
 .resultsHeader {
@@ -110,18 +117,18 @@
 }
 
 .badgebasic {
-  background: #E0F2FE;
-  color: #0369A1;
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .badgeintermediate {
-  background: #FEF3C7;
-  color: #92400E;
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .badgeadvanced {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .section {
@@ -147,7 +154,7 @@
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--spacing-sm);
   background: var(--color-bg-off-white);
-  border: 1px solid #F0F0F0;
+  border: 1px solid #f0f0f0;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-small);
   color: var(--color-text);
@@ -185,18 +192,36 @@
   white-space: nowrap;
 }
 
-.bloomremember { background: #F3F4F6; color: #6B7280; }
-.bloomunderstand { background: #DBEAFE; color: #1E40AF; }
-.bloomapply { background: #D1FAE5; color: #065F46; }
-.bloomanalyze { background: #FED7AA; color: #9A3412; }
-.bloomevaluate { background: #E9D5FF; color: #6B21A8; }
-.bloomcreate { background: #FECACA; color: #991B1B; }
+.bloomremember {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.bloomunderstand {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.bloomapply {
+  background: #d1fae5;
+  color: #065f46;
+}
+.bloomanalyze {
+  background: #fed7aa;
+  color: #9a3412;
+}
+.bloomevaluate {
+  background: #e9d5ff;
+  color: #6b21a8;
+}
+.bloomcreate {
+  background: #fecaca;
+  color: #991b1b;
+}
 
 .metadata {
   display: flex;
   gap: var(--spacing-md);
   padding-top: var(--spacing-sm);
-  border-top: 1px solid #F0F0F0;
+  border-top: 1px solid #f0f0f0;
   font-size: var(--font-size-small);
   color: var(--color-text-secondary);
 }

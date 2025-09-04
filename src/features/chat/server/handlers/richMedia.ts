@@ -70,7 +70,7 @@ richMedia.post('/render', async (c) => {
                 error: `Dangerous LaTeX command detected: ${cmd}`,
                 code: 'LATEX_SECURITY_VIOLATION',
               },
-              400,
+              400
             );
           }
         }
@@ -84,7 +84,7 @@ richMedia.post('/render', async (c) => {
               error: 'LaTeX expression too complex (too many nested braces)',
               code: 'LATEX_COMPLEXITY_LIMIT',
             },
-            400,
+            400
           );
         }
 
@@ -108,7 +108,7 @@ richMedia.post('/render', async (c) => {
               error: 'Code snippet exceeds maximum length (500 lines)',
               code: 'CODE_LENGTH_LIMIT',
             },
-            400,
+            400
           );
         }
 
@@ -183,7 +183,7 @@ richMedia.post('/render', async (c) => {
         UPDATE rich_media_cache
         SET access_count = access_count + 1, last_accessed = ?
         WHERE content_hash = ?
-      `,
+      `
       )
         .bind(new Date().toISOString(), contentHash)
         .run();
@@ -258,7 +258,7 @@ richMedia.post('/render', async (c) => {
         id, content_hash, media_type, content_data, original_content,
         cache_metadata, access_count, last_accessed, created_at, expires_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
+    `
     )
       .bind(
         `cache_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -270,7 +270,7 @@ richMedia.post('/render', async (c) => {
         1,
         new Date().toISOString(),
         new Date().toISOString(),
-        new Date(Date.now() + 3600000).toISOString(), // 1 hour
+        new Date(Date.now() + 3600000).toISOString() // 1 hour
       )
       .run();
 
@@ -295,7 +295,7 @@ richMedia.get('/preferences', async (c) => {
       `
       SELECT media_preferences FROM learner_profiles
       WHERE tenant_id = ? AND lti_user_id = ?
-    `,
+    `
     )
       .bind(tenantId, userId)
       .first();
@@ -366,7 +366,7 @@ richMedia.put('/preferences', async (c) => {
       UPDATE learner_profiles
       SET media_preferences = ?, updated_at = ?
       WHERE tenant_id = ? AND lti_user_id = ?
-    `,
+    `
     )
       .bind(JSON.stringify(validPreferences), new Date().toISOString(), tenantId, userId)
       .run();

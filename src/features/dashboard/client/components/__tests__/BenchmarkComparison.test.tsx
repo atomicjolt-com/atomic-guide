@@ -3,7 +3,7 @@
  * @module features/dashboard/client/components/__tests__/BenchmarkComparison.test
  */
 
-import {  describe, it, expect, vi, beforeEach, afterEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import BenchmarkComparison from '../BenchmarkComparison';
@@ -18,8 +18,8 @@ const mockBenchmarkData = {
   studentMetrics: {
     overallMastery: 0.75,
     conceptMasteries: {
-      'concept1': 0.8,
-      'concept2': 0.7,
+      concept1: 0.8,
+      concept2: 0.7,
     },
     learningVelocity: 1.2,
     confidenceLevel: 0.85,
@@ -69,10 +69,6 @@ const defaultProps = {
 describe('BenchmarkComparison', () => {
   beforeEach(async () => {
     // Setup test infrastructure - removed ServiceTestHarness as this tests React components
-    
-    
-    ;
-  
   });
 
   afterEach(() => {
@@ -93,20 +89,26 @@ describe('BenchmarkComparison', () => {
   describe('Privacy Consent', () => {
     it('should fetch privacy consent on mount', async () => {
       mockFetch
-        .mockImplementationOnce(() => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPrivacyConsent,
-          }),
-        }))
-        .mockImplementationOnce(() => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockBenchmarkData,
-          }),
-        }));
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                success: true,
+                data: mockPrivacyConsent,
+              }),
+          })
+        )
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                success: true,
+                data: mockBenchmarkData,
+              }),
+          })
+        );
 
       render(<BenchmarkComparison {...defaultProps} />);
 
@@ -115,7 +117,7 @@ describe('BenchmarkComparison', () => {
           `/api/analytics/privacy/consent/${defaultProps.userId}?courseId=${defaultProps.courseId}`,
           expect.objectContaining({
             headers: expect.objectContaining({
-              'Authorization': `Bearer ${defaultProps.jwt}`,
+              Authorization: `Bearer ${defaultProps.jwt}`,
             }),
           })
         );
@@ -125,10 +127,11 @@ describe('BenchmarkComparison', () => {
     it('should show opt-in interface when consent is false', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: { ...mockPrivacyConsent, benchmarkOptIn: false },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: { ...mockPrivacyConsent, benchmarkOptIn: false },
+          }),
       });
 
       render(<BenchmarkComparison {...defaultProps} />);
@@ -145,10 +148,11 @@ describe('BenchmarkComparison', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: { ...mockPrivacyConsent, benchmarkOptIn: false },
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: { ...mockPrivacyConsent, benchmarkOptIn: false },
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
@@ -156,10 +160,11 @@ describe('BenchmarkComparison', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockBenchmarkData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockBenchmarkData,
+            }),
         });
 
       render(<BenchmarkComparison {...defaultProps} />);
@@ -177,7 +182,7 @@ describe('BenchmarkComparison', () => {
           expect.objectContaining({
             method: 'PUT',
             headers: expect.objectContaining({
-              'Authorization': `Bearer ${defaultProps.jwt}`,
+              Authorization: `Bearer ${defaultProps.jwt}`,
               'Content-Type': 'application/json',
             }),
             body: JSON.stringify({
@@ -196,17 +201,19 @@ describe('BenchmarkComparison', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPrivacyConsent,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPrivacyConsent,
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockBenchmarkData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockBenchmarkData,
+            }),
         });
     });
 
@@ -259,17 +266,19 @@ describe('BenchmarkComparison', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPrivacyConsent,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPrivacyConsent,
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockBenchmarkData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockBenchmarkData,
+            }),
         });
     });
 
@@ -300,17 +309,19 @@ describe('BenchmarkComparison', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPrivacyConsent,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPrivacyConsent,
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockBenchmarkData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockBenchmarkData,
+            }),
         });
     });
 
@@ -349,10 +360,11 @@ describe('BenchmarkComparison', () => {
       // Mock privacy consent fetch
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPrivacyConsent,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPrivacyConsent,
+          }),
       });
 
       // Mock consent update
@@ -393,10 +405,11 @@ describe('BenchmarkComparison', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPrivacyConsent,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPrivacyConsent,
+            }),
         })
         .mockRejectedValueOnce(new Error('Benchmark fetch failed'));
 
@@ -411,10 +424,11 @@ describe('BenchmarkComparison', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPrivacyConsent,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPrivacyConsent,
+            }),
         })
         .mockResolvedValueOnce({
           ok: false,
@@ -431,32 +445,33 @@ describe('BenchmarkComparison', () => {
 
   describe('Performance Context', () => {
     beforeEach(() => {
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
             success: true,
             data: mockPrivacyConsent,
           }),
-        });
+      });
     });
 
     it('should show positive context for high performance', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: {
-            ...mockBenchmarkData,
-            benchmarkData: {
-              ...mockBenchmarkData.benchmarkData,
-              percentileRankings: {
-                ...mockBenchmarkData.benchmarkData.percentileRankings,
-                overallMastery: 0.85, // 85th percentile
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: {
+              ...mockBenchmarkData,
+              benchmarkData: {
+                ...mockBenchmarkData.benchmarkData,
+                percentileRankings: {
+                  ...mockBenchmarkData.benchmarkData.percentileRankings,
+                  overallMastery: 0.85, // 85th percentile
+                },
               },
             },
-          },
-        }),
+          }),
       });
 
       render(<BenchmarkComparison {...defaultProps} />);
@@ -469,19 +484,20 @@ describe('BenchmarkComparison', () => {
     it('should show encouraging context for low performance', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: {
-            ...mockBenchmarkData,
-            benchmarkData: {
-              ...mockBenchmarkData.benchmarkData,
-              percentileRankings: {
-                ...mockBenchmarkData.benchmarkData.percentileRankings,
-                overallMastery: 0.25, // 25th percentile
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: {
+              ...mockBenchmarkData,
+              benchmarkData: {
+                ...mockBenchmarkData.benchmarkData,
+                percentileRankings: {
+                  ...mockBenchmarkData.benchmarkData.percentileRankings,
+                  overallMastery: 0.25, // 25th percentile
+                },
               },
             },
-          },
-        }),
+          }),
       });
 
       render(<BenchmarkComparison {...defaultProps} />);
@@ -497,17 +513,19 @@ describe('BenchmarkComparison', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPrivacyConsent,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPrivacyConsent,
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockBenchmarkData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockBenchmarkData,
+            }),
         });
     });
 

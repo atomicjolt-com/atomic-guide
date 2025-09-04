@@ -41,7 +41,7 @@ const params = {
     applyEducationalResearchPatterns: true,
     includeIndividualVariability: true,
     generateTemporalCorrelations: true,
-  }
+  },
 };
 
 const dataset = await generator.generateSyntheticDataset(params);
@@ -52,7 +52,7 @@ const dataset = await generator.generateSyntheticDataset(params);
 Predefined psychological profiles based on learning science:
 
 - `fast_learner` - High learning velocity, strong memory retention
-- `struggling_student` - Lower cognitive load capacity, higher confusion tendency  
+- `struggling_student` - Lower cognitive load capacity, higher confusion tendency
 - `visual_learner` - High visual preference in VARK model
 - `perfectionist` - Low frustration tolerance, high persistence
 - `anxious_student` - High anxiety sensitivity, longer response times
@@ -62,6 +62,7 @@ Predefined psychological profiles based on learning science:
 ### Research Foundations
 
 #### Ebbinghaus Forgetting Curve
+
 ```typescript
 // Memory retention calculation over time
 const retention = generator.calculateMemoryRetention(curve, timeElapsedHours, spacedRepetitions);
@@ -71,6 +72,7 @@ const retention = generator.calculateMemoryRetention(curve, timeElapsedHours, sp
 ```
 
 #### VARK Learning Styles
+
 ```typescript
 // Generates realistic distributions matching Fleming's research
 const style = generator.generateComprehensionStyle();
@@ -78,6 +80,7 @@ const style = generator.generateComprehensionStyle();
 ```
 
 #### Cognitive Load Theory
+
 ```typescript
 // Working memory capacity follows Miller's 7±2 rule
 const patterns = generator.generateStrugglePatternIndicators();
@@ -90,11 +93,11 @@ The framework includes comprehensive privacy attack testing:
 
 ```typescript
 const attacks = [
-  'linkage_attack',       // Demographic fingerprinting
+  'linkage_attack', // Demographic fingerprinting
   'membership_inference', // Shadow model attacks
-  'attribute_inference',  // Behavioral correlation analysis
+  'attribute_inference', // Behavioral correlation analysis
   'reconstruction_attack', // Profile reconstruction from partial data
-  'differential_attack'   // Query difference analysis
+  'differential_attack', // Query difference analysis
 ];
 
 const attackData = generator.generatePrivacyAttackData(targetProfile, allProfiles, 'linkage_attack');
@@ -107,20 +110,20 @@ Automated validation against educational psychology research:
 ```typescript
 const qualityMetrics = {
   psychologyCompliance: {
-    ebbinghausCorrelation: 0.89,     // Matches forgetting curve research
-    learningCurveRealism: 0.85,      // Realistic progression patterns
-    strugglePatternValidity: 0.80,   // Consistent with learning difficulties
+    ebbinghausCorrelation: 0.89, // Matches forgetting curve research
+    learningCurveRealism: 0.85, // Realistic progression patterns
+    strugglePatternValidity: 0.8, // Consistent with learning difficulties
   },
   privacyMetrics: {
-    reidentificationRisk: 0.15,      // Low re-identification risk
+    reidentificationRisk: 0.15, // Low re-identification risk
     attributeInferenceAccuracy: 0.25, // Protected sensitive attributes
-    linkageAttackSuccess: 0.18,      // Resistant to linkage attacks
+    linkageAttackSuccess: 0.18, // Resistant to linkage attacks
   },
   utilityMetrics: {
-    queryAccuracy: 0.88,            // High utility for analytics
-    statisticalUtility: 0.85,       // Preserves statistical patterns
-    machineLearningUtility: 0.82,   // Suitable for ML training
-  }
+    queryAccuracy: 0.88, // High utility for analytics
+    statisticalUtility: 0.85, // Preserves statistical patterns
+    machineLearningUtility: 0.82, // Suitable for ML training
+  },
 };
 ```
 
@@ -135,8 +138,8 @@ const integration = new LearnerDNAIntegration(db, kvNamespace);
 
 // Generate synthetic student profiles for development
 const studentIds = await integration.generateSyntheticPerformanceProfiles(
-  tenantId, 
-  courseId, 
+  tenantId,
+  courseId,
   50 // Generate 50 synthetic students
 );
 
@@ -170,14 +173,14 @@ npm run generate-synthetic-data -- --scenario ml-training --output ml-datasets
 
 ### Available Scenarios
 
-| Scenario | Students | Purpose | Privacy Level |
-|----------|----------|---------|---------------|
-| development | 50 | Local dev/testing | Medium (ε=1.0) |
-| privacy-testing | 500 | Privacy vulnerability testing | High (ε=0.5) |
-| research-validation | 1000 | Educational research compliance | Medium (ε=2.0) |
-| performance-testing | 5000 | System scalability testing | Low (ε=5.0) |
-| edge-cases | 200 | Robustness testing | Medium (ε=1.0) |
-| ml-training | 2000 | Machine learning datasets | Medium (ε=3.0) |
+| Scenario            | Students | Purpose                         | Privacy Level  |
+| ------------------- | -------- | ------------------------------- | -------------- |
+| development         | 50       | Local dev/testing               | Medium (ε=1.0) |
+| privacy-testing     | 500      | Privacy vulnerability testing   | High (ε=0.5)   |
+| research-validation | 1000     | Educational research compliance | Medium (ε=2.0) |
+| performance-testing | 5000     | System scalability testing      | Low (ε=5.0)    |
+| edge-cases          | 200      | Robustness testing              | Medium (ε=1.0) |
+| ml-training         | 2000     | Machine learning datasets       | Medium (ε=3.0) |
 
 ## Testing
 
@@ -206,21 +209,21 @@ npm test src/features/learner-dna/tests/SyntheticDataGenerator.test.ts
 
 ### Validated Research Patterns
 
-✅ **Ebbinghaus Forgetting Curve** - Memory retention follows R(t) = a*e^(-bt) + c pattern  
+✅ **Ebbinghaus Forgetting Curve** - Memory retention follows R(t) = a\*e^(-bt) + c pattern  
 ✅ **VARK Learning Styles** - Distribution matches Fleming's research (Visual 35%, Auditory 25%, etc.)  
 ✅ **Cognitive Load Theory** - Working memory limits follow Miller's 7±2 rule  
 ✅ **Circadian Rhythms** - Time-of-day performance patterns match chronobiology research  
 ✅ **Help-Seeking Behavior** - Correlates with struggle patterns and individual differences  
 ✅ **Learning Velocity** - Follows power law learning curves with individual variation  
-✅ **Response Time Distributions** - Log-normal distributions typical of cognitive tasks  
+✅ **Response Time Distributions** - Log-normal distributions typical of cognitive tasks
 
 ### Academic References
 
-- Ebbinghaus, H. (1885). *Memory: A contribution to experimental psychology*
-- Fleming, N.D. (1987). *VARK: A guide to learning styles*  
-- Sweller, J. (1988). *Cognitive load during problem solving*
-- Miller, G.A. (1956). *The magical number seven, plus or minus two*
-- Cepeda, N.J. et al. (2006). *Distributed practice in verbal recall tasks*
+- Ebbinghaus, H. (1885). _Memory: A contribution to experimental psychology_
+- Fleming, N.D. (1987). _VARK: A guide to learning styles_
+- Sweller, J. (1988). _Cognitive load during problem solving_
+- Miller, G.A. (1956). _The magical number seven, plus or minus two_
+- Cepeda, N.J. et al. (2006). _Distributed practice in verbal recall tasks_
 
 ## Privacy and Ethics
 
@@ -235,7 +238,7 @@ npm test src/features/learner-dna/tests/SyntheticDataGenerator.test.ts
 ### Ethical Considerations
 
 - **No Real Student Data**: Purely synthetic generation
-- **Bias Mitigation**: Balanced persona distributions  
+- **Bias Mitigation**: Balanced persona distributions
 - **Transparency**: Open source algorithms and parameters
 - **Auditability**: Full logging and quality metrics
 - **Educational Benefit**: Enables safer learning analytics research
@@ -245,19 +248,23 @@ npm test src/features/learner-dna/tests/SyntheticDataGenerator.test.ts
 ### Core Classes
 
 #### `SyntheticDataGenerator`
+
 Main class for generating synthetic learning data.
 
 **Methods:**
+
 - `generateCognitiveProfile(persona?: StudentPersona): CognitiveProfile`
 - `generateLearningSession(profile, concepts, date?): LearningSessionData`
 - `generateSyntheticDataset(params): Promise<Dataset>`
 - `calculateMemoryRetention(curve, hours, repetitions): number`
 - `calculateLearningVelocity(pattern, studyTime, breakTime, timeOfDay): number`
 
-#### `LearnerDNAIntegration`  
+#### `LearnerDNAIntegration`
+
 Integration service for existing analytics infrastructure.
 
 **Methods:**
+
 - `generateSyntheticPerformanceProfiles(tenant, course, count): Promise<string[]>`
 - `validateSyntheticDataQuality(tenant, studentIds): Promise<QualityReport>`
 - `createSyntheticBenchmarks(tenant, course, students): Promise<void>`
@@ -287,7 +294,7 @@ The Learner DNA framework is implemented as a feature module in `/src/features/l
 When adding new personas or algorithms:
 
 1. **Research Foundation**: Base on published educational psychology research
-2. **Validation Tests**: Add tests comparing to research findings  
+2. **Validation Tests**: Add tests comparing to research findings
 3. **Privacy Review**: Ensure new data doesn't increase re-identification risk
 4. **Documentation**: Update persona profiles and research references
 5. **Integration**: Test with existing analytics infrastructure

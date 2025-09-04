@@ -2,7 +2,7 @@
 /**
  * @fileoverview Data generation script for different testing scenarios
  * @module scripts/generate-synthetic-data
- * 
+ *
  * Usage:
  * npm run generate-synthetic-data -- --scenario development --count 100
  * npm run generate-synthetic-data -- --scenario privacy-testing --count 500
@@ -59,15 +59,15 @@ const SCENARIOS: Record<string, ScenarioConfig> = {
     seed: 54321,
     params: {
       personaDistribution: {
-        'fast_learner': 0.15,
-        'struggling_student': 0.20,
-        'visual_learner': 0.12,
-        'auditory_learner': 0.08,
-        'kinesthetic_learner': 0.08,
-        'perfectionist': 0.10,
-        'procrastinator': 0.12,
-        'anxious_student': 0.10,
-        'confident_student': 0.05,
+        fast_learner: 0.15,
+        struggling_student: 0.2,
+        visual_learner: 0.12,
+        auditory_learner: 0.08,
+        kinesthetic_learner: 0.08,
+        perfectionist: 0.1,
+        procrastinator: 0.12,
+        anxious_student: 0.1,
+        confident_student: 0.05,
       } as Record<StudentPersona, number>,
       timeRange: {
         startDate: new Date('2023-09-01'),
@@ -156,13 +156,13 @@ const SCENARIOS: Record<string, ScenarioConfig> = {
     seed: 11111,
     params: {
       personaDistribution: {
-        'struggling_student': 0.25,
-        'anxious_student': 0.20,
-        'perfectionist': 0.15,
-        'gifted_underachiever': 0.10,
-        'math_phobic': 0.10,
-        'at_risk_student': 0.10,
-        'neurodivergent_learner': 0.10,
+        struggling_student: 0.25,
+        anxious_student: 0.2,
+        perfectionist: 0.15,
+        gifted_underachiever: 0.1,
+        math_phobic: 0.1,
+        at_risk_student: 0.1,
+        neurodivergent_learner: 0.1,
       } as Record<StudentPersona, number>,
       timeRange: {
         startDate: new Date('2024-01-01'),
@@ -194,17 +194,17 @@ const SCENARIOS: Record<string, ScenarioConfig> = {
     seed: 77777,
     params: {
       personaDistribution: {
-        'fast_learner': 0.12,
-        'struggling_student': 0.18,
-        'visual_learner': 0.10,
-        'auditory_learner': 0.08,
-        'kinesthetic_learner': 0.08,
-        'perfectionist': 0.08,
-        'procrastinator': 0.10,
-        'anxious_student': 0.08,
-        'confident_student': 0.08,
-        'collaborative_learner': 0.05,
-        'independent_learner': 0.05,
+        fast_learner: 0.12,
+        struggling_student: 0.18,
+        visual_learner: 0.1,
+        auditory_learner: 0.08,
+        kinesthetic_learner: 0.08,
+        perfectionist: 0.08,
+        procrastinator: 0.1,
+        anxious_student: 0.08,
+        confident_student: 0.08,
+        collaborative_learner: 0.05,
+        independent_learner: 0.05,
       } as Record<StudentPersona, number>,
       timeRange: {
         startDate: new Date('2023-01-01'),
@@ -237,7 +237,7 @@ async function generateSyntheticData() {
   const countIndex = args.indexOf('--count');
   const outputIndex = args.indexOf('--output');
   const formatIndex = args.indexOf('--format');
-  
+
   const scenario = scenarioIndex >= 0 ? args[scenarioIndex + 1] : 'development';
   const customCount = countIndex >= 0 ? parseInt(args[countIndex + 1]) : undefined;
   const outputDir = outputIndex >= 0 ? args[outputIndex + 1] : 'generated-data';
@@ -286,16 +286,16 @@ async function generateSyntheticData() {
       profileCount: dataset.profiles.length,
       sessionCount: dataset.sessions.length,
       privacyAttackCount: dataset.privacyAttacks.length,
-      
+
       // Profile statistics
       personaDistribution: getPersonaDistribution(dataset.profiles),
       demographicSummary: getDemographicSummary(dataset.profiles),
-      
+
       // Session statistics
       avgSessionDuration: getAverageSessionDuration(dataset.sessions),
       avgQuestionsPerSession: getAverageQuestionsPerSession(dataset.sessions),
       avgAccuracy: getAverageAccuracy(dataset.sessions),
-      
+
       // Privacy statistics
       privacyAttackSuccess: getPrivacyAttackStats(dataset.privacyAttacks),
     },
@@ -312,7 +312,7 @@ async function generateSyntheticData() {
       metadata: summary,
       data: dataset,
     };
-    
+
     const jsonPath = join(outputDir, `${baseFilename}.json`);
     writeFileSync(jsonPath, JSON.stringify(jsonOutput, null, 2));
     console.log(`✅ JSON data saved to: ${jsonPath}`);
@@ -339,38 +339,40 @@ async function generateSyntheticData() {
   console.log(`🔒 Privacy attacks simulated: ${dataset.privacyAttacks.length}`);
   console.log(`🎯 Average accuracy: ${(summary.statistics.avgAccuracy * 100).toFixed(1)}%`);
   console.log(`🔐 Re-identification risk: ${(dataset.qualityMetrics.privacyMetrics.reidentificationRisk * 100).toFixed(1)}%`);
-  console.log(`📊 Educational research compliance: ${(dataset.qualityMetrics.psychologyCompliance.ebbinghausCorrelation * 100).toFixed(1)}%`);
+  console.log(
+    `📊 Educational research compliance: ${(dataset.qualityMetrics.psychologyCompliance.ebbinghausCorrelation * 100).toFixed(1)}%`
+  );
 
   console.log('\\n✨ Generation completed successfully!');
 }
 
 function getPersonaDistribution(profiles: any[]): Record<string, number> {
   const distribution: Record<string, number> = {};
-  profiles.forEach(profile => {
+  profiles.forEach((profile) => {
     distribution[profile.persona] = (distribution[profile.persona] || 0) + 1;
   });
-  
+
   // Convert to percentages
   const total = profiles.length;
-  Object.keys(distribution).forEach(persona => {
+  Object.keys(distribution).forEach((persona) => {
     distribution[persona] = Math.round((distribution[persona] / total) * 100) / 100;
   });
-  
+
   return distribution;
 }
 
 function getDemographicSummary(profiles: any[]): any {
   const ageGroups: Record<string, number> = {};
   const academicLevels: Record<string, number> = {};
-  
-  profiles.forEach(profile => {
+
+  profiles.forEach((profile) => {
     const age = profile.demographics.ageGroup;
     const level = profile.demographics.academicLevel;
-    
+
     ageGroups[age] = (ageGroups[age] || 0) + 1;
     academicLevels[level] = (academicLevels[level] || 0) + 1;
   });
-  
+
   return { ageGroups, academicLevels };
 }
 
@@ -385,16 +387,14 @@ function getAverageQuestionsPerSession(sessions: any[]): number {
 }
 
 function getAverageAccuracy(sessions: any[]): number {
-  const accuracies = sessions.map(session => 
-    session.questionsAnswered > 0 ? session.correctAnswers / session.questionsAnswered : 0
-  );
+  const accuracies = sessions.map((session) => (session.questionsAnswered > 0 ? session.correctAnswers / session.questionsAnswered : 0));
   return accuracies.reduce((sum, acc) => sum + acc, 0) / accuracies.length;
 }
 
 function getPrivacyAttackStats(attacks: any[]): Record<string, any> {
   const attackTypes: Record<string, { total: number; successful: number }> = {};
-  
-  attacks.forEach(attack => {
+
+  attacks.forEach((attack) => {
     if (!attackTypes[attack.attackType]) {
       attackTypes[attack.attackType] = { total: 0, successful: 0 };
     }
@@ -403,10 +403,10 @@ function getPrivacyAttackStats(attacks: any[]): Record<string, any> {
       attackTypes[attack.attackType].successful++;
     }
   });
-  
+
   // Calculate success rates
   const result: Record<string, any> = {};
-  Object.keys(attackTypes).forEach(type => {
+  Object.keys(attackTypes).forEach((type) => {
     const stats = attackTypes[type];
     result[type] = {
       total: stats.total,
@@ -414,21 +414,21 @@ function getPrivacyAttackStats(attacks: any[]): Record<string, any> {
       successRate: Math.round((stats.successful / stats.total) * 100) / 100,
     };
   });
-  
+
   return result;
 }
 
 function saveToCsv(data: any[], filePath: string): void {
   if (data.length === 0) return;
-  
+
   // Extract headers from first object (flatten nested objects)
   const flattenObject = (obj: any, prefix = ''): any => {
     const flattened: any = {};
-    
+
     for (const key in obj) {
       const value = obj[key];
       const newKey = prefix ? `${prefix}_${key}` : key;
-      
+
       if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
         Object.assign(flattened, flattenObject(value, newKey));
       } else if (Array.isArray(value)) {
@@ -437,28 +437,28 @@ function saveToCsv(data: any[], filePath: string): void {
         flattened[newKey] = value;
       }
     }
-    
+
     return flattened;
   };
-  
-  const flatData = data.map(item => flattenObject(item));
+
+  const flatData = data.map((item) => flattenObject(item));
   const headers = Object.keys(flatData[0]);
-  
+
   // Create CSV content
   const csvRows = [
     headers.join(','),
-    ...flatData.map(row => 
-      headers.map(header => {
-        const value = row[header];
-        const stringValue = value != null ? String(value) : '';
-        // Escape quotes and wrap in quotes if contains comma or quote
-        return stringValue.includes(',') || stringValue.includes('"') 
-          ? `"${stringValue.replace(/"/g, '""')}"` 
-          : stringValue;
-      }).join(',')
-    )
+    ...flatData.map((row) =>
+      headers
+        .map((header) => {
+          const value = row[header];
+          const stringValue = value != null ? String(value) : '';
+          // Escape quotes and wrap in quotes if contains comma or quote
+          return stringValue.includes(',') || stringValue.includes('"') ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
+        })
+        .join(',')
+    ),
   ];
-  
+
   writeFileSync(filePath, csvRows.join('\\n'));
 }
 
@@ -472,21 +472,21 @@ if (process.argv.length === 2) {
   console.log('  --output <directory>  Output directory (default: generated-data)');
   console.log('  --format <json|csv|both>  Output format (default: json)\\n');
   console.log('Available scenarios:');
-  
+
   Object.entries(SCENARIOS).forEach(([key, config]) => {
     console.log(`  ${key.padEnd(20)} ${config.description} (${config.defaultCount} students)`);
   });
-  
+
   console.log('\\nExamples:');
   console.log('  npm run generate-synthetic-data -- --scenario development');
   console.log('  npm run generate-synthetic-data -- --scenario privacy-testing --count 1000');
   console.log('  npm run generate-synthetic-data -- --scenario research-validation --format both');
-  
+
   process.exit(0);
 }
 
 // Run the generation
-generateSyntheticData().catch(error => {
+generateSyntheticData().catch((error) => {
   console.error('❌ Generation failed:', error);
   process.exit(1);
 });

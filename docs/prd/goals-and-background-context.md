@@ -17,10 +17,10 @@ The platform leverages unique access to academic journey data via LTI 1.3 integr
 
 ## Change Log
 
-| Date       | Version | Description                                                                       | Author    |
-| ---------- | ------- | --------------------------------------------------------------------------------- | --------- |
-| 2025-08-20 | 1.0     | Initial PRD creation based on Project Brief                                       | John (PM) |
-| 2025-08-20 | 1.1     | Updated goals and context based on stakeholder analysis and risk assessment       | John (PM) |
-| 2025-08-20 | 1.2     | Added comprehensive AI Guide chat interface UX and technical requirements         | John (PM) |
-| 2025-08-20 | 1.3     | Incorporated IES SBIR grant details: implementation, use cases, empirical support | John (PM) |
+| Date       | Version | Description                                                                                    | Author    |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------- | --------- |
+| 2025-08-20 | 1.0     | Initial PRD creation based on Project Brief                                                    | John (PM) |
+| 2025-08-20 | 1.1     | Updated goals and context based on stakeholder analysis and risk assessment                    | John (PM) |
+| 2025-08-20 | 1.2     | Added comprehensive AI Guide chat interface UX and technical requirements                      | John (PM) |
+| 2025-08-20 | 1.3     | Incorporated IES SBIR grant details: implementation, use cases, empirical support              | John (PM) |
 | 2025-08-21 | 1.4     | Updated project name to "Atomic Guide", generalized LMS references, added Atomic Jolt branding | John (PM) |

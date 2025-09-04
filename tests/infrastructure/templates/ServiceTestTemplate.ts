@@ -71,20 +71,20 @@ export abstract class ServiceTestTemplate<T> {
   private async setup(): Promise<void> {
     // Initialize test data store
     this.testData = new TestDataStore();
-    
+
     // Get service class
     this.serviceClass = this.getServiceClass();
-    
+
     // Create and configure harness
     const baseHarness = new ServiceTestHarness(this.serviceClass);
     const configuredHarness = this.configureHarness(baseHarness);
-    
+
     // Build the harness
     this.harness = configuredHarness.build();
-    
+
     // Set up test data
     this.setupTestData();
-    
+
     // Additional setup
     await this.additionalSetup();
   }
@@ -95,16 +95,16 @@ export abstract class ServiceTestTemplate<T> {
   private async teardown(): Promise<void> {
     // Additional cleanup first
     await this.additionalCleanup();
-    
+
     // Reset mocks
     this.harness.reset();
-    
+
     // Clean up harness
     await this.harness.cleanup();
-    
+
     // Clear test data
     this.testData.clear();
-    
+
     // Clear all vitest mocks
     vi.clearAllMocks();
   }
@@ -172,9 +172,7 @@ export abstract class ServiceTestTemplate<T> {
     // Check that no error methods were called
     const db = this.dbMock;
     if (db) {
-      expect(db.exec).not.toHaveBeenCalledWith(
-        expect.stringMatching(/ERROR/)
-      );
+      expect(db.exec).not.toHaveBeenCalledWith(expect.stringMatching(/ERROR/));
     }
   }
 
@@ -182,9 +180,7 @@ export abstract class ServiceTestTemplate<T> {
    * Helper: Assert method called with partial match
    */
   protected assertCalledWithPartial(mock: any, partial: any): void {
-    expect(mock).toHaveBeenCalledWith(
-      expect.objectContaining(partial)
-    );
+    expect(mock).toHaveBeenCalledWith(expect.objectContaining(partial));
   }
 }
 
@@ -226,7 +222,7 @@ export class TestDataStore {
     if (type) {
       this.stores.get(type)?.clear();
     } else {
-      this.stores.forEach(store => store.clear());
+      this.stores.forEach((store) => store.clear());
     }
   }
 
@@ -262,7 +258,7 @@ export abstract class ApiHandlerTestTemplate {
         query: vi.fn(),
         header: vi.fn(),
         json: vi.fn(),
-        valid: vi.fn()
+        valid: vi.fn(),
       },
       env: this.mockEnv,
       json: vi.fn(),
@@ -270,7 +266,7 @@ export abstract class ApiHandlerTestTemplate {
       status: vi.fn().mockReturnThis(),
       get: vi.fn(),
       set: vi.fn(),
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -278,16 +274,14 @@ export abstract class ApiHandlerTestTemplate {
     if (expectedStatus) {
       expect(this.mockContext.status).toHaveBeenCalledWith(expectedStatus);
     }
-    expect(this.mockContext.json).toHaveBeenCalledWith(
-      expect.objectContaining(expectedData)
-    );
+    expect(this.mockContext.json).toHaveBeenCalledWith(expect.objectContaining(expectedData));
   }
 
   protected assertErrorResponse(expectedError: string, expectedStatus: number) {
     expect(this.mockContext.status).toHaveBeenCalledWith(expectedStatus);
     expect(this.mockContext.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: expect.stringContaining(expectedError)
+        error: expect.stringContaining(expectedError),
       })
     );
   }

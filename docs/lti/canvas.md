@@ -23,22 +23,23 @@ Atomic Guide supports full integration with Canvas LMS through LTI 1.3, enabling
 2. Click **+ Developer Key** → **+ LTI Key**
 3. Fill in the following information:
 
-| Field | Value |
-|-------|-------|
-| Key Name | Atomic Guide |
-| Owner Email | admin@yourdomain.com |
-| Redirect URIs | `https://guide.yourdomain.com/lti/redirect` |
-| Method | Manual Entry |
-| Title | Atomic Guide - AI-Powered Learning Assistant |
-| Description | AI-powered video transcription and learning analytics tool |
-| Target Link URI | `https://guide.yourdomain.com/lti/launch` |
-| OpenID Connect Initiation Url | `https://guide.yourdomain.com/lti/init` |
+| Field                         | Value                                                      |
+| ----------------------------- | ---------------------------------------------------------- |
+| Key Name                      | Atomic Guide                                               |
+| Owner Email                   | admin@yourdomain.com                                       |
+| Redirect URIs                 | `https://guide.yourdomain.com/lti/redirect`                |
+| Method                        | Manual Entry                                               |
+| Title                         | Atomic Guide - AI-Powered Learning Assistant               |
+| Description                   | AI-powered video transcription and learning analytics tool |
+| Target Link URI               | `https://guide.yourdomain.com/lti/launch`                  |
+| OpenID Connect Initiation Url | `https://guide.yourdomain.com/lti/init`                    |
 
 #### Step 2: Configure Tool Settings
 
 **Privacy Level**: `Public` (required for NRPS and AGS)
 
 **Custom Fields**:
+
 ```
 course_id=$Canvas.course.id
 user_id=$Canvas.user.id
@@ -112,16 +113,19 @@ Enable the following LTI services:
 ### 2. Install Tool in Canvas
 
 #### Step 1: Enable Developer Key
+
 1. In Developer Keys, click **ON** for Atomic Guide key
 2. Copy the **Client ID** (you'll need this for dynamic registration)
 
 #### Step 2: Install in Course
+
 1. Go to course **Settings** → **Apps**
 2. Click **+ App** → **By Client ID**
 3. Enter the Client ID from Step 1
 4. Click **Submit**
 
 #### Step 3: Configure Course Navigation
+
 1. Go to course **Settings** → **Navigation**
 2. Find "Atomic Guide" in the list
 3. Drag it to desired position
@@ -132,12 +136,14 @@ Enable the following LTI services:
 Instead of manual setup, you can use Atomic Guide's dynamic registration:
 
 ### Step 1: Initiate Registration
+
 1. In Canvas, go to **Settings** → **Apps**
 2. Click **+ App** → **By URL**
 3. Enter registration URL: `https://guide.yourdomain.com/lti/register`
 4. Click **Submit**
 
 ### Step 2: Complete Registration
+
 1. Canvas will redirect to Atomic Guide's registration page
 2. Review and accept the tool configuration
 3. Click **Complete Registration**
@@ -151,12 +157,9 @@ Atomic Guide automatically syncs grades with Canvas gradebook:
 
 ```typescript
 // Example grade passback implementation
-export async function syncGradeToCanvas(
-  grade: StudentGrade,
-  ltiContext: LTIContext
-): Promise<void> {
+export async function syncGradeToCanvas(grade: StudentGrade, ltiContext: LTIContext): Promise<void> {
   const agsService = new AssignmentGradeService(ltiContext);
-  
+
   await agsService.postScore({
     userId: grade.userId,
     scoreGiven: grade.score,
@@ -164,7 +167,7 @@ export async function syncGradeToCanvas(
     comment: grade.feedback,
     timestamp: new Date().toISOString(),
     activityProgress: 'Completed',
-    gradingProgress: 'FullyGraded'
+    gradingProgress: 'FullyGraded',
   });
 }
 ```
@@ -175,20 +178,17 @@ Access Canvas roster information:
 
 ```typescript
 // Get course roster from Canvas
-export async function getCanvasRoster(
-  contextId: string,
-  ltiToken: string
-): Promise<CanvasUser[]> {
+export async function getCanvasRoster(contextId: string, ltiToken: string): Promise<CanvasUser[]> {
   const nrpsService = new NamesRolesService(ltiToken);
-  
+
   const members = await nrpsService.getContextMembership(contextId);
-  
-  return members.map(member => ({
+
+  return members.map((member) => ({
     id: member.user_id,
     name: member.name,
     email: member.email,
     roles: member.roles,
-    canvasUserId: member.lis_person_sourcedid
+    canvasUserId: member.lis_person_sourcedid,
   }));
 }
 ```
@@ -199,31 +199,28 @@ Create Canvas assignments with Atomic Guide content:
 
 ```typescript
 // Deep link implementation for Canvas
-export async function createCanvasAssignment(
-  contentItems: DeepLinkingItem[],
-  ltiContext: LTIContext
-): Promise<DeepLinkingResponse> {
+export async function createCanvasAssignment(contentItems: DeepLinkingItem[], ltiContext: LTIContext): Promise<DeepLinkingResponse> {
   return {
-    "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
-    "@graph": contentItems.map(item => ({
-      "@type": "LtiLinkItem",
-      "url": `https://guide.yourdomain.com/content/${item.id}`,
-      "title": item.title,
-      "text": item.description,
-      "icon": {
-        "@id": "https://guide.yourdomain.com/images/content-icon.png",
-        "width": 16,
-        "height": 16
+    '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
+    '@graph': contentItems.map((item) => ({
+      '@type': 'LtiLinkItem',
+      url: `https://guide.yourdomain.com/content/${item.id}`,
+      title: item.title,
+      text: item.description,
+      icon: {
+        '@id': 'https://guide.yourdomain.com/images/content-icon.png',
+        width: 16,
+        height: 16,
       },
-      "lineItem": {
-        "scoreConstraints": {
-          "normalMaximum": item.maxScore,
-          "extraCreditMaximum": 0
+      lineItem: {
+        scoreConstraints: {
+          normalMaximum: item.maxScore,
+          extraCreditMaximum: 0,
         },
-        "resourceId": item.id,
-        "tag": "atomic-guide-assessment"
-      }
-    }))
+        resourceId: item.id,
+        tag: 'atomic-guide-assessment',
+      },
+    })),
   };
 }
 ```
@@ -241,51 +238,42 @@ export class CanvasAPIClient {
     private baseURL: string,
     private accessToken: string
   ) {}
-  
+
   async getCourse(courseId: string): Promise<CanvasCourse> {
     const response = await fetch(`${this.baseURL}/api/v1/courses/${courseId}`, {
       headers: {
-        'Authorization': `Bearer ${this.accessToken}`
-      }
+        Authorization: `Bearer ${this.accessToken}`,
+      },
     });
-    
+
     return await response.json();
   }
-  
+
   async getAssignments(courseId: string): Promise<CanvasAssignment[]> {
-    const response = await fetch(
-      `${this.baseURL}/api/v1/courses/${courseId}/assignments`,
-      {
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`
-        }
-      }
-    );
-    
+    const response = await fetch(`${this.baseURL}/api/v1/courses/${courseId}/assignments`, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+
     return await response.json();
   }
-  
-  async createAnnouncement(
-    courseId: string,
-    announcement: AnnouncementData
-  ): Promise<CanvasAnnouncement> {
-    const response = await fetch(
-      `${this.baseURL}/api/v1/courses/${courseId}/discussion_topics`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: announcement.title,
-          message: announcement.message,
-          is_announcement: true,
-          published: announcement.published
-        })
-      }
-    );
-    
+
+  async createAnnouncement(courseId: string, announcement: AnnouncementData): Promise<CanvasAnnouncement> {
+    const response = await fetch(`${this.baseURL}/api/v1/courses/${courseId}/discussion_topics`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: announcement.title,
+        message: announcement.message,
+        is_announcement: true,
+        published: announcement.published,
+      }),
+    });
+
     return await response.json();
   }
 }
@@ -297,23 +285,20 @@ Set up webhooks to receive Canvas events:
 
 ```typescript
 // Handle Canvas webhook events
-export async function handleCanvasWebhook(
-  event: CanvasWebhookEvent,
-  env: Env
-): Promise<void> {
+export async function handleCanvasWebhook(event: CanvasWebhookEvent, env: Env): Promise<void> {
   switch (event.event_name) {
     case 'assignment_created':
       await handleAssignmentCreated(event.body);
       break;
-      
+
     case 'grade_change':
       await handleGradeChange(event.body);
       break;
-      
+
     case 'enrollment_created':
       await handleEnrollmentCreated(event.body);
       break;
-      
+
     case 'submission_created':
       await handleSubmissionCreated(event.body);
       break;
@@ -329,7 +314,7 @@ async function handleAssignmentCreated(assignment: CanvasAssignment): Promise<vo
       title: assignment.name,
       description: assignment.description,
       dueDate: assignment.due_at,
-      pointsPossible: assignment.points_possible
+      pointsPossible: assignment.points_possible,
     });
   }
 }
@@ -343,7 +328,7 @@ async function handleAssignmentCreated(assignment: CanvasAssignment): Promise<vo
 # Canvas-specific configuration
 wrangler secret put CANVAS_BASE_URL          # e.g., "https://yourinstitution.instructure.com"
 wrangler secret put CANVAS_CLIENT_ID         # From Canvas Developer Key
-wrangler secret put CANVAS_CLIENT_SECRET     # From Canvas Developer Key  
+wrangler secret put CANVAS_CLIENT_SECRET     # From Canvas Developer Key
 wrangler secret put CANVAS_API_TOKEN         # For Canvas API access
 wrangler secret put CANVAS_WEBHOOK_SECRET    # For webhook validation
 ```
@@ -358,7 +343,7 @@ export const canvasConfig: LTIPlatformConfig = {
   authLoginUrl: 'https://yourinstitution.instructure.com/api/lti/authorize_redirect',
   authTokenUrl: 'https://yourinstitution.instructure.com/login/oauth2/token',
   keySetUrl: 'https://yourinstitution.instructure.com/api/lti/security/jwks',
-  
+
   // Canvas-specific claim mappings
   claimMappings: {
     userId: 'sub',
@@ -367,18 +352,18 @@ export const canvasConfig: LTIPlatformConfig = {
     contextId: 'https://purl.imsglobal.org/spec/lti/claim/context.id',
     contextTitle: 'https://purl.imsglobal.org/spec/lti/claim/context.title',
     roles: 'https://purl.imsglobal.org/spec/lti/claim/roles',
-    resourceLink: 'https://purl.imsglobal.org/spec/lti/claim/resource_link'
+    resourceLink: 'https://purl.imsglobal.org/spec/lti/claim/resource_link',
   },
-  
+
   // Canvas-specific services
   services: {
     namesRoles: 'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly',
     assignmentGrades: [
       'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
-      'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly', 
-      'https://purl.imsglobal.org/spec/lti-ags/scope/score'
-    ]
-  }
+      'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
+      'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+    ],
+  },
 };
 ```
 
@@ -396,21 +381,19 @@ describe('Canvas LTI Integration', () => {
       aud: 'your-client-id',
       'https://purl.imsglobal.org/spec/lti/claim/context': {
         id: 'course-456',
-        title: 'Test Course'
+        title: 'Test Course',
       },
-      'https://purl.imsglobal.org/spec/lti/claim/roles': [
-        'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'
-      ]
+      'https://purl.imsglobal.org/spec/lti/claim/roles': ['http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'],
     };
-    
+
     const jwt = await signJWT(mockLTIPayload, canvasJWK);
-    
+
     const response = await app.request('/lti/launch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ id_token: jwt })
+      body: new URLSearchParams({ id_token: jwt }),
     });
-    
+
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('Atomic Guide');
   });
@@ -427,14 +410,14 @@ describe('Canvas Grade Passback', () => {
       userId: 'canvas-user-123',
       score: 85,
       maxScore: 100,
-      feedback: 'Great work on the video analysis!'
+      feedback: 'Great work on the video analysis!',
     };
-    
+
     const agsService = new AssignmentGradeService({
       lineitemUrl: 'https://yourinstitution.instructure.com/api/lti/courses/456/line_items/789',
-      accessToken: 'canvas-access-token'
+      accessToken: 'canvas-access-token',
     });
-    
+
     const result = await agsService.postScore(mockGrade);
     expect(result.success).toBe(true);
   });
@@ -446,24 +429,30 @@ describe('Canvas Grade Passback', () => {
 ### Common Issues
 
 #### 1. LTI Launch Fails
+
 **Symptoms**: 401 Unauthorized or invalid JWT errors
 **Solutions**:
+
 - Verify Canvas Developer Key is enabled
 - Check Client ID matches in configuration
 - Ensure redirect URI is exactly `https://guide.yourdomain.com/lti/redirect`
 - Verify JWKS endpoint is accessible
 
 #### 2. Grade Passback Not Working
+
 **Symptoms**: Grades not appearing in Canvas gradebook
 **Solutions**:
+
 - Verify Assignment and Grade Services are enabled
 - Check that assignment was created through Deep Linking
 - Ensure proper AGS scopes are granted
 - Verify line item URL is correct
 
 #### 3. Names and Roles Service Issues
+
 **Symptoms**: Unable to access course roster
 **Solutions**:
+
 - Enable Names and Role Provisioning Services in Canvas
 - Verify NRPS scope is granted
 - Check privacy level is set to "Public"
@@ -480,7 +469,7 @@ if (env.DEBUG_CANVAS === 'true') {
     iss: payload.iss,
     sub: payload.sub,
     context: payload['https://purl.imsglobal.org/spec/lti/claim/context'],
-    roles: payload['https://purl.imsglobal.org/spec/lti/claim/roles']
+    roles: payload['https://purl.imsglobal.org/spec/lti/claim/roles'],
   });
 }
 ```

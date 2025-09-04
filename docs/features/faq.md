@@ -9,18 +9,21 @@ The FAQ system provides intelligent, context-aware answers to frequently asked q
 ## Key Features
 
 ### Semantic Search
+
 - **Vector Embeddings**: Questions converted to semantic vectors
 - **Similarity Matching**: Find related questions even with different wording
 - **Multi-Language**: Support for multiple languages
 - **Typo Tolerance**: Handles misspellings and variations
 
 ### Dynamic Responses
+
 - **AI Enhancement**: Augment static answers with AI
 - **Context Awareness**: Include course/topic context
 - **Personalization**: Tailor answers to user role
 - **Rich Media**: Support for images, videos, links
 
 ### Content Management
+
 - **Admin Interface**: Easy Q&A management
 - **Auto-Suggestions**: AI-generated FAQ entries
 - **Usage Analytics**: Track popular questions
@@ -107,12 +110,9 @@ const FAQ_INDEX = env.FAQ_INDEX;
 
 // Generate embedding for question
 async function generateEmbedding(text: string): Promise<Float32Array> {
-  const response = await env.AI.run(
-    '@cf/baai/bge-base-en-v1.5',
-    {
-      text: text
-    }
-  );
+  const response = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
+    text: text,
+  });
   return new Float32Array(response.data[0]);
 }
 
@@ -120,15 +120,15 @@ async function generateEmbedding(text: string): Promise<Float32Array> {
 async function searchFAQ(query: string, limit = 5): Promise<FAQ[]> {
   // Generate query embedding
   const queryEmbedding = await generateEmbedding(query);
-  
+
   // Vector similarity search
   const results = await FAQ_INDEX.query(queryEmbedding, {
     topK: limit,
-    namespace: 'faqs'
+    namespace: 'faqs',
   });
-  
+
   // Fetch full FAQ entries
-  const faqIds = results.matches.map(m => m.id);
+  const faqIds = results.matches.map((m) => m.id);
   return await fetchFAQsByIds(faqIds);
 }
 ```
@@ -136,6 +136,7 @@ async function searchFAQ(query: string, limit = 5): Promise<FAQ[]> {
 ### API Endpoints
 
 #### Search FAQs
+
 ```typescript
 GET /api/faq/search
 Query: q=how+to+submit+assignment&limit=5&category=assignments
@@ -158,6 +159,7 @@ Response:
 ```
 
 #### Get FAQ by ID
+
 ```typescript
 GET /api/faq/{id}
 
@@ -178,6 +180,7 @@ Response:
 ```
 
 #### Submit New Question
+
 ```typescript
 POST /api/faq/ask
 Content-Type: application/json
@@ -208,15 +211,15 @@ interface FAQAdmin {
   createFAQ(faq: FAQ): Promise<FAQ>;
   updateFAQ(id: string, updates: Partial<FAQ>): Promise<FAQ>;
   deleteFAQ(id: string): Promise<void>;
-  
+
   // Bulk operations
   importFAQs(file: File): Promise<ImportResult>;
   exportFAQs(format: 'json' | 'csv'): Promise<Blob>;
-  
+
   // Analytics
   getPopularQuestions(limit: number): Promise<FAQ[]>;
   getUnansweredQuestions(): Promise<Question[]>;
-  
+
   // AI assistance
   generateFAQSuggestions(courseContent: string): Promise<FAQ[]>;
   improveAnswer(faqId: string): Promise<string>;
@@ -232,20 +235,20 @@ export function FAQSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<FAQ[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  
+
   const debouncedSearch = useMemo(
     () => debounce(async (q: string) => {
       if (q.length < 3) return;
-      
+
       const response = await fetch(`/api/faq/search?q=${q}`);
       const data = await response.json();
-      
+
       setResults(data.results);
       setSuggestions(data.suggestions);
     }, 300),
     []
   );
-  
+
   return (
     <div className="faq-search">
       <input
@@ -257,7 +260,7 @@ export function FAQSearch() {
           debouncedSearch(e.target.value);
         }}
       />
-      
+
       {suggestions.length > 0 && (
         <div className="suggestions">
           {suggestions.map(s => (
@@ -267,7 +270,7 @@ export function FAQSearch() {
           ))}
         </div>
       )}
-      
+
       <div className="results">
         {results.map(faq => (
           <FAQResult key={faq.id} faq={faq} />
@@ -283,7 +286,7 @@ export function FAQSearch() {
 ```typescript
 export function FAQCategories() {
   const categories = useFAQCategories();
-  
+
   return (
     <div className="faq-categories">
       {categories.map(category => (
@@ -310,24 +313,24 @@ export function FAQCategories() {
 async function importFAQs(csvFile: File): Promise<ImportResult> {
   const text = await csvFile.text();
   const parsed = parseCSV(text);
-  
+
   const faqs: FAQ[] = [];
   const errors: ImportError[] = [];
-  
+
   for (const row of parsed) {
     try {
       const faq = validateFAQ(row);
       const embedding = await generateEmbedding(faq.question);
-      
+
       faqs.push({ ...faq, embedding });
     } catch (error) {
       errors.push({ row, error });
     }
   }
-  
+
   // Bulk insert
   await batchInsertFAQs(faqs);
-  
+
   return { imported: faqs.length, errors };
 }
 ```
@@ -336,10 +339,7 @@ async function importFAQs(csvFile: File): Promise<ImportResult> {
 
 ```typescript
 // Generate FAQs from course content
-async function generateFAQsFromContent(
-  content: string,
-  options: GenerationOptions
-): Promise<FAQ[]> {
+async function generateFAQsFromContent(content: string, options: GenerationOptions): Promise<FAQ[]> {
   const prompt = `
     Generate frequently asked questions from this content:
     ${content}
@@ -348,19 +348,18 @@ async function generateFAQsFromContent(
     Count: ${options.count || 10}
     Focus: ${options.focus || 'general'}
   `;
-  
-  const response = await env.AI.run(
-    '@cf/meta/llama-3-8b-instruct',
-    { prompt }
-  );
-  
+
+  const response = await env.AI.run('@cf/meta/llama-3-8b-instruct', { prompt });
+
   const faqs = JSON.parse(response.text);
-  
+
   // Generate embeddings for each
-  return Promise.all(faqs.map(async (faq: FAQ) => ({
-    ...faq,
-    embedding: await generateEmbedding(faq.question)
-  })));
+  return Promise.all(
+    faqs.map(async (faq: FAQ) => ({
+      ...faq,
+      embedding: await generateEmbedding(faq.question),
+    }))
+  );
 }
 ```
 
@@ -375,19 +374,19 @@ interface FAQAnalytics {
     views: number;
     question: string;
   }[];
-  
+
   searchPatterns: {
     query: string;
     frequency: number;
     foundAnswer: boolean;
   }[];
-  
+
   effectiveness: {
     helpfulRate: number;
     averageTimeToAnswer: number;
     deflectionRate: number;
   };
-  
+
   gaps: {
     unansweredQueries: string[];
     lowRatedAnswers: FAQ[];
@@ -408,16 +407,16 @@ async function submitFeedback(
     suggestedImprovement?: string;
   }
 ): Promise<void> {
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     INSERT INTO faq_feedback (faq_id, helpful, comment, user_id)
     VALUES (?, ?, ?, ?)
-  `).bind(
-    faqId,
-    feedback.helpful ? 1 : 0,
-    feedback.comment,
-    getCurrentUserId()
-  ).run();
-  
+  `
+    )
+    .bind(faqId, feedback.helpful ? 1 : 0, feedback.comment, getCurrentUserId())
+    .run();
+
   // Update FAQ metrics
   await updateFAQMetrics(faqId);
 }
@@ -451,16 +450,16 @@ interface FAQConfig {
     includeSuggestions: boolean;
     fuzzyMatching: boolean;
   };
-  
+
   categories: FAQCategory[];
-  
+
   ui: {
     showCategories: boolean;
     showRelated: boolean;
     allowFeedback: boolean;
     allowUserQuestions: boolean;
   };
-  
+
   aiSettings: {
     enhanceAnswers: boolean;
     generateSuggestions: boolean;
@@ -481,12 +480,12 @@ interface FAQConfig {
 
 ### Benchmarks
 
-| Operation | Target | Actual |
-|-----------|--------|--------|
-| Search latency | < 100ms | 85ms |
-| Embedding generation | < 200ms | 150ms |
-| Result retrieval | < 50ms | 35ms |
-| UI render | < 16ms | 12ms |
+| Operation            | Target  | Actual |
+| -------------------- | ------- | ------ |
+| Search latency       | < 100ms | 85ms   |
+| Embedding generation | < 200ms | 150ms  |
+| Result retrieval     | < 50ms  | 35ms   |
+| UI render            | < 16ms  | 12ms   |
 
 ## Best Practices
 
@@ -508,12 +507,12 @@ interface FAQConfig {
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
+| Issue               | Solution                                        |
+| ------------------- | ----------------------------------------------- |
 | Poor search results | Retrain embeddings, adjust similarity threshold |
-| Slow response | Check vector index size, optimize queries |
-| Outdated answers | Enable auto-update, review periodically |
-| Missing questions | Analyze search gaps, generate suggestions |
+| Slow response       | Check vector index size, optimize queries       |
+| Outdated answers    | Enable auto-update, review periodically         |
+| Missing questions   | Analyze search gaps, generate suggestions       |
 
 ## Future Roadmap
 

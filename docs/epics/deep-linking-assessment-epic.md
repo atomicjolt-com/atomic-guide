@@ -15,6 +15,7 @@ Enable instructors to embed AI-powered conversational assessment checkpoints dir
 ### Enhancement Details
 
 **What's being added/changed:**
+
 - Canvas postMessage API integration for real-time page content extraction during student reading sessions
 - Deep linking placement interface allowing instructors to embed assessment checkpoints through configuration modal
 - AI-powered chat interface using OpenAI/Anthropic APIs for conversational student assessment
@@ -22,6 +23,7 @@ Enable instructors to embed AI-powered conversational assessment checkpoints dir
 - Cloudflare D1 database for conversation history and assessment template storage
 
 **How it integrates:**
+
 - Extends existing `/lti/` routes with new deep linking endpoints
 - Leverages current JWT signing infrastructure for secure communication
 - Builds on existing client manifest injection system for chat interface delivery
@@ -29,6 +31,7 @@ Enable instructors to embed AI-powered conversational assessment checkpoints dir
 - Maintains current authentication and state management through OIDC flow
 
 **Success criteria:**
+
 - Instructors can embed assessment checkpoints in under 5 minutes
 - AI chat responses delivered in under 3 seconds
 - 80% student completion rate for embedded assessments

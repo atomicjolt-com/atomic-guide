@@ -115,22 +115,22 @@ describe('AIService', () => {
 
   beforeEach(() => {
     mockAI = {
-      run: vi.fn()
+      run: vi.fn(),
     };
     service = new AIService(mockAI);
   });
 
   it('should generate completion', async () => {
     mockAI.run.mockResolvedValue({
-      response: 'Generated text'
+      response: 'Generated text',
     });
 
     const result = await service.generateCompletion('prompt');
-    
+
     expect(mockAI.run).toHaveBeenCalledWith(
       '@cf/meta/llama-3-8b-instruct',
       expect.objectContaining({
-        prompt: 'prompt'
+        prompt: 'prompt',
       })
     );
     expect(result).toBe('Generated text');
@@ -139,8 +139,7 @@ describe('AIService', () => {
   it('should handle errors gracefully', async () => {
     mockAI.run.mockRejectedValue(new Error('AI service error'));
 
-    await expect(service.generateCompletion('prompt'))
-      .rejects.toThrow('Failed to generate completion');
+    await expect(service.generateCompletion('prompt')).rejects.toThrow('Failed to generate completion');
   });
 });
 ```
@@ -164,9 +163,9 @@ describe('Button Component', () => {
   it('should handle click events', async () => {
     const handleClick = vi.fn();
     const user = userEvent.setup();
-    
+
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     await user.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
@@ -252,9 +251,9 @@ afterAll(() => server.close());
 describe('AssessmentList', () => {
   it('should load and display assessments', async () => {
     render(<AssessmentList />);
-    
+
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    
+
     await waitFor(() => {
       expect(screen.getByText('Quiz 1')).toBeInTheDocument();
       expect(screen.getByText('Quiz 2')).toBeInTheDocument();
@@ -269,7 +268,7 @@ describe('AssessmentList', () => {
     );
 
     render(<AssessmentList />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Failed to load assessments')).toBeInTheDocument();
     });
@@ -292,7 +291,7 @@ describe('Chat API Integration', () => {
 
   beforeAll(async () => {
     worker = await unstable_dev('src/index.ts', {
-      experimental: { disableExperimentalWarning: true }
+      experimental: { disableExperimentalWarning: true },
     });
   });
 
@@ -305,11 +304,11 @@ describe('Chat API Integration', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer test-token'
+        Authorization: 'Bearer test-token',
       },
       body: JSON.stringify({
-        message: 'Hello'
-      })
+        message: 'Hello',
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -320,7 +319,7 @@ describe('Chat API Integration', () => {
   it('should require authentication', async () => {
     const response = await worker.fetch('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ message: 'Hello' })
+      body: JSON.stringify({ message: 'Hello' }),
     });
 
     expect(response.status).toBe(401);
@@ -344,7 +343,7 @@ describe('Database Integration', () => {
     // Use test database
     db = getMiniflareBindings().DB;
     userService = new UserService(db);
-    
+
     // Clean database
     await db.exec('DELETE FROM users');
   });
@@ -352,7 +351,7 @@ describe('Database Integration', () => {
   it('should create and retrieve user', async () => {
     const user = await userService.createUser({
       email: 'test@example.com',
-      name: 'Test User'
+      name: 'Test User',
     });
 
     expect(user.id).toBeDefined();
@@ -364,13 +363,13 @@ describe('Database Integration', () => {
   it('should handle unique constraints', async () => {
     await userService.createUser({
       email: 'test@example.com',
-      name: 'User 1'
+      name: 'User 1',
     });
 
     await expect(
       userService.createUser({
         email: 'test@example.com',
-        name: 'User 2'
+        name: 'User 2',
       })
     ).rejects.toThrow('Email already exists');
   });
@@ -393,14 +392,13 @@ test.describe('Chat Flow', () => {
   test('should send and receive chat messages', async ({ page }) => {
     // Type message
     await page.fill('[data-testid="chat-input"]', 'Hello, AI assistant');
-    
+
     // Send message
     await page.click('[data-testid="send-button"]');
-    
+
     // Wait for response
-    await expect(page.locator('[data-testid="assistant-message"]'))
-      .toBeVisible({ timeout: 10000 });
-    
+    await expect(page.locator('[data-testid="assistant-message"]')).toBeVisible({ timeout: 10000 });
+
     // Verify message appears
     await expect(page.locator('text=Hello, AI assistant')).toBeVisible();
   });
@@ -408,7 +406,7 @@ test.describe('Chat Flow', () => {
   test('should handle markdown formatting', async ({ page }) => {
     await page.fill('[data-testid="chat-input"]', 'Show me markdown');
     await page.click('[data-testid="send-button"]');
-    
+
     // Wait for formatted response
     await expect(page.locator('h2')).toBeVisible();
     await expect(page.locator('code')).toBeVisible();
@@ -432,20 +430,20 @@ test.describe('LTI Launch', () => {
         aud: 'test-client-id',
         sub: 'user-123',
         exp: Math.floor(Date.now() / 1000) + 3600,
-        'https://purl.imsglobal.org/spec/lti/claim/message_type': 'LtiResourceLinkRequest'
+        'https://purl.imsglobal.org/spec/lti/claim/message_type': 'LtiResourceLinkRequest',
       },
       'test-secret'
     );
 
     // Initiate OIDC flow
     await page.goto(`http://localhost:5988/lti/init?token=${token}`);
-    
+
     // Should redirect to platform auth
     await expect(page).toHaveURL(/platform\.example\.com/);
-    
+
     // Complete auth and redirect back
     await page.goto(`http://localhost:5988/lti/redirect?state=test`);
-    
+
     // Should launch application
     await expect(page.locator('[data-testid="app-container"]')).toBeVisible();
   });
@@ -463,20 +461,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '*.config.ts',
-        'src/types/'
-      ],
+      exclude: ['node_modules/', 'tests/', '*.config.ts', 'src/types/'],
       thresholds: {
         statements: 80,
         branches: 80,
         functions: 80,
-        lines: 80
-      }
-    }
-  }
+        lines: 80,
+      },
+    },
+  },
 });
 ```
 
@@ -513,9 +506,9 @@ export const mockAI = {
       throw new Error('AI service error');
     }
     return Promise.resolve({
-      response: 'Mocked AI response'
+      response: 'Mocked AI response',
     });
-  })
+  }),
 };
 ```
 
@@ -548,18 +541,22 @@ import { rest } from 'msw';
 
 export const handlers = [
   rest.get('/api/user', (req, res, ctx) => {
-    return res(ctx.json({
-      id: '123',
-      name: 'Test User'
-    }));
+    return res(
+      ctx.json({
+        id: '123',
+        name: 'Test User',
+      })
+    );
   }),
-  
+
   rest.post('/api/chat', async (req, res, ctx) => {
     const { message } = await req.json();
-    return res(ctx.json({
-      response: `Echo: ${message}`
-    }));
-  })
+    return res(
+      ctx.json({
+        response: `Echo: ${message}`,
+      })
+    );
+  }),
 ];
 ```
 
@@ -579,10 +576,10 @@ describe('Feature/Component Name', () => {
     it('should expected behavior', () => {
       // Arrange
       const input = 'test';
-      
+
       // Act
       const result = functionUnderTest(input);
-      
+
       // Assert
       expect(result).toBe('expected');
     });
@@ -612,13 +609,13 @@ describe('Feature/Component Name', () => {
 ```typescript
 it('should handle errors gracefully', () => {
   const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  
+
   render(
     <ErrorBoundary>
       <ThrowError />
     </ErrorBoundary>
   );
-  
+
   expect(screen.getByText('Something went wrong')).toBeInTheDocument();
   spy.mockRestore();
 });
@@ -629,10 +626,10 @@ it('should handle errors gracefully', () => {
 ```typescript
 it('should show loading state', async () => {
   render(<AsyncComponent />);
-  
+
   // Initially loading
   expect(screen.getByText('Loading...')).toBeInTheDocument();
-  
+
   // Wait for content
   await waitFor(() => {
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
@@ -654,18 +651,18 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - run: npm ci
-      
+
       - run: npm test -- --coverage
-      
+
       - uses: codecov/codecov-action@v3
         with:
           files: ./coverage/coverage-final.json
@@ -678,13 +675,13 @@ jobs:
 ```typescript
 it('should debug test', () => {
   const data = { foo: 'bar' };
-  
+
   // Use debug for detailed output
   screen.debug();
-  
+
   // Log specific elements
   console.log(screen.getByRole('button'));
-  
+
   // Pretty print objects
   console.log(JSON.stringify(data, null, 2));
 });

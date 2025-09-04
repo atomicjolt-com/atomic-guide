@@ -3,7 +3,7 @@
  * @module features/assessment/client/components/AssessmentAnalytics.test
  */
 
-import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AssessmentAnalytics } from './AssessmentAnalytics';
@@ -52,22 +52,12 @@ describe('AssessmentAnalytics', () => {
 
   beforeEach(async () => {
     // Setup test infrastructure - removed ServiceTestHarness as this tests React components
-    
-    
-    ;
-  
   });
 
   it('should render loading state initially', () => {
     vi.mocked(global.fetch).mockImplementation(() => new Promise(() => {}));
-    
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        assessmentId="assessment-123"
-        jwt="test-jwt"
-      />
-    );
+
+    render(<AssessmentAnalytics courseId="course-123" assessmentId="assessment-123" jwt="test-jwt" />);
 
     expect(screen.getByText('Loading assessment analytics...')).toBeInTheDocument();
   });
@@ -75,13 +65,7 @@ describe('AssessmentAnalytics', () => {
   it('should render error state on fetch failure', async () => {
     vi.mocked(global.fetch).mockRejectedValueOnce(new Error('Network error'));
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        assessmentId="assessment-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" assessmentId="assessment-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByText('Error Loading Analytics')).toBeInTheDocument();
@@ -95,13 +79,7 @@ describe('AssessmentAnalytics', () => {
       json: async () => mockPerformanceData,
     } as Response);
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        assessmentId="assessment-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" assessmentId="assessment-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByText('Assessment Analytics')).toBeInTheDocument();
@@ -114,19 +92,13 @@ describe('AssessmentAnalytics', () => {
 
   it('should switch between tabs', async () => {
     const user = userEvent.setup();
-    
+
     vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockPerformanceData,
     } as Response);
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        assessmentId="assessment-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" assessmentId="assessment-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Score Distribution' })).toBeInTheDocument();
@@ -146,7 +118,7 @@ describe('AssessmentAnalytics', () => {
   it('should export data as CSV', async () => {
     const user = userEvent.setup();
     const mockClick = vi.fn();
-    
+
     // Mock createElement to capture the download link
     const originalCreateElement = document.createElement.bind(document);
     document.createElement = vi.fn((tagName) => {
@@ -162,13 +134,7 @@ describe('AssessmentAnalytics', () => {
       json: async () => mockPerformanceData,
     } as Response);
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        assessmentId="assessment-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" assessmentId="assessment-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByText('Export Data')).toBeInTheDocument();
@@ -186,17 +152,11 @@ describe('AssessmentAnalytics', () => {
 
   it('should retry on error', async () => {
     const user = userEvent.setup();
-    
+
     // First call fails
     vi.mocked(global.fetch).mockRejectedValueOnce(new Error('Network error'));
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        assessmentId="assessment-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" assessmentId="assessment-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByText('Error Loading Analytics')).toBeInTheDocument();
@@ -221,12 +181,7 @@ describe('AssessmentAnalytics', () => {
       json: async () => mockPerformanceData,
     } as Response);
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByText('Assessment Analytics')).toBeInTheDocument();
@@ -236,7 +191,7 @@ describe('AssessmentAnalytics', () => {
       '/api/courses/course-123/assessment-analytics',
       expect.objectContaining({
         headers: expect.objectContaining({
-          'Authorization': 'Bearer test-jwt',
+          Authorization: 'Bearer test-jwt',
         }),
       })
     );
@@ -248,12 +203,7 @@ describe('AssessmentAnalytics', () => {
       json: async () => null,
     } as Response);
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByText('No assessment data available')).toBeInTheDocument();
@@ -262,19 +212,13 @@ describe('AssessmentAnalytics', () => {
 
   it('should display struggle points with misconceptions', async () => {
     const user = userEvent.setup();
-    
+
     vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockPerformanceData,
     } as Response);
 
-    render(
-      <AssessmentAnalytics
-        courseId="course-123"
-        assessmentId="assessment-123"
-        jwt="test-jwt"
-      />
-    );
+    render(<AssessmentAnalytics courseId="course-123" assessmentId="assessment-123" jwt="test-jwt" />);
 
     await waitFor(() => {
       expect(screen.getByText('Struggle Points')).toBeInTheDocument();

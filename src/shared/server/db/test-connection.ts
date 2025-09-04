@@ -28,7 +28,7 @@ app.get('/db/health', async (c) => {
           status: 'unhealthy',
           error: 'Database connection failed',
         },
-        503,
+        503
       );
     }
 
@@ -41,7 +41,7 @@ app.get('/db/health', async (c) => {
         (SELECT COUNT(*) FROM learning_sessions) as sessions,
         (SELECT COUNT(*) FROM knowledge_graph) as concepts,
         (SELECT tenant_id FROM tenant_config LIMIT 1) as tenant_id
-    `,
+    `
     );
 
     return c.json({
@@ -56,7 +56,7 @@ app.get('/db/health', async (c) => {
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      500,
+      500
     );
   }
 });
@@ -84,7 +84,7 @@ app.get('/db/test/learner', async (c) => {
       'test_user_' + Date.now(),
       'test_deployment',
       'test@example.com',
-      'Test User',
+      'Test User'
     );
 
     if (!profile) {
@@ -105,7 +105,7 @@ app.get('/db/test/learner', async (c) => {
       {
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      500,
+      500
     );
   }
 });
@@ -130,7 +130,7 @@ app.get('/db/test/analytics', async (c) => {
     const analytics = await getCourseAnalytics(
       db,
       tenantId,
-      'context_cs101', // From seed data
+      'context_cs101' // From seed data
     );
 
     return c.json({
@@ -143,7 +143,7 @@ app.get('/db/test/analytics', async (c) => {
       {
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      500,
+      500
     );
   }
 });
@@ -179,7 +179,7 @@ app.post('/db/test/query', async (c) => {
       {
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      500,
+      500
     );
   }
 });
@@ -199,7 +199,7 @@ app.get('/db/schema', async (c) => {
       FROM sqlite_master
       WHERE type='table'
       ORDER BY name
-    `,
+    `
     );
 
     // Get indexes
@@ -210,7 +210,7 @@ app.get('/db/schema', async (c) => {
       FROM sqlite_master
       WHERE type='index'
       ORDER BY tbl_name, name
-    `,
+    `
     );
 
     return c.json({
@@ -225,7 +225,7 @@ app.get('/db/schema', async (c) => {
       {
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      500,
+      500
     );
   }
 });

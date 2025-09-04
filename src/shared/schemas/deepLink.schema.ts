@@ -43,11 +43,7 @@ export const imageDeepLinkSchema = z.object({
  * Union schema for all deep link types.
  * Allows type-safe discrimination between different content types.
  */
-export const deepLinkSchema = z.discriminatedUnion('type', [
-  htmlDeepLinkSchema,
-  linkDeepLinkSchema,
-  imageDeepLinkSchema,
-]);
+export const deepLinkSchema = z.discriminatedUnion('type', [htmlDeepLinkSchema, linkDeepLinkSchema, imageDeepLinkSchema]);
 
 /**
  * Inferred TypeScript types from schemas.
@@ -72,19 +68,23 @@ export type DeepLinkResponse = z.infer<typeof deepLinkResponseSchema>;
  * Contains course membership information from the platform.
  */
 export const namesAndRolesResponseSchema = z.object({
-  members: z.array(
-    z.object({
-      user_id: z.string(),
-      name: z.string().optional(),
-      email: z.string().email().optional(),
-      roles: z.array(z.string()),
+  members: z
+    .array(
+      z.object({
+        user_id: z.string(),
+        name: z.string().optional(),
+        email: z.string().email().optional(),
+        roles: z.array(z.string()),
+      })
+    )
+    .optional(),
+  context: z
+    .object({
+      id: z.string(),
+      label: z.string().optional(),
+      title: z.string().optional(),
     })
-  ).optional(),
-  context: z.object({
-    id: z.string(),
-    label: z.string().optional(),
-    title: z.string().optional(),
-  }).optional(),
+    .optional(),
 });
 
 export type NamesAndRolesResponse = z.infer<typeof namesAndRolesResponseSchema>;

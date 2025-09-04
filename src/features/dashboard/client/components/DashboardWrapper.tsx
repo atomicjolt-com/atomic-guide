@@ -22,44 +22,19 @@ const mockTenantId = 'tenant-789';
 
 export function StudentPerformanceOverviewWrapper({ jwt }: WrapperProps): ReactElement {
   // TODO: Extract userId and tenantId from JWT or make API call
-  return (
-    <StudentPerformanceOverview 
-      userId={mockUserId}
-      tenantId={mockTenantId}
-      courseId={mockCourseId}
-      jwt={jwt}
-    />
-  );
+  return <StudentPerformanceOverview userId={mockUserId} tenantId={mockTenantId} courseId={mockCourseId} jwt={jwt} />;
 }
 
 export function BenchmarkComparisonWrapper({ jwt }: WrapperProps): ReactElement {
-  return (
-    <BenchmarkComparison
-      userId={mockUserId}
-      courseId={mockCourseId}
-      jwt={jwt}
-    />
-  );
+  return <BenchmarkComparison userId={mockUserId} courseId={mockCourseId} jwt={jwt} />;
 }
 
 export function DataExportInterfaceWrapper({ jwt }: WrapperProps): ReactElement {
-  return (
-    <DataExportInterface
-      userId={mockUserId}
-      courseId={mockCourseId}
-      jwt={jwt}
-    />
-  );
+  return <DataExportInterface userId={mockUserId} courseId={mockCourseId} jwt={jwt} />;
 }
 
 export function ChatHistoryWrapper({ jwt: _jwt }: WrapperProps): ReactElement {
-  return (
-    <ChatHistory
-      conversations={[]}
-      isLoading={false}
-      onConversationSelect={() => {}}
-    />
-  );
+  return <ChatHistory conversations={[]} isLoading={false} onConversationSelect={() => {}} />;
 }
 
 export function SuggestionAnalyticsWrapper({ jwt }: WrapperProps): ReactElement {

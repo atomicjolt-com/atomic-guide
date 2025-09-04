@@ -1792,6 +1792,7 @@ interface ConnectionState {
    - Error: Red exclamation with error message
 
 2. **Connection Toast Notifications**
+
    ```
    ┌──────────────────────────────────────┐
    │ ⚠️ Connection lost. Reconnecting...   │
@@ -1808,6 +1809,7 @@ interface ConnectionState {
    ```
 
 **Interaction Patterns:**
+
 - Auto-reconnect with exponential backoff (1s, 2s, 4s, 8s, 16s)
 - Manual reconnect button after 5 failed attempts
 - Queue messages during disconnection
@@ -1818,6 +1820,7 @@ interface ConnectionState {
 #### Error State Components
 
 **1. Assessment Load Error**
+
 ```
 ┌─────────────────────────────────────────┐
 │           ⚠️ Unable to Load              │
@@ -1833,6 +1836,7 @@ interface ConnectionState {
 ```
 
 **2. API Error Handling**
+
 ```typescript
 interface ErrorDisplay {
   type: 'inline' | 'toast' | 'modal' | 'page';
@@ -1847,6 +1851,7 @@ interface ErrorDisplay {
 ```
 
 **3. Validation Error States**
+
 - Input fields: Red border (2px) with error text below
 - Form submission: Scroll to first error, focus field
 - Chat input: Inline error message with shake animation
@@ -1854,6 +1859,7 @@ interface ErrorDisplay {
 #### Empty State Components
 
 **1. No Assessments Yet**
+
 ```
 ┌─────────────────────────────────────────┐
 │                                          │
@@ -1868,6 +1874,7 @@ interface ErrorDisplay {
 ```
 
 **2. Dashboard - No Student Data**
+
 ```
 ┌─────────────────────────────────────────┐
 │         📊 Waiting for Data              │
@@ -1885,6 +1892,7 @@ interface ErrorDisplay {
 #### Faculty Analytics Dashboard - Full Specification
 
 **Layout Grid (Desktop):**
+
 ```
 ┌──────────────────────────────────────────────────────┐
 │ Course: MATH 101 | Section: A | Students: 45         │
@@ -1939,13 +1947,14 @@ interface ErrorDisplay {
 **Purpose:** Show predicted knowledge retention over time
 
 **Specification:**
+
 ```typescript
 interface ForgettingCurveProps {
   concepts: Array<{
     name: string;
     initialMastery: number;
     currentMastery: number;
-    predictedCurve: Array<{x: Date, y: number}>;
+    predictedCurve: Array<{ x: Date; y: number }>;
     reviewDates: Date[];
   }>;
   timeRange: 'week' | 'month' | 'semester';
@@ -1954,6 +1963,7 @@ interface ForgettingCurveProps {
 ```
 
 **Visual Design:**
+
 - Line chart with smooth curves
 - Y-axis: Mastery (0-100%)
 - X-axis: Time
@@ -1966,6 +1976,7 @@ interface ForgettingCurveProps {
 **Purpose:** Visual overview of concept mastery across class
 
 **Layout:**
+
 ```
 Students ↓  Concepts →
          C1   C2   C3   C4   C5
@@ -1977,6 +1988,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 ```
 
 **Interactions:**
+
 - Click cell for individual details
 - Sort by student or concept
 - Filter by mastery level
@@ -1987,6 +1999,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 #### Mobile Navigation Pattern
 
 **Bottom Tab Bar (iOS/Android):**
+
 ```
 ┌─────────────────────────┐
 │    Content Area         │
@@ -1999,6 +2012,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 ```
 
 **Gesture Support:**
+
 - Swipe right: Previous assessment
 - Swipe left: Next assessment
 - Swipe down: Minimize chat
@@ -2008,6 +2022,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 #### Mobile Chat Optimization
 
 **Collapsed State:**
+
 ```
 ┌─────────────────────────┐
 │ ▼ AI Guide (tap to expand)│
@@ -2015,6 +2030,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 ```
 
 **Expanded State (Full Screen):**
+
 ```
 ┌─────────────────────────┐
 │ ← Back   AI Guide    ⋮  │
@@ -2034,6 +2050,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 **Flow Screens:**
 
 1. **Initial Connection:**
+
 ```
 ┌─────────────────────────────────┐
 │   Connect AI Assistant          │
@@ -2049,6 +2066,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 ```
 
 2. **OAuth Consent:**
+
 ```
 ┌─────────────────────────────────┐
 │  Authorize Atomic Guide          │
@@ -2063,6 +2081,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 ```
 
 3. **Success State:**
+
 ```
 ┌─────────────────────────────────┐
 │     ✅ Connected!                │
@@ -2077,6 +2096,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 ### AGS Grade Passback Components
 
 **Grade Sync Status:**
+
 ```
 ┌──────────────────────────────────┐
 │ Grade Sync Status                │
@@ -2089,6 +2109,7 @@ Legend: ░ <50%  ▓ 50-79%  █ 80-100%
 ```
 
 **Grade Configuration:**
+
 ```typescript
 interface GradePassbackConfig {
   enabled: boolean;
@@ -2101,6 +2122,7 @@ interface GradePassbackConfig {
 ### Multi-Tenant Institution Switcher
 
 **Institution Selection UI:**
+
 ```
 ┌─────────────────────────────────┐
 │ Current: State University       │
@@ -2114,6 +2136,7 @@ interface GradePassbackConfig {
 ```
 
 **Tenant Context Indicator:**
+
 - Always visible in header
 - Shows institution logo/name
 - Color-coded for different institutions

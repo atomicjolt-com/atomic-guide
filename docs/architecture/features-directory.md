@@ -79,6 +79,7 @@ import type { ChatMessage } from '@features/chat/shared/types';
 ### High Cohesion
 
 Each feature contains all code related to its business domain:
+
 - UI components specific to the feature
 - API handlers and business logic
 - Data schemas and types
@@ -87,6 +88,7 @@ Each feature contains all code related to its business domain:
 ### Loose Coupling
 
 Features should minimize dependencies:
+
 - Communicate through well-defined APIs
 - Share only through the `@shared` module
 - Avoid circular dependencies
@@ -95,6 +97,7 @@ Features should minimize dependencies:
 ### Encapsulation
 
 Features hide their internal implementation:
+
 - Export only necessary public APIs
 - Keep internal services private
 - Use barrel exports to control visibility
@@ -111,16 +114,16 @@ Features hide their internal implementation:
 
 ## Migration Status
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Chat | ✅ Completed | Fully migrated with tests |
-| Assessment | ✅ Completed | Deep linking integrated |
-| Content | ⏳ In Progress | Extraction service ready |
-| Dashboard | ✅ Completed | Analytics integrated |
-| LTI | ✅ Completed | Protocol handling complete |
-| Settings | ✅ Completed | Preferences management ready |
-| FAQ | ✅ Completed | Semantic search operational |
-| Learner DNA | ✅ Completed | Synthetic data framework ready |
+| Feature     | Status         | Notes                          |
+| ----------- | -------------- | ------------------------------ |
+| Chat        | ✅ Completed   | Fully migrated with tests      |
+| Assessment  | ✅ Completed   | Deep linking integrated        |
+| Content     | ⏳ In Progress | Extraction service ready       |
+| Dashboard   | ✅ Completed   | Analytics integrated           |
+| LTI         | ✅ Completed   | Protocol handling complete     |
+| Settings    | ✅ Completed   | Preferences management ready   |
+| FAQ         | ✅ Completed   | Semantic search operational    |
+| Learner DNA | ✅ Completed   | Synthetic data framework ready |
 
 ## Best Practices
 

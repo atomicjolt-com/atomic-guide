@@ -80,30 +80,35 @@ export type InteractionTimingPattern = z.infer<typeof InteractionTimingPatternSc
 /**
  * Schema for comprehension style distributions
  */
-export const ComprehensionStyleSchema = z.object({
-  /** Visual learning preference (0-1) */
-  visual: z.number().min(0.0).max(1.0),
-  /** Auditory learning preference (0-1) */
-  auditory: z.number().min(0.0).max(1.0),
-  /** Kinesthetic learning preference (0-1) */
-  kinesthetic: z.number().min(0.0).max(1.0),
-  /** Reading/writing preference (0-1) */
-  readingWriting: z.number().min(0.0).max(1.0),
-  /** Sequential vs. global processing */
-  sequentialVsGlobal: z.number().min(0.0).max(1.0), // 0 = sequential, 1 = global
-  /** Abstract vs. concrete thinking */
-  abstractVsConcrete: z.number().min(0.0).max(1.0), // 0 = concrete, 1 = abstract
-  /** Collaborative vs. independent learning */
-  collaborativeVsIndependent: z.number().min(0.0).max(1.0), // 0 = independent, 1 = collaborative
-  /** Processing speed preference */
-  processingSpeed: z.enum(['slow_deep', 'moderate', 'fast_surface']),
-}).refine((data) => {
-  // Ensure VARK preferences sum to approximately 1.0 (±0.2 tolerance)
-  const total = data.visual + data.auditory + data.kinesthetic + data.readingWriting;
-  return total >= 0.8 && total <= 1.2;
-}, {
-  message: 'VARK learning preferences must sum to approximately 1.0',
-});
+export const ComprehensionStyleSchema = z
+  .object({
+    /** Visual learning preference (0-1) */
+    visual: z.number().min(0.0).max(1.0),
+    /** Auditory learning preference (0-1) */
+    auditory: z.number().min(0.0).max(1.0),
+    /** Kinesthetic learning preference (0-1) */
+    kinesthetic: z.number().min(0.0).max(1.0),
+    /** Reading/writing preference (0-1) */
+    readingWriting: z.number().min(0.0).max(1.0),
+    /** Sequential vs. global processing */
+    sequentialVsGlobal: z.number().min(0.0).max(1.0), // 0 = sequential, 1 = global
+    /** Abstract vs. concrete thinking */
+    abstractVsConcrete: z.number().min(0.0).max(1.0), // 0 = concrete, 1 = abstract
+    /** Collaborative vs. independent learning */
+    collaborativeVsIndependent: z.number().min(0.0).max(1.0), // 0 = independent, 1 = collaborative
+    /** Processing speed preference */
+    processingSpeed: z.enum(['slow_deep', 'moderate', 'fast_surface']),
+  })
+  .refine(
+    (data) => {
+      // Ensure VARK preferences sum to approximately 1.0 (±0.2 tolerance)
+      const total = data.visual + data.auditory + data.kinesthetic + data.readingWriting;
+      return total >= 0.8 && total <= 1.2;
+    },
+    {
+      message: 'VARK learning preferences must sum to approximately 1.0',
+    }
+  );
 
 export type ComprehensionStyle = z.infer<typeof ComprehensionStyleSchema>;
 
@@ -156,7 +161,7 @@ export const StudentPersonaSchema = z.enum([
   'gifted_underachiever',
   'english_language_learner',
   'returning_adult_learner',
-  'neurodivergent_learner'
+  'neurodivergent_learner',
 ]);
 
 export type StudentPersona = z.infer<typeof StudentPersonaSchema>;
@@ -219,12 +224,14 @@ export const LearningSessi‌onDataSchema = z.object({
   helpRequestCount: z.number().int().min(0),
   breaksCount: z.number().int().min(0),
   /** Cognitive indicators */
-  confusionEvents: z.array(z.object({
-    timestamp: z.date(),
-    conceptId: z.string(),
-    severity: z.enum(['low', 'medium', 'high']),
-    resolved: z.boolean(),
-  })),
+  confusionEvents: z.array(
+    z.object({
+      timestamp: z.date(),
+      conceptId: z.string(),
+      severity: z.enum(['low', 'medium', 'high']),
+      resolved: z.boolean(),
+    })
+  ),
   engagementScore: z.number().min(0.0).max(1.0),
   cognitiveLoadIndicator: z.number().min(0.0).max(2.0),
   /** Learning outcomes */
@@ -238,13 +245,7 @@ export type LearningSessionData = z.infer<typeof LearningSessi‌onDataSchema>;
  * Schema for privacy attack testing data
  */
 export const PrivacyAttackDataSchema = z.object({
-  attackType: z.enum([
-    'linkage_attack',
-    'membership_inference',
-    'attribute_inference',
-    'reconstruction_attack',
-    'differential_attack'
-  ]),
+  attackType: z.enum(['linkage_attack', 'membership_inference', 'attribute_inference', 'reconstruction_attack', 'differential_attack']),
   targetStudentId: z.string().uuid(),
   auxiliaryData: z.record(z.unknown()),
   attackSuccess: z.boolean(),
@@ -332,32 +333,32 @@ export const learnerDnaPrivacyConsentSchema = z.object({
   tenantId: z.string(),
   userId: z.string(),
   consentVersion: z.string().default('1.0'),
-  
+
   // Granular consent permissions
   behavioralTimingConsent: z.boolean().default(false),
   assessmentPatternsConsent: z.boolean().default(false),
   chatInteractionsConsent: z.boolean().default(false),
   crossCourseCorrelationConsent: z.boolean().default(false),
   anonymizedAnalyticsConsent: z.boolean().default(true),
-  
+
   // Data collection level
   dataCollectionLevel: z.enum(['minimal', 'standard', 'comprehensive']).default('minimal'),
-  
+
   // COPPA compliance for minors
   parentalConsentRequired: z.boolean().default(false),
   parentalConsentGiven: z.boolean().default(false),
   parentalEmail: z.string().email().optional(),
-  
+
   // Timestamps and metadata
   consentGivenAt: z.date().default(() => new Date()),
   consentUpdatedAt: z.date().default(() => new Date()),
   withdrawalRequestedAt: z.date().optional(),
   withdrawalReason: z.string().optional(),
-  
+
   // Audit information
   consentSource: z.enum(['dashboard', 'onboarding', 'policy_update', 'api', 'test']).default('dashboard'),
   ipAddress: z.string().optional(),
-  userAgent: z.string().optional()
+  userAgent: z.string().optional(),
 });
 
 /**
@@ -375,7 +376,7 @@ export const privacyConsentUpdateSchema = z.object({
   parentalEmail: z.string().email().optional(),
   consentSource: z.enum(['dashboard', 'onboarding', 'policy_update', 'api', 'test']).optional(),
   ipAddress: z.string().optional(),
-  userAgent: z.string().optional()
+  userAgent: z.string().optional(),
 });
 
 /**
@@ -386,27 +387,34 @@ export const behavioralPatternSchema = z.object({
   tenantId: z.string(),
   userId: z.string(),
   sessionId: z.string(),
-  
+
   // Pattern classification
-  patternType: z.enum(['interaction_timing', 'learning_velocity', 'memory_retention', 'comprehension_style', 'struggle_indicators', 'content_preferences']),
+  patternType: z.enum([
+    'interaction_timing',
+    'learning_velocity',
+    'memory_retention',
+    'comprehension_style',
+    'struggle_indicators',
+    'content_preferences',
+  ]),
   contextType: z.enum(['chat', 'assessment', 'content_review', 'navigation']),
-  
+
   // Data storage
   rawDataEncrypted: z.string(),
   rawDataHash: z.string(),
   aggregatedMetrics: z.record(z.any()).default({}),
   confidenceLevel: z.number().min(0).max(1).default(0),
-  
+
   // Context and timing
   courseId: z.string().optional(),
   contentId: z.string().optional(),
   collectedAt: z.date().default(() => new Date()),
   anonymizedAt: z.date().optional(),
   purgeAt: z.date().optional(),
-  
+
   // Privacy compliance
   privacyLevel: z.enum(['identifiable', 'pseudonymized', 'anonymized']).default('identifiable'),
-  consentVerified: z.boolean().default(false)
+  consentVerified: z.boolean().default(false),
 });
 
 /**

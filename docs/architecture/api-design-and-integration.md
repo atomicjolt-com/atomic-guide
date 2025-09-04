@@ -78,7 +78,7 @@ export class AtomicGuideMCP extends McpAgent<McpProps, Env> {
         resources: { listChanged: true },
         prompts: { listChanged: true },
       },
-    },
+    }
   );
 }
 
@@ -240,3 +240,4 @@ type ChatMessage =
   | { type: 'suggestion'; content: string; trigger: 'struggle' | 'idle' }
   | { type: 'typing_indicator'; isTyping: boolean }
   | { type: 'rate_limit'; remaining: number; resetAt: number };
+```

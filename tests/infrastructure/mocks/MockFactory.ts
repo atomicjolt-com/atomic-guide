@@ -47,23 +47,23 @@ export class MockFactory {
    */
   static createD1Database(config: MockD1Config = {}): D1Database {
     const { data = new Map(), failOnQuery, latency = 0 } = config;
-    
+
     const mockStatement: D1PreparedStatement = {
       bind: vi.fn().mockReturnThis(),
       first: vi.fn(async () => {
-        if (latency) await new Promise(r => setTimeout(r, latency));
+        if (latency) await new Promise((r) => setTimeout(r, latency));
         return data.values().next().value || null;
       }),
       all: vi.fn(async () => {
-        if (latency) await new Promise(r => setTimeout(r, latency));
+        if (latency) await new Promise((r) => setTimeout(r, latency));
         return { results: Array.from(data.values()), success: true, meta: {} };
       }),
       run: vi.fn(async () => {
-        if (latency) await new Promise(r => setTimeout(r, latency));
+        if (latency) await new Promise((r) => setTimeout(r, latency));
         return { success: true, meta: { last_row_id: 1, changes: 1 } };
       }),
       raw: vi.fn(async () => {
-        if (latency) await new Promise(r => setTimeout(r, latency));
+        if (latency) await new Promise((r) => setTimeout(r, latency));
         return [];
       }),
     } as unknown as D1PreparedStatement;
@@ -81,11 +81,11 @@ export class MockFactory {
         if (failOnQuery?.(query)) {
           throw new Error(`Database execution failed: ${query}`);
         }
-        if (latency) await new Promise(r => setTimeout(r, latency));
+        if (latency) await new Promise((r) => setTimeout(r, latency));
         return { count: 0, duration: 1 };
       }),
       batch: vi.fn(async (statements: D1PreparedStatement[]) => {
-        if (latency) await new Promise(r => setTimeout(r, latency));
+        if (latency) await new Promise((r) => setTimeout(r, latency));
         return statements.map(() => ({ success: true, meta: {} }));
       }),
       dump: vi.fn(async () => new ArrayBuffer(0)),
@@ -105,7 +105,7 @@ export class MockFactory {
         const stmt = prepare(query);
         if (params.length > 0) stmt.bind(...params);
         return stmt.first();
-      }
+      },
     } as D1Database & { run: any; all: any; get: any };
   }
 
@@ -115,7 +115,7 @@ export class MockFactory {
   static createKVNamespace(config: MockKVConfig = {}): KVNamespace {
     const { data = new Map(), ttl = 60000, failOnKey } = config;
     const metadata = new Map<string, any>();
-    
+
     return {
       get: vi.fn(async (key: string, options?: any) => {
         if (failOnKey?.(key)) {
@@ -127,13 +127,13 @@ export class MockFactory {
         }
         return value || null;
       }),
-      
+
       getWithMetadata: vi.fn(async (key: string, options?: any) => {
         const value = data.get(key);
         const meta = metadata.get(key);
         return { value, metadata: meta };
       }),
-      
+
       put: vi.fn(async (key: string, value: any, options?: any) => {
         if (failOnKey?.(key)) {
           throw new Error(`KV put failed for key: ${key}`);
@@ -147,24 +147,24 @@ export class MockFactory {
           setTimeout(() => data.delete(key), options?.expirationTtl || ttl);
         }
       }),
-      
+
       delete: vi.fn(async (key: string) => {
         data.delete(key);
         metadata.delete(key);
       }),
-      
+
       list: vi.fn(async (options?: any) => {
         const keys = Array.from(data.keys())
-          .filter(k => !options?.prefix || k.startsWith(options.prefix))
+          .filter((k) => !options?.prefix || k.startsWith(options.prefix))
           .slice(0, options?.limit || 1000)
-          .map(name => ({ name, metadata: metadata.get(name) }));
-        
-        return { 
-          keys, 
+          .map((name) => ({ name, metadata: metadata.get(name) }));
+
+        return {
+          keys,
           list_complete: keys.length < (options?.limit || 1000),
-          cursor: undefined
+          cursor: undefined,
         };
-      })
+      }),
     } as unknown as KVNamespace;
   }
 
@@ -173,35 +173,35 @@ export class MockFactory {
    */
   static createQueue(config: MockQueueConfig = {}): Queue {
     const { messages = [], failOnSend = false, processDelay = 0 } = config;
-    
+
     return {
       send: vi.fn(async (message: any, options?: any) => {
         if (failOnSend) {
           throw new Error('Queue send failed');
         }
         if (processDelay) {
-          await new Promise(r => setTimeout(r, processDelay));
+          await new Promise((r) => setTimeout(r, processDelay));
         }
-        messages.push({ 
-          body: message, 
-          timestamp: new Date(), 
+        messages.push({
+          body: message,
+          timestamp: new Date(),
           id: uuidv4(),
-          ...options 
+          ...options,
         });
       }),
-      
+
       sendBatch: vi.fn(async (batch: any[]) => {
         if (failOnSend) {
           throw new Error('Queue batch send failed');
         }
         for (const item of batch) {
-          messages.push({ 
-            body: item.body, 
-            timestamp: new Date(), 
-            id: uuidv4() 
+          messages.push({
+            body: item.body,
+            timestamp: new Date(),
+            id: uuidv4(),
           });
         }
-      })
+      }),
     } as unknown as Queue;
   }
 
@@ -213,10 +213,10 @@ export class MockFactory {
       run: vi.fn(async (model: string, input: any) => {
         const response = responses.get(model) || {
           response: 'Mock AI response',
-          embeddings: [[0.1, 0.2, 0.3]]
+          embeddings: [[0.1, 0.2, 0.3]],
         };
         return response;
-      })
+      }),
     } as unknown as Ai;
   }
 
@@ -231,12 +231,12 @@ export class MockFactory {
       body = {},
       query = {},
       params = {},
-      headers = {}
+      headers = {},
     } = config;
 
     const mockReq = {
-      param: vi.fn((key?: string) => key ? params[key] : params),
-      query: vi.fn((key?: string) => key ? query[key] : query),
+      param: vi.fn((key?: string) => (key ? params[key] : params)),
+      query: vi.fn((key?: string) => (key ? query[key] : query)),
       header: vi.fn((key?: string) => {
         if (key === 'Authorization') return jwt;
         return key ? headers[key] : headers;
@@ -244,21 +244,25 @@ export class MockFactory {
       json: vi.fn(async () => body),
       text: vi.fn(async () => JSON.stringify(body)),
       valid: vi.fn((target: string) => {
-        switch(target) {
-          case 'param': return params;
-          case 'query': return query;
-          case 'json': return body;
-          default: return {};
+        switch (target) {
+          case 'param':
+            return params;
+          case 'query':
+            return query;
+          case 'json':
+            return body;
+          default:
+            return {};
         }
       }),
       raw: {} as Request,
       url: 'http://test.local/api/test',
-      method: 'GET'
+      method: 'GET',
     };
 
     const mockRes = {
       status: vi.fn().mockReturnThis(),
-      header: vi.fn().mockReturnThis()
+      header: vi.fn().mockReturnThis(),
     };
 
     const context: any = {
@@ -268,18 +272,18 @@ export class MockFactory {
         DB: MockFactory.createD1Database(),
         KV: MockFactory.createKVNamespace(),
         QUEUE: MockFactory.createQueue(),
-        AI: MockFactory.createAI()
+        AI: MockFactory.createAI(),
       },
       json: vi.fn((object: any, status?: number) => {
         if (status) mockRes.status(status);
         return new Response(JSON.stringify(object), {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }),
       text: vi.fn((text: string, status?: number) => {
         if (status) mockRes.status(status);
         return new Response(text, {
-          headers: { 'Content-Type': 'text/plain' }
+          headers: { 'Content-Type': 'text/plain' },
         });
       }),
       status: vi.fn((code: number) => {
@@ -290,13 +294,13 @@ export class MockFactory {
         const store: Record<string, any> = {
           tenantId,
           userId,
-          jwt: jwt.replace('Bearer ', '')
+          jwt: jwt.replace('Bearer ', ''),
         };
         return store[key];
       }),
       set: vi.fn(),
       var: {},
-      header: vi.fn()
+      header: vi.fn(),
     };
 
     return context as Context;
@@ -313,16 +317,18 @@ export class MockFactory {
           put: vi.fn(async (key: string, value: any) => state.set(key, value)),
           delete: vi.fn(async (key: string) => state.delete(key)),
           list: vi.fn(async () => state),
-          transaction: vi.fn(async (fn: Function) => fn({
-            get: (key: string) => state.get(key),
-            put: (key: string, value: any) => state.set(key, value),
-            delete: (key: string) => state.delete(key)
-          }))
+          transaction: vi.fn(async (fn: Function) =>
+            fn({
+              get: (key: string) => state.get(key),
+              put: (key: string, value: any) => state.set(key, value),
+              delete: (key: string) => state.delete(key),
+            })
+          ),
         },
         waitUntil: vi.fn(),
-        id: { toString: () => `${name}-${uuidv4()}` }
+        id: { toString: () => `${name}-${uuidv4()}` },
       },
-      fetch: vi.fn(async () => new Response('OK'))
+      fetch: vi.fn(async () => new Response('OK')),
     };
   }
 

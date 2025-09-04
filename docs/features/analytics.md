@@ -9,18 +9,21 @@ The analytics dashboard provides instructors and administrators with comprehensi
 ## Key Features
 
 ### Performance Analytics
+
 - **Real-Time Metrics**: Live updates on student progress
 - **Predictive Insights**: Early warning system for at-risk students
 - **Concept Mastery**: Track understanding of specific topics
 - **Comparative Analysis**: Cohort and historical comparisons
 
 ### Engagement Tracking
+
 - **Participation Rates**: Chat usage, assessment attempts
 - **Time Analytics**: Study patterns and session duration
 - **Content Interaction**: Most/least accessed materials
 - **Help-Seeking Behavior**: Question frequency and types
 
 ### Privacy-Preserving Design
+
 - **Differential Privacy**: Statistical noise for small cohorts
 - **Data Minimization**: Only essential data collected
 - **Consent Management**: Granular privacy controls
@@ -54,14 +57,14 @@ interface InstructorDashboard {
 
 ### Key Metrics Tracked
 
-| Metric | Description | Update Frequency | Privacy Level |
-|--------|-------------|------------------|---------------|
-| Performance Score | Average assessment grades | Real-time | Aggregated |
-| Engagement Rate | Active participation % | Hourly | Aggregated |
-| Concept Mastery | Topic understanding level | Daily | Individual |
-| Time on Task | Study duration patterns | Real-time | Anonymous |
-| Help Requests | Support interaction frequency | Real-time | Individual |
-| Struggle Indicators | Difficulty detection signals | Real-time | Individual |
+| Metric              | Description                   | Update Frequency | Privacy Level |
+| ------------------- | ----------------------------- | ---------------- | ------------- |
+| Performance Score   | Average assessment grades     | Real-time        | Aggregated    |
+| Engagement Rate     | Active participation %        | Hourly           | Aggregated    |
+| Concept Mastery     | Topic understanding level     | Daily            | Individual    |
+| Time on Task        | Study duration patterns       | Real-time        | Anonymous     |
+| Help Requests       | Support interaction frequency | Real-time        | Individual    |
+| Struggle Indicators | Difficulty detection signals  | Real-time        | Individual    |
 
 ## Student Performance Overview
 
@@ -110,19 +113,19 @@ class StruggleDetector {
     repeatedQuestions: { threshold: 3, weight: 0.3 },
     lowAssessmentScores: { threshold: 0.6, weight: 0.4 },
     helpRequestFrequency: { threshold: 5, weight: 0.2 },
-    sessionAbandonment: { threshold: 2, weight: 0.1 }
+    sessionAbandonment: { threshold: 2, weight: 0.1 },
   };
 
   async detectStruggle(studentId: string): Promise<StruggleAlert | null> {
     const signals = await this.collectSignals(studentId);
     const score = this.calculateStruggleScore(signals);
-    
+
     if (score > STRUGGLE_THRESHOLD) {
       return {
         studentId,
         severity: this.getSeverity(score),
         concepts: this.identifyProblematicConcepts(signals),
-        recommendedInterventions: this.getInterventions(signals)
+        recommendedInterventions: this.getInterventions(signals),
       };
     }
     return null;
@@ -223,10 +226,10 @@ class DataAnonymizer {
       // Remove all PII
       name: undefined,
       email: undefined,
-      demographics: undefined
+      demographics: undefined,
     };
   }
-  
+
   applyDifferentialPrivacy(value: number): number {
     const noise = this.laplacianNoise(PRIVACY_EPSILON);
     return value + noise;
@@ -237,6 +240,7 @@ class DataAnonymizer {
 ## API Endpoints
 
 ### Get Analytics Dashboard
+
 ```typescript
 GET /api/analytics/dashboard
 Authorization: Bearer <jwt>
@@ -260,6 +264,7 @@ Response:
 ```
 
 ### Get Student Analytics
+
 ```typescript
 GET /api/analytics/student/{studentId}
 Authorization: Bearer <jwt>
@@ -274,6 +279,7 @@ Response:
 ```
 
 ### Export Analytics
+
 ```typescript
 POST /api/analytics/export
 Authorization: Bearer <jwt>
@@ -297,15 +303,15 @@ Response: Binary PDF data
 
 ```typescript
 // Environment configuration
-ANALYTICS_ENABLED=true
-PRIVACY_LEVEL="balanced" // strict | balanced | minimal
-DATA_RETENTION_DAYS=365
-ANONYMIZATION_THRESHOLD=5 // Min group size
+ANALYTICS_ENABLED = true;
+PRIVACY_LEVEL = 'balanced'; // strict | balanced | minimal
+DATA_RETENTION_DAYS = 365;
+ANONYMIZATION_THRESHOLD = 5; // Min group size
 
 // Feature flags
-ENABLE_PREDICTIONS=true
-ENABLE_PEER_COMPARISON=false
-ENABLE_EXPORT=true
+ENABLE_PREDICTIONS = true;
+ENABLE_PEER_COMPARISON = false;
+ENABLE_EXPORT = true;
 ```
 
 ### Customization Options
@@ -390,11 +396,11 @@ const query = `
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| No data showing | Check privacy settings and consent |
-| Slow loading | Clear cache, check time range |
-| Export fails | Verify permissions and format |
+| Issue             | Solution                               |
+| ----------------- | -------------------------------------- |
+| No data showing   | Check privacy settings and consent     |
+| Slow loading      | Clear cache, check time range          |
+| Export fails      | Verify permissions and format          |
 | Incorrect metrics | Validate data sources and calculations |
 
 ## Future Roadmap

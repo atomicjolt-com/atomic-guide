@@ -32,16 +32,13 @@ interface LTITokenPayload {
 
 /**
  * Validates an LTI JWT token and returns payload if valid
- * 
+ *
  * @param token - JWT token string to validate
  * @param env - Environment bindings containing JWT_SECRET
  * @returns Promise resolving to true if token is valid, false otherwise
  * @throws {Error} If token validation fails due to server error
  */
-export async function validateLTIToken(
-  token: string,
-  env: Env
-): Promise<boolean> {
+export async function validateLTIToken(token: string, env: Env): Promise<boolean> {
   try {
     if (!token) {
       return false;
@@ -55,11 +52,10 @@ export async function validateLTIToken(
     }
 
     // Verify the token
-    const payload = await verify(token, secret) as unknown as LTITokenPayload;
-    
+    const payload = (await verify(token, secret)) as unknown as LTITokenPayload;
+
     // Validate required LTI claims
     return validateLTIPayload(payload);
-    
   } catch (error) {
     console.error('LTI token validation failed:', error);
     return false;
@@ -68,7 +64,7 @@ export async function validateLTIToken(
 
 /**
  * Validates LTI token payload structure and required claims
- * 
+ *
  * @param payload - Decoded JWT payload
  * @returns True if payload contains required LTI claims
  */
@@ -105,8 +101,10 @@ function validateLTIPayload(payload: LTITokenPayload): boolean {
     return false;
   }
 
-  if (!Array.isArray(payload['https://purl.imsglobal.org/spec/lti/claim/roles']) || 
-      payload['https://purl.imsglobal.org/spec/lti/claim/roles'].length === 0) {
+  if (
+    !Array.isArray(payload['https://purl.imsglobal.org/spec/lti/claim/roles']) ||
+    payload['https://purl.imsglobal.org/spec/lti/claim/roles'].length === 0
+  ) {
     console.error('Missing or invalid LTI claim: roles');
     return false;
   }
@@ -128,7 +126,7 @@ function validateLTIPayload(payload: LTITokenPayload): boolean {
 
 /**
  * Extracts user information from validated LTI token payload
- * 
+ *
  * @param token - JWT token string (must be validated first)
  * @param env - Environment bindings containing JWT_SECRET
  * @returns Promise resolving to user information or null if invalid
@@ -149,8 +147,8 @@ export async function extractLTIUserInfo(
       return null;
     }
 
-    const payload = await verify(token, secret) as unknown as LTITokenPayload;
-    
+    const payload = (await verify(token, secret)) as unknown as LTITokenPayload;
+
     if (!validateLTIPayload(payload)) {
       return null;
     }
@@ -162,7 +160,6 @@ export async function extractLTIUserInfo(
       roles: payload['https://purl.imsglobal.org/spec/lti/claim/roles'],
       deploymentId: payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'],
     };
-    
   } catch (error) {
     console.error('Failed to extract LTI user info:', error);
     return null;
@@ -171,7 +168,7 @@ export async function extractLTIUserInfo(
 
 /**
  * Checks if user has instructor role based on LTI roles
- * 
+ *
  * @param roles - Array of LTI role URIs
  * @returns True if user has instructor-level permissions
  */
@@ -184,22 +181,18 @@ export function hasInstructorRole(roles: string[]): boolean {
     'ContentDeveloper',
     'TeachingAssistant',
   ];
-  
-  return roles.some(role => instructorRoles.includes(role));
+
+  return roles.some((role) => instructorRoles.includes(role));
 }
 
 /**
  * Checks if user has student role based on LTI roles
- * 
+ *
  * @param roles - Array of LTI role URIs
  * @returns True if user has student-level permissions
  */
 export function hasStudentRole(roles: string[]): boolean {
-  const studentRoles = [
-    'http://purl.imsglobal.org/vocab/lis/v2/membership#Learner',
-    'Learner',
-    'Student',
-  ];
-  
-  return roles.some(role => studentRoles.includes(role));
+  const studentRoles = ['http://purl.imsglobal.org/vocab/lis/v2/membership#Learner', 'Learner', 'Student'];
+
+  return roles.some((role) => studentRoles.includes(role));
 }

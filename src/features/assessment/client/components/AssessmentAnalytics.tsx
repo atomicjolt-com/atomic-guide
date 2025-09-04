@@ -43,16 +43,12 @@ interface AssessmentAnalyticsProps {
 
 /**
  * Instructor analytics dashboard for viewing assessment performance data
- * 
+ *
  * @component
  * @param props - Component props
  * @returns Assessment analytics dashboard
  */
-export function AssessmentAnalytics({
-  courseId,
-  assessmentId,
-  jwt,
-}: AssessmentAnalyticsProps): ReactElement {
+export function AssessmentAnalytics({ courseId, assessmentId, jwt }: AssessmentAnalyticsProps): ReactElement {
   const [performance, setPerformance] = useState<AssessmentPerformance | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,13 +62,11 @@ export function AssessmentAnalytics({
       setLoading(true);
       setError(null);
 
-      const url = assessmentId
-        ? `/api/assessments/${assessmentId}/analytics`
-        : `/api/courses/${courseId}/assessment-analytics`;
+      const url = assessmentId ? `/api/assessments/${assessmentId}/analytics` : `/api/courses/${courseId}/assessment-analytics`;
 
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          Authorization: `Bearer ${jwt}`,
           'Content-Type': 'application/json',
         },
       });
@@ -113,14 +107,14 @@ export function AssessmentAnalytics({
       ...Object.entries(performance.scoreDistribution).map(([range, count]) => [range, count.toString()]),
       [],
       ['Common Struggle Points:'],
-      ...performance.commonStrugglePoints.map(point => [
+      ...performance.commonStrugglePoints.map((point) => [
         point.questionText,
         point.incorrectAttempts.toString(),
         point.averageAttemptsToCorrect.toFixed(1),
       ]),
     ];
 
-    const csv = csvData.map(row => row.join(',')).join('\n');
+    const csv = csvData.map((row) => row.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -179,9 +173,7 @@ export function AssessmentAnalytics({
         </div>
         <div className={styles.metric}>
           <span className={styles.metricLabel}>Completion Rate</span>
-          <span className={styles.metricValue}>
-            {(performance.completionRate * 100).toFixed(1)}%
-          </span>
+          <span className={styles.metricValue}>{(performance.completionRate * 100).toFixed(1)}%</span>
         </div>
         <div className={styles.metric}>
           <span className={styles.metricLabel}>Avg. Time</span>
@@ -190,10 +182,7 @@ export function AssessmentAnalytics({
       </div>
 
       <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${selectedMetric === 'scores' ? styles.active : ''}`}
-          onClick={() => setSelectedMetric('scores')}
-        >
+        <button className={`${styles.tab} ${selectedMetric === 'scores' ? styles.active : ''}`} onClick={() => setSelectedMetric('scores')}>
           Score Distribution
         </button>
         <button
@@ -202,10 +191,7 @@ export function AssessmentAnalytics({
         >
           Struggle Points
         </button>
-        <button
-          className={`${styles.tab} ${selectedMetric === 'time' ? styles.active : ''}`}
-          onClick={() => setSelectedMetric('time')}
-        >
+        <button className={`${styles.tab} ${selectedMetric === 'time' ? styles.active : ''}`} onClick={() => setSelectedMetric('time')}>
           Time Analysis
         </button>
       </div>
@@ -217,10 +203,10 @@ export function AssessmentAnalytics({
             <div className={styles.chart}>
               {Object.entries(performance.scoreDistribution).map(([range, count]) => (
                 <div key={range} className={styles.bar}>
-                  <div 
+                  <div
                     className={styles.barFill}
-                    style={{ 
-                      height: `${(count / Math.max(...Object.values(performance.scoreDistribution))) * 100}%` 
+                    style={{
+                      height: `${(count / Math.max(...Object.values(performance.scoreDistribution))) * 100}%`,
                     }}
                   />
                   <span className={styles.barLabel}>{range}</span>
@@ -279,8 +265,8 @@ export function AssessmentAnalytics({
               </div>
             </div>
             <p className={styles.timeInsight}>
-              Students who spent more than {performance.averageTimeSpent} minutes
-              typically scored {(performance.averageScore + 10).toFixed(1)}% or higher.
+              Students who spent more than {performance.averageTimeSpent} minutes typically scored{' '}
+              {(performance.averageScore + 10).toFixed(1)}% or higher.
             </p>
           </div>
         )}

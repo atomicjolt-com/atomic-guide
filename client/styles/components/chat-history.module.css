@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-bg, #FFFFFF);
+  background: var(--color-bg, #ffffff);
   border-radius: var(--radius-lg, 12px);
   overflow: hidden;
 }
@@ -10,7 +10,7 @@
 .header {
   padding: var(--spacing-lg, 24px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
 }
 
 .header h2 {
@@ -45,8 +45,8 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--color-primary, #FFDD00);
-  box-shadow: var(--shadow-focus, 0 0 0 3px rgba(255,221,0,0.25));
+  border-color: var(--color-primary, #ffdd00);
+  box-shadow: var(--shadow-focus, 0 0 0 3px rgba(255, 221, 0, 0.25));
 }
 
 .searchIcon {
@@ -70,7 +70,7 @@
 }
 
 .topicFilter:hover {
-  border-color: var(--color-primary, #FFDD00);
+  border-color: var(--color-primary, #ffdd00);
 }
 
 .activeFilter {
@@ -78,7 +78,7 @@
   align-items: center;
   gap: var(--spacing-xs, 4px);
   padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
-  background: var(--color-primary, #FFDD00);
+  background: var(--color-primary, #ffdd00);
   border-radius: var(--radius-sm, 6px);
   font-size: var(--font-size-small, 12px);
   font-weight: var(--font-weight-medium, 500);
@@ -115,13 +115,13 @@
 }
 
 .conversationCard:hover {
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.12));
   border-color: rgba(0, 0, 0, 0.12);
 }
 
 .conversationCard.selected {
-  border-color: var(--color-primary, #FFDD00);
-  box-shadow: var(--shadow-focus, 0 0 0 3px rgba(255,221,0,0.25));
+  border-color: var(--color-primary, #ffdd00);
+  box-shadow: var(--shadow-focus, 0 0 0 3px rgba(255, 221, 0, 0.25));
 }
 
 .cardHeader {
@@ -170,7 +170,7 @@
 }
 
 .deleteButton:hover {
-  color: var(--color-error, #B42318);
+  color: var(--color-error, #b42318);
 }
 
 .cardMeta {
@@ -210,7 +210,7 @@
 .topicTag {
   display: inline-block;
   padding: 2px var(--spacing-sm, 8px);
-  background: var(--color-bg-gray, #F5F5F5);
+  background: var(--color-bg-gray, #f5f5f5);
   border-radius: var(--radius-sm, 6px);
   font-size: var(--font-size-small, 12px);
   color: var(--color-text-secondary, #666666);
@@ -219,7 +219,7 @@
 }
 
 .topicTag:hover {
-  background: var(--color-primary, #FFDD00);
+  background: var(--color-primary, #ffdd00);
   color: var(--color-text, #333333);
 }
 
@@ -230,7 +230,7 @@
 }
 
 .conversationTimeline {
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
   border-radius: var(--radius-md, 8px);
   padding: var(--spacing-md, 16px);
 }
@@ -255,8 +255,8 @@
 }
 
 .message.user {
-  background: var(--color-primary, #FFDD00);
-  background: linear-gradient(135deg, var(--color-primary, #FFDD00) 0%, #F5D000 100%);
+  background: var(--color-primary, #ffdd00);
+  background: linear-gradient(135deg, var(--color-primary, #ffdd00) 0%, #f5d000 100%);
 }
 
 .message.assistant {
@@ -309,7 +309,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top-color: var(--color-primary, #FFDD00);
+  border-top-color: var(--color-primary, #ffdd00);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: var(--spacing-md, 16px);

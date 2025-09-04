@@ -3,498 +3,476 @@
  * @module features/dashboard/server/handlers/__tests__/analyticsApi.test
  */
 
-import { describe, it, expect, vi, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
-import type { Context } from 'hono';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Hono } from 'hono';
+import { createAnalyticsApi } from '../analyticsApi';
+import type { D1Database, Queue, Ai } from '@cloudflare/workers-types';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
-// Create mock handler functions that check environment state
-const getStudentPerformance = vi.fn(async (ctx: Context) => {
-  const studentId = ctx.req.param('studentId');
-  const authHeader = ctx.req.header('Authorization');
+// Mock the service classes
+vi.mock('../services/PerformanceAnalyticsService', () => ({
+  PerformanceAnalyticsService: vi.fn().mockImplementation(() => ({
+    getStudentAnalytics: vi.fn().mockResolvedValue({
+      profile: {
+        studentId: 'student-1',
+        overallMastery: 0.75,
+        learningVelocity: 2.0,
+        confidenceLevel: 0.8
+      },
+      conceptMasteries: [
+        { conceptId: 'arrays', masteryLevel: 0.8 },
+        { conceptId: 'loops', masteryLevel: 0.6 }
+      ]
+    }),
+    queueAnalyticsTask: vi.fn().mockResolvedValue('task-123')
+  }))
+}));
 
-  // Check authorization
-  if (!authHeader) {
-    ctx.status(401);
-    return ctx.json({ error: 'Unauthorized' });
-  }
+vi.mock('../services/PrivacyPreservingAnalytics', () => ({
+  PrivacyPreservingAnalytics: vi.fn().mockImplementation(() => ({
+    validatePrivacyConsent: vi.fn().mockResolvedValue({ 
+      isAllowed: true, 
+      reason: 'consent_granted' 
+    }),
+    auditDataAccess: vi.fn().mockResolvedValue(undefined),
+    getAnonymizedBenchmark: vi.fn().mockResolvedValue({
+      benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
+    })
+  }))
+}));
 
-  // Check cache first
-  const cacheKey = `performance:${studentId}`;
-  const cached = await ctx.env.ANALYTICS_KV.get(cacheKey);
-  if (cached) {
-    const data = JSON.parse(cached);
-    return ctx.json(data.profile);
-  }
+vi.mock('../services/AdaptiveLearningService', () => ({
+  AdaptiveLearningService: vi.fn().mockImplementation(() => ({
+    generateAdaptiveRecommendations: vi.fn().mockResolvedValue([
+      { id: 'rec-1', type: 'review', priority: 'high', conceptId: 'arrays' }
+    ])
+  }))
+}));
 
-  // Get from database
-  const profile = await ctx.env.DB.first();
-  if (!profile) {
-    ctx.status(404);
-    return ctx.json({ error: 'Student profile not found' });
-  }
-
-  return ctx.json({
-    profile: { studentId, overallMastery: 0.75, learningVelocity: 2.0 },
-    recommendations: [{ type: 'review', priority: 'high' }],
-  });
+// Helper to create mock environment
+const createMockEnv = () => ({
+  DB: {
+    prepare: vi.fn().mockReturnThis(),
+    bind: vi.fn().mockReturnThis(),
+    first: vi.fn(),
+    all: vi.fn(),
+    run: vi.fn(),
+  } as unknown as D1Database,
+  ANALYTICS_QUEUE: {
+    send: vi.fn(),
+  } as unknown as Queue,
+  AI: {} as unknown as Ai,
 });
 
-const getInstructorOverview = vi.fn();
-const updateRecommendationAction = vi.fn();
-const exportAnalyticsData = vi.fn();
-
 describe('Analytics API Handlers', () => {
-  let mockContext: Context;
-  let mockEnv: any;
+  let app: Hono;
+  let mockEnv: ReturnType<typeof createMockEnv>;
+  const tenantId = 'test-tenant';
 
-  beforeEach(async () => {
-    // Setup test infrastructure - removed ServiceTestHarness as this tests API handlers directly
-
-    // Reset mocks
-
-    // Mock environment
-    mockEnv = {
-      DB: {
-        prepare: vi.fn().mockReturnThis(),
-        bind: vi.fn().mockReturnThis(),
-        first: vi.fn(),
-        all: vi.fn(),
-        run: vi.fn(),
-      },
-      ANALYTICS_KV: {
-        get: vi.fn(),
-        put: vi.fn(),
-      },
-      ANALYTICS_QUEUE: {
-        send: vi.fn(),
-      },
-    };
-
-    // Mock Hono context
-    mockContext = MockFactory.createHonoContext() as any;
-    mockContext.env = mockEnv;
-
-    // Set up remaining mock implementations
-    getInstructorOverview.mockImplementation(async (ctx: Context) => {
-      return ctx.json({
-        overview: { courseId: 'course-1', averageMastery: 0.7 },
-        studentProgress: [],
-      });
-    });
-
-    updateRecommendationAction.mockImplementation(async (ctx: Context) => {
-      return ctx.json({ success: true });
-    });
-
-    exportAnalyticsData.mockImplementation(async (ctx: Context) => {
-      const format = ctx.req.query('format') || 'json';
-      if (format === 'csv') {
-        return ctx.text('csv data', 200, { 'Content-Type': 'text/csv' });
-      }
-      return ctx.json({ data: [] });
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockEnv = createMockEnv();
+    app = new Hono();
+    
+    // Mount the analytics API
+    app.route('/analytics', createAnalyticsApi(tenantId));
   });
 
-  describe('getStudentPerformance', () => {
+  describe('GET /analytics/student/:studentId/performance', () => {
     it('should return student performance profile', async () => {
-      mockContext.req.param.mockReturnValue('student-1');
-      mockContext.req.header.mockReturnValue('Bearer valid-jwt');
+      const res = await app.request('/analytics/student/student-1/performance?courseId=course-1', {
+        method: 'GET',
+        headers: {
+          'X-Instructor-ID': 'instructor-1'
+        }
+      }, mockEnv);
 
-      const mockProfile = {
-        student_id: 'student-1',
-        overall_mastery: 0.75,
-        learning_velocity: 2.0,
-        performance_data: JSON.stringify({
-          conceptMasteries: { arrays: 0.8, loops: 0.7 },
-        }),
-      };
-
-      const mockRecommendations = {
-        results: [
-          {
-            type: 'review',
-            priority: 'high',
-            concepts_involved: JSON.stringify(['arrays']),
-            suggested_actions: JSON.stringify(['Review array methods']),
-          },
-        ],
-      };
-
-      mockEnv.DB.first.mockResolvedValueOnce(mockProfile);
-      mockEnv.DB.all.mockResolvedValueOnce(mockRecommendations);
-
-      await getStudentPerformance(mockContext);
-
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: true,
+        data: expect.objectContaining({
           profile: expect.objectContaining({
             studentId: 'student-1',
             overallMastery: 0.75,
           }),
-          recommendations: expect.arrayContaining([
+          conceptMasteries: expect.arrayContaining([
             expect.objectContaining({
-              type: 'review',
-              priority: 'high',
-            }),
-          ]),
+              conceptId: 'arrays',
+              masteryLevel: 0.8
+            })
+          ])
         })
-      );
+      });
     });
 
-    it('should return cached data when available', async () => {
-      mockContext.req.param.mockReturnValue('student-1');
+    it('should return 400 when courseId is missing', async () => {
+      const res = await app.request('/analytics/student/student-1/performance', {
+        method: 'GET'
+      }, mockEnv);
 
-      const cachedData = {
-        profile: { studentId: 'student-1', overallMastery: 0.8 },
-        timestamp: new Date().toISOString(),
-      };
-
-      mockEnv.ANALYTICS_KV.get.mockResolvedValue(JSON.stringify(cachedData));
-
-      await getStudentPerformance(mockContext);
-
-      expect(mockEnv.DB.first).not.toHaveBeenCalled();
-      expect(mockContext.json).toHaveBeenCalledWith(cachedData.profile);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'courseId query parameter is required'
+      });
     });
 
-    it('should handle missing student profile', async () => {
-      mockContext.req.param.mockReturnValue('nonexistent-student');
-      mockEnv.DB.first.mockResolvedValue(null);
+    it('should handle privacy consent denial', async () => {
+      const { PrivacyPreservingAnalytics } = await import('../services/PrivacyPreservingAnalytics');
+      const mockPrivacyService = new PrivacyPreservingAnalytics(mockEnv.DB, tenantId);
+      vi.mocked(mockPrivacyService.validatePrivacyConsent).mockResolvedValue({
+        isAllowed: false,
+        reason: 'no_consent'
+      });
 
-      await getStudentPerformance(mockContext);
+      const res = await app.request('/analytics/student/student-1/performance?courseId=course-1', {
+        method: 'GET'
+      }, mockEnv);
 
-      expect(mockContext.status).toHaveBeenCalledWith(404);
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Student profile not found',
-        })
-      );
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'Access denied: no_consent'
+      });
     });
 
-    it('should validate JWT authorization', async () => {
-      mockContext.req.param.mockReturnValue('student-1');
-      mockContext.req.header.mockReturnValue(null); // No auth header
+    it('should handle service errors gracefully', async () => {
+      const { PerformanceAnalyticsService } = await import('../services/PerformanceAnalyticsService');
+      const mockAnalyticsService = new PerformanceAnalyticsService(mockEnv.DB, mockEnv.ANALYTICS_QUEUE, tenantId);
+      vi.mocked(mockAnalyticsService.getStudentAnalytics).mockRejectedValue(new Error('Database error'));
 
-      await getStudentPerformance(mockContext);
+      const res = await app.request('/analytics/student/student-1/performance?courseId=course-1', {
+        method: 'GET'
+      }, mockEnv);
 
-      expect(mockContext.status).toHaveBeenCalledWith(401);
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Unauthorized',
-        })
-      );
+      expect(res.status).toBe(500);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'Failed to retrieve student analytics'
+      });
     });
   });
 
-  describe('getInstructorOverview', () => {
+  describe('GET /analytics/instructor/:courseId/overview', () => {
     it('should return class-wide analytics for instructors', async () => {
-      mockContext.req.param.mockReturnValue('course-1');
-      mockContext.req.header.mockReturnValue('Bearer instructor-jwt');
+      // Mock database responses for helper functions
+      mockEnv.DB.first
+        .mockResolvedValueOnce({ total_students: 30, average_mastery: 0.72, at_risk_count: 5 })
+        .mockResolvedValueOnce({ concept_name: 'arrays' });
+      
+      mockEnv.DB.all
+        .mockResolvedValueOnce({ results: [{ concept_name: 'arrays' }] })
+        .mockResolvedValueOnce({ results: [{ student_id: 's1', name: 'Student 1', overall_mastery: 0.8, last_active: '2024-01-01' }] })
+        .mockResolvedValueOnce({ results: [{ id: 'alert-1', alert_type: 'at_risk_student', priority: 'high', student_ids: '["s2"]', alert_data: '{}', created_at: '2024-01-01', acknowledged: false }] })
+        .mockResolvedValueOnce({ results: [{ content_id: 'video-1', average_time: 300, struggling_students: 3, total_students: 30 }] });
 
-      const mockClassMetrics = {
-        total_students: 30,
-        average_mastery: 0.72,
-        at_risk_count: 5,
-      };
+      const res = await app.request('/analytics/instructor/course-1/overview', {
+        method: 'GET',
+        headers: {
+          'X-Instructor-ID': 'instructor-1'
+        }
+      }, mockEnv);
 
-      const mockStudentSummaries = {
-        results: [
-          { student_id: 's1', name: 'Student 1', overall_mastery: 0.8 },
-          { student_id: 's2', name: 'Student 2', overall_mastery: 0.6 },
-        ],
-      };
-
-      const mockAlerts = {
-        results: [
-          {
-            alert_type: 'at_risk_student',
-            student_ids: JSON.stringify(['s2']),
-            priority: 'high',
-          },
-        ],
-      };
-
-      mockEnv.DB.first.mockResolvedValueOnce(mockClassMetrics);
-      mockEnv.DB.all.mockResolvedValueOnce(mockStudentSummaries);
-      mockEnv.DB.all.mockResolvedValueOnce(mockAlerts);
-
-      await getInstructorOverview(mockContext);
-
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: true,
+        data: expect.objectContaining({
           classMetrics: expect.objectContaining({
             totalStudents: 30,
             averageMastery: 0.72,
+            atRiskCount: 5
           }),
-          studentSummaries: expect.arrayContaining([expect.objectContaining({ studentId: 's1' })]),
-          alerts: expect.arrayContaining([expect.objectContaining({ alertType: 'at_risk_student' })]),
-        })
-      );
-    });
-
-    it('should include content engagement analytics', async () => {
-      mockContext.req.param.mockReturnValue('course-1');
-      mockContext.req.query.mockReturnValue({ includeContent: 'true' });
-
-      const mockContentEngagement = {
-        results: [
-          {
-            content_id: 'video-1',
-            average_time: 300,
-            struggling_count: 3,
-          },
-        ],
-      };
-
-      mockEnv.DB.first.mockResolvedValueOnce({ total_students: 20 });
-      mockEnv.DB.all.mockResolvedValueOnce({ results: [] });
-      mockEnv.DB.all.mockResolvedValueOnce({ results: [] });
-      mockEnv.DB.all.mockResolvedValueOnce(mockContentEngagement);
-
-      await getInstructorOverview(mockContext);
-
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          contentEngagement: expect.arrayContaining([
-            expect.objectContaining({
-              contentId: 'video-1',
-              averageTime: 300,
-            }),
+          studentSummaries: expect.arrayContaining([
+            expect.objectContaining({ 
+              studentId: 's1',
+              overallMastery: 0.8
+            })
           ]),
+          alerts: expect.arrayContaining([
+            expect.objectContaining({ 
+              alertType: 'at_risk_student',
+              priority: 'high'
+            })
+          ])
         })
-      );
+      });
     });
 
-    it('should validate instructor permissions', async () => {
-      mockContext.req.param.mockReturnValue('course-1');
-      mockContext.req.header.mockReturnValue('Bearer student-jwt');
+    it('should require instructor authentication', async () => {
+      const res = await app.request('/analytics/instructor/course-1/overview', {
+        method: 'GET'
+        // No X-Instructor-ID header
+      }, mockEnv);
 
-      // Mock permission check failure
-      mockEnv.DB.first.mockResolvedValueOnce(null);
+      expect(res.status).toBe(401);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'Instructor authentication required'
+      });
+    });
 
-      await getInstructorOverview(mockContext);
+    it('should handle database errors gracefully', async () => {
+      mockEnv.DB.first.mockRejectedValue(new Error('Database connection failed'));
 
-      expect(mockContext.status).toHaveBeenCalledWith(403);
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Insufficient permissions',
-        })
-      );
+      const res = await app.request('/analytics/instructor/course-1/overview', {
+        method: 'GET',
+        headers: {
+          'X-Instructor-ID': 'instructor-1'
+        }
+      }, mockEnv);
+
+      expect(res.status).toBe(500);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'Failed to retrieve instructor analytics'
+      });
     });
   });
 
-  describe('updateRecommendationAction', () => {
+  describe('POST /analytics/recommendations/:studentId/action', () => {
     it('should update recommendation status to completed', async () => {
-      mockContext.req.param.mockReturnValue('rec-1');
-      mockContext.req.json.mockResolvedValue({
-        action: 'completed',
-        feedback: 'Very helpful',
-      });
-
       mockEnv.DB.run.mockResolvedValue({ success: true, meta: { changes: 1 } });
-
-      await updateRecommendationAction(mockContext);
-
-      expect(mockEnv.DB.prepare).toHaveBeenCalledWith(expect.stringContaining('UPDATE learning_recommendations'));
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
+      
+      const res = await app.request('/analytics/recommendations/student-1/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recommendationId: 'rec-1',
+          action: 'completed',
+          feedback: 'Very helpful'
         })
+      }, mockEnv);
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: true,
+        message: 'Recommendation action processed successfully'
+      });
+      
+      expect(mockEnv.DB.prepare).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE learning_recommendations')
       );
     });
 
     it('should handle recommendation dismissal', async () => {
-      mockContext.req.param.mockReturnValue('rec-2');
-      mockContext.req.json.mockResolvedValue({
-        action: 'dismissed',
-        feedback: 'Not relevant to my needs',
-      });
-
       mockEnv.DB.run.mockResolvedValue({ success: true });
+      
+      const res = await app.request('/analytics/recommendations/student-1/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recommendationId: 'rec-2',
+          action: 'dismissed',
+          feedback: 'Not relevant to my needs'
+        })
+      }, mockEnv);
 
-      await updateRecommendationAction(mockContext);
-
-      expect(mockEnv.DB.bind).toHaveBeenCalledWith('dismissed', 'Not relevant to my needs', expect.any(String), 'rec-2');
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: true,
+        message: 'Recommendation action processed successfully'
+      });
+      
+      expect(mockEnv.DB.bind).toHaveBeenCalledWith(
+        'dismissed', 'dismissed', 'dismissed', 'rec-2'
+      );
     });
 
-    it('should queue analytics update after action', async () => {
-      mockContext.req.param.mockReturnValue('rec-3');
-      mockContext.req.json.mockResolvedValue({
-        action: 'completed',
-      });
-
+    it('should queue analytics update after completion', async () => {
+      const { PerformanceAnalyticsService } = await import('../services/PerformanceAnalyticsService');
+      const mockAnalyticsService = new PerformanceAnalyticsService(mockEnv.DB, mockEnv.ANALYTICS_QUEUE, tenantId);
+      
       mockEnv.DB.run.mockResolvedValue({ success: true });
-      mockEnv.DB.first.mockResolvedValue({ student_id: 'student-1' });
+      
+      const res = await app.request('/analytics/recommendations/student-1/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recommendationId: 'rec-3',
+          action: 'completed'
+        })
+      }, mockEnv);
 
-      await updateRecommendationAction(mockContext);
-
-      expect(mockEnv.ANALYTICS_QUEUE.send).toHaveBeenCalledWith(
+      expect(res.status).toBe(200);
+      expect(vi.mocked(mockAnalyticsService.queueAnalyticsTask)).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'update_recommendation_effectiveness',
+          taskType: 'recommendation_generation',
+          tenantId,
+          studentId: 'student-1'
         })
       );
     });
 
-    it('should validate action type', async () => {
-      mockContext.req.param.mockReturnValue('rec-4');
-      mockContext.req.json.mockResolvedValue({
-        action: 'invalid_action',
-      });
-
-      await updateRecommendationAction(mockContext);
-
-      expect(mockContext.status).toHaveBeenCalledWith(400);
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: expect.stringContaining('Invalid action'),
+    it('should validate request body', async () => {
+      const res = await app.request('/analytics/recommendations/student-1/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recommendationId: 'rec-4',
+          action: 'invalid_action'
         })
-      );
+      }, mockEnv);
+
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.success).toBe(false);
     });
   });
 
-  describe('exportAnalyticsData', () => {
-    it('should export data in CSV format', async () => {
-      mockContext.req.query.mockReturnValue({
-        format: 'csv',
-        startDate: '2024-01-01',
-        endDate: '2024-01-31',
-      });
+  describe('GET /analytics/benchmarks', () => {
+    it('should return benchmark data', async () => {
+      const res = await app.request('/analytics/benchmarks?courseId=course-1&benchmarkType=course_average&aggregationLevel=course', {
+        method: 'GET'
+      }, mockEnv);
 
-      const mockData = {
-        results: [
-          { student_id: 's1', overall_mastery: 0.8, date: '2024-01-15' },
-          { student_id: 's2', overall_mastery: 0.7, date: '2024-01-20' },
-        ],
-      };
-
-      mockEnv.DB.all.mockResolvedValue(mockData);
-
-      await exportAnalyticsData(mockContext);
-
-      expect(mockContext.header).toHaveBeenCalledWith('Content-Type', 'text/csv');
-      expect(mockContext.header).toHaveBeenCalledWith('Content-Disposition', expect.stringContaining('attachment; filename='));
-      expect(mockContext.text).toHaveBeenCalledWith(expect.stringContaining('student_id,overall_mastery,date'));
-    });
-
-    it('should export data in JSON format', async () => {
-      mockContext.req.query.mockReturnValue({
-        format: 'json',
-        courseId: 'course-1',
-      });
-
-      const mockData = {
-        results: [{ student_id: 's1', performance_data: JSON.stringify({ mastery: 0.8 }) }],
-      };
-
-      mockEnv.DB.all.mockResolvedValue(mockData);
-
-      await exportAnalyticsData(mockContext);
-
-      expect(mockContext.header).toHaveBeenCalledWith('Content-Type', 'application/json');
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          exportDate: expect.any(String),
-          data: expect.arrayContaining([expect.objectContaining({ student_id: 's1' })]),
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          benchmarkData: expect.any(Object)
         })
-      );
+      });
     });
 
-    it('should support xAPI format for learning analytics', async () => {
-      mockContext.req.query.mockReturnValue({
-        format: 'xapi',
-        studentId: 'student-1',
+    it('should handle insufficient data for benchmark', async () => {
+      const { PrivacyPreservingAnalytics } = await import('../services/PrivacyPreservingAnalytics');
+      const mockPrivacyService = new PrivacyPreservingAnalytics(mockEnv.DB, tenantId);
+      vi.mocked(mockPrivacyService.getAnonymizedBenchmark).mockResolvedValue(null);
+
+      const res = await app.request('/analytics/benchmarks?courseId=course-1&benchmarkType=course_average&aggregationLevel=course', {
+        method: 'GET'
+      }, mockEnv);
+
+      expect(res.status).toBe(404);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'Insufficient data for privacy-preserving benchmark'
       });
+    });
 
-      const mockData = {
-        results: [
-          {
-            assessment_id: 'a1',
-            score: 85,
-            timestamp: '2024-01-15T10:00:00Z',
-          },
-        ],
-      };
+    it('should validate query parameters', async () => {
+      const res = await app.request('/analytics/benchmarks', {
+        method: 'GET'
+        // Missing required courseId parameter
+      }, mockEnv);
 
-      mockEnv.DB.all.mockResolvedValue(mockData);
+      expect(res.status).toBe(400);
+    });
 
-      await exportAnalyticsData(mockContext);
+  });
 
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          statements: expect.arrayContaining([
+  describe('POST /analytics/recommendations/adaptive', () => {
+    it('should generate adaptive recommendations', async () => {
+      const res = await app.request('/analytics/recommendations/adaptive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          studentId: 'student-1',
+          courseId: 'course-1',
+          timeAvailable: 30,
+          difficultyPreference: 'moderate',
+          goalType: 'mastery'
+        })
+      }, mockEnv);
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          recommendations: expect.arrayContaining([
             expect.objectContaining({
-              actor: expect.objectContaining({ account: { name: 'student-1' } }),
-              verb: expect.objectContaining({ id: expect.stringContaining('completed') }),
-              result: expect.objectContaining({ score: { raw: 85 } }),
-            }),
+              id: 'rec-1',
+              type: 'review',
+              priority: 'high'
+            })
           ]),
+          generatedAt: expect.any(String),
+          context: expect.objectContaining({
+            overallMastery: 0.75
+          })
         })
-      );
+      });
     });
 
-    it('should enforce export size limits', async () => {
-      mockContext.req.query.mockReturnValue({ format: 'csv' });
-
-      // Mock large dataset
-      const largeData = {
-        results: Array(10001).fill({ student_id: 's1', mastery: 0.8 }),
-      };
-
-      mockEnv.DB.all.mockResolvedValue(largeData);
-
-      await exportAnalyticsData(mockContext);
-
-      expect(mockContext.status).toHaveBeenCalledWith(413);
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: expect.stringContaining('Export size limit exceeded'),
-        })
-      );
-    });
-
-    it('should validate date range parameters', async () => {
-      mockContext.req.query.mockReturnValue({
-        format: 'json',
-        startDate: '2024-01-31',
-        endDate: '2024-01-01', // End before start
+    it('should handle missing student profile', async () => {
+      const { PerformanceAnalyticsService } = await import('../services/PerformanceAnalyticsService');
+      const mockAnalyticsService = new PerformanceAnalyticsService(mockEnv.DB, mockEnv.ANALYTICS_QUEUE, tenantId);
+      vi.mocked(mockAnalyticsService.getStudentAnalytics).mockResolvedValue({
+        profile: null,
+        conceptMasteries: []
       });
 
-      await exportAnalyticsData(mockContext);
-
-      expect(mockContext.status).toHaveBeenCalledWith(400);
-      expect(mockContext.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: expect.stringContaining('Invalid date range'),
+      const res = await app.request('/analytics/recommendations/adaptive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          studentId: 'student-1',
+          courseId: 'course-1'
         })
-      );
+      }, mockEnv);
+
+      expect(res.status).toBe(404);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'Student performance profile not found'
+      });
     });
 
-    it('should apply privacy filtering to exported data', async () => {
-      mockContext.req.query.mockReturnValue({
-        format: 'json',
-        anonymize: 'true',
+  });
+
+  describe('POST /analytics/queue/process', () => {
+    it('should queue analytics processing tasks', async () => {
+      const { PerformanceAnalyticsService } = await import('../services/PerformanceAnalyticsService');
+      const mockAnalyticsService = new PerformanceAnalyticsService(mockEnv.DB, mockEnv.ANALYTICS_QUEUE, tenantId);
+      vi.mocked(mockAnalyticsService.queueAnalyticsTask).mockResolvedValue('task-123');
+
+      const res = await app.request('/analytics/queue/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          studentId: 'student-1',
+          courseId: 'course-1',
+          taskTypes: ['performance_update', 'recommendation_generation'],
+          priority: 5
+        })
+      }, mockEnv);
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          message: 'Analytics processing queued successfully',
+          taskIds: ['task-123', 'task-123'],
+          queuedAt: expect.any(String)
+        })
       });
-
-      const mockData = {
-        results: [
-          {
-            student_id: 's1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            overall_mastery: 0.8,
-          },
-        ],
-      };
-
-      mockEnv.DB.all.mockResolvedValue(mockData);
-
-      await exportAnalyticsData(mockContext);
-
-      const exportedData = mockContext.json.mock.calls[0][0];
-      expect(exportedData.data[0].student_id).not.toBe('s1'); // Anonymized
-      expect(exportedData.data[0].name).toBeUndefined();
-      expect(exportedData.data[0].email).toBeUndefined();
-      expect(exportedData.data[0].overall_mastery).toBe(0.8);
     });
   });
 });

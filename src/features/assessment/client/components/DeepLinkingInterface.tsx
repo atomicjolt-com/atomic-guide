@@ -27,21 +27,19 @@ interface DeepLinkingInterfaceProps {
  * Main deep linking interface for creating and embedding assessments.
  * Provides a multi-step workflow for instructors to configure AI-powered
  * assessments and embed them into Canvas assignments.
- * 
+ *
  * @component
  * @param props - Component props including launch settings
  * @returns Deep linking interface UI
  */
-export function DeepLinkingInterface({ 
-  launchSettings 
-}: DeepLinkingInterfaceProps): ReactElement {
+export function DeepLinkingInterface({ launchSettings }: DeepLinkingInterfaceProps): ReactElement {
   const [currentStep, setCurrentStep] = useState<'build' | 'preview' | 'submitting'>('build');
   const [assessmentConfig, setAssessmentConfig] = useState<AssessmentConfig>(defaultAssessmentConfig);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Check if the LMS accepts assessment deep links
-  const canCreateAssessment = launchSettings.deepLinking?.accept_types 
+  const canCreateAssessment = launchSettings.deepLinking?.accept_types
     ? canCreateAssessmentLink(launchSettings.deepLinking.accept_types)
     : false;
 
@@ -70,7 +68,9 @@ export function DeepLinkingInterface({
       return;
     }
     if (assessmentConfig.questions.length === 0) {
-      setError('Note: You haven\'t added any questions yet. You can preview the assessment structure, but you\'ll need to add questions before submitting.');
+      setError(
+        "Note: You haven't added any questions yet. You can preview the assessment structure, but you'll need to add questions before submitting."
+      );
     }
     setCurrentStep('preview');
   };
@@ -98,14 +98,9 @@ export function DeepLinkingInterface({
     try {
       // Use the current domain as the launch URL
       const launchUrl = `${window.location.origin}/lti/launch/assessment`;
-      
-      await submitAssessmentDeepLink(
-        assessmentConfig,
-        launchSettings.jwt,
-        launchUrl,
-        launchSettings.deepLinking.deep_link_return_url
-      );
-      
+
+      await submitAssessmentDeepLink(assessmentConfig, launchSettings.jwt, launchUrl, launchSettings.deepLinking.deep_link_return_url);
+
       // Note: submitAssessmentDeepLink will automatically submit the form
       // and redirect back to Canvas
     } catch (err) {
@@ -121,10 +116,7 @@ export function DeepLinkingInterface({
       <div className={styles.container}>
         <div className={styles.fallbackMessage}>
           <h2>Deep Linking</h2>
-          <p>
-            Your LMS configuration doesn't support assessment deep links. 
-            You can still use the standard deep linking options below.
-          </p>
+          <p>Your LMS configuration doesn't support assessment deep links. You can still use the standard deep linking options below.</p>
           <button id="deep-linking-button" className={styles.fallbackButton}>
             Create Standard Link
           </button>
@@ -138,10 +130,7 @@ export function DeepLinkingInterface({
 
   return (
     <div className={styles.container}>
-      <DeepLinkingHeader 
-        currentStep={currentStep}
-        onStepChange={(step) => setCurrentStep(step as 'build' | 'preview')}
-      />
+      <DeepLinkingHeader currentStep={currentStep} onStepChange={(step) => setCurrentStep(step as 'build' | 'preview')} />
 
       {error && (
         <div className={styles.errorMessage} role="alert">
@@ -161,12 +150,7 @@ export function DeepLinkingInterface({
       )}
 
       {currentStep === 'preview' && (
-        <AssessmentPreview
-          config={assessmentConfig}
-          onBack={handleBackToBuilder}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-        />
+        <AssessmentPreview config={assessmentConfig} onBack={handleBackToBuilder} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
       )}
 
       {currentStep === 'submitting' && (
@@ -177,11 +161,7 @@ export function DeepLinkingInterface({
       )}
 
       {/* Hidden form for deep link submission */}
-      <form 
-        id="deep-linking-form" 
-        method="POST" 
-        style={{ display: 'none' }}
-      >
+      <form id="deep-linking-form" method="POST" style={{ display: 'none' }}>
         <input type="hidden" id="deep-link-jwt" name="JWT" />
       </form>
     </div>

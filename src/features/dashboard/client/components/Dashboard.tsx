@@ -10,7 +10,7 @@ import {
   DataExportInterfaceWrapper,
   ChatHistoryWrapper,
   SuggestionAnalyticsWrapper,
-  LearningInsightsWrapper
+  LearningInsightsWrapper,
 } from './DashboardWrapper';
 import type { LaunchSettings } from '@atomicjolt/lti-client';
 
@@ -27,48 +27,48 @@ interface Tab {
 
 /**
  * Main dashboard interface integrating all analytics components
- * 
+ *
  * @component
  * @param launchSettings - LTI launch settings with JWT for API calls
  * @returns Tabbed dashboard interface with all analytics features
  */
 export function Dashboard({ launchSettings }: { launchSettings: LaunchSettings }): ReactElement {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
-  
+
   const tabs: Tab[] = [
-    { 
-      id: 'overview', 
+    {
+      id: 'overview',
       label: 'Performance Overview',
-      component: <StudentPerformanceOverviewWrapper jwt={launchSettings.jwt} />
+      component: <StudentPerformanceOverviewWrapper jwt={launchSettings.jwt} />,
     },
-    { 
-      id: 'insights', 
+    {
+      id: 'insights',
       label: 'Learning Insights',
-      component: <LearningInsightsWrapper jwt={launchSettings.jwt} />
+      component: <LearningInsightsWrapper jwt={launchSettings.jwt} />,
     },
-    { 
-      id: 'benchmarks', 
+    {
+      id: 'benchmarks',
       label: 'Benchmarks',
-      component: <BenchmarkComparisonWrapper jwt={launchSettings.jwt} />
+      component: <BenchmarkComparisonWrapper jwt={launchSettings.jwt} />,
     },
-    { 
-      id: 'analytics', 
+    {
+      id: 'analytics',
       label: 'Suggestion Analytics',
-      component: <SuggestionAnalyticsWrapper jwt={launchSettings.jwt} />
+      component: <SuggestionAnalyticsWrapper jwt={launchSettings.jwt} />,
     },
-    { 
-      id: 'history', 
+    {
+      id: 'history',
       label: 'Chat History',
-      component: <ChatHistoryWrapper jwt={launchSettings.jwt} />
+      component: <ChatHistoryWrapper jwt={launchSettings.jwt} />,
     },
-    { 
-      id: 'export', 
+    {
+      id: 'export',
       label: 'Export Data',
-      component: <DataExportInterfaceWrapper jwt={launchSettings.jwt} />
-    }
+      component: <DataExportInterfaceWrapper jwt={launchSettings.jwt} />,
+    },
   ];
 
-  const activeTabContent = tabs.find(tab => tab.id === activeTab)?.component;
+  const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.component;
 
   return (
     <div className="dashboard-container">
@@ -77,9 +77,9 @@ export function Dashboard({ launchSettings }: { launchSettings: LaunchSettings }
         {/* SyncStatusIndicator requires preferencesSync service - commented out for now */}
         {/* <SyncStatusIndicator preferencesSync={preferencesSync} /> */}
       </div>
-      
+
       <nav className="dashboard-tabs" role="tablist">
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
@@ -92,7 +92,7 @@ export function Dashboard({ launchSettings }: { launchSettings: LaunchSettings }
           </button>
         ))}
       </nav>
-      
+
       <main className="dashboard-content" role="tabpanel">
         {activeTabContent}
       </main>

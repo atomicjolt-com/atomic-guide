@@ -7,7 +7,7 @@ import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-c';  // C must be loaded before C++
+import 'prismjs/components/prism-c'; // C must be loaded before C++
 import 'prismjs/components/prism-cpp'; // C++ extends C
 import 'prismjs/components/prism-csharp';
 import 'prismjs/components/prism-php';
@@ -65,7 +65,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
 
       return 'text';
     },
-    [language],
+    [language]
   );
 
   const highlightCode = useCallback(async () => {

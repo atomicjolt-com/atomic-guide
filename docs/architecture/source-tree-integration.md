@@ -106,7 +106,7 @@ atomic-guide/
 ├── api/
 └── components/
 
-````
+```
 
 **CSS Architecture Pattern:**
 
@@ -114,12 +114,12 @@ atomic-guide/
 /* variables.css - Design tokens from front-end spec */
 :root {
   /* Core Brand Colors */
-  --color-primary: #FFDD00; /* Atomic Yellow */
-  --color-primary-hover: #F5D000;
-  --color-success: #027A48;
-  --color-error: #B42318;
-  --color-warning: #FDB022;
-  --color-info: #2563EB;
+  --color-primary: #ffdd00; /* Atomic Yellow */
+  --color-primary-hover: #f5d000;
+  --color-success: #027a48;
+  --color-error: #b42318;
+  --color-warning: #fdb022;
+  --color-info: #2563eb;
 
   /* Text Colors */
   --color-text: #333333;
@@ -127,9 +127,9 @@ atomic-guide/
   --color-text-tertiary: #999999;
 
   /* Backgrounds */
-  --color-bg: #FFFFFF;
-  --color-bg-off-white: #FFFDF0;
-  --color-bg-gray: #F5F5F5;
+  --color-bg: #ffffff;
+  --color-bg-off-white: #fffdf0;
+  --color-bg-gray: #f5f5f5;
 
   /* Typography - Rubik Font System */
   --font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -155,10 +155,10 @@ atomic-guide/
   --spacing-3xl: 64px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.15);
-  --shadow-lg: 0 10px 20px rgba(0,0,0,0.20);
-  --shadow-focus: 0 0 0 3px rgba(255,221,0,0.25);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.2);
+  --shadow-focus: 0 0 0 3px rgba(255, 221, 0, 0.25);
 
   /* Border Radius */
   --radius-sm: 6px;
@@ -181,7 +181,7 @@ atomic-guide/
   color: var(--color-text);
   padding: var(--spacing-md);
 }
-````
+```
 
 **Integration Guidelines:**
 

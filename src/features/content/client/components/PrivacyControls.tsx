@@ -21,7 +21,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
   courseId,
   onSettingsChange,
   isInstructor = false,
-  isStudent = false
+  isStudent = false,
 }) => {
   const [settings, setSettings] = useState<PrivacySettings>({
     extractionEnabled: false,
@@ -29,7 +29,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
     contentTypesAllowed: ['assignment', 'page', 'module'],
     retentionDays: 90,
     anonymizeEngagement: true,
-    requireStudentConsent: false
+    requireStudentConsent: false,
   });
 
   const [studentConsent, setStudentConsent] = useState(false);
@@ -39,7 +39,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
 
   useEffect(() => {
     fetchSettings();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   const fetchSettings = async () => {
@@ -63,9 +63,9 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
 
   const handleContentTypeToggle = (type: string) => {
     const newTypes = settings.contentTypesAllowed.includes(type)
-      ? settings.contentTypesAllowed.filter(t => t !== type)
+      ? settings.contentTypesAllowed.filter((t) => t !== type)
       : [...settings.contentTypesAllowed, type];
-    
+
     handleSettingChange('contentTypesAllowed', newTypes);
   };
 
@@ -81,8 +81,8 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
         },
         body: JSON.stringify({
           ...settings,
-          courseId
-        })
+          courseId,
+        }),
       });
 
       if (response.ok) {
@@ -111,8 +111,8 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
         },
         body: JSON.stringify({
           courseId,
-          consent: studentConsent
-        })
+          consent: studentConsent,
+        }),
       });
 
       if (response.ok) {
@@ -136,9 +136,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
       <div className={styles.container}>
         <div className={styles.header}>
           <h3 className={styles.title}>Content Analysis Privacy</h3>
-          <p className={styles.subtitle}>
-            Control how your learning content is analyzed to provide personalized assistance
-          </p>
+          <p className={styles.subtitle}>Control how your learning content is analyzed to provide personalized assistance</p>
         </div>
 
         <div className={styles.studentConsent}>
@@ -176,31 +174,17 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
 
           <div className={styles.consentControl}>
             <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={studentConsent}
-                onChange={(e) => setStudentConsent(e.target.checked)}
-              />
-              <span>
-                I consent to content analysis for personalized learning assistance
-              </span>
+              <input type="checkbox" checked={studentConsent} onChange={(e) => setStudentConsent(e.target.checked)} />
+              <span>I consent to content analysis for personalized learning assistance</span>
             </label>
 
-            <button
-              className={styles.saveButton}
-              onClick={handleStudentConsent}
-              disabled={isSaving}
-            >
+            <button className={styles.saveButton} onClick={handleStudentConsent} disabled={isSaving}>
               {isSaving ? 'Saving...' : 'Save Preference'}
             </button>
           </div>
         </div>
 
-        {message && (
-          <div className={`${styles.message} ${styles[message.type]}`}>
-            {message.text}
-          </div>
-        )}
+        {message && <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>}
       </div>
     );
   }
@@ -210,15 +194,13 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
       <div className={styles.container}>
         <div className={styles.header}>
           <h3 className={styles.title}>Content Extraction Privacy Settings</h3>
-          <p className={styles.subtitle}>
-            Configure how course content is extracted and analyzed for AI-powered assistance
-          </p>
+          <p className={styles.subtitle}>Configure how course content is extracted and analyzed for AI-powered assistance</p>
         </div>
 
         <div className={styles.settings}>
           <div className={styles.settingGroup}>
             <h4 className={styles.groupTitle}>Content Extraction</h4>
-            
+
             <div className={styles.setting}>
               <label className={styles.toggleLabel}>
                 <input
@@ -243,20 +225,16 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
                 />
                 <span>Automatic extraction</span>
               </label>
-              <p className={styles.settingDescription}>
-                Automatically extract content when students access pages
-              </p>
+              <p className={styles.settingDescription}>Automatically extract content when students access pages</p>
             </div>
           </div>
 
           <div className={styles.settingGroup}>
             <h4 className={styles.groupTitle}>Content Types</h4>
-            <p className={styles.settingDescription}>
-              Select which types of content can be extracted
-            </p>
-            
+            <p className={styles.settingDescription}>Select which types of content can be extracted</p>
+
             <div className={styles.contentTypes}>
-              {['assignment', 'page', 'module', 'discussion', 'quiz'].map(type => (
+              {['assignment', 'page', 'module', 'discussion', 'quiz'].map((type) => (
                 <label key={type} className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
@@ -272,7 +250,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
 
           <div className={styles.settingGroup}>
             <h4 className={styles.groupTitle}>Privacy & Retention</h4>
-            
+
             <div className={styles.setting}>
               <label className={styles.fieldLabel}>
                 Data retention period
@@ -286,9 +264,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
                 />
                 <span className={styles.unit}>days</span>
               </label>
-              <p className={styles.settingDescription}>
-                How long extracted content is stored before automatic deletion
-              </p>
+              <p className={styles.settingDescription}>How long extracted content is stored before automatic deletion</p>
             </div>
 
             <div className={styles.setting}>
@@ -300,9 +276,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
                 />
                 <span>Anonymize student engagement data</span>
               </label>
-              <p className={styles.settingDescription}>
-                Remove personally identifiable information from engagement analytics
-              </p>
+              <p className={styles.settingDescription}>Remove personally identifiable information from engagement analytics</p>
             </div>
 
             <div className={styles.setting}>
@@ -314,26 +288,16 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
                 />
                 <span>Require explicit student consent</span>
               </label>
-              <p className={styles.settingDescription}>
-                Students must opt-in before their content interactions are analyzed
-              </p>
+              <p className={styles.settingDescription}>Students must opt-in before their content interactions are analyzed</p>
             </div>
           </div>
 
           <div className={styles.actions}>
-            <button
-              className={styles.cancelButton}
-              onClick={fetchSettings}
-              disabled={isSaving}
-            >
+            <button className={styles.cancelButton} onClick={fetchSettings} disabled={isSaving}>
               Reset
             </button>
-            
-            <button
-              className={styles.saveButton}
-              onClick={handleSave}
-              disabled={isSaving}
-            >
+
+            <button className={styles.saveButton} onClick={handleSave} disabled={isSaving}>
               {isSaving ? (
                 <>
                   <span className={styles.spinner} />
@@ -346,11 +310,7 @@ export const PrivacyControls: React.FC<PrivacyControlsProps> = ({
           </div>
         </div>
 
-        {message && (
-          <div className={`${styles.message} ${styles[message.type]}`}>
-            {message.text}
-          </div>
-        )}
+        {message && <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>}
 
         <div className={styles.privacyInfo}>
           <h4>Privacy Compliance</h4>

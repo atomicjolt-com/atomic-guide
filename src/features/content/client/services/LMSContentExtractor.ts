@@ -160,7 +160,7 @@ export class LMSContentExtractor extends EventEmitter {
 
   private async sendPostMessage(subject: string, data?: any): Promise<any> {
     const messageId = this.generateMessageId();
-    
+
     const request: PostMessageRequest = {
       subject,
       message_id: messageId,

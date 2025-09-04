@@ -61,11 +61,7 @@ export class QuestionGenerationApi {
    * @param options - Generation options
    * @returns Promise resolving to generated questions
    */
-  async generateQuestions(
-    context: ContentContext,
-    config: AssessmentConfig,
-    options: QuestionGenerationOptions
-  ): Promise<Question[]> {
+  async generateQuestions(context: ContentContext, config: AssessmentConfig, options: QuestionGenerationOptions): Promise<Question[]> {
     try {
       const response = await fetch(`${this.baseUrl}/api/assessment/generate-questions`, {
         method: 'POST',
@@ -85,7 +81,7 @@ export class QuestionGenerationApi {
       }
 
       const data: QuestionGenerationResponse = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Question generation failed');
       }
@@ -104,11 +100,7 @@ export class QuestionGenerationApi {
    * @param count - Number of questions to generate
    * @returns Promise resolving to generated questions
    */
-  async generateFromObjectives(
-    objectives: string[],
-    config: AssessmentConfig,
-    count: number
-  ): Promise<Question[]> {
+  async generateFromObjectives(objectives: string[], config: AssessmentConfig, count: number): Promise<Question[]> {
     try {
       const response = await fetch(`${this.baseUrl}/api/assessment/generate-from-objectives`, {
         method: 'POST',
@@ -128,7 +120,7 @@ export class QuestionGenerationApi {
       }
 
       const data: QuestionGenerationResponse = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Question generation failed');
       }
@@ -183,7 +175,7 @@ export class QuestionGenerationApi {
    */
   private getFallbackQuestions(config: AssessmentConfig, count: number): Question[] {
     const pointsPerQuestion = Math.floor(config.gradingSchema.maxScore / count) || 10;
-    
+
     const fallbackQuestions: Question[] = [
       {
         id: crypto.randomUUID(),
@@ -212,9 +204,9 @@ export class QuestionGenerationApi {
         points: pointsPerQuestion,
         options: [
           'Option A - Primary definition',
-          'Option B - Secondary definition', 
+          'Option B - Secondary definition',
           'Option C - Alternative definition',
-          'Option D - None of the above'
+          'Option D - None of the above',
         ],
         correctAnswer: 'Option A - Primary definition',
       },

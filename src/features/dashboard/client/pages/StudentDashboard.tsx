@@ -15,11 +15,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ userId, tenantId })
   const navigate = useNavigate();
   const _dispatch = useAppDispatch();
   const [_activeTab, setActiveTab] = useState<'history' | 'insights' | 'privacy'>('history');
-  
+
   // Get user info from Redux store
   const settings = useAppSelector((state) => state.settings);
   const jwt = useAppSelector((state) => state.jwt);
-  
+
   useEffect(() => {
     // Verify user is authenticated
     if (!jwt) {
@@ -44,9 +44,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ userId, tenantId })
       <nav className={styles.dashboardNav}>
         <NavLink
           to="/dashboard/history"
-          className={({ isActive }) =>
-            `${styles.navTab} ${isActive ? styles.navTabActive : ''}`
-          }
+          className={({ isActive }) => `${styles.navTab} ${isActive ? styles.navTabActive : ''}`}
           onClick={() => handleTabChange('history')}
         >
           <span className={styles.navIcon}>💬</span>
@@ -54,9 +52,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ userId, tenantId })
         </NavLink>
         <NavLink
           to="/dashboard/insights"
-          className={({ isActive }) =>
-            `${styles.navTab} ${isActive ? styles.navTabActive : ''}`
-          }
+          className={({ isActive }) => `${styles.navTab} ${isActive ? styles.navTabActive : ''}`}
           onClick={() => handleTabChange('insights')}
         >
           <span className={styles.navIcon}>📊</span>
@@ -64,9 +60,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ userId, tenantId })
         </NavLink>
         <NavLink
           to="/dashboard/privacy"
-          className={({ isActive }) =>
-            `${styles.navTab} ${isActive ? styles.navTabActive : ''}`
-          }
+          className={({ isActive }) => `${styles.navTab} ${isActive ? styles.navTabActive : ''}`}
           onClick={() => handleTabChange('privacy')}
         >
           <span className={styles.navIcon}>🔒</span>
@@ -76,49 +70,19 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ userId, tenantId })
 
       <main className={styles.dashboardContent}>
         <Routes>
-          <Route
-            path="history"
-            element={
-              <ChatHistory
-                userId={userId}
-                tenantId={tenantId}
-              />
-            }
-          />
-          <Route
-            path="insights"
-            element={
-              <LearningInsights
-                userId={userId}
-                tenantId={tenantId}
-              />
-            }
-          />
-          <Route
-            path="privacy"
-            element={
-              <PrivacySettings
-                userId={userId}
-                tenantId={tenantId}
-              />
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <ChatHistory
-                userId={userId}
-                tenantId={tenantId}
-              />
-            }
-          />
+          <Route path="history" element={<ChatHistory userId={userId} tenantId={tenantId} />} />
+          <Route path="insights" element={<LearningInsights userId={userId} tenantId={tenantId} />} />
+          <Route path="privacy" element={<PrivacySettings userId={userId} tenantId={tenantId} />} />
+          <Route path="/" element={<ChatHistory userId={userId} tenantId={tenantId} />} />
         </Routes>
       </main>
 
       <footer className={styles.dashboardFooter}>
         <p className={styles.footerText}>
-          Your learning data is private and secure. 
-          <a href="/help" className={styles.footerLink}>Learn more</a>
+          Your learning data is private and secure.
+          <a href="/help" className={styles.footerLink}>
+            Learn more
+          </a>
         </p>
       </footer>
     </div>

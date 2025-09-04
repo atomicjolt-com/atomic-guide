@@ -3,7 +3,7 @@
  * Validates accessibility, user interactions, and mobile responsiveness
  */
 
-import {  describe, it, expect, beforeEach, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SuggestionCard } from '../../src/features/chat/client/components/SuggestionCard';
@@ -173,7 +173,7 @@ describe('SuggestionCard', () => {
         () => {
           expect(mockOnDismiss).toHaveBeenCalledWith('user_dismissed');
         },
-        { timeout: 1000 },
+        { timeout: 1000 }
       );
     });
 
@@ -181,7 +181,7 @@ describe('SuggestionCard', () => {
       const criticalSuggestion = createMockSuggestion('frustration', 'critical');
 
       const { container } = render(
-        <SuggestionCard suggestion={criticalSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
+        <SuggestionCard suggestion={criticalSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />
       );
 
       await waitFor(() => {
@@ -304,7 +304,7 @@ describe('SuggestionCard', () => {
           onDismiss={mockOnDismiss}
           onFeedback={mockOnFeedback}
           mobile={true}
-        />,
+        />
       );
 
       await waitFor(() => {
@@ -323,7 +323,7 @@ describe('SuggestionCard', () => {
           onDismiss={mockOnDismiss}
           onFeedback={mockOnFeedback}
           mobile={true}
-        />,
+        />
       );
 
       await waitFor(() => {
@@ -346,7 +346,7 @@ describe('SuggestionCard', () => {
       const suggestion = createMockSuggestion('confusion');
 
       const { container } = render(
-        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
+        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />
       );
 
       await waitFor(() => {
@@ -359,7 +359,7 @@ describe('SuggestionCard', () => {
       const confusionSuggestion = createMockSuggestion('confusion');
 
       render(
-        <SuggestionCard suggestion={confusionSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
+        <SuggestionCard suggestion={confusionSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />
       );
 
       await waitFor(() => {
@@ -411,7 +411,7 @@ describe('SuggestionCard', () => {
       criticalSuggestion.displaySettings.allowDismiss = false;
 
       render(
-        <SuggestionCard suggestion={criticalSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
+        <SuggestionCard suggestion={criticalSuggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />
       );
 
       // Fast-forward time beyond display duration
@@ -443,7 +443,7 @@ describe('SuggestionCard', () => {
       const suggestion = createMockSuggestion('confusion');
 
       const { container } = render(
-        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
+        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />
       );
 
       await waitFor(() => {
@@ -502,7 +502,7 @@ describe('SuggestionCard', () => {
       const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
 
       const { unmount } = render(
-        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />,
+        <SuggestionCard suggestion={suggestion} onAccept={mockOnAccept} onDismiss={mockOnDismiss} onFeedback={mockOnFeedback} />
       );
 
       unmount();

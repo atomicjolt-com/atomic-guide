@@ -37,27 +37,18 @@ export const useContentExtractor = (): PageContext => {
   useEffect(() => {
     const extractContext = () => {
       const launchSettings = (window as any).LAUNCH_SETTINGS as ExtendedLaunchSettings;
-      
-      const courseId = launchSettings?.context?.id || 
-                      extractFromDOM('course_id') || 
-                      extractFromURL('course');
-      
-      const moduleId = launchSettings?.resource_link?.id || 
-                      extractFromDOM('module_id') || 
-                      extractFromURL('module');
-      
-      const pageTitle = launchSettings?.resource_link?.title || 
-                       document.title || 
-                       extractFromDOM('page_title');
-      
+
+      const courseId = launchSettings?.context?.id || extractFromDOM('course_id') || extractFromURL('course');
+
+      const moduleId = launchSettings?.resource_link?.id || extractFromDOM('module_id') || extractFromURL('module');
+
+      const pageTitle = launchSettings?.resource_link?.title || document.title || extractFromDOM('page_title');
+
       const mainContent = document.querySelector('#main-content, main, [role="main"]');
-      const pageContent = mainContent?.textContent?.trim() || 
-                         document.body.textContent?.substring(0, 5000) || null;
-      
+      const pageContent = mainContent?.textContent?.trim() || document.body.textContent?.substring(0, 5000) || null;
+
       const activeElement = document.activeElement;
-      const currentElement = activeElement && activeElement !== document.body
-        ? activeElement.textContent?.substring(0, 500) || null
-        : null;
+      const currentElement = activeElement && activeElement !== document.body ? activeElement.textContent?.substring(0, 500) || null : null;
 
       setContext({
         course_id: courseId,
@@ -74,28 +65,28 @@ export const useContentExtractor = (): PageContext => {
       if (metaTag) {
         return metaTag.getAttribute('content');
       }
-      
+
       const dataAttr = document.querySelector(`[data-${key}]`);
       if (dataAttr) {
         return dataAttr.getAttribute(`data-${key}`);
       }
-      
+
       return null;
     };
 
     const extractFromURL = (param: string): string | null => {
       const urlParams = new URLSearchParams(window.location.search);
       const paramValue = urlParams.get(param) || urlParams.get(`${param}_id`);
-      
+
       if (paramValue) {
         return paramValue;
       }
-      
+
       const pathMatch = window.location.pathname.match(new RegExp(`${param}[s]?/([^/]+)`));
       if (pathMatch) {
         return pathMatch[1];
       }
-      
+
       return null;
     };
 
@@ -104,7 +95,7 @@ export const useContentExtractor = (): PageContext => {
     const handleFocusChange = () => {
       const activeElement = document.activeElement;
       if (activeElement && activeElement !== document.body) {
-        setContext(prev => ({
+        setContext((prev) => ({
           ...prev,
           current_element: activeElement.textContent?.substring(0, 500) || null,
         }));

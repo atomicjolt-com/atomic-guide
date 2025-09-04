@@ -23,7 +23,7 @@ src/
 ├── features/           # Feature-based vertical slices
 │   ├── chat/          # Chat feature (client + server + tests)
 │   ├── assessment/    # Assessment & deep linking
-│   ├── content/       # Content extraction & awareness  
+│   ├── content/       # Content extraction & awareness
 │   ├── dashboard/     # Analytics & insights
 │   ├── lti/          # LTI protocol handling
 │   ├── settings/      # User preferences
@@ -36,6 +36,7 @@ src/
 ```
 
 Each feature contains:
+
 - `client/` - React components, hooks, store
 - `server/` - API handlers, services, durable objects
 - `shared/` - Feature-internal shared code

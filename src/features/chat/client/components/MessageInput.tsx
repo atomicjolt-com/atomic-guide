@@ -62,11 +62,11 @@ export const MessageInput: React.FC = () => {
         sender: 'ai' as const,
         timestamp: response.timestamp,
       };
-      
+
       dispatch(addMessage(aiResponse));
     } catch (error: any) {
       dispatch(setError(error?.error || 'Failed to send message. Please try again.'));
-      
+
       if (error?.retry_after) {
         setTimeout(() => {
           dispatch(setError(null));
@@ -97,12 +97,7 @@ export const MessageInput: React.FC = () => {
         aria-label="Message input"
         rows={1}
       />
-      <button
-        className={styles.sendButton}
-        onClick={handleSend}
-        disabled={!message.trim() || isLoading}
-        aria-label="Send message"
-      >
+      <button className={styles.sendButton} onClick={handleSend} disabled={!message.trim() || isLoading} aria-label="Send message">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M2.925 5.025l14.96-4.98a.5.5 0 0 1 .628.628l-4.98 14.96a.5.5 0 0 1-.933.039l-2.85-5.7a.5.5 0 0 0-.2-.2l-5.7-2.85a.5.5 0 0 1 .039-.933l.036.036zm7.825 4.225l5.536-5.536L3.858 4.642l4.036 2.018a1.5 1.5 0 0 1 .6.6l2.256 4.49z" />
         </svg>

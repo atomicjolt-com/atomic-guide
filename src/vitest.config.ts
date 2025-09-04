@@ -1,6 +1,4 @@
-import {
-  defineWorkersProject,
-} from '@cloudflare/vitest-pool-workers/config';
+import { defineWorkersProject } from '@cloudflare/vitest-pool-workers/config';
 
 export default defineWorkersProject(async () => {
   return {
@@ -12,7 +10,7 @@ export default defineWorkersProject(async () => {
           wrangler: {
             configPath: '../wrangler.jsonc',
             environment: 'production',
-          }
+          },
         },
       },
     },

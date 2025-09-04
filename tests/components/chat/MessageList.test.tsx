@@ -1,4 +1,4 @@
-import {  describe, it, expect, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
@@ -33,7 +33,7 @@ describe('MessageList', () => {
         <MessageList />
       </Provider>
     );
-    
+
     const messageList = screen.getByRole('log');
     expect(messageList).toBeInTheDocument();
     expect(messageList.children).toHaveLength(1);
@@ -42,18 +42,18 @@ describe('MessageList', () => {
   it('renders user messages with correct styling', () => {
     const store = createMockStore();
     store.dispatch(addMessage(mockUserMessage));
-    
+
     render(
       <Provider store={store}>
         <MessageList />
       </Provider>
     );
-    
+
     const message = screen.getByText('Hello, I need help');
     expect(message).toBeInTheDocument();
-    
-    const messageElement = screen.getByRole('article', { 
-      name: /You: Hello, I need help/i 
+
+    const messageElement = screen.getByRole('article', {
+      name: /You: Hello, I need help/i,
     });
     expect(messageElement).toHaveClass(styles.message, styles.user);
   });
@@ -61,18 +61,18 @@ describe('MessageList', () => {
   it('renders AI messages with correct styling', () => {
     const store = createMockStore();
     store.dispatch(addMessage(mockAIMessage));
-    
+
     render(
       <Provider store={store}>
         <MessageList />
       </Provider>
     );
-    
+
     const message = screen.getByText('Hello! How can I assist you today?');
     expect(message).toBeInTheDocument();
-    
-    const messageElement = screen.getByRole('article', { 
-      name: /Atomic Guide: Hello! How can I assist you today?/i 
+
+    const messageElement = screen.getByRole('article', {
+      name: /Atomic Guide: Hello! How can I assist you today?/i,
     });
     expect(messageElement).toHaveClass(styles.message, styles.ai);
   });
@@ -81,13 +81,13 @@ describe('MessageList', () => {
     const store = createMockStore();
     store.dispatch(addMessage(mockUserMessage));
     store.dispatch(addMessage(mockAIMessage));
-    
+
     render(
       <Provider store={store}>
         <MessageList />
       </Provider>
     );
-    
+
     const messages = screen.getAllByRole('article');
     expect(messages).toHaveLength(2);
     expect(messages[0]).toHaveClass(styles.user);
@@ -97,13 +97,13 @@ describe('MessageList', () => {
   it('displays loading indicator when isLoading is true', () => {
     const store = createMockStore();
     store.dispatch({ type: 'chat/setLoading', payload: true });
-    
+
     render(
       <Provider store={store}>
         <MessageList />
       </Provider>
     );
-    
+
     const loadingIndicator = screen.getByLabelText('Atomic Guide is typing');
     expect(loadingIndicator).toBeInTheDocument();
   });
@@ -116,16 +116,16 @@ describe('MessageList', () => {
       timestamp: testDate,
     };
     store.dispatch(addMessage(messageWithTime));
-    
+
     render(
       <Provider store={store}>
         <MessageList />
       </Provider>
     );
-    
-    const formattedTime = new Date(testDate).toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+
+    const formattedTime = new Date(testDate).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
     expect(screen.getByText(formattedTime)).toBeInTheDocument();
   });
@@ -133,21 +133,21 @@ describe('MessageList', () => {
   it('scrolls to bottom when new messages are added', () => {
     const scrollIntoViewMock = vi.fn();
     HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
-    
+
     const store = createMockStore();
     const { rerender } = render(
       <Provider store={store}>
         <MessageList />
       </Provider>
     );
-    
+
     store.dispatch(addMessage(mockUserMessage));
     rerender(
       <Provider store={store}>
         <MessageList />
       </Provider>
     );
-    
+
     expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' });
   });
 });

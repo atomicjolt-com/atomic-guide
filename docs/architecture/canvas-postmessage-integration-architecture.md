@@ -124,7 +124,7 @@ await canvasService.putData(
     aiEnabled: true,
     struggledDetection: true,
     notificationLevel: 'medium',
-  }),
+  })
 );
 
 // Retrieve stored data

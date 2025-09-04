@@ -1,4 +1,4 @@
-import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { FAQKnowledgeBase } from '../../src/services/FAQKnowledgeBase';
 import { AIService } from '../../src/services/AIService';
 
@@ -118,7 +118,7 @@ describe('FAQKnowledgeBase', () => {
         JSON.stringify({
           data: cachedResults,
           timestamp: Date.now(),
-        }),
+        })
       );
 
       const results = await faqService.searchSimilarFAQs('Test question', 'tenant-1');

@@ -34,6 +34,7 @@ npm install
 ```
 
 This will install all required packages including:
+
 - React 19 and TypeScript
 - Cloudflare Workers SDK
 - Vite build tools
@@ -113,6 +114,7 @@ Update `wrangler.jsonc` with your Cloudflare account details:
 ```
 
 Find your account ID:
+
 ```bash
 wrangler whoami
 ```
@@ -134,6 +136,7 @@ npm run kv:setup
 ```
 
 This creates all required KV namespaces for:
+
 - LTI key storage
 - Platform configurations
 - Session management
@@ -146,6 +149,7 @@ npm run db:migrate
 ```
 
 This sets up the database schema for:
+
 - User profiles
 - Chat sessions
 - Assessment data
@@ -170,6 +174,7 @@ npm run dev
 ### 2. Access the Application
 
 Open your browser to:
+
 - Application: `http://localhost:5988/test`
 - Home page: `http://localhost:5988`
 
@@ -186,6 +191,7 @@ npm test
 ### Issue: Wrangler Authentication Failed
 
 **Solution**: Clear credentials and re-authenticate:
+
 ```bash
 wrangler logout
 wrangler login
@@ -194,6 +200,7 @@ wrangler login
 ### Issue: Database Creation Failed
 
 **Solution**: Ensure you have the correct permissions:
+
 ```bash
 wrangler d1 list  # Should show your databases
 ```
@@ -201,6 +208,7 @@ wrangler d1 list  # Should show your databases
 ### Issue: Port Already in Use
 
 **Solution**: Change the port in `package.json`:
+
 ```json
 "dev": "vite --port 5989"
 ```
@@ -208,6 +216,7 @@ wrangler d1 list  # Should show your databases
 ### Issue: TypeScript Errors
 
 **Solution**: Ensure TypeScript is properly configured:
+
 ```bash
 npm run check
 ```
@@ -217,6 +226,7 @@ npm run check
 ### Visual Studio Code
 
 Install recommended extensions:
+
 - ESLint
 - Prettier
 - TypeScript and JavaScript Language Features

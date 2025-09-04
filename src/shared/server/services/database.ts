@@ -464,4 +464,11 @@ export class DatabaseService {
       )
       .first();
   }
+
+  /**
+   * Get underlying D1 database for direct access when needed
+   */
+  getDb(): D1Database {
+    return this.db;
+  }
 }

@@ -63,7 +63,7 @@ export class GradePassbackService {
 
   /**
    * Submit a grade to the LMS via LTI AGS
-   * 
+   *
    * @param request - Grade passback request
    * @returns Promise resolving to submission response
    * @throws {GradePassbackError} If submission fails after retries
@@ -92,11 +92,7 @@ export class GradePassbackService {
       };
 
       // Submit score with retry logic
-      const response = await this.submitScoreWithRetry(
-        validated.lineItemUrl + '/scores',
-        scorePayload,
-        accessToken
-      );
+      const response = await this.submitScoreWithRetry(validated.lineItemUrl + '/scores', scorePayload, accessToken);
 
       return {
         success: true,
@@ -118,7 +114,7 @@ export class GradePassbackService {
 
   /**
    * Get OAuth access token for AGS operations
-   * 
+   *
    * @param lineItemUrl - The line item URL from LTI launch
    * @returns Promise resolving to access token
    */
@@ -142,27 +138,19 @@ export class GradePassbackService {
         clientId: platformConfig.client_id,
         keyId: platformConfig.key_id,
         privateKey: await this.getPrivateKey(),
-        scopes: [
-          'https://purl.imsglobal.org/spec/lti-ags/scope/score',
-          'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
-        ],
+        scopes: ['https://purl.imsglobal.org/spec/lti-ags/scope/score', 'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly'],
       });
 
       return tokenResponse.access_token;
     } catch (error) {
       console.error('AGS token error:', error);
-      throw new GradePassbackError(
-        'Failed to obtain AGS access token',
-        '',
-        401,
-        false
-      );
+      throw new GradePassbackError('Failed to obtain AGS access token', '', 401, false);
     }
   }
 
   /**
    * Get private key for JWT signing
-   * 
+   *
    * @returns Promise resolving to private key
    */
   private async getPrivateKey(): Promise<string> {
@@ -177,50 +165,40 @@ export class GradePassbackService {
 
   /**
    * Submit score with exponential backoff retry
-   * 
+   *
    * @param url - Score submission URL
    * @param payload - Score payload
    * @param accessToken - OAuth access token
    * @param attempt - Current attempt number
    * @returns Promise resolving to LTI score response
    */
-  private async submitScoreWithRetry(
-    url: string,
-    payload: LtiScore,
-    accessToken: string,
-    attempt: number = 1
-  ): Promise<LtiScore> {
+  private async submitScoreWithRetry(url: string, payload: LtiScore, accessToken: string, attempt: number = 1): Promise<LtiScore> {
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/vnd.ims.lis.v1.score+json',
-          'Accept': 'application/vnd.ims.lis.v1.score+json',
+          Accept: 'application/vnd.ims.lis.v1.score+json',
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        
+
         // Check if error is retryable
         const retryable = response.status >= 500 || response.status === 429;
-        
+
         if (retryable && attempt < this.maxRetries) {
           // Exponential backoff
           const delay = this.retryDelay * Math.pow(2, attempt - 1);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          
+          await new Promise((resolve) => setTimeout(resolve, delay));
+
           return this.submitScoreWithRetry(url, payload, accessToken, attempt + 1);
         }
 
-        throw new GradePassbackError(
-          `Score submission failed: ${response.status} - ${errorText}`,
-          payload.userId,
-          response.status,
-          false
-        );
+        throw new GradePassbackError(`Score submission failed: ${response.status} - ${errorText}`, payload.userId, response.status, false);
       }
 
       // Parse and validate response
@@ -234,52 +212,39 @@ export class GradePassbackService {
       // Network errors are retryable
       if (attempt < this.maxRetries) {
         const delay = this.retryDelay * Math.pow(2, attempt - 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
         return this.submitScoreWithRetry(url, payload, accessToken, attempt + 1);
       }
 
-      throw new GradePassbackError(
-        `Score submission failed after ${attempt} attempts`,
-        payload.userId,
-        undefined,
-        false
-      );
+      throw new GradePassbackError(`Score submission failed after ${attempt} attempts`, payload.userId, undefined, false);
     }
   }
 
   /**
    * Calculate grade based on assessment rubric
-   * 
+   *
    * @param attemptId - Assessment attempt ID
    * @param rubricScores - Scores for each rubric criterion
    * @param maxScore - Maximum possible score
    * @returns Calculated percentage score
    */
-  calculateGrade(
-    attemptId: string,
-    rubricScores: Record<string, number>,
-    maxScore: number = 100
-  ): number {
+  calculateGrade(attemptId: string, rubricScores: Record<string, number>, maxScore: number = 100): number {
     const totalScore = Object.values(rubricScores).reduce((sum, score) => sum + score, 0);
     const percentage = (totalScore / maxScore) * 100;
-    
+
     // Round to 2 decimal places
     return Math.round(percentage * 100) / 100;
   }
 
   /**
    * Track grade submission status
-   * 
+   *
    * @param attemptId - Assessment attempt ID
    * @param status - Submission status
    * @param error - Error details if failed
    */
-  async trackGradeStatus(
-    attemptId: string,
-    status: 'pending' | 'submitted' | 'failed',
-    error?: string
-  ): Promise<void> {
+  async trackGradeStatus(attemptId: string, status: 'pending' | 'submitted' | 'failed', error?: string): Promise<void> {
     try {
       // Store status in database for tracking
       const query = `
@@ -287,7 +252,7 @@ export class GradePassbackService {
         SET grade_status = ?, grade_error = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `;
-      
+
       await this.env.DB.prepare(query)
         .bind(status, error || null, attemptId)
         .run();
@@ -299,7 +264,7 @@ export class GradePassbackService {
 
 /**
  * Factory function to create grade passback service
- * 
+ *
  * @param env - Worker environment
  * @returns GradePassbackService instance
  */

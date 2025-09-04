@@ -1,7 +1,7 @@
 /**
  * @fileoverview Privacy Control Dashboard for Student Privacy Management
  * @module features/learner-dna/client/components/PrivacyControlDashboard
- * 
+ *
  * Implements comprehensive student privacy management interface with granular controls,
  * real-time data collection indicators, learning insights display, and transparent
  * privacy impact explanations for FERPA/COPPA/GDPR compliance.
@@ -10,12 +10,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { ReactElement } from 'react';
 import styles from './PrivacyControlDashboard.module.css';
-import type {
-  LearnerDNAPrivacyConsent,
-  PrivacyConsentUpdate,
-  LearnerDNAProfile,
-  PrivacyImpactScore
-} from '../../shared/types';
+import type { LearnerDNAPrivacyConsent, PrivacyConsentUpdate, LearnerDNAProfile, PrivacyImpactScore } from '../../shared/types';
 
 /**
  * Props for Privacy Control Dashboard component.
@@ -39,10 +34,10 @@ interface PrivacyControlDashboardProps {
 
 /**
  * Comprehensive Privacy Control Dashboard for learner DNA data management.
- * 
+ *
  * Provides students with complete transparency and control over their cognitive
  * data collection with clear explanations of privacy impacts and educational benefits.
- * 
+ *
  * Features:
  * - Granular privacy preference controls (minimal, standard, comprehensive)
  * - Real-time data collection activity indicators
@@ -51,7 +46,7 @@ interface PrivacyControlDashboardProps {
  * - Privacy impact explanations with risk/benefit analysis
  * - One-click data withdrawal with impact explanations
  * - COPPA-compliant parental consent workflows
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -70,7 +65,7 @@ export function PrivacyControlDashboard({
   onDataWithdrawal,
   initialConsent,
   learnerProfile,
-  requiresParentalConsent = false
+  requiresParentalConsent = false,
 }: PrivacyControlDashboardProps): ReactElement {
   const [consent, setConsent] = useState<LearnerDNAPrivacyConsent | null>(initialConsent || null);
   const [activeTab, setActiveTab] = useState<'preferences' | 'insights' | 'activity' | 'data'>('preferences');
@@ -78,11 +73,13 @@ export function PrivacyControlDashboard({
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [withdrawalReason, setWithdrawalReason] = useState('');
   const [screenReaderMessage, setScreenReaderMessage] = useState('');
-  const [dataCollectionActivity, setDataCollectionActivity] = useState<Array<{
-    type: string;
-    timestamp: Date;
-    purpose: string;
-  }>>([]);
+  const [dataCollectionActivity, setDataCollectionActivity] = useState<
+    Array<{
+      type: string;
+      timestamp: Date;
+      purpose: string;
+    }>
+  >([]);
 
   // Privacy impact scoring for different data collection levels
   const privacyImpactScores: Record<string, PrivacyImpactScore> = {
@@ -91,11 +88,7 @@ export function PrivacyControlDashboard({
       sensitivityLevel: 'low',
       reidentificationRisk: 0.2,
       educationalBenefit: 0.6,
-      mitigationMeasures: [
-        'Automatic anonymization after 30 days',
-        'No cross-course correlation',
-        'Aggregated insights only'
-      ]
+      mitigationMeasures: ['Automatic anonymization after 30 days', 'No cross-course correlation', 'Aggregated insights only'],
     },
     standard: {
       dataType: 'Enhanced Cognitive Profiling',
@@ -106,8 +99,8 @@ export function PrivacyControlDashboard({
         'Differential privacy protection',
         'Encrypted storage of behavioral data',
         'Limited cross-course analysis',
-        'User-controlled data sharing'
-      ]
+        'User-controlled data sharing',
+      ],
     },
     comprehensive: {
       dataType: 'Advanced Learning DNA Analysis',
@@ -118,9 +111,9 @@ export function PrivacyControlDashboard({
         'Multi-layer anonymization',
         'Zero-knowledge cross-course analysis',
         'Advanced statistical privacy protection',
-        'Complete user control over data use'
-      ]
-    }
+        'Complete user control over data use',
+      ],
+    },
   };
 
   /**
@@ -135,15 +128,17 @@ export function PrivacyControlDashboard({
         const consentData = await response.json();
         setConsent(consentData);
       }
-      
+
       // Load recent data collection activity
       const activityResponse = await fetch(`/api/learner-dna/activity/${userId}?tenantId=${tenantId}`);
       if (activityResponse.ok) {
         const activity = await activityResponse.json();
-        setDataCollectionActivity(activity.map((item: any) => ({
-          ...item,
-          timestamp: new Date(item.timestamp)
-        })));
+        setDataCollectionActivity(
+          activity.map((item: any) => ({
+            ...item,
+            timestamp: new Date(item.timestamp),
+          }))
+        );
       }
     } catch (error) {
       console.error('Failed to load privacy data:', error);
@@ -170,23 +165,23 @@ export function PrivacyControlDashboard({
    */
   const updatePrivacyPreferences = async (updates: Partial<PrivacyConsentUpdate>): Promise<void> => {
     if (!consent) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch(`/api/learner-dna/privacy-consent/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'X-Tenant-ID': tenantId
+          'X-Tenant-ID': tenantId,
         },
-        body: JSON.stringify(updates)
+        body: JSON.stringify(updates),
       });
-      
+
       if (response.ok) {
         const updatedConsent = await response.json();
         setConsent(updatedConsent);
         onPreferencesUpdated?.(updates);
-        
+
         // Announce privacy changes to screen readers
         if (updates.dataCollectionLevel) {
           announceToScreenReader(`Data collection level updated to ${updates.dataCollectionLevel}`);
@@ -217,18 +212,18 @@ export function PrivacyControlDashboard({
    */
   const handleDataWithdrawal = async (): Promise<void> => {
     if (!withdrawalReason.trim()) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch(`/api/learner-dna/withdraw/${userId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'X-Tenant-ID': tenantId
+          'X-Tenant-ID': tenantId,
         },
-        body: JSON.stringify({ reason: withdrawalReason })
+        body: JSON.stringify({ reason: withdrawalReason }),
       });
-      
+
       if (response.ok) {
         onDataWithdrawal?.(withdrawalReason);
         setShowWithdrawalModal(false);
@@ -249,8 +244,7 @@ export function PrivacyControlDashboard({
       <div className={styles.sectionHeader}>
         <h2>Data Collection Preferences</h2>
         <p className={styles.description}>
-          Control what data we collect to personalize your learning experience. 
-          You can change these settings at any time.
+          Control what data we collect to personalize your learning experience. You can change these settings at any time.
         </p>
       </div>
 
@@ -275,12 +269,8 @@ export function PrivacyControlDashboard({
                 <div className={styles.levelDetails} id={`${level}-details`}>
                   <div className={styles.levelName}>{level.charAt(0).toUpperCase() + level.slice(1)}</div>
                   <div className={styles.levelDescription}>{impact.dataType}</div>
-                  <div className={styles.benefitScore}>
-                    Educational Benefit: {Math.round(impact.educationalBenefit * 100)}%
-                  </div>
-                  <div className={styles.privacyRisk}>
-                    Privacy Risk: {impact.sensitivityLevel}
-                  </div>
+                  <div className={styles.benefitScore}>Educational Benefit: {Math.round(impact.educationalBenefit * 100)}%</div>
+                  <div className={styles.privacyRisk}>Privacy Risk: {impact.sensitivityLevel}</div>
                 </div>
               </label>
             </div>
@@ -308,9 +298,7 @@ export function PrivacyControlDashboard({
                 <span className={styles.controlDescription} id="behavioral-timing-desc">
                   Response times, session durations, and engagement rhythms
                 </span>
-                <span className={styles.educationalBenefit}>
-                  Helps identify optimal learning pace and engagement patterns
-                </span>
+                <span className={styles.educationalBenefit}>Helps identify optimal learning pace and engagement patterns</span>
               </div>
             </label>
           </div>
@@ -329,9 +317,7 @@ export function PrivacyControlDashboard({
                 <span className={styles.controlDescription} id="assessment-patterns-desc">
                   Learning velocity, memory retention, and mastery progression
                 </span>
-                <span className={styles.educationalBenefit}>
-                  Enables personalized difficulty adjustment and review timing
-                </span>
+                <span className={styles.educationalBenefit}>Enables personalized difficulty adjustment and review timing</span>
               </div>
             </label>
           </div>
@@ -350,9 +336,7 @@ export function PrivacyControlDashboard({
                 <span className={styles.controlDescription} id="chat-interactions-desc">
                   Question types, explanation preferences, and help-seeking patterns
                 </span>
-                <span className={styles.educationalBenefit}>
-                  Improves AI tutoring and identifies comprehension styles
-                </span>
+                <span className={styles.educationalBenefit}>Improves AI tutoring and identifies comprehension styles</span>
               </div>
             </label>
           </div>
@@ -371,9 +355,7 @@ export function PrivacyControlDashboard({
                 <span className={styles.controlDescription} id="cross-course-desc">
                   Pattern correlation across different subjects and contexts
                 </span>
-                <span className={styles.educationalBenefit}>
-                  Enables transfer learning insights and holistic academic support
-                </span>
+                <span className={styles.educationalBenefit}>Enables transfer learning insights and holistic academic support</span>
               </div>
             </label>
           </div>
@@ -389,11 +371,9 @@ export function PrivacyControlDashboard({
           <p className={styles.coppaNotice}>
             Since you are under 13, we need parental consent for data collection beyond basic functionality.
           </p>
-          
+
           <div className={styles.parentalEmail}>
-            <label htmlFor="parental-email">
-              Parent/Guardian Email:
-            </label>
+            <label htmlFor="parental-email">Parent/Guardian Email:</label>
             <input
               id="parental-email"
               type="email"
@@ -408,7 +388,7 @@ export function PrivacyControlDashboard({
               We will send a consent request to this email address
             </div>
           </div>
-          
+
           <div className={styles.consentStatus} aria-live="polite">
             {consent?.parentalConsentGiven ? (
               <div className={styles.consentGiven} role="status">
@@ -432,46 +412,44 @@ export function PrivacyControlDashboard({
     <div className={styles.learningInsights}>
       <div className={styles.sectionHeader}>
         <h2>Your Learning Insights</h2>
-        <p className={styles.description}>
-          Based on your privacy preferences, here's what we've learned about your learning patterns.
-        </p>
+        <p className={styles.description}>Based on your privacy preferences, here's what we've learned about your learning patterns.</p>
       </div>
 
       {!learnerProfile ? (
         <div className={styles.noInsights} role="status" aria-live="polite">
-          <div className={styles.icon} aria-hidden="true">📊</div>
+          <div className={styles.icon} aria-hidden="true">
+            📊
+          </div>
           <h3>Insights Coming Soon</h3>
           <p>
-            Once you have enough learning activity, we'll show personalized insights here.
-            More data collection permissions will provide richer insights.
+            Once you have enough learning activity, we'll show personalized insights here. More data collection permissions will provide
+            richer insights.
           </p>
         </div>
       ) : (
         <div className={styles.insightsGrid} role="group" aria-label="Learning analytics metrics">
           <article className={styles.insightCard}>
             <h3>Learning Velocity</h3>
-            <div className={styles.metricValue} aria-label={`Learning velocity: ${learnerProfile.learningVelocityValue.toFixed(1)} times average`}>
+            <div
+              className={styles.metricValue}
+              aria-label={`Learning velocity: ${learnerProfile.learningVelocityValue.toFixed(1)} times average`}
+            >
               {learnerProfile.learningVelocityValue.toFixed(1)}x
             </div>
-            <div className={styles.metricDescription}>
-              Your learning speed compared to average
-            </div>
-            <div className={styles.confidenceIndicator}>
-              Confidence: {Math.round(learnerProfile.learningVelocityConfidence * 100)}%
-            </div>
+            <div className={styles.metricDescription}>Your learning speed compared to average</div>
+            <div className={styles.confidenceIndicator}>Confidence: {Math.round(learnerProfile.learningVelocityConfidence * 100)}%</div>
           </article>
 
           <article className={styles.insightCard}>
             <h3>Memory Retention</h3>
-            <div className={styles.metricValue} aria-label={`Memory retention: ${Math.round(learnerProfile.memoryRetentionValue * 100)} percent`}>
+            <div
+              className={styles.metricValue}
+              aria-label={`Memory retention: ${Math.round(learnerProfile.memoryRetentionValue * 100)} percent`}
+            >
               {Math.round(learnerProfile.memoryRetentionValue * 100)}%
             </div>
-            <div className={styles.metricDescription}>
-              Average retention after one week
-            </div>
-            <div className={styles.confidenceIndicator}>
-              Confidence: {Math.round(learnerProfile.memoryRetentionConfidence * 100)}%
-            </div>
+            <div className={styles.metricDescription}>Average retention after one week</div>
+            <div className={styles.confidenceIndicator}>Confidence: {Math.round(learnerProfile.memoryRetentionConfidence * 100)}%</div>
           </article>
 
           <article className={styles.insightCard}>
@@ -483,19 +461,18 @@ export function PrivacyControlDashboard({
                 </span>
               ))}
             </div>
-            <div className={styles.metricDescription}>
-              Your preferred learning approaches
-            </div>
+            <div className={styles.metricDescription}>Your preferred learning approaches</div>
           </article>
 
           <article className={styles.insightCard}>
             <h3>Profile Confidence</h3>
-            <div className={styles.metricValue} aria-label={`Profile confidence: ${Math.round(learnerProfile.profileConfidence * 100)} percent`}>
+            <div
+              className={styles.metricValue}
+              aria-label={`Profile confidence: ${Math.round(learnerProfile.profileConfidence * 100)} percent`}
+            >
               {Math.round(learnerProfile.profileConfidence * 100)}%
             </div>
-            <div className={styles.metricDescription}>
-              Based on {learnerProfile.totalDataPoints} data points
-            </div>
+            <div className={styles.metricDescription}>Based on {learnerProfile.totalDataPoints} data points</div>
           </article>
         </div>
       )}
@@ -503,8 +480,8 @@ export function PrivacyControlDashboard({
       <aside className={styles.insightsPrivacyNotice} role="note">
         <h3>Privacy Notice</h3>
         <p>
-          Your insights are generated from {consent?.dataCollectionLevel || 'minimal'} data collection.
-          Enable more data types in Privacy Preferences to get richer, more accurate insights.
+          Your insights are generated from {consent?.dataCollectionLevel || 'minimal'} data collection. Enable more data types in Privacy
+          Preferences to get richer, more accurate insights.
         </p>
       </aside>
     </div>
@@ -517,15 +494,13 @@ export function PrivacyControlDashboard({
     <div className={styles.activityMonitor}>
       <div className={styles.sectionHeader}>
         <h2>Data Collection Activity</h2>
-        <p className={styles.description}>
-          Real-time view of when and why we collect your learning data.
-        </p>
+        <p className={styles.description}>Real-time view of when and why we collect your learning data.</p>
       </div>
 
       <section className={styles.currentActivity}>
         <h3>Currently Active</h3>
-        {dataCollectionActivity.filter(activity => 
-          Date.now() - activity.timestamp.getTime() < 30000 // Last 30 seconds
+        {dataCollectionActivity.filter(
+          (activity) => Date.now() - activity.timestamp.getTime() < 30000 // Last 30 seconds
         ).length > 0 ? (
           <div className={styles.activeIndicators} role="status" aria-live="polite">
             <div className={styles.activeIndicator}>
@@ -555,7 +530,7 @@ export function PrivacyControlDashboard({
               </div>
             </article>
           ))}
-          
+
           {dataCollectionActivity.length === 0 && (
             <div className={styles.noRecentActivity} role="status">
               No recent data collection activity
@@ -587,9 +562,7 @@ export function PrivacyControlDashboard({
     <div className={styles.dataManagement}>
       <div className={styles.sectionHeader}>
         <h2>Data Management</h2>
-        <p className={styles.description}>
-          Manage your stored data and exercise your privacy rights.
-        </p>
+        <p className={styles.description}>Manage your stored data and exercise your privacy rights.</p>
       </div>
 
       <section className={styles.dataSummary}>
@@ -601,34 +574,26 @@ export function PrivacyControlDashboard({
           </div>
           <div className={styles.stat}>
             <dt className={styles.statLabel}>Profile Created:</dt>
-            <dd className={styles.statValue}>
-              {learnerProfile?.createdAt?.toLocaleDateString() || 'Not created'}
-            </dd>
+            <dd className={styles.statValue}>{learnerProfile?.createdAt?.toLocaleDateString() || 'Not created'}</dd>
           </div>
           <div className={styles.stat}>
             <dt className={styles.statLabel}>Last Updated:</dt>
-            <dd className={styles.statValue}>
-              {learnerProfile?.updatedAt?.toLocaleDateString() || 'Never'}
-            </dd>
+            <dd className={styles.statValue}>{learnerProfile?.updatedAt?.toLocaleDateString() || 'Never'}</dd>
           </div>
         </dl>
       </section>
 
       <section className={styles.dataActions}>
         <h3>Data Actions</h3>
-        
-        <button 
-          className={`${styles.actionBtn} ${styles.exportBtn}`} 
-          disabled={isLoading}
-          aria-describedby="export-help"
-        >
+
+        <button className={`${styles.actionBtn} ${styles.exportBtn}`} disabled={isLoading} aria-describedby="export-help">
           <span aria-hidden="true">📥</span> Export My Data
         </button>
         <div id="export-help" className={styles.helpText}>
           Download a copy of all your collected data
         </div>
-        
-        <button 
+
+        <button
           className={`${styles.actionBtn} ${styles.withdrawalBtn}`}
           onClick={() => setShowWithdrawalModal(true)}
           disabled={isLoading}
@@ -643,55 +608,59 @@ export function PrivacyControlDashboard({
 
       <aside className={styles.retentionInfo} role="note">
         <h3>Data Retention</h3>
-        <p>
-          Your data is automatically purged based on your collection level:
-        </p>
+        <p>Your data is automatically purged based on your collection level:</p>
         <ul>
-          <li><strong>Minimal:</strong> 1 year retention</li>
-          <li><strong>Standard:</strong> 2 year retention</li>
-          <li><strong>Comprehensive:</strong> 3 year retention</li>
+          <li>
+            <strong>Minimal:</strong> 1 year retention
+          </li>
+          <li>
+            <strong>Standard:</strong> 2 year retention
+          </li>
+          <li>
+            <strong>Comprehensive:</strong> 3 year retention
+          </li>
         </ul>
-        <p>
-          You can request immediate deletion at any time using the "Delete All My Data" button above.
-        </p>
+        <p>You can request immediate deletion at any time using the "Delete All My Data" button above.</p>
       </aside>
 
       {/* Data Withdrawal Modal */}
       {showWithdrawalModal && (
         <div className={styles.modalOverlay} onClick={() => setShowWithdrawalModal(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()} role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description">
+          <div
+            className={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="modal-title"
+            aria-describedby="modal-description"
+          >
             <div className={styles.modalHeader}>
               <h2 id="modal-title">Delete All Learning Data</h2>
-              <button 
-                className={styles.modalClose}
-                onClick={() => setShowWithdrawalModal(false)}
-                aria-label="Close dialog"
-              >
+              <button className={styles.modalClose} onClick={() => setShowWithdrawalModal(false)} aria-label="Close dialog">
                 ×
               </button>
             </div>
-            
+
             <div className={styles.modalBody}>
               <div className={styles.withdrawalWarning} role="alert">
-                <div className={styles.warningIcon} aria-hidden="true">⚠️</div>
+                <div className={styles.warningIcon} aria-hidden="true">
+                  ⚠️
+                </div>
                 <div className={styles.warningText} id="modal-description">
                   <strong>This action cannot be undone.</strong>
                   <br />
                   Deleting your data will:
                 </div>
               </div>
-              
+
               <ul className={styles.impactList} aria-label="Consequences of data deletion">
                 <li>Remove all personalized learning insights</li>
                 <li>Reset your cognitive learning profile</li>
                 <li>Disable adaptive learning features</li>
                 <li>Remove cross-course learning connections</li>
               </ul>
-              
+
               <div className={styles.withdrawalForm}>
-                <label htmlFor="withdrawal-reason">
-                  Please tell us why you're deleting your data (optional):
-                </label>
+                <label htmlFor="withdrawal-reason">Please tell us why you're deleting your data (optional):</label>
                 <textarea
                   id="withdrawal-reason"
                   value={withdrawalReason}
@@ -705,16 +674,12 @@ export function PrivacyControlDashboard({
                 </div>
               </div>
             </div>
-            
+
             <div className={styles.modalFooter}>
-              <button 
-                className={styles.btnSecondary}
-                onClick={() => setShowWithdrawalModal(false)}
-                disabled={isLoading}
-              >
+              <button className={styles.btnSecondary} onClick={() => setShowWithdrawalModal(false)} disabled={isLoading}>
                 Cancel
               </button>
-              <button 
+              <button
                 className={styles.btnDanger}
                 onClick={handleDataWithdrawal}
                 disabled={isLoading}
@@ -738,18 +703,18 @@ export function PrivacyControlDashboard({
       <div aria-live="polite" aria-atomic="true" className={styles.screenReaderOnly}>
         {screenReaderMessage}
       </div>
-      
+
       <div className={styles.dashboardHeader}>
         <h1>Privacy & Learning Data Control</h1>
         <p className={styles.headerDescription}>
-          Manage how we collect and use your learning data to personalize your educational experience.
-          You have complete control over your privacy.
+          Manage how we collect and use your learning data to personalize your educational experience. You have complete control over your
+          privacy.
         </p>
       </div>
 
       {/* Tab Navigation */}
       <div className={styles.tabNavigation} role="tablist" aria-label="Privacy control sections">
-        <button 
+        <button
           className={`${styles.tab} ${activeTab === 'preferences' ? styles.active : ''}`}
           onClick={() => setActiveTab('preferences')}
           role="tab"
@@ -760,7 +725,7 @@ export function PrivacyControlDashboard({
         >
           Privacy Preferences
         </button>
-        <button 
+        <button
           className={`${styles.tab} ${activeTab === 'insights' ? styles.active : ''}`}
           onClick={() => setActiveTab('insights')}
           role="tab"
@@ -771,7 +736,7 @@ export function PrivacyControlDashboard({
         >
           Learning Insights
         </button>
-        <button 
+        <button
           className={`${styles.tab} ${activeTab === 'activity' ? styles.active : ''}`}
           onClick={() => setActiveTab('activity')}
           role="tab"
@@ -782,7 +747,7 @@ export function PrivacyControlDashboard({
         >
           Activity Monitor
         </button>
-        <button 
+        <button
           className={`${styles.tab} ${activeTab === 'data' ? styles.active : ''}`}
           onClick={() => setActiveTab('data')}
           role="tab"
@@ -803,7 +768,7 @@ export function PrivacyControlDashboard({
             <span>Loading...</span>
           </div>
         )}
-        
+
         <div id="tab-panel-preferences" role="tabpanel" aria-labelledby="tab-preferences" hidden={activeTab !== 'preferences'}>
           {activeTab === 'preferences' && renderPrivacyPreferences()}
         </div>
@@ -828,7 +793,8 @@ export function PrivacyControlDashboard({
           or{' '}
           <a href="/contact" target="_blank" rel="noopener noreferrer">
             contact support
-          </a>.
+          </a>
+          .
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 .learningInsights {
   padding: var(--spacing-lg, 24px);
-  background: var(--color-bg, #FFFFFF);
+  background: var(--color-bg, #ffffff);
   border-radius: var(--radius-lg, 12px);
 }
 
@@ -22,11 +22,11 @@
 }
 
 .learningStyleCard {
-  background: linear-gradient(135deg, var(--color-primary, #FFDD00) 0%, #F5D000 100%);
+  background: linear-gradient(135deg, var(--color-primary, #ffdd00) 0%, #f5d000 100%);
   border-radius: var(--radius-lg, 12px);
   padding: var(--spacing-lg, 24px);
   margin-bottom: var(--spacing-xl, 32px);
-  box-shadow: var(--shadow-md, 0 4px 6px rgba(0,0,0,0.15));
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.15));
 }
 
 .styleHeader {
@@ -77,7 +77,7 @@
 
 .confidenceFill {
   height: 100%;
-  background: var(--color-bg, #FFFFFF);
+  background: var(--color-bg, #ffffff);
   border-radius: var(--radius-sm, 6px);
   transition: width var(--transition-standard, 300ms ease-in-out);
 }
@@ -90,7 +90,7 @@
 }
 
 .metricCard {
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-md, 8px);
   padding: var(--spacing-md, 16px);
@@ -98,7 +98,7 @@
 }
 
 .metricCard:hover {
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.12));
   transform: translateY(-2px);
 }
 
@@ -125,11 +125,11 @@
 }
 
 .trend.up {
-  color: var(--color-success, #027A48);
+  color: var(--color-success, #027a48);
 }
 
 .trend.down {
-  color: var(--color-error, #B42318);
+  color: var(--color-error, #b42318);
 }
 
 .trend.neutral {
@@ -150,7 +150,7 @@
 }
 
 .insightSection {
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
   border-radius: var(--radius-lg, 12px);
   padding: var(--spacing-lg, 24px);
 }
@@ -197,7 +197,7 @@
 
 .timelineBar {
   width: 100%;
-  background: linear-gradient(to top, var(--color-primary, #FFDD00), #F5D000);
+  background: linear-gradient(to top, var(--color-primary, #ffdd00), #f5d000);
   border-radius: var(--radius-sm, 6px) var(--radius-sm, 6px) 0 0;
   display: flex;
   align-items: flex-start;
@@ -263,13 +263,13 @@
 
 .barFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-primary, #FFDD00), #F5D000);
+  background: linear-gradient(90deg, var(--color-primary, #ffdd00), #f5d000);
   border-radius: var(--radius-sm, 6px);
   transition: width var(--transition-standard, 300ms ease-in-out);
 }
 
 .patternsSummary {
-  background: var(--color-bg-gray, #F5F5F5);
+  background: var(--color-bg-gray, #f5f5f5);
   border-radius: var(--radius-lg, 12px);
   padding: var(--spacing-lg, 24px);
 }
@@ -298,7 +298,7 @@
 }
 
 .patternCard:hover {
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.12));
   transform: translateY(-2px);
 }
 
@@ -343,7 +343,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top-color: var(--color-primary, #FFDD00);
+  border-top-color: var(--color-primary, #ffdd00);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: var(--spacing-md, 16px);

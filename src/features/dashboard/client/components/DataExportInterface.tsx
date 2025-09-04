@@ -71,7 +71,7 @@ interface DataExportInterfaceProps {
 
 /**
  * Data export interface component providing comprehensive data export capabilities
- * 
+ *
  * Features:
  * - Granular data type selection with preview
  * - Multiple export formats (CSV, JSON, xAPI)
@@ -81,12 +81,7 @@ interface DataExportInterfaceProps {
  * - Mobile-optimized responsive design
  * - FERPA-compliant data handling
  */
-export default function DataExportInterface({
-  userId,
-  courseId,
-  jwt,
-  onExportComplete
-}: DataExportInterfaceProps): React.ReactElement {
+export default function DataExportInterface({ userId, courseId, jwt, onExportComplete }: DataExportInterfaceProps): React.ReactElement {
   const [currentStep, setCurrentStep] = useState<'configure' | 'preview' | 'generate'>('configure');
   const [exportConfig, setExportConfig] = useState<ExportConfig>({
     dateRange: {
@@ -103,7 +98,7 @@ export default function DataExportInterface({
     includeMetadata: true,
     purpose: '',
   });
-  
+
   const [dataPreview, setDataPreview] = useState<DataPreview | null>(null);
   const [exportStatus, setExportStatus] = useState<ExportStatus | null>(null);
   const [loading, setLoading] = useState(false);
@@ -111,98 +106,110 @@ export default function DataExportInterface({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Date range presets
-  const datePresets = useMemo(() => [
-    {
-      label: 'Last 7 days',
-      value: 'week',
-      start: () => new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      end: () => new Date(),
-    },
-    {
-      label: 'Last 30 days',
-      value: 'month',
-      start: () => new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      end: () => new Date(),
-    },
-    {
-      label: 'This semester',
-      value: 'semester',
-      start: () => new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
-      end: () => new Date(),
-    },
-    {
-      label: 'All time',
-      value: 'all',
-      start: () => new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
-      end: () => new Date(),
-    },
-  ], []);
+  const datePresets = useMemo(
+    () => [
+      {
+        label: 'Last 7 days',
+        value: 'week',
+        start: () => new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        end: () => new Date(),
+      },
+      {
+        label: 'Last 30 days',
+        value: 'month',
+        start: () => new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        end: () => new Date(),
+      },
+      {
+        label: 'This semester',
+        value: 'semester',
+        start: () => new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
+        end: () => new Date(),
+      },
+      {
+        label: 'All time',
+        value: 'all',
+        start: () => new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        end: () => new Date(),
+      },
+    ],
+    []
+  );
 
   // Data type options
-  const dataTypeOptions = useMemo(() => [
-    {
-      key: 'assessments' as const,
-      label: 'Assessment Results',
-      description: 'Quiz scores, attempts, and response data',
-      icon: '📝',
-    },
-    {
-      key: 'analytics' as const,
-      label: 'Performance Analytics',
-      description: 'Mastery levels, learning progress, and insights',
-      icon: '📊',
-    },
-    {
-      key: 'benchmarks' as const,
-      label: 'Peer Comparisons',
-      description: 'Anonymous performance benchmarks (if opted in)',
-      icon: '📈',
-    },
-    {
-      key: 'interactions' as const,
-      label: 'Learning Interactions',
-      description: 'Chat conversations, help requests, and engagement data',
-      icon: '💬',
-    },
-  ], []);
+  const dataTypeOptions = useMemo(
+    () => [
+      {
+        key: 'assessments' as const,
+        label: 'Assessment Results',
+        description: 'Quiz scores, attempts, and response data',
+        icon: '📝',
+      },
+      {
+        key: 'analytics' as const,
+        label: 'Performance Analytics',
+        description: 'Mastery levels, learning progress, and insights',
+        icon: '📊',
+      },
+      {
+        key: 'benchmarks' as const,
+        label: 'Peer Comparisons',
+        description: 'Anonymous performance benchmarks (if opted in)',
+        icon: '📈',
+      },
+      {
+        key: 'interactions' as const,
+        label: 'Learning Interactions',
+        description: 'Chat conversations, help requests, and engagement data',
+        icon: '💬',
+      },
+    ],
+    []
+  );
 
   // Export format options
-  const formatOptions = useMemo(() => [
-    {
-      value: 'csv',
-      label: 'CSV (Spreadsheet)',
-      description: 'Comma-separated values for Excel/Google Sheets',
-      recommended: true,
-    },
-    {
-      value: 'json',
-      label: 'JSON (Structured)',
-      description: 'Machine-readable format for developers',
-      recommended: false,
-    },
-    {
-      value: 'xapi',
-      label: 'xAPI (Learning Records)',
-      description: 'Educational standard for portfolio integration',
-      recommended: false,
-    },
-  ], []);
+  const formatOptions = useMemo(
+    () => [
+      {
+        value: 'csv',
+        label: 'CSV (Spreadsheet)',
+        description: 'Comma-separated values for Excel/Google Sheets',
+        recommended: true,
+      },
+      {
+        value: 'json',
+        label: 'JSON (Structured)',
+        description: 'Machine-readable format for developers',
+        recommended: false,
+      },
+      {
+        value: 'xapi',
+        label: 'xAPI (Learning Records)',
+        description: 'Educational standard for portfolio integration',
+        recommended: false,
+      },
+    ],
+    []
+  );
 
   // Purpose options for audit trail
-  const purposeOptions = useMemo(() => [
-    'Academic portfolio development',
-    'Transferring to another institution',
-    'Personal record keeping',
-    'Sharing with academic advisor',
-    'Educational research (with permission)',
-    'Other (please specify)',
-  ], []);
+  const purposeOptions = useMemo(
+    () => [
+      'Academic portfolio development',
+      'Transferring to another institution',
+      'Personal record keeping',
+      'Sharing with academic advisor',
+      'Educational research (with permission)',
+      'Other (please specify)',
+    ],
+    []
+  );
 
   // Handle date preset selection
   const handleDatePreset = (presetValue: string): void => {
-    const preset = datePresets.find(p => p.value === presetValue);
+    const preset = datePresets.find((p) => p.value === presetValue);
     if (preset) {
-      setExportConfig(prev => ({
+      setExportConfig((prev) => ({
         ...prev,
         dateRange: {
           start: preset.start().toISOString(),
@@ -214,7 +221,7 @@ export default function DataExportInterface({
 
   // Handle data type toggle
   const handleDataTypeToggle = (dataType: keyof ExportConfig['dataTypes']): void => {
-    setExportConfig(prev => ({
+    setExportConfig((prev) => ({
       ...prev,
       dataTypes: {
         ...prev.dataTypes,
@@ -225,11 +232,9 @@ export default function DataExportInterface({
 
   // Handle format toggle
   const handleFormatToggle = (format: 'csv' | 'json' | 'xapi'): void => {
-    setExportConfig(prev => ({
+    setExportConfig((prev) => ({
       ...prev,
-      formats: prev.formats.includes(format)
-        ? prev.formats.filter(f => f !== format)
-        : [...prev.formats, format],
+      formats: prev.formats.includes(format) ? prev.formats.filter((f) => f !== format) : [...prev.formats, format],
     }));
   };
 
@@ -242,7 +247,7 @@ export default function DataExportInterface({
       const response = await fetch('/api/analytics/export/preview', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          Authorization: `Bearer ${jwt}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -264,7 +269,6 @@ export default function DataExportInterface({
       const preview = DataPreviewSchema.parse(data.data);
       setDataPreview(preview);
       setCurrentStep('preview');
-
     } catch (err) {
       console.error('Preview generation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate preview');
@@ -282,7 +286,7 @@ export default function DataExportInterface({
       const response = await fetch('/api/analytics/export/generate', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          Authorization: `Bearer ${jwt}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -308,7 +312,6 @@ export default function DataExportInterface({
 
       // Start polling for status updates
       pollExportStatus(status.exportId);
-
     } catch (err) {
       console.error('Export generation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to start export');
@@ -322,7 +325,7 @@ export default function DataExportInterface({
     try {
       const response = await fetch(`/api/analytics/export/status/${exportId}`, {
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          Authorization: `Bearer ${jwt}`,
         },
       });
 
@@ -352,18 +355,13 @@ export default function DataExportInterface({
       <section className={styles.configSection}>
         <h3>Select Time Period</h3>
         <div className={styles.presetButtons}>
-          {datePresets.map(preset => (
-            <button
-              key={preset.value}
-              type="button"
-              className={styles.presetBtn}
-              onClick={() => handleDatePreset(preset.value)}
-            >
+          {datePresets.map((preset) => (
+            <button key={preset.value} type="button" className={styles.presetBtn} onClick={() => handleDatePreset(preset.value)}>
               {preset.label}
             </button>
           ))}
         </div>
-        
+
         <div className={styles.customDateInputs}>
           <div className={styles.dateInput}>
             <label htmlFor="startDate">Start Date</label>
@@ -371,13 +369,15 @@ export default function DataExportInterface({
               id="startDate"
               type="date"
               value={exportConfig.dateRange.start.split('T')[0]}
-              onChange={(e) => setExportConfig(prev => ({
-                ...prev,
-                dateRange: {
-                  ...prev.dateRange,
-                  start: new Date(e.target.value).toISOString(),
-                },
-              }))}
+              onChange={(e) =>
+                setExportConfig((prev) => ({
+                  ...prev,
+                  dateRange: {
+                    ...prev.dateRange,
+                    start: new Date(e.target.value).toISOString(),
+                  },
+                }))
+              }
               className={styles.dateField}
             />
           </div>
@@ -387,13 +387,15 @@ export default function DataExportInterface({
               id="endDate"
               type="date"
               value={exportConfig.dateRange.end.split('T')[0]}
-              onChange={(e) => setExportConfig(prev => ({
-                ...prev,
-                dateRange: {
-                  ...prev.dateRange,
-                  end: new Date(e.target.value).toISOString(),
-                },
-              }))}
+              onChange={(e) =>
+                setExportConfig((prev) => ({
+                  ...prev,
+                  dateRange: {
+                    ...prev.dateRange,
+                    end: new Date(e.target.value).toISOString(),
+                  },
+                }))
+              }
               className={styles.dateField}
             />
           </div>
@@ -404,7 +406,7 @@ export default function DataExportInterface({
       <section className={styles.configSection}>
         <h3>Choose Data Types</h3>
         <div className={styles.dataTypeGrid}>
-          {dataTypeOptions.map(option => (
+          {dataTypeOptions.map((option) => (
             <label key={option.key} className={styles.dataTypeOption}>
               <input
                 type="checkbox"
@@ -428,7 +430,7 @@ export default function DataExportInterface({
       <section className={styles.configSection}>
         <h3>Export Format</h3>
         <div className={styles.formatOptions}>
-          {formatOptions.map(format => (
+          {formatOptions.map((format) => (
             <label key={format.value} className={styles.formatOption}>
               <input
                 type="checkbox"
@@ -439,9 +441,7 @@ export default function DataExportInterface({
               <div className={styles.optionContent}>
                 <div className={styles.optionHeader}>
                   <strong>{format.label}</strong>
-                  {format.recommended && (
-                    <span className={styles.recommendedBadge}>Recommended</span>
-                  )}
+                  {format.recommended && <span className={styles.recommendedBadge}>Recommended</span>}
                 </div>
                 <p className={styles.optionDescription}>{format.description}</p>
               </div>
@@ -455,16 +455,20 @@ export default function DataExportInterface({
         <h3>Purpose of Export</h3>
         <select
           value={exportConfig.purpose}
-          onChange={(e) => setExportConfig(prev => ({
-            ...prev,
-            purpose: e.target.value,
-          }))}
+          onChange={(e) =>
+            setExportConfig((prev) => ({
+              ...prev,
+              purpose: e.target.value,
+            }))
+          }
           className={styles.purposeSelect}
           required
         >
           <option value="">Select purpose...</option>
-          {purposeOptions.map(purpose => (
-            <option key={purpose} value={purpose}>{purpose}</option>
+          {purposeOptions.map((purpose) => (
+            <option key={purpose} value={purpose}>
+              {purpose}
+            </option>
           ))}
         </select>
       </section>
@@ -475,10 +479,12 @@ export default function DataExportInterface({
           <input
             type="checkbox"
             checked={exportConfig.includeMetadata}
-            onChange={(e) => setExportConfig(prev => ({
-              ...prev,
-              includeMetadata: e.target.checked,
-            }))}
+            onChange={(e) =>
+              setExportConfig((prev) => ({
+                ...prev,
+                includeMetadata: e.target.checked,
+              }))
+            }
             className={styles.metadataCheckbox}
           />
           <span>Include technical metadata (timestamps, IDs, etc.)</span>
@@ -507,12 +513,8 @@ export default function DataExportInterface({
           <div className={styles.previewHeader}>
             <h3>Export Preview</h3>
             <div className={styles.previewStats}>
-              <span className={styles.recordCount}>
-                {dataPreview.totalRecords.toLocaleString()} records
-              </span>
-              <span className={styles.estimatedSize}>
-                ~{dataPreview.estimatedSize}
-              </span>
+              <span className={styles.recordCount}>{dataPreview.totalRecords.toLocaleString()} records</span>
+              <span className={styles.estimatedSize}>~{dataPreview.estimatedSize}</span>
             </div>
           </div>
 
@@ -530,7 +532,7 @@ export default function DataExportInterface({
                 <table>
                   <thead>
                     <tr>
-                      {Object.keys(dataPreview.sampleData[0] || {}).map(key => (
+                      {Object.keys(dataPreview.sampleData[0] || {}).map((key) => (
                         <th key={key}>{key}</th>
                       ))}
                     </tr>
@@ -540,9 +542,7 @@ export default function DataExportInterface({
                       <tr key={index}>
                         {Object.values(row).map((value, cellIndex) => (
                           <td key={cellIndex}>
-                            {typeof value === 'string' && value.length > 50
-                              ? `${value.substring(0, 50)}...`
-                              : String(value)}
+                            {typeof value === 'string' && value.length > 50 ? `${value.substring(0, 50)}...` : String(value)}
                           </td>
                         ))}
                       </tr>
@@ -551,9 +551,7 @@ export default function DataExportInterface({
                 </table>
               </div>
             ) : (
-              <div className={styles.noDataMessage}>
-                No data found for the selected criteria. Try adjusting your filters.
-              </div>
+              <div className={styles.noDataMessage}>No data found for the selected criteria. Try adjusting your filters.</div>
             )}
           </div>
 
@@ -562,10 +560,7 @@ export default function DataExportInterface({
             <div className={styles.privacyIcon}>🛡️</div>
             <div className={styles.privacyContent}>
               <strong>Privacy Notice</strong>
-              <p>
-                This export contains only your personal learning data. 
-                No peer comparison data will be included to protect privacy.
-              </p>
+              <p>This export contains only your personal learning data. No peer comparison data will be included to protect privacy.</p>
             </div>
           </div>
 
@@ -593,19 +588,10 @@ export default function DataExportInterface({
 
           {/* Step Actions */}
           <div className={styles.stepActions}>
-            <button
-              type="button"
-              className={styles.backBtn}
-              onClick={() => setCurrentStep('configure')}
-            >
+            <button type="button" className={styles.backBtn} onClick={() => setCurrentStep('configure')}>
               Back to Configuration
             </button>
-            <button
-              type="button"
-              className={styles.generateBtn}
-              onClick={startExport}
-              disabled={!agreedToTerms || loading}
-            >
+            <button type="button" className={styles.generateBtn} onClick={startExport} disabled={!agreedToTerms || loading}>
               {loading ? 'Starting Export...' : 'Generate Export'}
             </button>
           </div>
@@ -623,10 +609,7 @@ export default function DataExportInterface({
             <h3>Generating Export</h3>
             <div className={styles.progressContainer}>
               <div className={styles.progressBar}>
-                <div 
-                  className={styles.progressFill}
-                  style={{ width: `${exportStatus.progress}%` }}
-                />
+                <div className={styles.progressFill} style={{ width: `${exportStatus.progress}%` }} />
               </div>
               <span className={styles.progressText}>{exportStatus.progress}%</span>
             </div>
@@ -634,27 +617,19 @@ export default function DataExportInterface({
 
           <div className={styles.generationStatus}>
             <div className={`${styles.statusItem} ${exportStatus.progress >= 25 ? styles.complete : styles.pending}`}>
-              <span className={styles.statusIcon}>
-                {exportStatus.progress >= 25 ? '✅' : '⏳'}
-              </span>
+              <span className={styles.statusIcon}>{exportStatus.progress >= 25 ? '✅' : '⏳'}</span>
               <span>Collecting data records</span>
             </div>
             <div className={`${styles.statusItem} ${exportStatus.progress >= 50 ? styles.complete : styles.pending}`}>
-              <span className={styles.statusIcon}>
-                {exportStatus.progress >= 50 ? '✅' : '⏳'}
-              </span>
+              <span className={styles.statusIcon}>{exportStatus.progress >= 50 ? '✅' : '⏳'}</span>
               <span>Applying privacy filters</span>
             </div>
             <div className={`${styles.statusItem} ${exportStatus.progress >= 75 ? styles.complete : styles.pending}`}>
-              <span className={styles.statusIcon}>
-                {exportStatus.progress >= 75 ? '✅' : '⏳'}
-              </span>
+              <span className={styles.statusIcon}>{exportStatus.progress >= 75 ? '✅' : '⏳'}</span>
               <span>Formatting export file</span>
             </div>
             <div className={`${styles.statusItem} ${exportStatus.progress >= 100 ? styles.complete : styles.pending}`}>
-              <span className={styles.statusIcon}>
-                {exportStatus.progress >= 100 ? '✅' : '⏳'}
-              </span>
+              <span className={styles.statusIcon}>{exportStatus.progress >= 100 ? '✅' : '⏳'}</span>
               <span>Preparing download</span>
             </div>
           </div>
@@ -670,21 +645,23 @@ export default function DataExportInterface({
               </div>
 
               <div className={styles.downloadActions}>
-                <a
-                  href={exportStatus.downloadUrl}
-                  download
-                  className={styles.downloadBtn}
-                >
+                <a href={exportStatus.downloadUrl} download className={styles.downloadBtn}>
                   <span className={styles.downloadIcon}>⬇️</span>
                   Download Export
                 </a>
 
                 <div className={styles.downloadInfo}>
-                  <p><strong>Records:</strong> {exportStatus.recordCount.toLocaleString()}</p>
+                  <p>
+                    <strong>Records:</strong> {exportStatus.recordCount.toLocaleString()}
+                  </p>
                   {exportStatus.fileSize && (
-                    <p><strong>Size:</strong> {(exportStatus.fileSize / 1024 / 1024).toFixed(2)} MB</p>
+                    <p>
+                      <strong>Size:</strong> {(exportStatus.fileSize / 1024 / 1024).toFixed(2)} MB
+                    </p>
                   )}
-                  <p><strong>Expires:</strong> {new Date(exportStatus.expiresAt).toLocaleDateString()}</p>
+                  <p>
+                    <strong>Expires:</strong> {new Date(exportStatus.expiresAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
             </div>
@@ -710,7 +687,7 @@ export default function DataExportInterface({
         <div className={styles.error}>
           <h3>Export Error</h3>
           <p>{error}</p>
-          <button 
+          <button
             onClick={() => {
               setError(null);
               setCurrentStep('configure');
@@ -728,9 +705,7 @@ export default function DataExportInterface({
     <div className={styles.dataExportInterface}>
       <div className={styles.header}>
         <h2>Export Your Data</h2>
-        <p className={styles.subtitle}>
-          Download your personal learning data for portfolios, transfers, or record keeping
-        </p>
+        <p className={styles.subtitle}>Download your personal learning data for portfolios, transfers, or record keeping</p>
       </div>
 
       {/* Progress Indicator */}

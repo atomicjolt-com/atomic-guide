@@ -10,16 +10,16 @@
 
 /* Brand Colors */
 :root {
-  --ag-primary: #1E3A5F;      /* Deep Navy */
-  --ag-secondary: #4A90E2;     /* Bright Blue */
-  --ag-success: #27AE60;       /* Green */
-  --ag-warning: #F39C12;       /* Orange */
-  --ag-error: #E74C3C;         /* Red */
-  --ag-background: #FFFFFF;     /* White */
-  --ag-light-gray: #F5F7FA;    /* Light Gray */
-  --ag-text-primary: #1E3A5F;
-  --ag-text-secondary: #64748B;
-  --ag-text-muted: #94A3B8;
+  --ag-primary: #1e3a5f; /* Deep Navy */
+  --ag-secondary: #4a90e2; /* Bright Blue */
+  --ag-success: #27ae60; /* Green */
+  --ag-warning: #f39c12; /* Orange */
+  --ag-error: #e74c3c; /* Red */
+  --ag-background: #ffffff; /* White */
+  --ag-light-gray: #f5f7fa; /* Light Gray */
+  --ag-text-primary: #1e3a5f;
+  --ag-text-secondary: #64748b;
+  --ag-text-muted: #94a3b8;
 }
 
 /* Mobile baseline (320px+) */
@@ -28,7 +28,13 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 8px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
   color: var(--ag-text-primary);
   background: linear-gradient(135deg, var(--ag-light-gray) 0%, #e2e8f0 100%);
   min-height: 100vh;
@@ -93,7 +99,8 @@
 }
 
 /* Loading and Error States */
-.loading, .error {
+.loading,
+.error {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -115,8 +122,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error h2 {
@@ -799,20 +810,20 @@
     padding: 12px;
     font-size: 15px;
   }
-  
+
   .header h1 {
     font-size: 2rem;
   }
-  
+
   .metricsGrid {
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
-  
+
   .navLabel {
     font-size: 0.75rem;
   }
-  
+
   .mobileNavigation {
     margin-bottom: 20px;
   }
@@ -824,36 +835,36 @@
     padding: 16px;
     font-size: 16px;
   }
-  
+
   .header h1 {
     font-size: 2.25rem;
   }
-  
+
   .mobileNavigation {
     display: none;
   }
-  
+
   .sectionsGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
-  
+
   .collapsibleSection .sectionContent {
     display: block !important;
   }
-  
+
   .sectionHeader.collapsible {
     pointer-events: none;
     background: transparent;
     padding: 0;
     margin-bottom: 16px;
   }
-  
+
   .expandIcon {
     display: none;
   }
-  
+
   .sectionsContainer {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -866,16 +877,16 @@
   .performanceOverview {
     padding: 24px;
   }
-  
+
   .metricsGrid {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
   }
-  
+
   .sectionsContainer {
     gap: 24px;
   }
-  
+
   .section {
     padding: 24px;
   }
@@ -887,17 +898,17 @@
     min-height: 48px;
     padding: 16px 12px;
   }
-  
+
   .sectionHeader {
     min-height: 48px;
     padding: 16px;
   }
-  
+
   .actionBtn {
     min-height: 48px;
     padding: 12px 20px;
   }
-  
+
   .timeframeBtn {
     min-height: 44px;
     padding: 12px 16px;
@@ -911,7 +922,7 @@
     color: white;
     border: 2px solid #000;
   }
-  
+
   .sectionHeader.collapsible {
     border: 1px solid #000;
   }
@@ -922,11 +933,11 @@
   .expandIcon {
     transition: none;
   }
-  
+
   .sectionContent {
     animation: none;
   }
-  
+
   .navTab {
     transition: none;
   }
@@ -937,20 +948,20 @@
   .header {
     padding: 12px 16px;
   }
-  
+
   .header h1 {
     font-size: 1.5rem;
   }
-  
+
   .metricsGrid {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
   }
-  
+
   .metricCard {
     padding: 12px;
   }
-  
+
   .timeline {
     height: 120px;
   }
@@ -967,13 +978,13 @@
   .recommendationActions {
     flex-direction: column;
   }
-  
+
   .timelineHeader {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
-  
+
   .patternsList {
     grid-template-columns: 1fr;
   }

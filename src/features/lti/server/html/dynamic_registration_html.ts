@@ -2,10 +2,7 @@ import type { PlatformConfiguration } from '@atomicjolt/lti-types';
 import { html } from '@atomicjolt/lti-endpoints';
 import { APPLICATION_NAME, LTI_REGISTRATION_FINISH_PATH } from '../../../../../definitions';
 
-export function dynamicRegistrationHtml(
-  platformConfiguration: PlatformConfiguration,
-  registrationToken: string,
-): string {
+export function dynamicRegistrationHtml(platformConfiguration: PlatformConfiguration, registrationToken: string): string {
   const config = encodeURIComponent(JSON.stringify(platformConfiguration));
   const head = '';
   const body = `

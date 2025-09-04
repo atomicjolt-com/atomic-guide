@@ -73,31 +73,41 @@ Shared code needs thorough testing as bugs affect the entire application.
 ### Server Services
 
 #### AIService
+
 Core AI model interactions for all features:
+
 ```typescript
 import { AIService } from '@shared/server/services/AIService';
 ```
 
 #### DatabaseService
+
 Common database operations and connection management:
+
 ```typescript
 import { DatabaseService } from '@shared/server/services/DatabaseService';
 ```
 
 #### ModelRegistry
+
 AI model configuration and management:
+
 ```typescript
 import { ModelRegistry } from '@shared/server/services/ModelRegistry';
 ```
 
 #### PromptBuilder
+
 Utilities for constructing AI prompts:
+
 ```typescript
 import { PromptBuilder } from '@shared/server/services/PromptBuilder';
 ```
 
 #### StorageFallback
+
 Storage abstraction layer for different backends:
+
 ```typescript
 import { StorageFallback } from '@shared/server/services/StorageFallback';
 ```
@@ -105,25 +115,33 @@ import { StorageFallback } from '@shared/server/services/StorageFallback';
 ### Client Components
 
 #### ErrorMessage
+
 Standardized error display component:
+
 ```typescript
 import { ErrorMessage } from '@shared/client/components/ErrorMessage';
 ```
 
 #### CodeBlock
+
 Syntax-highlighted code display:
+
 ```typescript
 import { CodeBlock } from '@shared/client/components/CodeBlock';
 ```
 
 #### LoadingSpinner
+
 Consistent loading states:
+
 ```typescript
 import { LoadingSpinner } from '@shared/client/components/LoadingSpinner';
 ```
 
 #### Modal
+
 Reusable modal dialog:
+
 ```typescript
 import { Modal } from '@shared/client/components/Modal';
 ```
@@ -131,19 +149,25 @@ import { Modal } from '@shared/client/components/Modal';
 ### Common Hooks
 
 #### useAuth
+
 Authentication state and methods:
+
 ```typescript
 import { useAuth } from '@shared/client/hooks/useAuth';
 ```
 
 #### useDebounce
+
 Debounced value updates:
+
 ```typescript
 import { useDebounce } from '@shared/client/hooks/useDebounce';
 ```
 
 #### useLocalStorage
+
 Persistent client-side storage:
+
 ```typescript
 import { useLocalStorage } from '@shared/client/hooks/useLocalStorage';
 ```
@@ -169,26 +193,21 @@ import { useLocalStorage } from '@shared/client/hooks/useLocalStorage';
 ### Common Schemas
 
 #### API Schemas
+
 ```typescript
-import { 
-  ApiResponseSchema,
-  PaginationSchema,
-  ErrorSchema 
-} from '@shared/schemas/api';
+import { ApiResponseSchema, PaginationSchema, ErrorSchema } from '@shared/schemas/api';
 ```
 
 #### User Schemas
+
 ```typescript
-import { 
-  UserSchema,
-  UserProfileSchema,
-  PreferencesSchema 
-} from '@shared/schemas/user';
+import { UserSchema, UserProfileSchema, PreferencesSchema } from '@shared/schemas/user';
 ```
 
 ## Import Patterns
 
 ### From Features
+
 ```typescript
 // Import from shared using path alias
 import { AIService } from '@shared/server/services';
@@ -198,6 +217,7 @@ import type { User } from '@shared/types';
 ```
 
 ### Within Shared
+
 ```typescript
 // Use relative imports within shared
 import { logger } from '../utils/logger';

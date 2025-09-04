@@ -103,7 +103,7 @@ export class StorageFallbackService {
   private async getFromD1WithTimeout(
     tenantId: string,
     ltiUserId: string,
-    timeout = 100, // Reasonable timeout for D1 operations with proper indexing
+    timeout = 100 // Reasonable timeout for D1 operations with proper indexing
   ): Promise<LearnerProfile | null> {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('D1 timeout')), timeout);
@@ -114,7 +114,7 @@ export class StorageFallbackService {
         `
       SELECT * FROM learner_profiles
       WHERE tenant_id = ? AND lti_user_id = ?
-    `,
+    `
       )
       .bind(tenantId, ltiUserId)
       .first<any>();
@@ -146,7 +146,7 @@ export class StorageFallbackService {
         data_sharing_consent, ai_interaction_consent, anonymous_analytics,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `,
+    `
       )
       .bind(
         profile.id,
@@ -162,7 +162,7 @@ export class StorageFallbackService {
         profile.privacy_settings.data_sharing_consent,
         profile.privacy_settings.ai_interaction_consent,
         profile.privacy_settings.anonymous_analytics,
-        profile.created_at,
+        profile.created_at
       )
       .run();
 

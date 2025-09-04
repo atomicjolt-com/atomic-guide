@@ -15,11 +15,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     server: {
       deps: {
-        inline: [
-          '@atomicjolt/atomic-elements',
-          '@atomicjolt/hooks',
-          '@atomicjolt/forms',
-        ],
+        inline: ['@atomicjolt/atomic-elements', '@atomicjolt/hooks', '@atomicjolt/forms'],
       },
     },
   },

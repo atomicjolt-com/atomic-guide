@@ -1,5 +1,5 @@
 // TODO: Consider using ServiceTestHarness for AIService
-import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { AIService } from '../../src/services/AIService';
 
 import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
@@ -41,7 +41,7 @@ describe('AIService', () => {
           temperature: 0.7,
           stream: false,
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
 
@@ -166,7 +166,7 @@ describe('AIService', () => {
           messages: [{ role: 'user', content: 'test' }],
           max_tokens: 1,
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
 

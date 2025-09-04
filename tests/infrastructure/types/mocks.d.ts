@@ -18,7 +18,7 @@ export interface MockD1Database extends D1Database {
   __setData: (key: string, value: any) => void;
   __getData: (key: string) => any;
   __getAllData: () => Map<string, any>;
-  
+
   // Compatibility methods
   run: (query: string, ...params: any[]) => Promise<any>;
   all: (query: string, ...params: any[]) => Promise<any[]>;
@@ -149,7 +149,7 @@ export interface TestHarnessResult<T> {
   reset: () => void;
   cleanup: () => Promise<void>;
   verify: () => void;
-  
+
   // Helper assertions
   assertDatabaseCalled: (times?: number) => void;
   assertKVCalled: (times?: number) => void;
@@ -212,7 +212,7 @@ export interface TestDataStore {
   tenants: Map<string, any>;
   sessions: Map<string, any>;
   analytics: Map<string, any>;
-  
+
   add<T>(type: string, id: string, data: T): void;
   get<T>(type: string, id: string): T | undefined;
   getAll<T>(type: string): T[];

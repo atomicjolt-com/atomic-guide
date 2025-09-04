@@ -15,23 +15,27 @@ Welcome to the Atomic Guide project! This document outlines the guidelines and p
 ### Initial Setup
 
 1. **Fork and Clone**
+
    ```bash
    git clone git@github.com:your-username/atomic-guide.git
    cd atomic-guide
    ```
 
 2. **Install Dependencies**
+
    ```bash
    npm ci
    ```
 
 3. **Environment Setup**
+
    ```bash
    cp .env.example .env.local
    # Fill in required environment variables
    ```
 
 4. **Verify Setup**
+
    ```bash
    npm run check
    npm test
@@ -99,6 +103,7 @@ git commit -m "test(assessment): add deep linking integration tests"
 ```
 
 **Commit Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -115,10 +120,7 @@ git commit -m "test(assessment): add deep linking integration tests"
 
 ```typescript
 // ✅ CORRECT: Explicit return types and proper error handling
-export async function processVideoTranscription(
-  videoId: string,
-  transcription: string
-): Promise<TranscriptionResult> {
+export async function processVideoTranscription(videoId: string, transcription: string): Promise<TranscriptionResult> {
   try {
     const result = TranscriptionSchema.parse({ videoId, transcription });
     return await this.processTranscription(result);
@@ -135,11 +137,11 @@ export async function processVideoTranscription(videoId: any, transcription: any
 
 ### 2. React Component Standards
 
-```typescript
+````typescript
 // ✅ CORRECT: Proper React 19 typing and documentation
 /**
  * Video upload component with progress tracking and error handling.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -152,25 +154,25 @@ export async function processVideoTranscription(videoId: any, transcription: any
 interface VideoUploaderProps {
   /** Callback fired when upload completes successfully */
   onUploadComplete: (video: UploadedVideo) => void;
-  
+
   /** Maximum file size in bytes @default 50MB */
   maxSizeBytes?: number;
-  
+
   /** Accepted video formats @default ['mp4', 'mov', 'avi'] */
   acceptedFormats?: string[];
 }
 
-export function VideoUploader({ 
-  onUploadComplete, 
+export function VideoUploader({
+  onUploadComplete,
   maxSizeBytes = 50 * 1024 * 1024,
   acceptedFormats = ['mp4', 'mov', 'avi']
 }: VideoUploaderProps): ReactElement {
   const [uploadState, setUploadState] = useState<UploadState>({ status: 'idle' });
-  
+
   // Implementation...
   return <div>Upload component</div>;
 }
-```
+````
 
 ### 3. Testing Standards
 
@@ -187,12 +189,12 @@ describe('VideoUploader', () => {
   it('should upload video and call onUploadComplete', async () => {
     const mockOnUploadComplete = vi.fn();
     const mockFile = new File(['video content'], 'test.mp4', { type: 'video/mp4' });
-    
+
     render(<VideoUploader onUploadComplete={mockOnUploadComplete} />);
-    
+
     const input = screen.getByLabelText(/upload video/i);
     fireEvent.change(input, { target: { files: [mockFile] } });
-    
+
     await waitFor(() => {
       expect(mockOnUploadComplete).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -202,16 +204,16 @@ describe('VideoUploader', () => {
       );
     });
   });
-  
+
   it('should reject files that exceed size limit', () => {
     const mockOnUploadComplete = vi.fn();
     const largeFile = new File(['x'.repeat(100 * 1024 * 1024)], 'large.mp4', { type: 'video/mp4' });
-    
+
     render(<VideoUploader onUploadComplete={mockOnUploadComplete} maxSizeBytes={50 * 1024 * 1024} />);
-    
+
     const input = screen.getByLabelText(/upload video/i);
     fireEvent.change(input, { target: { files: [largeFile] } });
-    
+
     expect(screen.getByText(/file too large/i)).toBeInTheDocument();
     expect(mockOnUploadComplete).not.toHaveBeenCalled();
   });
@@ -240,23 +242,18 @@ export async function processVideo(videoId: string): Promise<ProcessedVideo> {
     if (!video) {
       throw new VideoProcessingError('Video not found', videoId, 'upload');
     }
-    
+
     const transcription = await this.generateTranscription(video);
     const analysis = await this.analyzeContent(transcription);
-    
+
     return { video, transcription, analysis };
   } catch (error) {
     if (error instanceof VideoProcessingError) {
       throw error; // Re-throw domain errors
     }
-    
+
     // Wrap unexpected errors
-    throw new VideoProcessingError(
-      `Unexpected error processing video: ${error.message}`,
-      videoId,
-      'analysis',
-      error
-    );
+    throw new VideoProcessingError(`Unexpected error processing video: ${error.message}`, videoId, 'analysis', error);
   }
 }
 ```
@@ -309,15 +306,17 @@ src/features/your-feature/
 For database schema changes:
 
 1. **Create migration file**:
+
    ```bash
    # Create new migration
    touch migrations/$(date +%Y%m%d%H%M%S)_add_feature_table.sql
    ```
 
 2. **Write migration**:
+
    ```sql
    -- migrations/20241201120000_add_feature_table.sql
-   
+
    -- Add new table for feature
    CREATE TABLE feature_data (
      id TEXT PRIMARY KEY,
@@ -327,7 +326,7 @@ For database schema changes:
      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
    );
-   
+
    -- Add indexes for performance
    CREATE INDEX idx_feature_data_user_context ON feature_data(user_id, context_id);
    CREATE INDEX idx_feature_data_created ON feature_data(created_at);
@@ -364,17 +363,20 @@ featureApi.post('/', async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = featureSchema.parse(body);
-    
+
     const featureService = new FeatureService(c.env.DB);
     const result = await featureService.create(validatedData);
-    
+
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
     console.error('Feature creation failed:', error);
-    return c.json({ 
-      success: false, 
-      error: 'Failed to create feature' 
-    }, 400);
+    return c.json(
+      {
+        success: false,
+        error: 'Failed to create feature',
+      },
+      400
+    );
   }
 });
 
@@ -386,24 +388,30 @@ featureApi.get('/', async (c) => {
   try {
     const userId = c.req.query('userId');
     const contextId = c.req.query('contextId');
-    
+
     if (!userId || !contextId) {
-      return c.json({ 
-        success: false, 
-        error: 'userId and contextId are required' 
-      }, 400);
+      return c.json(
+        {
+          success: false,
+          error: 'userId and contextId are required',
+        },
+        400
+      );
     }
-    
+
     const featureService = new FeatureService(c.env.DB);
     const items = await featureService.getByUserContext(userId, contextId);
-    
+
     return c.json({ success: true, data: items });
   } catch (error) {
     console.error('Feature retrieval failed:', error);
-    return c.json({ 
-      success: false, 
-      error: 'Failed to retrieve features' 
-    }, 500);
+    return c.json(
+      {
+        success: false,
+        error: 'Failed to retrieve features',
+      },
+      500
+    );
   }
 });
 
@@ -415,7 +423,7 @@ export { featureApi };
 ### 1. Test Categories
 
 - **Unit Tests**: Test individual functions and components
-- **Integration Tests**: Test feature workflows end-to-end  
+- **Integration Tests**: Test feature workflows end-to-end
 - **API Tests**: Test all API endpoints
 - **Component Tests**: Test React components with user interactions
 
@@ -435,22 +443,22 @@ describe('Feature: Video Processing', () => {
     it('should upload video successfully', async () => {
       // Component test
     });
-    
+
     it('should handle upload errors gracefully', async () => {
-      // Error scenario test  
+      // Error scenario test
     });
   });
-  
+
   describe('Video Processing API', () => {
     it('should process uploaded video', async () => {
       // API integration test
     });
-    
+
     it('should return 400 for invalid video format', async () => {
       // API error test
     });
   });
-  
+
   describe('VideoService', () => {
     it('should generate transcription from video', async () => {
       // Service unit test
@@ -465,16 +473,16 @@ describe('Feature: Video Processing', () => {
 
 All public functions, classes, and components must have JSDoc:
 
-```typescript
+````typescript
 /**
  * Processes video files and generates transcriptions and analytics.
- * 
+ *
  * This service handles the complete video processing pipeline including:
  * - File validation and upload
  * - Transcription generation using Workers AI
  * - Content analysis and insights
  * - Database storage and caching
- * 
+ *
  * @example
  * ```typescript
  * const processor = new VideoProcessor(env);
@@ -487,20 +495,17 @@ All public functions, classes, and components must have JSDoc:
 export class VideoProcessor {
   /**
    * Process a video file through the complete pipeline.
-   * 
+   *
    * @param videoFile - The uploaded video file to process
    * @param options - Processing options and feature flags
    * @returns Promise resolving to processing results
    * @throws {VideoProcessingError} If processing fails at any stage
    */
-  async processVideo(
-    videoFile: File, 
-    options: ProcessingOptions
-  ): Promise<ProcessingResult> {
+  async processVideo(videoFile: File, options: ProcessingOptions): Promise<ProcessingResult> {
     // Implementation...
   }
 }
-```
+````
 
 ### 2. Feature Documentation
 
@@ -512,18 +517,23 @@ New features require documentation in `docs/`:
 # Feature Name
 
 ## Overview
+
 Brief description of what the feature does and why it's useful.
 
 ## Usage
+
 How users interact with the feature.
 
 ## API Reference
+
 Documentation of any new API endpoints.
 
 ## Implementation Details
+
 Technical details for other developers.
 
 ## Testing
+
 How to test the feature.
 ```
 
@@ -544,34 +554,40 @@ How to test the feature.
 
 ```markdown
 ## Summary
+
 Brief description of changes made.
 
 ## Type of Change
+
 - [ ] Bug fix
-- [ ] New feature  
+- [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 - [ ] Performance improvement
 - [ ] Refactoring
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing completed
 - [ ] Edge cases considered
 
 ## Database Changes
+
 - [ ] Migration file created
 - [ ] Migration tested locally
 - [ ] Rollback plan documented
 
 ## Documentation
+
 - [ ] Code documentation updated
 - [ ] Feature documentation added
 - [ ] API documentation updated
 - [ ] README updated if needed
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Screenshots attached for UI changes
@@ -598,10 +614,10 @@ export async function handleUserInput(request: Request): Promise<Response> {
   try {
     const body = await request.json();
     const validatedInput = UserInputSchema.parse(body);
-    
+
     // Process validated input
     const result = await this.processInput(validatedInput);
-    
+
     return new Response(JSON.stringify(result));
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -623,11 +639,11 @@ export async function protectedHandler(request: Request, env: Env): Promise<Resp
   if (!authHeader?.startsWith('Bearer ')) {
     return new Response('Unauthorized', { status: 401 });
   }
-  
+
   try {
     const token = authHeader.slice(7);
     const payload = await verifyJWT(token, env);
-    
+
     // Proceed with authenticated request
     return await handleAuthenticatedRequest(request, payload);
   } catch (error) {
@@ -648,7 +664,7 @@ export function logUserActivity(activity: UserActivity): void {
     action: activity.action,
     timestamp: activity.timestamp,
     // Never log: passwords, tokens, PII
-    metadata: sanitizeMetadata(activity.metadata)
+    metadata: sanitizeMetadata(activity.metadata),
   });
 }
 
@@ -663,7 +679,7 @@ function sanitizeMetadata(metadata: Record<string, any>): Record<string, any> {
 ### 1. Documentation
 
 - **Project Overview**: `/README.md`
-- **Developer Guide**: `/CLAUDE.md`  
+- **Developer Guide**: `/CLAUDE.md`
 - **API Documentation**: `/docs/api/`
 - **Architecture**: `/docs/architecture/`
 

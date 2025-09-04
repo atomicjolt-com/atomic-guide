@@ -10,16 +10,16 @@
 
 /* Brand Colors */
 :root {
-  --ag-primary: #1E3A5F;      /* Deep Navy */
-  --ag-secondary: #4A90E2;     /* Bright Blue */
-  --ag-success: #27AE60;       /* Green */
-  --ag-warning: #F39C12;       /* Orange */
-  --ag-error: #E74C3C;         /* Red */
-  --ag-background: #FFFFFF;     /* White */
-  --ag-light-gray: #F5F7FA;    /* Light Gray */
-  --ag-text-primary: #1E3A5F;
-  --ag-text-secondary: #64748B;
-  --ag-text-muted: #94A3B8;
+  --ag-primary: #1e3a5f; /* Deep Navy */
+  --ag-secondary: #4a90e2; /* Bright Blue */
+  --ag-success: #27ae60; /* Green */
+  --ag-warning: #f39c12; /* Orange */
+  --ag-error: #e74c3c; /* Red */
+  --ag-background: #ffffff; /* White */
+  --ag-light-gray: #f5f7fa; /* Light Gray */
+  --ag-text-primary: #1e3a5f;
+  --ag-text-secondary: #64748b;
+  --ag-text-muted: #94a3b8;
 }
 
 /* Main Container */
@@ -28,7 +28,13 @@
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 4px 16px rgba(30, 58, 95, 0.08);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
   font-size: 14px;
   color: var(--ag-text-primary);
   max-width: 800px;
@@ -824,16 +830,16 @@
   .dataExportInterface {
     padding: 20px;
   }
-  
+
   .dataTypeGrid,
   .formatOptions {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .stepActions {
     flex-direction: row;
   }
-  
+
   .downloadActions {
     flex-direction: row;
     justify-content: space-between;
@@ -844,27 +850,27 @@
   .dataExportInterface {
     padding: 24px;
   }
-  
+
   .header h2 {
     font-size: 1.75rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
   }
-  
+
   .progressIndicator {
     padding: 0;
   }
-  
+
   .step {
     max-width: 150px;
   }
-  
+
   .configSection {
     padding: 24px;
   }
-  
+
   .dataTypeGrid {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
@@ -876,16 +882,16 @@
     flex-direction: row;
     align-items: center;
   }
-  
+
   .sampleHeader {
     flex-direction: row;
     align-items: center;
   }
-  
+
   .sampleTable table {
     font-size: 0.875rem;
   }
-  
+
   .sampleTable td {
     max-width: 200px;
   }
@@ -898,7 +904,7 @@
   .formatOption {
     min-height: 48px;
   }
-  
+
   .metadataOption {
     padding: 16px;
   }
@@ -909,11 +915,11 @@
   .dataExportInterface {
     border: 2px solid #000;
   }
-  
+
   .progressFill {
     background: #000;
   }
-  
+
   .previewBtn,
   .generateBtn,
   .downloadBtn {
@@ -926,7 +932,7 @@
   .progressFill {
     transition: none;
   }
-  
+
   .previewBtn:hover,
   .generateBtn:hover,
   .downloadBtn:hover,

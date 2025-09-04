@@ -50,6 +50,7 @@ The EdTech market is rapidly evolving toward AI-enhanced learning experiences. C
 Atomic Guide Deep Linking Features transform the existing content delivery tool into an interactive learning platform by adding AI-powered formative assessment capabilities directly within the Canvas assignment workflow. The solution leverages Canvas deep linking to enable instructors to strategically place conversational assessment checkpoints throughout reading assignments, creating active learning moments that provide immediate feedback to students and real-time comprehension insights to instructors.
 
 The approach centers on three core components:
+
 1. **Contextual Chat Interface**: Students engage with AI through natural conversation about the content they're reading, with the AI able to reference specific page sections for targeted remediation
 2. **Strategic Placement System**: Instructors use Canvas deep linking to embed assessment points at optimal learning moments, maintaining pedagogical control while benefiting from AI suggestions
 3. **Intelligence Integration**: Assessment interactions feed back into Atomic Guide's existing analytics infrastructure, creating a comprehensive view of student learning patterns
@@ -71,6 +72,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 ### Primary User Segment: Higher Education Instructors
 
 **Demographic/Firmographic Profile:**
+
 - Higher education faculty teaching undergraduate and graduate courses requiring substantial reading assignments
 - Primarily at institutions already using Canvas LMS with 1,000+ students
 - Teaching disciplines with heavy content consumption: Liberal Arts, Social Sciences, Business, Pre-Professional programs
@@ -78,6 +80,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 - Age range 28-65, with varying levels of technology comfort but basic LTI tool experience through current Atomic Guide usage
 
 **Current Behaviors and Workflows:**
+
 - Assign readings through Canvas assignments with Atomic Guide integration for content delivery
 - Monitor assignment completion through Canvas analytics but lack visibility into comprehension levels
 - Hold office hours for student questions and clarification requests
@@ -86,6 +89,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 - Rely on student self-reporting or class participation to gauge reading comprehension
 
 **Specific Needs and Pain Points:**
+
 - **Real-time Learning Insight**: Need to understand which students struggle with specific concepts immediately, not during exams
 - **Efficient Remediation**: Want to provide targeted support without overwhelming office hours with basic comprehension questions
 - **Pedagogical Control**: Require oversight of assessment content and learning objectives while benefiting from AI efficiency
@@ -94,6 +98,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 - **Student Engagement**: Seek ways to transform passive reading into active learning without creating additional grading burden
 
 **Goals They're Trying to Achieve:**
+
 - Improve student learning outcomes through timely intervention and personalized support
 - Reduce time spent on repetitive student questions while maintaining quality instructor-student interaction
 - Gain visibility into learning processes between content assignment and formal assessment
@@ -103,6 +108,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 ### Secondary User Segment: College Students
 
 **Demographic/Firmographic Profile:**
+
 - Undergraduate and graduate students at institutions using Canvas LMS and Atomic Guide
 - Ages 18-35, digitally native with high comfort using chat interfaces and AI tools
 - Enrolled in courses requiring substantial reading: literature, history, business cases, scientific papers
@@ -110,6 +116,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 - Varying academic preparation levels but shared experience with LMS-based learning environments
 
 **Current Behaviors and Workflows:**
+
 - Access assigned readings through Canvas assignments using current Atomic Guide integration
 - Read materials independently with limited opportunities for immediate clarification
 - Attend office hours or post discussion forum questions when confused, often after struggling alone
@@ -118,6 +125,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 - Experience anxiety about comprehension levels between reading and formal assessment
 
 **Specific Needs and Pain Points:**
+
 - **Immediate Clarification**: Need to verify understanding and get help while actively reading, not hours or days later
 - **Low-Stakes Practice**: Want opportunities to test comprehension without grade pressure or judgment
 - **Personalized Pacing**: Require different levels of support and explanation based on individual background knowledge
@@ -126,6 +134,7 @@ Atomic Guide evolves from a content delivery platform into a comprehensive learn
 - **Accessible Support**: Need help available outside traditional office hours to accommodate varied schedules
 
 **Goals They're Trying to Achieve:**
+
 - Build confidence in reading comprehension through immediate feedback and support
 - Clarify confusing concepts while actively engaged with material rather than after forgetting context
 - Develop stronger analytical and critical thinking skills through guided questioning
@@ -341,9 +350,10 @@ Instructor interviews reveal strong desire for learning visibility between conte
 
 ### B. Stakeholder Input
 
-*[Placeholder for stakeholder feedback to be gathered during brief development and review cycles]*
+_[Placeholder for stakeholder feedback to be gathered during brief development and review cycles]_
 
 Initial stakeholder consultations should focus on:
+
 - Customer advisory board feedback on AI assessment acceptance
 - Institutional IT requirements for AI tool deployment
 - Academic committee concerns about AI-generated content
@@ -352,18 +362,21 @@ Initial stakeholder consultations should focus on:
 ### C. References
 
 **Technical Documentation:**
+
 - Canvas LTI 1.3 Deep Linking Documentation: https://canvas.instructure.com/doc/api/file.deep_linking.html
 - Canvas postMessage API Reference: https://canvas.instructure.com/doc/api/file.tools_intro.html
 - Cloudflare D1 Database Documentation: https://developers.cloudflare.com/d1/
 - LTI Assignment and Grade Services Specification: https://www.imsglobal.org/spec/lti-ags/v2p0
 
 **Project Resources:**
+
 - Brainstorming Session Results: `/docs/brainstorming-session-results.md`
 - Current Atomic Guide Architecture: `/docs/architecture/`
 - LTI Implementation Code: `/src/index.ts`
 - Existing Configuration: `/src/config.ts`
 
 **Industry Resources:**
+
 - IMS Global Learning Consortium LTI Resources
 - EdTech Market Analysis Reports
 - AI in Education Best Practices Guidelines
@@ -389,4 +402,4 @@ The brief outlines enhancement of the existing Atomic Guide LTI tool with AI-pow
 
 ---
 
-*Session facilitated using the BMAD-METHOD™ analyst framework*
+_Session facilitated using the BMAD-METHOD™ analyst framework_

@@ -37,6 +37,7 @@ Authorization: Bearer <jwt>
 ```
 
 **Response** (Server-Sent Events):
+
 ```
 data: {"chunk": "text", "type": "text"}
 data: {"chunk": "\\LaTeX", "type": "latex"}
@@ -51,6 +52,7 @@ Authorization: Bearer <jwt>
 ```
 
 **Response**:
+
 ```json
 {
   "messages": [
@@ -214,6 +216,7 @@ GET /lti/jwks
 ```
 
 **Response**:
+
 ```json
 {
   "keys": [
@@ -336,14 +339,14 @@ All endpoints return standard error format:
 
 ### Error Codes
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| UNAUTHORIZED | 401 | Invalid or missing token |
-| FORBIDDEN | 403 | Insufficient permissions |
-| NOT_FOUND | 404 | Resource not found |
-| VALIDATION_ERROR | 400 | Invalid request data |
-| RATE_LIMIT | 429 | Too many requests |
-| SERVER_ERROR | 500 | Internal server error |
+| Code             | HTTP Status | Description              |
+| ---------------- | ----------- | ------------------------ |
+| UNAUTHORIZED     | 401         | Invalid or missing token |
+| FORBIDDEN        | 403         | Insufficient permissions |
+| NOT_FOUND        | 404         | Resource not found       |
+| VALIDATION_ERROR | 400         | Invalid request data     |
+| RATE_LIMIT       | 429         | Too many requests        |
+| SERVER_ERROR     | 500         | Internal server error    |
 
 ## Rate Limiting
 
@@ -355,6 +358,7 @@ Default rate limits:
 - General API: 200 requests/minute
 
 Headers returned:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -370,6 +374,7 @@ GET /api/resources?page=2&limit=20
 ```
 
 Response includes pagination metadata:
+
 ```json
 {
   "data": [...],
@@ -394,6 +399,7 @@ Accept: application/vnd.atomicguide.v2+json
 ## CORS
 
 Allowed origins configured per environment:
+
 - Production: LMS domains only
 - Development: `http://localhost:*`
 
@@ -406,19 +412,19 @@ import { AtomicGuideClient } from '@atomicjolt/guide-client';
 
 const client = new AtomicGuideClient({
   baseUrl: 'https://guide.atomicjolt.xyz',
-  token: 'jwt_token'
+  token: 'jwt_token',
 });
 
 // Send chat message
 const response = await client.chat.sendMessage({
   message: 'Hello',
-  sessionId: '123'
+  sessionId: '123',
 });
 
 // Get analytics
 const analytics = await client.analytics.getDashboard({
   courseId: 'cs101',
-  timeRange: 'week'
+  timeRange: 'week',
 });
 ```
 
@@ -443,3 +449,4 @@ analytics = client.analytics.get_dashboard(
     course_id="cs101",
     time_range="week"
 )
+```

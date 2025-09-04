@@ -15,14 +15,14 @@ interface SyncStatusIndicatorProps {
 
 /**
  * Sync status indicator component showing cross-device synchronization status
- * 
+ *
  * Displays current sync status with appropriate icons and colors,
  * provides conflict resolution interface when needed.
  */
 export default function SyncStatusIndicator({
   preferencesSync,
   onConflictResolve,
-  compact = false
+  compact = false,
 }: SyncStatusIndicatorProps): React.ReactElement | null {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(preferencesSync.getSyncStatus());
   const [showConflictModal, setShowConflictModal] = useState(false);
@@ -57,49 +57,49 @@ export default function SyncStatusIndicator({
           icon: '✅',
           text: compact ? 'Synced' : 'Preferences synced',
           className: styles.synced,
-          description: syncStatus.lastSync 
+          description: syncStatus.lastSync
             ? `Last synced: ${new Date(syncStatus.lastSync).toLocaleTimeString()}`
-            : 'Your preferences are synced across devices'
+            : 'Your preferences are synced across devices',
         };
-      
+
       case 'syncing':
         return {
           icon: '🔄',
           text: compact ? 'Syncing' : 'Syncing...',
           className: `${styles.syncing} ${styles.spinning}`,
-          description: 'Synchronizing preferences across devices'
+          description: 'Synchronizing preferences across devices',
         };
-      
+
       case 'offline':
         return {
           icon: '📱',
           text: compact ? 'Offline' : 'Offline mode',
           className: styles.offline,
-          description: 'Preferences will sync when you come back online'
+          description: 'Preferences will sync when you come back online',
         };
-      
+
       case 'conflict':
         return {
           icon: '⚠️',
           text: compact ? 'Conflict' : 'Sync conflict',
           className: styles.conflict,
-          description: 'Your preferences were changed on multiple devices'
+          description: 'Your preferences were changed on multiple devices',
         };
-      
+
       case 'error':
         return {
           icon: '❌',
           text: compact ? 'Error' : 'Sync error',
           className: styles.error,
-          description: syncStatus.errorMessage || 'Failed to sync preferences'
+          description: syncStatus.errorMessage || 'Failed to sync preferences',
         };
-      
+
       default:
         return {
           icon: '❓',
           text: 'Unknown',
           className: styles.unknown,
-          description: 'Unknown sync status'
+          description: 'Unknown sync status',
         };
     }
   };
@@ -134,9 +134,7 @@ export default function SyncStatusIndicator({
               <div className={styles.conflictOption}>
                 <div className={styles.optionHeader}>
                   <h4>This Device</h4>
-                  <span className={styles.deviceInfo}>
-                    Modified {new Date((local as any).lastModified).toLocaleString()}
-                  </span>
+                  <span className={styles.deviceInfo}>Modified {new Date((local as any).lastModified).toLocaleString()}</span>
                 </div>
                 <div className={styles.optionPreview}>
                   <div className={styles.preferencePreview}>
@@ -157,9 +155,7 @@ export default function SyncStatusIndicator({
               <div className={styles.conflictOption}>
                 <div className={styles.optionHeader}>
                   <h4>Other Device</h4>
-                  <span className={styles.deviceInfo}>
-                    Modified {new Date((remote as any).lastModified).toLocaleString()}
-                  </span>
+                  <span className={styles.deviceInfo}>Modified {new Date((remote as any).lastModified).toLocaleString()}</span>
                 </div>
                 <div className={styles.optionPreview}>
                   <div className={styles.preferencePreview}>
@@ -190,36 +186,22 @@ export default function SyncStatusIndicator({
 
   return (
     <>
-      <div 
+      <div
         className={`${styles.syncStatusIndicator} ${compact ? styles.compact : ''} ${statusInfo.className}`}
         title={statusInfo.description}
       >
-        <span className={`${styles.statusIcon} ${syncStatus.status === 'syncing' ? styles.spinning : ''}`}>
-          {statusInfo.icon}
-        </span>
-        
-        {!compact && (
-          <span className={styles.statusText}>
-            {statusInfo.text}
-          </span>
-        )}
+        <span className={`${styles.statusIcon} ${syncStatus.status === 'syncing' ? styles.spinning : ''}`}>{statusInfo.icon}</span>
+
+        {!compact && <span className={styles.statusText}>{statusInfo.text}</span>}
 
         {syncStatus.status === 'conflict' && (
-          <button
-            type="button"
-            className={styles.resolveBtn}
-            onClick={() => setShowConflictModal(true)}
-          >
+          <button type="button" className={styles.resolveBtn} onClick={() => setShowConflictModal(true)}>
             Resolve
           </button>
         )}
 
         {syncStatus.status === 'error' && (
-          <button
-            type="button"
-            className={styles.retryBtn}
-            onClick={() => preferencesSync.forceSyncFromServer()}
-          >
+          <button type="button" className={styles.retryBtn} onClick={() => preferencesSync.forceSyncFromServer()}>
             Retry
           </button>
         )}

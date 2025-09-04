@@ -25,7 +25,7 @@ export function useLMSContent(options: UseLMSContentOptions = {}): UseLMSContent
   const [error, setError] = useState<Error | null>(null);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  
+
   const extractorRef = useRef<LMSContentExtractor | null>(null);
   const mountedRef = useRef(true);
 
@@ -41,7 +41,7 @@ export function useLMSContent(options: UseLMSContentOptions = {}): UseLMSContent
       ...options,
       enableMonitoring: options.autoMonitor ?? false,
     });
-    
+
     extractorRef.current = extractor;
 
     extractor.on('content-extracted', (extractedContent: LMSContentExtraction) => {
@@ -95,7 +95,7 @@ export function useLMSContent(options: UseLMSContentOptions = {}): UseLMSContent
       extractor.destroy();
       extractorRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const extractContent = useCallback(async () => {
@@ -105,13 +105,13 @@ export function useLMSContent(options: UseLMSContentOptions = {}): UseLMSContent
 
     setIsExtracting(true);
     setError(null);
-    
+
     try {
       await extractorRef.current.extractPageContent();
     } catch (err) {
       if (mountedRef.current) {
         setError(err as Error);
-        setRetryCount(prev => prev + 1);
+        setRetryCount((prev) => prev + 1);
       }
     } finally {
       if (mountedRef.current) {

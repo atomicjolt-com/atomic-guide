@@ -9,48 +9,24 @@ export { MockFactory };
 export type * from './types/mocks';
 
 // Test data builders
-import { 
+import {
   TestDataFactory,
   UserBuilder,
   TenantBuilder,
   CognitiveProfileBuilder,
   SessionBuilder,
   AnalyticsBuilder,
-  AssessmentBuilder
+  AssessmentBuilder,
 } from './builders/TestDataFactory';
-export { 
-  TestDataFactory,
-  UserBuilder,
-  TenantBuilder,
-  CognitiveProfileBuilder,
-  SessionBuilder,
-  AnalyticsBuilder,
-  AssessmentBuilder
-};
+export { TestDataFactory, UserBuilder, TenantBuilder, CognitiveProfileBuilder, SessionBuilder, AnalyticsBuilder, AssessmentBuilder };
 
 // Service test harness
-import {
-  ServiceTestHarness,
-  setupServiceWithDb,
-  setupFullService
-} from './harness/ServiceTestHarness';
-export {
-  ServiceTestHarness,
-  setupServiceWithDb,
-  setupFullService
-};
+import { ServiceTestHarness, setupServiceWithDb, setupFullService } from './harness/ServiceTestHarness';
+export { ServiceTestHarness, setupServiceWithDb, setupFullService };
 
 // Test templates
-import {
-  ServiceTestTemplate,
-  TestDataStore,
-  ApiHandlerTestTemplate
-} from './templates/ServiceTestTemplate';
-export {
-  ServiceTestTemplate,
-  TestDataStore,
-  ApiHandlerTestTemplate
-};
+import { ServiceTestTemplate, TestDataStore, ApiHandlerTestTemplate } from './templates/ServiceTestTemplate';
+export { ServiceTestTemplate, TestDataStore, ApiHandlerTestTemplate };
 
 // Domain-specific utilities
 import { AnalyticsTestUtils } from './utilities/AnalyticsTestUtils';
@@ -72,7 +48,7 @@ export const TestSetup = {
       kv: MockFactory.createKVNamespace(),
       queue: MockFactory.createQueue(),
       ai: MockFactory.createAI(),
-      context: MockFactory.createHonoContext()
+      context: MockFactory.createHonoContext(),
     };
   },
 
@@ -82,7 +58,7 @@ export const TestSetup = {
   createMinimalEnvironment() {
     return {
       db: MockFactory.createD1Database(),
-      context: MockFactory.createHonoContext()
+      context: MockFactory.createHonoContext(),
     };
   },
 
@@ -97,9 +73,7 @@ export const TestSetup = {
    * Create test data for a single student
    */
   createStudent(withConsent: boolean = true) {
-    return withConsent 
-      ? TestDataFactory.presets.studentWithFullConsent().build()
-      : TestDataFactory.presets.studentWithNoConsent().build();
+    return withConsent ? TestDataFactory.presets.studentWithFullConsent().build() : TestDataFactory.presets.studentWithNoConsent().build();
   },
 
   /**
@@ -109,9 +83,9 @@ export const TestSetup = {
     return {
       student: TestDataFactory.presets.studentWithFullConsent().build(),
       sessions: TestDataFactory.session().buildMany(10),
-      analytics: TestDataFactory.analytics().build()
+      analytics: TestDataFactory.analytics().build(),
     };
-  }
+  },
 };
 
 /**
@@ -122,9 +96,7 @@ export const TestAssertions = {
    * Assert a mock was called with partial object match
    */
   assertCalledWithPartial(mock: any, partial: any) {
-    expect(mock).toHaveBeenCalledWith(
-      expect.objectContaining(partial)
-    );
+    expect(mock).toHaveBeenCalledWith(expect.objectContaining(partial));
   },
 
   /**
@@ -156,28 +128,21 @@ export const TestAssertions = {
    * Assert an array contains an item matching partial
    */
   assertArrayContainsPartial(array: any[], partial: any) {
-    expect(array).toContainEqual(
-      expect.objectContaining(partial)
-    );
+    expect(array).toContainEqual(expect.objectContaining(partial));
   },
 
   /**
    * Assert database query was called
    */
   assertDatabaseQueried(dbMock: any, queryPattern: string | RegExp) {
-    expect(dbMock.prepare).toHaveBeenCalledWith(
-      expect.stringMatching(queryPattern)
-    );
+    expect(dbMock.prepare).toHaveBeenCalledWith(expect.stringMatching(queryPattern));
   },
 
   /**
    * Assert KV was accessed
    */
   assertKVAccessed(kvMock: any, key: string, operation: 'get' | 'put' | 'delete' = 'get') {
-    expect(kvMock[operation]).toHaveBeenCalledWith(
-      expect.stringContaining(key),
-      expect.anything()
-    );
+    expect(kvMock[operation]).toHaveBeenCalledWith(expect.stringContaining(key), expect.anything());
   },
 
   /**
@@ -186,10 +151,10 @@ export const TestAssertions = {
   assertQueueMessageSent(queueMock: any, messageType: string) {
     expect(queueMock.send).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: messageType
+        type: messageType,
       })
     );
-  }
+  },
 };
 
 /**
@@ -218,7 +183,7 @@ export const TestCleanup = {
    */
   restoreAll() {
     vi.restoreAllMocks();
-  }
+  },
 };
 
 // Export a default test kit with everything
@@ -229,5 +194,5 @@ export default {
   TestSetup,
   TestAssertions,
   TestCleanup,
-  AnalyticsTestUtils
+  AnalyticsTestUtils,
 };

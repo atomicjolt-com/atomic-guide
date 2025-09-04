@@ -1,6 +1,6 @@
 .privacySettings {
   padding: var(--spacing-lg, 24px);
-  background: var(--color-bg, #FFFFFF);
+  background: var(--color-bg, #ffffff);
   border-radius: var(--radius-lg, 12px);
 }
 
@@ -46,13 +46,13 @@
   display: flex;
   gap: var(--spacing-md, 16px);
   padding: var(--spacing-md, 16px);
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
   border-radius: var(--radius-md, 8px);
   transition: all var(--transition-micro, 150ms ease-in-out);
 }
 
 .settingItem:hover {
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.12));
 }
 
 .settingIcon {
@@ -98,7 +98,7 @@
 }
 
 .toggle.active {
-  background: var(--color-primary, #FFDD00);
+  background: var(--color-primary, #ffdd00);
 }
 
 .toggleSlider {
@@ -127,7 +127,7 @@
   display: flex;
   gap: var(--spacing-md, 16px);
   padding: var(--spacing-lg, 24px);
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
   border-radius: var(--radius-lg, 12px);
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
@@ -161,7 +161,7 @@
 
 .exportButton {
   padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
-  background: var(--color-primary, #FFDD00);
+  background: var(--color-primary, #ffdd00);
   color: var(--color-text, #333333);
   border: none;
   border-radius: var(--radius-md, 8px);
@@ -172,14 +172,14 @@
 }
 
 .exportButton:hover {
-  background: var(--color-primary-hover, #F5D000);
+  background: var(--color-primary-hover, #f5d000);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.12));
 }
 
 .deleteAllButton {
   padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
-  background: var(--color-error, #B42318);
+  background: var(--color-error, #b42318);
   color: white;
   border: none;
   border-radius: var(--radius-md, 8px);
@@ -190,9 +190,9 @@
 }
 
 .deleteAllButton:hover {
-  background: #9A1E14;
+  background: #9a1e14;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.12));
 }
 
 .conversationsHeader {
@@ -219,13 +219,13 @@
 }
 
 .selectAllButton:hover {
-  background: var(--color-bg-off-white, #FFFDF0);
-  border-color: var(--color-primary, #FFDD00);
+  background: var(--color-bg-off-white, #fffdf0);
+  border-color: var(--color-primary, #ffdd00);
 }
 
 .deleteSelectedButton {
   padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
-  background: var(--color-error, #B42318);
+  background: var(--color-error, #b42318);
   color: white;
   border: none;
   border-radius: var(--radius-md, 8px);
@@ -236,7 +236,7 @@
 }
 
 .deleteSelectedButton:hover {
-  background: #9A1E14;
+  background: #9a1e14;
 }
 
 .conversationsList {
@@ -260,12 +260,12 @@
 }
 
 .conversationItem:hover {
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
 }
 
 .conversationItem.selected {
   background: rgba(255, 221, 0, 0.1);
-  border-color: var(--color-primary, #FFDD00);
+  border-color: var(--color-primary, #ffdd00);
 }
 
 .checkbox {
@@ -302,7 +302,7 @@
   display: flex;
   gap: var(--spacing-md, 16px);
   padding: var(--spacing-md, 16px);
-  background: var(--color-bg-gray, #F5F5F5);
+  background: var(--color-bg-gray, #f5f5f5);
   border-radius: var(--radius-md, 8px);
 }
 
@@ -343,7 +343,7 @@
   padding: var(--spacing-xl, 32px);
   max-width: 500px;
   width: 90%;
-  box-shadow: var(--shadow-lg, 0 10px 20px rgba(0,0,0,0.20));
+  box-shadow: var(--shadow-lg, 0 10px 20px rgba(0, 0, 0, 0.2));
 }
 
 .modalContent h3 {
@@ -361,7 +361,7 @@
 }
 
 .warningText {
-  color: var(--color-error, #B42318);
+  color: var(--color-error, #b42318);
   font-weight: var(--font-weight-medium, 500);
 }
 
@@ -377,11 +377,11 @@
 
 .confirmInput:focus {
   outline: none;
-  border-color: var(--color-error, #B42318);
+  border-color: var(--color-error, #b42318);
 }
 
 .confirmInput.valid {
-  border-color: var(--color-success, #027A48);
+  border-color: var(--color-success, #027a48);
 }
 
 .modalActions {
@@ -403,12 +403,12 @@
 }
 
 .cancelButton:hover {
-  background: var(--color-bg-off-white, #FFFDF0);
+  background: var(--color-bg-off-white, #fffdf0);
 }
 
 .confirmDeleteButton {
   padding: var(--spacing-sm, 8px) var(--spacing-lg, 24px);
-  background: var(--color-error, #B42318);
+  background: var(--color-error, #b42318);
   color: white;
   border: none;
   border-radius: var(--radius-md, 8px);
@@ -419,7 +419,7 @@
 }
 
 .confirmDeleteButton:hover {
-  background: #9A1E14;
+  background: #9a1e14;
 }
 
 .loading {
@@ -435,7 +435,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top-color: var(--color-primary, #FFDD00);
+  border-top-color: var(--color-primary, #ffdd00);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: var(--spacing-md, 16px);

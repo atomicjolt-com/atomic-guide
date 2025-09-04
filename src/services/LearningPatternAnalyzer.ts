@@ -67,55 +67,75 @@ export class LearningPatternAnalyzer {
   private readonly STRUGGLE_INDICATORS = {
     confusion: {
       keywords: [
-        'don\'t understand', 'confused', 'what do you mean', 'can you explain',
-        'lost', 'doesn\'t make sense', 'unclear', 'huh', 'what?', 'don\'t get it',
-        'still confused', 'more confused', 'even more lost'
+        "don't understand",
+        'confused',
+        'what do you mean',
+        'can you explain',
+        'lost',
+        "doesn't make sense",
+        'unclear',
+        'huh',
+        'what?',
+        "don't get it",
+        'still confused',
+        'more confused',
+        'even more lost',
       ],
       patterns: [
         /i\s+(still\s+)?don'?t\s+(understand|get\s+it)/i,
         /what\s+do\s+you\s+mean/i,
         /can\s+you\s+explain/i,
-        /i'?m\s+(still\s+)?(lost|confused)/i
+        /i'?m\s+(still\s+)?(lost|confused)/i,
       ],
       responseLatencyThreshold: 5000, // Long pauses may indicate confusion
       severity: {
         high: ['completely lost', 'totally confused', 'no idea', 'makes no sense'],
-        medium: ['confused', 'unclear', 'don\'t understand'],
-        low: ['not sure', 'maybe', 'think so']
-      }
+        medium: ['confused', 'unclear', "don't understand"],
+        low: ['not sure', 'maybe', 'think so'],
+      },
     },
     frustration: {
       keywords: [
-        'frustrated', 'annoying', 'difficult', 'hard', 'stuck', 'can\'t do this',
-        'giving up', 'tried everything', 'nothing works', 'impossible',
-        'waste of time', 'stupid', 'hate this'
+        'frustrated',
+        'annoying',
+        'difficult',
+        'hard',
+        'stuck',
+        "can't do this",
+        'giving up',
+        'tried everything',
+        'nothing works',
+        'impossible',
+        'waste of time',
+        'stupid',
+        'hate this',
       ],
       patterns: [
         /this\s+is\s+(too\s+)?(hard|difficult)/i,
         /i\s+can'?t\s+do\s+this/i,
         /(giving|give)\s+up/i,
         /nothing\s+works/i,
-        /tried\s+everything/i
+        /tried\s+everything/i,
       ],
       repetitionThreshold: 3, // Same failed approach multiple times
       severity: {
         high: ['giving up', 'hate this', 'impossible', 'waste of time'],
         medium: ['frustrated', 'stuck', 'difficult'],
-        low: ['hard', 'tricky', 'challenging']
-      }
+        low: ['hard', 'tricky', 'challenging'],
+      },
     },
     repetition: {
       similarityThreshold: 0.4, // Jaccard similarity for repeated questions
       timeWindowMinutes: 10,
       minimumRepetitions: 3,
-      paraphraseDetection: true
+      paraphraseDetection: true,
     },
     engagement_decline: {
       responseTimeIncrease: 2.0, // 2x slower responses
       messageQualityDecrease: 0.3, // Shorter, less thoughtful responses
       sessionDurationDecrease: 0.5, // 50% shorter sessions
-      timeWindowDays: 7
-    }
+      timeWindowDays: 7,
+    },
   };
 
   // Learning trend patterns
@@ -124,14 +144,14 @@ export class LearningPatternAnalyzer {
       successRateIncrease: 0.2,
       confidenceIncrease: 0.15,
       questionComplexityIncrease: true,
-      helpSeekingDecrease: 0.1
+      helpSeekingDecrease: 0.1,
     },
     decline: {
       successRateDecrease: 0.15,
       confusionIncrease: 0.2,
       frustrationIncrease: 0.1,
-      engagementDecrease: 0.25
-    }
+      engagementDecrease: 0.25,
+    },
   };
 
   constructor() {
@@ -152,7 +172,7 @@ export class LearningPatternAnalyzer {
 
     // Limit analysis scope for performance
     const recentMessages = messages.slice(-this.MAX_ANALYSIS_MESSAGES);
-    
+
     const strugglesDetected = await this.detectStrugglePatterns(recentMessages, context);
     const learningTrends = await this.analyzeLearningTrends(recentMessages, learnerProfile);
     const interventionTiming = await this.calculateOptimalTiming(recentMessages, strugglesDetected, context);
@@ -165,7 +185,7 @@ export class LearningPatternAnalyzer {
       helpSeekingBehavior: this.analyzeHelpSeekingBehavior(recentMessages),
       strugglesDetected,
       learningTrends,
-      interventionTiming
+      interventionTiming,
     };
   }
 
@@ -177,7 +197,7 @@ export class LearningPatternAnalyzer {
     _context?: { pageType?: string; topic?: string; difficulty?: number }
   ): Promise<StrugglePattern[]> {
     const patterns: StrugglePattern[] = [];
-    const userMessages = messages.filter(m => m.role === 'user');
+    const userMessages = messages.filter((m) => m.role === 'user');
 
     // Detect confusion patterns
     const confusionScore = this.detectConfusionPattern(userMessages);
@@ -189,7 +209,7 @@ export class LearningPatternAnalyzer {
         indicators: confusionScore.indicators,
         suggestedIntervention: 'clarification',
         triggerThreshold: 0.7,
-        cooldownMinutes: 2
+        cooldownMinutes: 2,
       });
     }
 
@@ -203,13 +223,14 @@ export class LearningPatternAnalyzer {
         indicators: frustrationScore.indicators,
         suggestedIntervention: frustrationScore.severity === 'critical' ? 'escalation' : 'encouragement',
         triggerThreshold: 0.6,
-        cooldownMinutes: 5
+        cooldownMinutes: 5,
       });
     }
 
     // Detect repetition patterns
     const repetitionScore = this.detectRepetitionPattern(userMessages);
-    if (repetitionScore.confidence > 0.5) { // Lower threshold for repetition detection
+    if (repetitionScore.confidence > 0.5) {
+      // Lower threshold for repetition detection
       patterns.push({
         type: 'repetition',
         confidence: repetitionScore.confidence,
@@ -217,13 +238,14 @@ export class LearningPatternAnalyzer {
         indicators: repetitionScore.indicators,
         suggestedIntervention: 'resource',
         triggerThreshold: 0.8,
-        cooldownMinutes: 3
+        cooldownMinutes: 3,
       });
     }
 
     // Detect engagement decline
     const engagementScore = this.detectEngagementDecline(messages);
-    if (engagementScore.confidence > 0.5) { // Lower threshold for engagement decline
+    if (engagementScore.confidence > 0.5) {
+      // Lower threshold for engagement decline
       patterns.push({
         type: 'engagement_decline',
         confidence: engagementScore.confidence,
@@ -231,7 +253,7 @@ export class LearningPatternAnalyzer {
         indicators: engagementScore.indicators,
         suggestedIntervention: 'break_suggestion',
         triggerThreshold: 0.7,
-        cooldownMinutes: 10
+        cooldownMinutes: 10,
       });
     }
 
@@ -253,7 +275,7 @@ export class LearningPatternAnalyzer {
     for (const message of userMessages) {
       if (!message.content) continue;
       const content = message.content.toLowerCase();
-      
+
       // Check keywords
       for (const keyword of confusionData.keywords) {
         if (content.includes(keyword)) {
@@ -308,7 +330,7 @@ export class LearningPatternAnalyzer {
     for (const message of userMessages) {
       if (!message.content) continue;
       const content = message.content.toLowerCase();
-      
+
       // Check keywords
       for (const keyword of frustrationData.keywords) {
         if (content.includes(keyword)) {
@@ -353,7 +375,7 @@ export class LearningPatternAnalyzer {
   } {
     const indicators: string[] = [];
     const repetitionData = this.STRUGGLE_INDICATORS.repetition;
-    
+
     if (userMessages.length < repetitionData.minimumRepetitions) {
       return { confidence: 0, severity: 'low', indicators: [] };
     }
@@ -365,21 +387,15 @@ export class LearningPatternAnalyzer {
     for (let i = 0; i < recentMessages.length - 1; i++) {
       for (let j = i + 1; j < recentMessages.length; j++) {
         if (!recentMessages[i].content || !recentMessages[j].content) continue;
-        const similarity = this.calculateStringSimilarity(
-          recentMessages[i].content,
-          recentMessages[j].content
-        );
+        const similarity = this.calculateStringSimilarity(recentMessages[i].content, recentMessages[j].content);
 
         if (similarity > repetitionData.similarityThreshold) {
           repetitionCount++;
           indicators.push(`Repeated similar question: "${recentMessages[i].content.substring(0, 50)}..."`);
         }
-        
+
         // Also check for topic-based similarity (keywords overlap)
-        const topicSimilarity = this.calculateTopicSimilarity(
-          recentMessages[i].content,
-          recentMessages[j].content
-        );
+        const topicSimilarity = this.calculateTopicSimilarity(recentMessages[i].content, recentMessages[j].content);
         if (topicSimilarity > 0.6) {
           repetitionCount++;
           indicators.push(`Repeated topic question: "${recentMessages[i].content.substring(0, 50)}..."`);
@@ -402,12 +418,12 @@ export class LearningPatternAnalyzer {
     indicators: string[];
   } {
     const indicators: string[] = [];
-    
+
     if (messages.length < 5) {
       return { confidence: 0, severity: 'low', indicators: [] };
     }
 
-    const userMessages = messages.filter(m => m.role === 'user');
+    const userMessages = messages.filter((m) => m.role === 'user');
     const firstHalf = userMessages.slice(0, Math.floor(userMessages.length / 2));
     const secondHalf = userMessages.slice(Math.floor(userMessages.length / 2));
 
@@ -416,7 +432,7 @@ export class LearningPatternAnalyzer {
     // Check response time increase
     const firstAvgTime = this.calculateAverageResponseTime(firstHalf);
     const secondAvgTime = this.calculateAverageResponseTime(secondHalf);
-    
+
     if (secondAvgTime > firstAvgTime * this.STRUGGLE_INDICATORS.engagement_decline.responseTimeIncrease) {
       score += 0.3;
       indicators.push('Response times significantly increased');
@@ -424,8 +440,9 @@ export class LearningPatternAnalyzer {
 
     // Check message quality decrease (length as proxy)
     const firstAvgLength = firstHalf.length > 0 ? firstHalf.reduce((sum, m) => sum + (m.content?.length || 0), 0) / firstHalf.length : 0;
-    const secondAvgLength = secondHalf.length > 0 ? secondHalf.reduce((sum, m) => sum + (m.content?.length || 0), 0) / secondHalf.length : 0;
-    
+    const secondAvgLength =
+      secondHalf.length > 0 ? secondHalf.reduce((sum, m) => sum + (m.content?.length || 0), 0) / secondHalf.length : 0;
+
     if (secondAvgLength < firstAvgLength * (1 - this.STRUGGLE_INDICATORS.engagement_decline.messageQualityDecrease)) {
       score += 0.2;
       indicators.push('Message length and quality decreased');
@@ -433,8 +450,8 @@ export class LearningPatternAnalyzer {
 
     // Check for disengagement language
     const disengagementPhrases = ['ok', 'fine', 'whatever', 'sure', 'i guess', 'maybe later'];
-    const recentContent = secondHalf.map(m => m.content?.toLowerCase() || '').join(' ');
-    
+    const recentContent = secondHalf.map((m) => m.content?.toLowerCase() || '').join(' ');
+
     for (const phrase of disengagementPhrases) {
       if (recentContent.includes(phrase)) {
         score += 0.1;
@@ -460,7 +477,7 @@ export class LearningPatternAnalyzer {
 
     // This would be enhanced with historical data from the database
     // For now, analyze patterns within the conversation
-    
+
     if (learnerProfile && learnerProfile.conversationsAnalyzed > 5) {
       // Analyze improvement trend
       const improvementScore = this.calculateImprovementTrend(messages);
@@ -472,7 +489,7 @@ export class LearningPatternAnalyzer {
           dataPoints: messages.length,
           timeSpan: 'current_session',
           predictedOutcome: 'success',
-          interventionRecommended: false
+          interventionRecommended: false,
         });
       }
 
@@ -486,7 +503,7 @@ export class LearningPatternAnalyzer {
           dataPoints: messages.length,
           timeSpan: 'current_session',
           predictedOutcome: 'at_risk',
-          interventionRecommended: true
+          interventionRecommended: true,
         });
       }
     }
@@ -509,10 +526,11 @@ export class LearningPatternAnalyzer {
 
     // Adjust timing based on struggle severity
     if (struggles.length > 0) {
-      const highestSeverity = struggles.reduce((max, s) => 
-        s.severity === 'critical' ? 4 : s.severity === 'high' ? 3 : s.severity === 'medium' ? 2 : 1
-      , 0);
-      
+      const highestSeverity = struggles.reduce(
+        (max, s) => (s.severity === 'critical' ? 4 : s.severity === 'high' ? 3 : s.severity === 'medium' ? 2 : 1),
+        0
+      );
+
       if (highestSeverity >= 3) {
         optimalDelay = 1; // Urgent intervention
         contextFactors.push('High severity struggle detected');
@@ -523,14 +541,12 @@ export class LearningPatternAnalyzer {
     }
 
     // Avoid interrupting focused work
-    const recentUserMessages = messages
-      .filter(m => m.role === 'user')
-      .slice(-3);
-    
+    const recentUserMessages = messages.filter((m) => m.role === 'user').slice(-3);
+
     if (recentUserMessages.length > 0) {
       const latestMessage = recentUserMessages[recentUserMessages.length - 1];
       const messageLength = latestMessage.content?.length || 0;
-      
+
       if (messageLength > 200) {
         optimalDelay += 5; // Give more time for complex thoughts
         avoidInterruptionScore += 0.3;
@@ -545,13 +561,13 @@ export class LearningPatternAnalyzer {
       contextFactors.push('Assessment in progress');
     }
 
-    const confidence = Math.max(0.5, 1 - (struggles.length * 0.1));
+    const confidence = Math.max(0.5, 1 - struggles.length * 0.1);
 
     return {
       optimalDelaySeconds: optimalDelay,
       confidence,
       contextFactors,
-      avoidInterruptionScore
+      avoidInterruptionScore,
     };
   }
 
@@ -561,7 +577,7 @@ export class LearningPatternAnalyzer {
   private calculateImprovementTrend(messages: Array<{ role: string; content: string }>): {
     confidence: number;
   } {
-    const userMessages = messages.filter(m => m.role === 'user');
+    const userMessages = messages.filter((m) => m.role === 'user');
     const firstHalf = userMessages.slice(0, Math.floor(userMessages.length / 2));
     const secondHalf = userMessages.slice(Math.floor(userMessages.length / 2));
 
@@ -593,14 +609,14 @@ export class LearningPatternAnalyzer {
   private calculateDeclineTrend(messages: Array<{ role: string; content: string }>): {
     confidence: number;
   } {
-    const userMessages = messages.filter(m => m.role === 'user');
+    const userMessages = messages.filter((m) => m.role === 'user');
     const firstHalf = userMessages.slice(0, Math.floor(userMessages.length / 2));
     const secondHalf = userMessages.slice(Math.floor(userMessages.length / 2));
 
     let score = 0;
 
     // Check for negative language increase
-    const negativeWords = ['confused', 'don\'t understand', 'difficult', 'stuck', 'frustrated'];
+    const negativeWords = ['confused', "don't understand", 'difficult', 'stuck', 'frustrated'];
     const firstNegative = this.countWordOccurrences(firstHalf, negativeWords);
     const secondNegative = this.countWordOccurrences(secondHalf, negativeWords);
 
@@ -636,19 +652,21 @@ export class LearningPatternAnalyzer {
       interventionTiming: {
         optimalDelaySeconds: 3,
         confidence: 0.5,
-        contextFactors: context?.pageType ? ['Assessment in progress', 'Insufficient data for analysis'] : ['Insufficient data for analysis'],
-        avoidInterruptionScore: (context?.pageType === 'quiz' || context?.pageType === 'exam') ? 0.6 : 0
-      }
+        contextFactors: context?.pageType
+          ? ['Assessment in progress', 'Insufficient data for analysis']
+          : ['Insufficient data for analysis'],
+        avoidInterruptionScore: context?.pageType === 'quiz' || context?.pageType === 'exam' ? 0.6 : 0,
+      },
     };
   }
 
   private calculateAverageResponseTime(messages: Array<{ responseTime?: number }>): number {
-    const validTimes = messages.filter(m => m.responseTime).map(m => m.responseTime!);
+    const validTimes = messages.filter((m) => m.responseTime).map((m) => m.responseTime!);
     return validTimes.length > 0 ? validTimes.reduce((sum, time) => sum + time, 0) / validTimes.length : 0;
   }
 
   private analyzeSentiment(messages: Array<{ role: string; content: string }>): number {
-    const userMessages = messages.filter(m => m.role === 'user');
+    const userMessages = messages.filter((m) => m.role === 'user');
     const positiveWords = ['good', 'great', 'thanks', 'helpful', 'understand', 'clear'];
     const negativeWords = ['bad', 'frustrated', 'confused', 'difficult', 'stuck', 'hate'];
 
@@ -685,11 +703,11 @@ export class LearningPatternAnalyzer {
   }
 
   private analyzeHelpSeekingBehavior(messages: Array<{ role: string; content: string }>): 'proactive' | 'reactive' | 'resistant' {
-    const userMessages = messages.filter(m => m.role === 'user');
-    
+    const userMessages = messages.filter((m) => m.role === 'user');
+
     const proactiveIndicators = ['can you help', 'i need help', 'could you explain', 'what should i do'];
     const reactiveIndicators = ['ok', 'i see', 'got it', 'yes'];
-    const resistantIndicators = ['no', 'i don\'t need help', 'fine', 'whatever'];
+    const resistantIndicators = ['no', "i don't need help", 'fine', 'whatever'];
 
     const proactiveCount = this.countPhraseOccurrences(userMessages, proactiveIndicators);
     const reactiveCount = this.countPhraseOccurrences(userMessages, reactiveIndicators);
@@ -708,24 +726,30 @@ export class LearningPatternAnalyzer {
     if (!str1 || !str2) return 0;
     const words1 = new Set(str1.toLowerCase().split(/\W+/));
     const words2 = new Set(str2.toLowerCase().split(/\W+/));
-    
-    const intersection = new Set([...words1].filter(w => words2.has(w)));
+
+    const intersection = new Set([...words1].filter((w) => words2.has(w)));
     const union = new Set([...words1, ...words2]);
-    
+
     return intersection.size / union.size;
   }
 
   private calculateTopicSimilarity(str1: string, str2: string): number {
     // Focus on content words and topic similarity
     if (!str1 || !str2) return 0;
-    
+
     const stopWords = new Set(['how', 'do', 'i', 'the', 'a', 'an', 'and', 'or', 'but', 'what', 'can', 'you', 'to']);
-    const words1 = str1.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !stopWords.has(w));
-    const words2 = str2.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !stopWords.has(w));
-    
+    const words1 = str1
+      .toLowerCase()
+      .split(/\W+/)
+      .filter((w) => w.length > 2 && !stopWords.has(w));
+    const words2 = str2
+      .toLowerCase()
+      .split(/\W+/)
+      .filter((w) => w.length > 2 && !stopWords.has(w));
+
     if (words1.length === 0 || words2.length === 0) return 0;
-    
-    const intersection = words1.filter(w => words2.includes(w));
+
+    const intersection = words1.filter((w) => words2.includes(w));
     return intersection.length / Math.max(words1.length, words2.length);
   }
 
@@ -759,46 +783,35 @@ export class LearningPatternAnalyzer {
 
   private calculateMessageComplexity(messages: Array<{ content: string }>): number {
     if (messages.length === 0) return 0;
-    
+
     let totalComplexity = 0;
     for (const message of messages) {
-      const words = message.content.split(/\W+/).filter(w => w.length > 0);
+      const words = message.content.split(/\W+/).filter((w) => w.length > 0);
       const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
       const sentenceCount = message.content.split(/[.!?]+/).length;
-      
+
       totalComplexity += avgWordLength * sentenceCount;
     }
-    
+
     return totalComplexity / messages.length;
   }
 
   /**
    * Update learner pattern profile based on analysis results
    */
-  async updateLearnerProfile(
-    currentProfile: LearningPatternProfile,
-    analysis: ConversationAnalysis
-  ): Promise<LearningPatternProfile> {
+  async updateLearnerProfile(currentProfile: LearningPatternProfile, analysis: ConversationAnalysis): Promise<LearningPatternProfile> {
     const updated = { ...currentProfile };
-    
+
     // Update confusion tendency
-    const confusionStruggle = analysis.strugglesDetected.find(s => s.type === 'confusion');
+    const confusionStruggle = analysis.strugglesDetected.find((s) => s.type === 'confusion');
     if (confusionStruggle) {
-      updated.confusionTendency = this.updateMetricWithDecay(
-        updated.confusionTendency,
-        confusionStruggle.confidence,
-        0.1
-      );
+      updated.confusionTendency = this.updateMetricWithDecay(updated.confusionTendency, confusionStruggle.confidence, 0.1);
     }
 
     // Update frustration tolerance
-    const frustrationStruggle = analysis.strugglesDetected.find(s => s.type === 'frustration');
+    const frustrationStruggle = analysis.strugglesDetected.find((s) => s.type === 'frustration');
     if (frustrationStruggle) {
-      updated.frustrationTolerance = this.updateMetricWithDecay(
-        updated.frustrationTolerance,
-        1 - frustrationStruggle.confidence,
-        0.1
-      );
+      updated.frustrationTolerance = this.updateMetricWithDecay(updated.frustrationTolerance, 1 - frustrationStruggle.confidence, 0.1);
     }
 
     // Update help-seeking behavior
@@ -810,10 +823,7 @@ export class LearningPatternAnalyzer {
     );
 
     // Update pattern confidence
-    updated.patternConfidence = Math.min(
-      updated.patternConfidence + 0.05,
-      0.95
-    );
+    updated.patternConfidence = Math.min(updated.patternConfidence + 0.05, 0.95);
 
     updated.conversationsAnalyzed++;
     updated.lastAnalyzed = new Date();

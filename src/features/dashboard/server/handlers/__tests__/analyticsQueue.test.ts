@@ -3,7 +3,7 @@
  * @module features/dashboard/server/handlers/__tests__/analyticsQueue.test
  */
 
-import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { analyticsQueueHandler } from '../analyticsQueue';
 import type { MessageBatch } from '@cloudflare/workers-types';
 
@@ -22,18 +22,18 @@ describe('analyticsQueueHandler', () => {
         first: vi.fn(),
         all: vi.fn(),
         run: vi.fn(),
-        batch: vi.fn()
+        batch: vi.fn(),
       },
       AI: {
-        run: vi.fn()
+        run: vi.fn(),
       },
       VECTORIZE_INDEX: {
-        query: vi.fn()
+        query: vi.fn(),
       },
       ANALYTICS_KV: {
         get: vi.fn(),
-        put: vi.fn()
-      }
+        put: vi.fn(),
+      },
     };
 
     // Mock message batch
@@ -42,7 +42,7 @@ describe('analyticsQueueHandler', () => {
       messages: mockMessages,
       queue: 'analytics-queue' as any,
       ackAll: vi.fn(),
-      retryAll: vi.fn()
+      retryAll: vi.fn(),
     };
   });
 
@@ -59,12 +59,12 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.all.mockResolvedValue({ results: [] });
@@ -92,16 +92,16 @@ describe('analyticsQueueHandler', () => {
             performanceProfile: {
               overallMastery: 0.7,
               conceptMasteries: {},
-              learningVelocity: 2.0
-            }
+              learningVelocity: 2.0,
+            },
           },
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.run.mockResolvedValue({ success: true });
@@ -127,18 +127,16 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
-      mockEnv.DB.all.mockResolvedValue({ 
-        results: [
-          { concept_id: 'arrays', error_count: 5 }
-        ] 
+      mockEnv.DB.all.mockResolvedValue({
+        results: [{ concept_id: 'arrays', error_count: 5 }],
       });
       mockEnv.DB.run.mockResolvedValue({ success: true });
       mockEnv.KV_ANALYTICS = { get: vi.fn().mockResolvedValue(null), put: vi.fn() };
@@ -160,25 +158,25 @@ describe('analyticsQueueHandler', () => {
           priority: 3,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
-      mockEnv.DB.all.mockResolvedValue({ 
+      mockEnv.DB.all.mockResolvedValue({
         results: [
-          { 
+          {
             student_id: 'student-1',
             overall_mastery: 0.4,
             learning_velocity: 0.05,
             confidence_level: 0.2,
             struggle_count: 3,
-            avg_severity: 0.8
-          }
-        ] 
+            avg_severity: 0.8,
+          },
+        ],
       });
       mockEnv.DB.run.mockResolvedValue({ success: true });
       mockEnv.KV_ANALYTICS = { get: vi.fn().mockResolvedValue(null), put: vi.fn() };
@@ -205,12 +203,12 @@ describe('analyticsQueueHandler', () => {
             priority: 5,
             taskData: {},
             timestamp: new Date().toISOString(),
-            retryCount: 0
+            retryCount: 0,
           },
           timestamp: new Date(),
           attempts: 0,
           ack: vi.fn(),
-          retry: vi.fn()
+          retry: vi.fn(),
         },
         {
           id: 'msg-2',
@@ -223,12 +221,12 @@ describe('analyticsQueueHandler', () => {
             priority: 5,
             taskData: {},
             timestamp: new Date().toISOString(),
-            retryCount: 0
+            retryCount: 0,
           },
           timestamp: new Date(),
           attempts: 0,
           ack: vi.fn(),
-          retry: vi.fn()
+          retry: vi.fn(),
         }
       );
 
@@ -258,12 +256,12 @@ describe('analyticsQueueHandler', () => {
             priority: 5,
             taskData: {},
             timestamp: new Date().toISOString(),
-            retryCount: 0
+            retryCount: 0,
           },
           timestamp: new Date(),
           attempts: 0,
           ack: vi.fn(),
-          retry: vi.fn()
+          retry: vi.fn(),
         });
       }
 
@@ -275,7 +273,7 @@ describe('analyticsQueueHandler', () => {
       await analyticsQueueHandler(mockBatch, mockEnv);
 
       // All messages should be acknowledged
-      mockMessages.forEach(msg => {
+      mockMessages.forEach((msg) => {
         expect(msg.ack).toHaveBeenCalled();
       });
     });
@@ -294,12 +292,12 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.all.mockRejectedValue(new Error('Database connection failed'));
@@ -316,7 +314,7 @@ describe('analyticsQueueHandler', () => {
       expect(result.errors).toContainEqual(
         expect.objectContaining({
           taskId: 'task-20',
-          retryable: false // Privacy validation fails first before database error
+          retryable: false, // Privacy validation fails first before database error
         })
       );
     });
@@ -331,12 +329,12 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.run.mockResolvedValue({ success: true });
@@ -361,12 +359,12 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 3 // Third retry attempt
+          retryCount: 3, // Third retry attempt
         },
         timestamp: new Date(),
         attempts: 3,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.all.mockRejectedValue(new Error('Temporary failure'));
@@ -383,7 +381,7 @@ describe('analyticsQueueHandler', () => {
       expect(result.errors).toContainEqual(
         expect.objectContaining({
           taskId: 'task-22',
-          retryable: false // Privacy validation fails first before temporary failure
+          retryable: false, // Privacy validation fails first before temporary failure
         })
       );
     });
@@ -400,12 +398,12 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 5 // Exceeded max retries
+          retryCount: 5, // Exceeded max retries
         },
         timestamp: new Date(),
         attempts: 5,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       // First call for task status update fails, then dead letter insert succeeds
@@ -442,19 +440,19 @@ describe('analyticsQueueHandler', () => {
           priority: 3,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.all.mockResolvedValue({ results: [] });
       mockEnv.DB.run.mockResolvedValue({ success: true });
-      mockEnv.ANALYTICS_KV = { 
-        get: vi.fn().mockResolvedValue(null), 
-        put: vi.fn().mockResolvedValue(undefined) 
+      mockEnv.ANALYTICS_KV = {
+        get: vi.fn().mockResolvedValue(null),
+        put: vi.fn().mockResolvedValue(undefined),
       };
       mockEnv.KV_ANALYTICS = mockEnv.ANALYTICS_KV; // Add alias
       mockEnv.ANALYTICS_QUEUE = { send: vi.fn() };
@@ -468,7 +466,7 @@ describe('analyticsQueueHandler', () => {
     it('should use cached data when available', async () => {
       const cachedMetrics = {
         averageMastery: 0.75,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       mockMessages.push({
@@ -482,17 +480,17 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
-      mockEnv.ANALYTICS_KV = { 
+      mockEnv.ANALYTICS_KV = {
         get: vi.fn().mockResolvedValue(JSON.stringify(cachedMetrics)),
-        put: vi.fn() 
+        put: vi.fn(),
       };
       mockEnv.KV_ANALYTICS = mockEnv.ANALYTICS_KV;
       mockEnv.ANALYTICS_QUEUE = { send: vi.fn() };
@@ -519,12 +517,12 @@ describe('analyticsQueueHandler', () => {
             priority: 5,
             taskData: {},
             timestamp: new Date().toISOString(),
-            retryCount: 0
+            retryCount: 0,
           },
           timestamp: new Date(),
           attempts: 0,
           ack: vi.fn(),
-          retry: vi.fn()
+          retry: vi.fn(),
         });
       }
 
@@ -537,7 +535,7 @@ describe('analyticsQueueHandler', () => {
       await analyticsQueueHandler(mockBatch, mockEnv);
 
       // All messages should be acknowledged
-      mockMessages.forEach(msg => {
+      mockMessages.forEach((msg) => {
         expect(msg.ack).toHaveBeenCalled();
       });
     });
@@ -556,12 +554,12 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.all.mockResolvedValue({ results: [] });
@@ -572,9 +570,7 @@ describe('analyticsQueueHandler', () => {
       await analyticsQueueHandler(mockBatch, mockEnv);
 
       // Should log to database for batch processing
-      expect(mockEnv.DB.prepare).toHaveBeenCalledWith(
-        expect.stringContaining('analytics_batch_logs')
-      );
+      expect(mockEnv.DB.prepare).toHaveBeenCalledWith(expect.stringContaining('analytics_batch_logs'));
     });
 
     it('should track processing duration', async () => {
@@ -589,12 +585,12 @@ describe('analyticsQueueHandler', () => {
           priority: 5,
           taskData: {},
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       });
 
       mockEnv.DB.all.mockResolvedValue({ results: [] });

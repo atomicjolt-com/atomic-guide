@@ -94,7 +94,7 @@ faq.get('/search', async (c) => {
         response_time_ms: responseTime,
         matches: [],
       },
-      500,
+      500
     );
   }
 });
@@ -141,7 +141,7 @@ faq.post('/', async (c) => {
       INSERT INTO faq_management_log (
         id, tenant_id, instructor_id, faq_id, action, changes_made, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
+    `
     )
       .bind(
         `log_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
@@ -150,7 +150,7 @@ faq.post('/', async (c) => {
         newFAQ.id,
         'created',
         JSON.stringify({ question: sanitizedQuestion, answer: sanitizedAnswer }),
-        new Date().toISOString(),
+        new Date().toISOString()
       )
       .run();
 
@@ -167,7 +167,7 @@ faq.post('/', async (c) => {
           created_at: newFAQ.createdAt.toISOString(),
         },
       },
-      201,
+      201
     );
   } catch {
     console.error('FAQ creation error:', error);
@@ -209,7 +209,7 @@ faq.put('/:id', async (c) => {
       INSERT INTO faq_management_log (
         id, tenant_id, instructor_id, faq_id, action, changes_made, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
+    `
     )
       .bind(
         `log_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
@@ -218,7 +218,7 @@ faq.put('/:id', async (c) => {
         faqId,
         'updated',
         JSON.stringify(updates),
-        new Date().toISOString(),
+        new Date().toISOString()
       )
       .run();
 
@@ -258,7 +258,7 @@ faq.delete('/:id', async (c) => {
       INSERT INTO faq_management_log (
         id, tenant_id, instructor_id, faq_id, action, created_at
       ) VALUES (?, ?, ?, ?, ?, ?)
-    `,
+    `
     )
       .bind(
         `log_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
@@ -266,7 +266,7 @@ faq.delete('/:id', async (c) => {
         userId,
         faqId,
         'deleted',
-        new Date().toISOString(),
+        new Date().toISOString()
       )
       .run();
 
@@ -430,7 +430,7 @@ faq.get('/analytics', async (c) => {
         COUNT(*) as total_faqs
       FROM faq_entries
       WHERE tenant_id = ? ${courseId ? 'AND course_id = ?' : ''}
-    `,
+    `
     )
       .bind(...params.slice(0, courseId ? 2 : 1))
       .first();

@@ -28,35 +28,41 @@ export default function PrivacySettings({
   onExportData,
   onDeleteConversations,
   conversations = [],
-  isLoading = false
+  isLoading = false,
 }: PrivacySettingsProps) {
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<'selected' | 'all' | null>(null);
 
-  const handleSettingToggle = useCallback((key: string) => {
-    onSettingsChange({
-      ...settings,
-      [key]: !settings[key as keyof typeof settings]
-    });
-  }, [settings, onSettingsChange]);
+  const handleSettingToggle = useCallback(
+    (key: string) => {
+      onSettingsChange({
+        ...settings,
+        [key]: !settings[key as keyof typeof settings],
+      });
+    },
+    [settings, onSettingsChange]
+  );
 
-  const handleConversationSelect = useCallback((conversationId: string) => {
-    const newSelected = new Set(selectedConversations);
-    if (newSelected.has(conversationId)) {
-      newSelected.delete(conversationId);
-    } else {
-      newSelected.add(conversationId);
-    }
-    setSelectedConversations(newSelected);
-  }, [selectedConversations]);
+  const handleConversationSelect = useCallback(
+    (conversationId: string) => {
+      const newSelected = new Set(selectedConversations);
+      if (newSelected.has(conversationId)) {
+        newSelected.delete(conversationId);
+      } else {
+        newSelected.add(conversationId);
+      }
+      setSelectedConversations(newSelected);
+    },
+    [selectedConversations]
+  );
 
   const handleSelectAll = useCallback(() => {
     if (selectedConversations.size === conversations.length) {
       setSelectedConversations(new Set());
     } else {
-      setSelectedConversations(new Set(conversations.map(c => c.id)));
+      setSelectedConversations(new Set(conversations.map((c) => c.id)));
     }
   }, [selectedConversations, conversations]);
 
@@ -89,14 +95,9 @@ export default function PrivacySettings({
     setDeleteTarget(null);
   }, []);
 
-  const renderPrivacyToggle = (
-    key: string,
-    label: string,
-    description: string,
-    icon: string
-  ) => {
+  const renderPrivacyToggle = (key: string, label: string, description: string, icon: string) => {
     const isEnabled = settings[key as keyof typeof settings];
-    
+
     return (
       <div className={styles.settingItem}>
         <div className={styles.settingIcon}>{icon}</div>
@@ -134,9 +135,7 @@ export default function PrivacySettings({
     <div className={styles.privacySettings}>
       <div className={styles.header}>
         <h2>Privacy & Data Management</h2>
-        <p className={styles.subtitle}>
-          Control how your data is stored and used for learning personalization
-        </p>
+        <p className={styles.subtitle}>Control how your data is stored and used for learning personalization</p>
       </div>
 
       <div className={styles.section}>
@@ -171,7 +170,7 @@ export default function PrivacySettings({
 
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Data Management</h3>
-        
+
         <div className={styles.dataActions}>
           <div className={styles.actionCard}>
             <div className={styles.actionIcon}>📥</div>
@@ -179,16 +178,10 @@ export default function PrivacySettings({
               <h4>Export Your Data</h4>
               <p>Download all your conversation history and learning analytics</p>
               <div className={styles.exportButtons}>
-                <button
-                  className={styles.exportButton}
-                  onClick={() => onExportData('json')}
-                >
+                <button className={styles.exportButton} onClick={() => onExportData('json')}>
                   Export as JSON
                 </button>
-                <button
-                  className={styles.exportButton}
-                  onClick={() => onExportData('csv')}
-                >
+                <button className={styles.exportButton} onClick={() => onExportData('csv')}>
                   Export as CSV
                 </button>
               </div>
@@ -200,10 +193,7 @@ export default function PrivacySettings({
             <div className={styles.actionContent}>
               <h4>Delete All Data</h4>
               <p>Permanently remove all your conversations and learning history</p>
-              <button
-                className={styles.deleteAllButton}
-                onClick={handleDeleteAll}
-              >
+              <button className={styles.deleteAllButton} onClick={handleDeleteAll}>
                 Delete Everything
               </button>
             </div>
@@ -216,19 +206,11 @@ export default function PrivacySettings({
           <div className={styles.conversationsHeader}>
             <h3 className={styles.sectionTitle}>Manage Conversations</h3>
             <div className={styles.bulkActions}>
-              <button
-                className={styles.selectAllButton}
-                onClick={handleSelectAll}
-              >
-                {selectedConversations.size === conversations.length
-                  ? 'Deselect All'
-                  : 'Select All'}
+              <button className={styles.selectAllButton} onClick={handleSelectAll}>
+                {selectedConversations.size === conversations.length ? 'Deselect All' : 'Select All'}
               </button>
               {selectedConversations.size > 0 && (
-                <button
-                  className={styles.deleteSelectedButton}
-                  onClick={handleDeleteSelected}
-                >
+                <button className={styles.deleteSelectedButton} onClick={handleDeleteSelected}>
                   Delete Selected ({selectedConversations.size})
                 </button>
               )}
@@ -236,12 +218,10 @@ export default function PrivacySettings({
           </div>
 
           <div className={styles.conversationsList}>
-            {conversations.map(conversation => (
+            {conversations.map((conversation) => (
               <div
                 key={conversation.id}
-                className={`${styles.conversationItem} ${
-                  selectedConversations.has(conversation.id) ? styles.selected : ''
-                }`}
+                className={`${styles.conversationItem} ${selectedConversations.has(conversation.id) ? styles.selected : ''}`}
               >
                 <input
                   type="checkbox"
@@ -303,20 +283,14 @@ export default function PrivacySettings({
           <div className={styles.modalContent}>
             <h3>Confirm Deletion</h3>
             <p>
-              Are you sure you want to delete {selectedConversations.size} selected conversation{selectedConversations.size !== 1 ? 's' : ''}?
-              This action cannot be undone.
+              Are you sure you want to delete {selectedConversations.size} selected conversation
+              {selectedConversations.size !== 1 ? 's' : ''}? This action cannot be undone.
             </p>
             <div className={styles.modalActions}>
-              <button
-                className={styles.cancelButton}
-                onClick={cancelDelete}
-              >
+              <button className={styles.cancelButton} onClick={cancelDelete}>
                 Cancel
               </button>
-              <button
-                className={styles.confirmDeleteButton}
-                onClick={confirmDelete}
-              >
+              <button className={styles.confirmDeleteButton} onClick={confirmDelete}>
                 Delete
               </button>
             </div>
@@ -330,8 +304,8 @@ export default function PrivacySettings({
           <div className={styles.modalContent}>
             <h3>⚠️ Delete All Data</h3>
             <p className={styles.warningText}>
-              This will permanently delete ALL your conversations, learning history, and personalization settings.
-              This action cannot be undone.
+              This will permanently delete ALL your conversations, learning history, and personalization settings. This action cannot be
+              undone.
             </p>
             <p>Type "DELETE" to confirm:</p>
             <input
@@ -347,10 +321,7 @@ export default function PrivacySettings({
               }}
             />
             <div className={styles.modalActions}>
-              <button
-                className={styles.cancelButton}
-                onClick={cancelDelete}
-              >
+              <button className={styles.cancelButton} onClick={cancelDelete}>
                 Cancel
               </button>
               <button

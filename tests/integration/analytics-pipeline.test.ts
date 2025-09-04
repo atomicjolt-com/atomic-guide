@@ -3,7 +3,7 @@
  * @module tests/integration/analytics-pipeline.test
  */
 
-import {  describe, it, expect, vi, beforeEach, afterEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 
 import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 import { analyticsQueueHandler } from '@/src/features/dashboard/server/handlers/analyticsQueue';
@@ -29,7 +29,7 @@ describe('Analytics Pipeline Integration', () => {
       first: vi.fn(),
       all: vi.fn(),
       run: vi.fn(),
-      raw: vi.fn()
+      raw: vi.fn(),
     };
 
     env = {
@@ -42,29 +42,29 @@ describe('Analytics Pipeline Integration', () => {
         // Add direct access methods for compatibility
         all: vi.fn(),
         run: vi.fn(),
-        first: vi.fn()
+        first: vi.fn(),
       },
       ANALYTICS_QUEUE: {
         send: vi.fn(),
-        sendBatch: vi.fn()
+        sendBatch: vi.fn(),
       },
       ANALYTICS_KV: {
         get: vi.fn(),
         put: vi.fn(),
         delete: vi.fn(),
-        list: vi.fn()
+        list: vi.fn(),
       },
       AI: {
-        run: vi.fn()
+        run: vi.fn(),
       },
       VECTORIZE_INDEX: {
         query: vi.fn(),
-        insert: vi.fn()
+        insert: vi.fn(),
       },
       STRUGGLE_DETECTOR: {
         get: vi.fn().mockReturnThis(),
-        fetch: vi.fn()
-      }
+        fetch: vi.fn(),
+      },
     };
 
     // Initialize service
@@ -75,10 +75,7 @@ describe('Analytics Pipeline Integration', () => {
   });
 
   afterEach(() => {
-    
-    ;
     vi.useRealTimers();
-  
   });
 
   describe('End-to-End Assessment Processing', () => {
@@ -94,15 +91,16 @@ describe('Analytics Pipeline Integration', () => {
         responses: [
           { questionId: 'q1', conceptId: 'arrays', correct: true, timeSpent: 30 },
           { questionId: 'q2', conceptId: 'loops', correct: false, timeSpent: 60 },
-          { questionId: 'q3', conceptId: 'functions', correct: true, timeSpent: 45 }
-        ]
+          { questionId: 'q3', conceptId: 'functions', correct: true, timeSpent: 45 },
+        ],
       };
 
       // Step 2: Queue analytics calculation is handled by MockFactory automatically
 
       // Simulate assessment submission by directly inserting data and queuing task
-      await env.DB
-        .prepare('INSERT INTO assessment_attempts (tenant_id, student_id, course_id, assessment_id, score, max_score, response_data) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      await env.DB.prepare(
+        'INSERT INTO assessment_attempts (tenant_id, student_id, course_id, assessment_id, score, max_score, response_data) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      )
         .bind('tenant-1', 'student-1', 'course-1', 'assessment-1', 75, 100, JSON.stringify(assessmentData.responses))
         .run();
 
@@ -110,7 +108,7 @@ describe('Analytics Pipeline Integration', () => {
         taskType: 'performance_update',
         taskId: crypto.randomUUID(),
         priority: 5,
-        taskData: assessmentData
+        taskData: assessmentData,
       });
 
       expect(env.DB.prepare).toHaveBeenCalled();
@@ -122,8 +120,8 @@ describe('Analytics Pipeline Integration', () => {
         concept_masteries: {
           arrays: 0.9,
           loops: 0.4,
-          functions: 0.8
-        }
+          functions: 0.8,
+        },
       };
 
       // Configure database mocks for assessment data
@@ -133,23 +131,25 @@ describe('Analytics Pipeline Integration', () => {
 
       // Simulate queue processing using actual analytics queue handler
       const mockBatch = {
-        messages: [{
-          id: 'msg-1',
-          timestamp: new Date(),
-          body: {
-            taskType: 'performance_update',
-            taskId: 'task-1',
-            tenantId: 'tenant-1',
-            studentId: 'student-1',
-            courseId: 'course-1',
-            priority: 5,
-            taskData: { studentId: 'student-1' }
+        messages: [
+          {
+            id: 'msg-1',
+            timestamp: new Date(),
+            body: {
+              taskType: 'performance_update',
+              taskId: 'task-1',
+              tenantId: 'tenant-1',
+              studentId: 'student-1',
+              courseId: 'course-1',
+              priority: 5,
+              taskData: { studentId: 'student-1' },
+            },
+            retry: vi.fn(),
+            ack: vi.fn(),
           },
-          retry: vi.fn(),
-          ack: vi.fn()
-        }],
+        ],
         retry: vi.fn(),
-        ack: vi.fn()
+        ack: vi.fn(),
       } as any;
 
       await analyticsQueueHandler(mockBatch, env);
@@ -162,9 +162,9 @@ describe('Analytics Pipeline Integration', () => {
             priority: 'high',
             conceptIds: ['loops'],
             suggestedActions: ['Review loop syntax', 'Practice iteration patterns'],
-            estimatedTimeMinutes: 30
-          }
-        ])
+            estimatedTimeMinutes: 30,
+          },
+        ]),
       });
 
       // Use actual service method for recommendations
@@ -175,27 +175,29 @@ describe('Analytics Pipeline Integration', () => {
 
       // Step 5: Detect struggle patterns
       env.STRUGGLE_DETECTOR.fetch.mockResolvedValue(
-        new Response(JSON.stringify({
-          patterns: [{
-            type: 'repeated_errors',
-            conceptId: 'loops',
-            severity: 0.7
-          }]
-        }))
+        new Response(
+          JSON.stringify({
+            patterns: [
+              {
+                type: 'repeated_errors',
+                conceptId: 'loops',
+                severity: 0.7,
+              },
+            ],
+          })
+        )
       );
 
       await detectStrugglePatterns(env, 'student-1', assessmentData.responses);
 
-      expect(env.STRUGGLE_DETECTOR.fetch).toHaveBeenCalledWith(
-        expect.any(Object)
-      );
+      expect(env.STRUGGLE_DETECTOR.fetch).toHaveBeenCalledWith(expect.any(Object));
     });
 
     it('should handle concurrent assessment processing', async () => {
       const assessments = [
         createAssessmentData('student-1', 80),
         createAssessmentData('student-2', 70),
-        createAssessmentData('student-3', 90)
+        createAssessmentData('student-3', 90),
       ];
 
       // Configure database mocks for concurrent processing
@@ -203,9 +205,7 @@ describe('Analytics Pipeline Integration', () => {
       mockStatement.run.mockResolvedValue({ success: true });
 
       // Submit multiple assessments concurrently
-      await Promise.all(
-        assessments.map(data => submitAssessment(env, data))
-      );
+      await Promise.all(assessments.map((data) => submitAssessment(env, data)));
 
       expect(env.ANALYTICS_QUEUE.send).toHaveBeenCalledTimes(assessments.length);
       expect(env.DB.run).toHaveBeenCalledTimes(assessments.length);
@@ -216,12 +216,12 @@ describe('Analytics Pipeline Integration', () => {
     it('should update dashboard metrics after analytics processing', async () => {
       // Set up KV mock for no cache
       env.ANALYTICS_KV.get.mockResolvedValue(null);
-      
+
       // Set up database mock for first call
       const mockStatement = env.DB.prepare();
       mockStatement.first.mockResolvedValue({
         overall_mastery: 0.65,
-        learning_velocity: 1.8
+        learning_velocity: 1.8,
       });
 
       const dashboardData = await fetchDashboardData(env, 'student-1');
@@ -230,21 +230,19 @@ describe('Analytics Pipeline Integration', () => {
       // Process new assessment
       await processAnalyticsQueue(env, {
         taskType: 'performance_update',
-        taskId: 'task-2', 
+        taskId: 'task-2',
         priority: 5,
-        taskData: { studentId: 'student-1' }
+        taskData: { studentId: 'student-1' },
       });
 
       // Cache should be invalidated
-      expect(env.ANALYTICS_KV.delete).toHaveBeenCalledWith(
-        expect.stringContaining('dashboard:student-1')
-      );
+      expect(env.ANALYTICS_KV.delete).toHaveBeenCalledWith(expect.stringContaining('dashboard:student-1'));
 
       // Next dashboard request gets updated data
       const mockStatement2 = env.DB.prepare();
       mockStatement2.first.mockResolvedValue({
         overall_mastery: 0.72, // Improved
-        learning_velocity: 2.0
+        learning_velocity: 2.0,
       });
 
       const updatedDashboard = await fetchDashboardData(env, 'student-1');
@@ -252,15 +250,17 @@ describe('Analytics Pipeline Integration', () => {
     });
 
     it('should aggregate class metrics efficiently', async () => {
-      const students = Array(30).fill(null).map((_, i) => ({
-        student_id: `student-${i}`,
-        overall_mastery: 0.5 + (i * 0.01)
-      }));
+      const students = Array(30)
+        .fill(null)
+        .map((_, i) => ({
+          student_id: `student-${i}`,
+          overall_mastery: 0.5 + i * 0.01,
+        }));
 
       // Set up database mock for students query
       const mockStatement = env.DB.prepare();
       mockStatement.all.mockResolvedValue({ results: students });
-      
+
       // Set up KV mock
       env.ANALYTICS_KV.get.mockResolvedValue(null);
 
@@ -283,12 +283,12 @@ describe('Analytics Pipeline Integration', () => {
       const studentData = [
         { studentId: 'student-1', score: 85, timeSpent: 3600 },
         { studentId: 'student-2', score: 78, timeSpent: 4200 },
-        { studentId: 'student-3', score: 92, timeSpent: 3000 }
+        { studentId: 'student-3', score: 92, timeSpent: 3000 },
       ];
 
       const anonymized = await anonymizeForBenchmark(env, studentData, 1.0);
 
-      anonymized.forEach(record => {
+      anonymized.forEach((record) => {
         expect(record.studentId).toBeUndefined();
         expect(record.anonymousId).toBeDefined();
         // Score should be perturbed but reasonable
@@ -302,22 +302,17 @@ describe('Analytics Pipeline Integration', () => {
       const mockStatement = env.DB.prepare();
       mockStatement.first.mockResolvedValue({
         analytics_enabled: false,
-        performance_tracking: false
+        performance_tracking: false,
       });
 
-      const canProcess = await validateAnalyticsConsent(
-        env,
-        'tenant-1',
-        'student-1',
-        'performance_tracking'
-      );
+      const canProcess = await validateAnalyticsConsent(env, 'tenant-1', 'student-1', 'performance_tracking');
 
       expect(canProcess).toBe(false);
 
       // Reset mock for processAnalyticsQueue call
       const mockStatement3 = env.DB.prepare();
       mockStatement3.first.mockResolvedValue({
-        analytics_enabled: false
+        analytics_enabled: false,
       });
 
       // Should not process analytics without consent
@@ -325,7 +320,7 @@ describe('Analytics Pipeline Integration', () => {
         taskType: 'performance_update',
         taskId: 'task-3',
         priority: 5,
-        taskData: { studentId: 'student-1' }
+        taskData: { studentId: 'student-1' },
       });
 
       expect(result.skipped).toBe(true);
@@ -340,9 +335,9 @@ describe('Analytics Pipeline Integration', () => {
         conceptMasteries: {
           arrays: 0.4,
           loops: 0.7,
-          functions: 0.8
+          functions: 0.8,
         },
-        learningVelocity: 2.0
+        learningVelocity: 2.0,
       };
 
       env.AI.run.mockResolvedValue({
@@ -350,19 +345,19 @@ describe('Analytics Pipeline Integration', () => {
           studyPlan: {
             dailyGoals: [
               { day: 'Monday', activities: ['Review arrays - 30 min'] },
-              { day: 'Tuesday', activities: ['Practice loops - 45 min'] }
+              { day: 'Tuesday', activities: ['Practice loops - 45 min'] },
             ],
             totalHours: 5,
-            focusConcepts: ['arrays']
-          }
-        })
+            focusConcepts: ['arrays'],
+          },
+        }),
       });
 
       env.VECTORIZE_INDEX.query.mockResolvedValue({
         matches: [
           { id: 'content-1', score: 0.9 },
-          { id: 'content-2', score: 0.85 }
-        ]
+          { id: 'content-2', score: 0.85 },
+        ],
       });
 
       const studyPlan = await generateStudyPlan(env, 'student-1', profile);
@@ -380,9 +375,7 @@ describe('Analytics Pipeline Integration', () => {
       // Set up database mock for recommendations query
       const mockStatement4 = env.DB.prepare();
       mockStatement4.all.mockResolvedValue({
-        results: [
-          { id: 'rec-1', status: 'completed', priority: 'high', effectiveness: 0.8 }
-        ]
+        results: [{ id: 'rec-1', status: 'completed', priority: 'high', effectiveness: 0.8 }],
       });
 
       const adjusted = await adjustRecommendations(env, 'student-1');
@@ -395,7 +388,7 @@ describe('Analytics Pipeline Integration', () => {
     it('should generate at-risk student alerts', async () => {
       const strugglingStudents = [
         { student_id: 's1', overall_mastery: 0.3, trend: 'declining' },
-        { student_id: 's2', overall_mastery: 0.4, trend: 'declining' }
+        { student_id: 's2', overall_mastery: 0.4, trend: 'declining' },
       ];
 
       // Set up database mock for struggling students query and insert
@@ -405,14 +398,12 @@ describe('Analytics Pipeline Integration', () => {
 
       await detectAtRiskStudents(env, 'course-1');
 
-      expect(env.DB.prepare).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO instructor_alerts')
-      );
+      expect(env.DB.prepare).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO instructor_alerts'));
       // Check that bind was called on the statement (not DB directly)
       expect(mockStatement5.bind).toHaveBeenCalledWith(
         expect.objectContaining({
           alert_type: 'at_risk_student',
-          priority: 'high'
+          priority: 'high',
         })
       );
     });
@@ -420,7 +411,7 @@ describe('Analytics Pipeline Integration', () => {
     it('should identify class-wide struggle patterns', async () => {
       const conceptPerformance = [
         { concept_id: 'recursion', avg_mastery: 0.35, student_count: 25 },
-        { concept_id: 'algorithms', avg_mastery: 0.42, student_count: 25 }
+        { concept_id: 'algorithms', avg_mastery: 0.42, student_count: 25 },
       ];
 
       // Set up database mock for concept performance query
@@ -438,15 +429,15 @@ describe('Analytics Pipeline Integration', () => {
   describe('Performance and Scalability', () => {
     it('should handle batch processing efficiently', async () => {
       const batchSize = 100;
-      const messages = Array(batchSize).fill(null).map((_, i) => ({
-        type: 'calculate_performance',
-        studentId: `student-${i}`
-      }));
+      const messages = Array(batchSize)
+        .fill(null)
+        .map((_, i) => ({
+          type: 'calculate_performance',
+          studentId: `student-${i}`,
+        }));
 
       // Set up database batch mock
-      env.DB.batch.mockResolvedValue(
-        Array(batchSize).fill({ success: true })
-      );
+      env.DB.batch.mockResolvedValue(Array(batchSize).fill({ success: true }));
 
       const startTime = Date.now();
       await processBatchAnalytics(env, messages);
@@ -460,19 +451,19 @@ describe('Analytics Pipeline Integration', () => {
       // Set up circuit breaker state tracking
       let failureCount = 0;
       let circuitState = 'closed';
-      
+
       env.ANALYTICS_KV.get.mockImplementation((key: string) => {
         if (key === 'circuit:state') return Promise.resolve(circuitState === 'open' ? 'open' : null);
         if (key === 'circuit:failures') return Promise.resolve(String(failureCount));
         return Promise.resolve(null);
       });
-      
+
       env.ANALYTICS_KV.put.mockImplementation((key: string, value: string) => {
         if (key === 'circuit:state') circuitState = value;
         if (key === 'circuit:failures') failureCount = parseInt(value);
         return Promise.resolve();
       });
-      
+
       // Simulate database failures
       const mockStatement7 = env.DB.prepare();
       mockStatement7.run.mockRejectedValue(new Error('Database overloaded'));
@@ -484,16 +475,16 @@ describe('Analytics Pipeline Integration', () => {
             taskType: 'performance_update',
             taskId: `task-${i}`,
             priority: 5,
-            taskData: { studentId: 'student-1' }
+            taskData: { studentId: 'student-1' },
           });
           results.push({ status: 'fulfilled', value: result });
         } catch (error) {
           results.push({ status: 'rejected', reason: error });
         }
       }
-      
+
       // After threshold, circuit should open
-      const rejected = results.filter(r => r.status === 'rejected');
+      const rejected = results.filter((r) => r.status === 'rejected');
       expect(rejected.length).toBeGreaterThan(0);
       expect((rejected[rejected.length - 1].reason as Error).message).toContain('Circuit open');
     });
@@ -501,7 +492,7 @@ describe('Analytics Pipeline Integration', () => {
     it('should cache frequently accessed data', async () => {
       // First access - hits database
       env.ANALYTICS_KV.get.mockResolvedValue(null);
-      
+
       const mockStatement8 = env.DB.prepare();
       mockStatement8.first.mockResolvedValue({ overall_mastery: 0.75 });
 
@@ -509,9 +500,7 @@ describe('Analytics Pipeline Integration', () => {
       expect(env.DB.first).toHaveBeenCalledTimes(1);
 
       // Second access - uses cache
-      env.ANALYTICS_KV.get.mockResolvedValue(
-        JSON.stringify({ overall_mastery: 0.75 })
-      );
+      env.ANALYTICS_KV.get.mockResolvedValue(JSON.stringify({ overall_mastery: 0.75 }));
 
       await fetchStudentPerformance(env, 'student-1');
       expect(env.DB.first).toHaveBeenCalledTimes(1); // Still 1, not called again
@@ -527,7 +516,7 @@ async function submitAssessment(env: MockEnvironment, data: any): Promise<void> 
     taskType: 'performance_update',
     taskId: crypto.randomUUID(),
     priority: 5,
-    taskData: data
+    taskData: data,
   });
 }
 
@@ -535,7 +524,7 @@ async function processAnalyticsQueue(env: MockEnvironment, message: any): Promis
   // Simulate queue processing logic
   if (message.taskType === 'performance_update') {
     const studentId = message.taskData?.studentId || message.studentId;
-    
+
     // Check for consent (default to enabled if not found for testing)
     let consent;
     try {
@@ -545,7 +534,7 @@ async function processAnalyticsQueue(env: MockEnvironment, message: any): Promis
     } catch {
       consent = { analytics_enabled: true }; // Default for tests
     }
-    
+
     if (consent && consent.analytics_enabled === false) {
       return { skipped: true, reason: 'No consent' };
     }
@@ -554,10 +543,10 @@ async function processAnalyticsQueue(env: MockEnvironment, message: any): Promis
     const updateStmt = env.DB.prepare('UPDATE student_performance_profiles');
     updateStmt.bind(studentId);
     await updateStmt.run();
-    
+
     // Invalidate cache
     await env.ANALYTICS_KV.delete(`dashboard:${studentId}`);
-    
+
     return { success: true };
   }
 }
@@ -565,7 +554,7 @@ async function processAnalyticsQueue(env: MockEnvironment, message: any): Promis
 async function generateRecommendations(env: MockEnvironment, studentId: string, profile: any): Promise<void> {
   const recommendations = await env.AI.run({
     model: '@cf/meta/llama-2-7b',
-    prompt: `Generate learning recommendations for profile: ${JSON.stringify(profile)}`
+    prompt: `Generate learning recommendations for profile: ${JSON.stringify(profile)}`,
   });
 
   const stmt = env.DB.prepare('INSERT INTO learning_recommendations');
@@ -578,7 +567,7 @@ async function detectStrugglePatterns(env: MockEnvironment, studentId: string, r
     await env.STRUGGLE_DETECTOR.get(studentId).fetch(
       new Request('http://do/track_interaction', {
         method: 'POST',
-        body: JSON.stringify(response)
+        body: JSON.stringify(response),
       })
     );
   }
@@ -591,13 +580,9 @@ async function fetchDashboardData(env: MockEnvironment, studentId: string): Prom
   const stmt = env.DB.prepare('SELECT * FROM student_performance_profiles');
   stmt.bind(studentId);
   const data = await stmt.first();
-  
+
   if (data) {
-    await env.ANALYTICS_KV.put(
-      `dashboard:${studentId}`,
-      JSON.stringify(data),
-      { expirationTtl: 3600 }
-    );
+    await env.ANALYTICS_KV.put(`dashboard:${studentId}`, JSON.stringify(data), { expirationTtl: 3600 });
     return data;
   }
 
@@ -611,36 +596,27 @@ async function calculateClassMetrics(env: MockEnvironment, courseId: string): Pr
 
   const metrics = {
     totalStudents: students.results.length,
-    averageMastery: students.results.reduce((sum: number, s: any) => sum + s.overall_mastery, 0) / students.results.length
+    averageMastery: students.results.reduce((sum: number, s: any) => sum + s.overall_mastery, 0) / students.results.length,
   };
 
-  await env.ANALYTICS_KV.put(
-    `class-metrics:${courseId}`,
-    JSON.stringify(metrics),
-    { expirationTtl: 3600 }
-  );
+  await env.ANALYTICS_KV.put(`class-metrics:${courseId}`, JSON.stringify(metrics), { expirationTtl: 3600 });
 
   return metrics;
 }
 
 async function anonymizeForBenchmark(env: MockEnvironment, data: any[], epsilon: number): Promise<any[]> {
-  return data.map(record => ({
+  return data.map((record) => ({
     anonymousId: `anon-${Math.random().toString(36).substr(2, 9)}`,
-    score: record.score + (Math.random() - 0.5) * 10 / epsilon,
-    timeSpent: record.timeSpent
+    score: record.score + ((Math.random() - 0.5) * 10) / epsilon,
+    timeSpent: record.timeSpent,
   }));
 }
 
-async function validateAnalyticsConsent(
-  env: MockEnvironment,
-  tenantId: string,
-  studentId: string,
-  operation: string
-): Promise<boolean> {
+async function validateAnalyticsConsent(env: MockEnvironment, tenantId: string, studentId: string, operation: string): Promise<boolean> {
   const stmt = env.DB.prepare('SELECT * FROM privacy_consent');
   stmt.bind(tenantId, studentId);
   const consent = await stmt.first();
-  
+
   return consent?.[operation] === true;
 }
 
@@ -652,19 +628,19 @@ function createAssessmentData(studentId: string, score: number): any {
     assessmentId: `assessment-${studentId}`,
     score,
     maxScore: 100,
-    responses: []
+    responses: [],
   };
 }
 
 async function generateStudyPlan(env: MockEnvironment, studentId: string, profile: any): Promise<any> {
   const aiResponse = await env.AI.run({
-    prompt: `Generate study plan for ${JSON.stringify(profile)}`
+    prompt: `Generate study plan for ${JSON.stringify(profile)}`,
   });
 
   // Query vectorized content for relevant materials
   await env.VECTORIZE_INDEX.query({
     vector: profile.conceptMasteries,
-    topK: 5
+    topK: 5,
   });
 
   if (aiResponse?.response) {
@@ -674,12 +650,7 @@ async function generateStudyPlan(env: MockEnvironment, studentId: string, profil
   return null;
 }
 
-async function updateRecommendationStatus(
-  env: MockEnvironment,
-  recId: string,
-  status: string,
-  feedback: string
-): Promise<void> {
+async function updateRecommendationStatus(env: MockEnvironment, recId: string, status: string, feedback: string): Promise<void> {
   const stmt = env.DB.prepare('UPDATE learning_recommendations SET status = ?, feedback = ?');
   stmt.bind(status, feedback, recId);
   await stmt.run();
@@ -695,9 +666,7 @@ async function adjustRecommendations(env: MockEnvironment, studentId: string): P
 }
 
 async function detectAtRiskStudents(env: MockEnvironment, courseId: string): Promise<void> {
-  const stmt = env.DB.prepare(
-    'SELECT * FROM student_performance_profiles WHERE course_id = ? AND overall_mastery < 0.5'
-  );
+  const stmt = env.DB.prepare('SELECT * FROM student_performance_profiles WHERE course_id = ? AND overall_mastery < 0.5');
   stmt.bind(courseId);
   const students = await stmt.all();
 
@@ -706,7 +675,7 @@ async function detectAtRiskStudents(env: MockEnvironment, courseId: string): Pro
     insertStmt.bind({
       alert_type: 'at_risk_student',
       priority: 'high',
-      student_ids: JSON.stringify(students.results.map((s: any) => s.student_id))
+      student_ids: JSON.stringify(students.results.map((s: any) => s.student_id)),
     });
     await insertStmt.run();
   }
@@ -723,27 +692,24 @@ async function identifyClassStruggles(env: MockEnvironment, _courseId: string): 
     .map((c: any) => ({
       conceptId: c.concept_id,
       severity: 1 - c.avg_mastery,
-      affectedStudents: c.student_count
+      affectedStudents: c.student_count,
     }));
 }
 
 async function processBatchAnalytics(env: MockEnvironment, messages: any[]): Promise<void> {
-  const operations = messages.map(msg => {
+  const operations = messages.map((msg) => {
     const stmt = env.DB.prepare('UPDATE student_performance_profiles');
     stmt.bind(msg.studentId);
     return stmt;
   });
-  
+
   await env.DB.batch(operations);
 }
 
-async function processAnalyticsWithCircuitBreaker(
-  env: MockEnvironment,
-  message: any
-): Promise<any> {
+async function processAnalyticsWithCircuitBreaker(env: MockEnvironment, message: any): Promise<any> {
   // Simple circuit breaker implementation
   const circuitState = await env.ANALYTICS_KV.get('circuit:state');
-  
+
   if (circuitState === 'open') {
     throw new Error('Circuit open - service unavailable');
   }
@@ -751,13 +717,13 @@ async function processAnalyticsWithCircuitBreaker(
   try {
     return await processAnalyticsQueue(env, message);
   } catch (error) {
-    const failures = parseInt(await env.ANALYTICS_KV.get('circuit:failures') || '0') + 1;
-    
+    const failures = parseInt((await env.ANALYTICS_KV.get('circuit:failures')) || '0') + 1;
+
     if (failures >= 3) {
       await env.ANALYTICS_KV.put('circuit:state', 'open', { expirationTtl: 60 });
       throw new Error('Circuit open due to repeated failures');
     }
-    
+
     await env.ANALYTICS_KV.put('circuit:failures', String(failures));
     throw error;
   }
@@ -771,11 +737,7 @@ async function fetchStudentPerformance(env: MockEnvironment, studentId: string):
   const data = await env.DB.first('SELECT * FROM student_performance_profiles');
 
   if (data) {
-    await env.ANALYTICS_KV.put(
-      `performance:${studentId}`,
-      JSON.stringify(data),
-      { expirationTtl: 300 }
-    );
+    await env.ANALYTICS_KV.put(`performance:${studentId}`, JSON.stringify(data), { expirationTtl: 300 });
   }
 
   return data;

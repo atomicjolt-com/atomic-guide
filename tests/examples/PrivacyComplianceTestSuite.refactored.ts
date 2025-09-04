@@ -1,17 +1,21 @@
 /**
  * @fileoverview Refactored Privacy Compliance Test Suite using new test infrastructure
  * @module tests/examples/PrivacyComplianceTestSuite.refactored
- * 
+ *
  * This is an example of how to refactor existing tests to use the new test infrastructure
  */
 
 import {
-  describe, it, expect, beforeEach, afterEach,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
   MockFactory,
   ServiceTestHarness,
   TestDataFactory,
   TestSetup,
-  TestAssertions
+  TestAssertions,
 } from '../infrastructure';
 
 import { DatabaseService } from '@shared/server/services';
@@ -27,13 +31,13 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
   let privacyService: PrivacyControlService;
   let dataCollector: CognitiveDataCollector;
   let dnaEngine: LearnerDNAEngine;
-  
+
   // Test data
   const testData = {
     tenant: TestDataFactory.tenant().build(),
     studentWithConsent: TestDataFactory.presets.studentWithFullConsent().build(),
     studentWithoutConsent: TestDataFactory.presets.studentWithNoConsent().build(),
-    minorStudent: TestDataFactory.presets.minorStudent().build()
+    minorStudent: TestDataFactory.presets.minorStudent().build(),
   };
 
   beforeEach(async () => {
@@ -41,8 +45,8 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
     const mockDb = MockFactory.createD1Database({
       data: new Map([
         ['consent_active', true],
-        ['privacy_settings', { dataCollectionLevel: 'standard' }]
-      ])
+        ['privacy_settings', { dataCollectionLevel: 'standard' }],
+      ]),
     }) as MockD1Database;
 
     // Initialize services with mock database
@@ -68,13 +72,13 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
       // Mock consent check to return false
       const mockDb = db.getDb() as MockD1Database;
       mockDb.prepare = createMockPrepare({
-        'SELECT * FROM learner_dna_privacy_consent': null // No consent record
+        'SELECT * FROM learner_dna_privacy_consent': null, // No consent record
       });
 
       // Attempt to access profile without consent
-      await expect(
-        dnaEngine.generateCognitiveProfile(tenantId, userId)
-      ).rejects.toThrow('PRIVACY_ERROR: User has not consented to cognitive profiling');
+      await expect(dnaEngine.generateCognitiveProfile(tenantId, userId)).rejects.toThrow(
+        'PRIVACY_ERROR: User has not consented to cognitive profiling'
+      );
     });
 
     it('should protect educational records from unauthorized access', async () => {
@@ -88,34 +92,28 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
       mockDb.prepare = createMockPrepare({
         [`SELECT * FROM learner_dna_privacy_consent WHERE user_id = '${authorizedUser.id}'`]: {
           behavioral_timing_consent: true,
-          data_collection_level: 'standard'
+          data_collection_level: 'standard',
         },
-        [`SELECT * FROM learner_dna_privacy_consent WHERE user_id = '${unauthorizedUser.id}'`]: null
+        [`SELECT * FROM learner_dna_privacy_consent WHERE user_id = '${unauthorizedUser.id}'`]: null,
       });
 
       // Authorized access should succeed (mock the profile data)
       mockDb.prepare = createMockPrepare({
-        'SELECT * FROM behavioral_patterns': Array(15).fill({}).map((_, i) => ({
-          id: `pattern-${i}`,
-          pattern_type: 'learning_velocity',
-          aggregated_metrics: { timeToMasteryMinutes: 30 },
-          confidence_level: 0.8
-        }))
+        'SELECT * FROM behavioral_patterns': Array(15)
+          .fill({})
+          .map((_, i) => ({
+            id: `pattern-${i}`,
+            pattern_type: 'learning_velocity',
+            aggregated_metrics: { timeToMasteryMinutes: 30 },
+            confidence_level: 0.8,
+          })),
       });
 
-      const authorizedResult = await privacyService.validateDataCollectionPermission(
-        tenantId,
-        authorizedUser.id,
-        'behavioral_timing'
-      );
+      const authorizedResult = await privacyService.validateDataCollectionPermission(tenantId, authorizedUser.id, 'behavioral_timing');
       expect(authorizedResult).toBe(true);
 
       // Unauthorized access should fail
-      const unauthorizedResult = await privacyService.validateDataCollectionPermission(
-        tenantId,
-        unauthorizedUser.id,
-        'behavioral_timing'
-      );
+      const unauthorizedResult = await privacyService.validateDataCollectionPermission(tenantId, unauthorizedUser.id, 'behavioral_timing');
       expect(unauthorizedResult).toBe(false);
     });
 
@@ -135,12 +133,7 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
       }) as any;
 
       // Perform action that should be audited
-      await privacyService.logDataAccess(
-        tenantId,
-        user.id,
-        'view_profile',
-        'cognitive_profile'
-      );
+      await privacyService.logDataAccess(tenantId, user.id, 'view_profile', 'cognitive_profile');
 
       // Verify audit log was created
       expect(auditLogCalls.length).toBeGreaterThan(0);
@@ -158,20 +151,16 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
       mockDb.prepare = createMockPrepare({
         [`SELECT * FROM learner_profiles WHERE user_id = '${minorUser.id}'`]: {
           ...minorUser,
-          metadata: { age: 12 }
+          metadata: { age: 12 },
         },
         'SELECT * FROM learner_dna_privacy_consent': {
           parental_consent_required: true,
-          parental_consent_given: false
-        }
+          parental_consent_given: false,
+        },
       });
 
       // Attempt to collect data without parental consent
-      const canCollect = await privacyService.validateDataCollectionPermission(
-        tenantId,
-        minorUser.id,
-        'behavioral_timing'
-      );
+      const canCollect = await privacyService.validateDataCollectionPermission(tenantId, minorUser.id, 'behavioral_timing');
 
       expect(canCollect).toBe(false);
     });
@@ -187,15 +176,11 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
         'UPDATE learner_dna_privacy_consent SET parental_email': (query: string) => {
           emailValidationCalls.push(query);
           return { success: true };
-        }
+        },
       });
 
       // Submit parental email for validation
-      await privacyService.submitParentalEmail(
-        testData.tenant.id,
-        minorUser.id,
-        parentEmail
-      );
+      await privacyService.submitParentalEmail(testData.tenant.id, minorUser.id, parentEmail);
 
       // Verify email was recorded
       expect(emailValidationCalls.length).toBeGreaterThan(0);
@@ -215,19 +200,19 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
           deletionCalls.push(query);
           return { success: true, meta: { changes: 1 } };
         },
-        'UPDATE': (query: string) => {
+        UPDATE: (query: string) => {
           if (query.includes('anonymized')) {
             deletionCalls.push(query);
           }
           return { success: true };
-        }
+        },
       });
 
       // Request data erasure
       await privacyService.processDataErasure(tenantId, user.id);
 
       // Verify data was deleted/anonymized
-      expect(deletionCalls.some(q => q.includes('DELETE') || q.includes('anonymized'))).toBe(true);
+      expect(deletionCalls.some((q) => q.includes('DELETE') || q.includes('anonymized'))).toBe(true);
     });
 
     it('should implement right to data portability with structured export', async () => {
@@ -240,12 +225,12 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
         'SELECT * FROM learner_dna_profiles': {
           id: 'profile-1',
           user_id: user.id,
-          learning_velocity_value: 2.5
+          learning_velocity_value: 2.5,
         },
         'SELECT * FROM behavioral_patterns': [
           { id: 'pattern-1', pattern_type: 'learning_velocity' },
-          { id: 'pattern-2', pattern_type: 'memory_retention' }
-        ]
+          { id: 'pattern-2', pattern_type: 'memory_retention' },
+        ],
       });
 
       // Export user data
@@ -261,20 +246,17 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
   describe('Data Anonymization and Differential Privacy', () => {
     it('should apply differential privacy to aggregate statistics', async () => {
       const mockDb = db.getDb() as MockD1Database;
-      
+
       // Mock aggregate query
       mockDb.prepare = createMockPrepare({
         'SELECT AVG': {
           avg_mastery: 0.75,
-          count: 100
-        }
+          count: 100,
+        },
       });
 
       // Get aggregate statistics
-      const stats = await privacyService.getAggregateStatistics(
-        testData.tenant.id,
-        'learning_velocity'
-      );
+      const stats = await privacyService.getAggregateStatistics(testData.tenant.id, 'learning_velocity');
 
       // Verify noise was added (differential privacy)
       expect(stats).toHaveProperty('value');
@@ -286,7 +268,7 @@ describe('Privacy Compliance Test Suite (Refactored)', () => {
 
       // Mock group size check
       mockDb.prepare = createMockPrepare({
-        'SELECT COUNT': { count: 3 } // Below k-anonymity threshold
+        'SELECT COUNT': { count: 3 }, // Below k-anonymity threshold
       });
 
       // Attempt to get data that would violate k-anonymity
@@ -327,19 +309,17 @@ function createMockPrepare(queryResponses: Record<string, any>) {
           return [];
         })(),
         success: true,
-        meta: {}
+        meta: {},
       }),
       run: async () => {
         for (const [pattern, response] of Object.entries(queryResponses)) {
           if (query.includes(pattern)) {
-            return typeof response === 'function' 
-              ? response(query) 
-              : { success: true, meta: { changes: 1 } };
+            return typeof response === 'function' ? response(query) : { success: true, meta: { changes: 1 } };
           }
         }
         return { success: true, meta: { changes: 0 } };
-      }
-    })
+      },
+    }),
   });
 }
 
@@ -349,10 +329,10 @@ function createMockPrepare(queryResponses: Record<string, any>) {
 function setupMockQueries(mockDb: MockD1Database) {
   // Add common query responses that multiple tests need
   const commonResponses = {
-    'learner_dna_privacy_consent': [],
-    'behavioral_patterns': [],
-    'learner_dna_profiles': [],
-    'learner_dna_audit_log': []
+    learner_dna_privacy_consent: [],
+    behavioral_patterns: [],
+    learner_dna_profiles: [],
+    learner_dna_audit_log: [],
   };
 
   Object.entries(commonResponses).forEach(([table, data]) => {

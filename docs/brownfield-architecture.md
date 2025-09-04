@@ -10,9 +10,9 @@ Focused on areas relevant to: Adding AI Guide chat interface, deep linking asses
 
 ### Change Log
 
-| Date       | Version | Description                   | Author    |
-| ---------- | ------- | ----------------------------- | --------- |
-| 2025-08-22 | 1.0     | Initial brownfield analysis  | Analyst   |
+| Date       | Version | Description                 | Author  |
+| ---------- | ------- | --------------------------- | ------- |
+| 2025-08-22 | 1.0     | Initial brownfield analysis | Analyst |
 
 ## Quick Reference - Key Files and Entry Points
 
@@ -44,20 +44,20 @@ The system is a serverless edge-based LTI 1.3 tool built on Cloudflare Workers, 
 
 ### Actual Tech Stack (from package.json)
 
-| Category          | Technology                    | Version       | Notes                                                |
-| ----------------- | ----------------------------- | ------------- | ---------------------------------------------------- |
-| Runtime           | Cloudflare Workers            | Latest        | Edge computing with global distribution             |
-| Framework         | Hono                          | 4.9.1         | Lightweight web framework for Workers               |
-| LTI Libraries     | @atomicjolt/lti-*             | Various       | Complete LTI 1.3 implementation                     |
-| Frontend          | React                         | 19.1.0        | SPA for client interface                            |
-| State Management  | Redux Toolkit                 | 2.8.2         | Client-side state with RTK Query for API calls      |
-| Build System      | Vite                          | 5.x           | Fast HMR and optimized builds                       |
-| Database          | Cloudflare D1                 | Configured    | SQL database (SQLite-based) for edge                |
-| KV Storage        | Cloudflare KV                 | Active        | Key-value storage for platform configs              |
-| Durable Objects   | Cloudflare DO                 | Active        | Stateful edge computing for real-time features      |
-| AI Integration    | Cloudflare AI                 | Configured    | Edge AI inference (binding configured)              |
-| TypeScript        | TypeScript                    | 5.9.2         | Strict mode enforced                                |
-| Testing           | Vitest                        | 3.1.4         | Unit and integration testing                        |
+| Category         | Technology         | Version    | Notes                                          |
+| ---------------- | ------------------ | ---------- | ---------------------------------------------- |
+| Runtime          | Cloudflare Workers | Latest     | Edge computing with global distribution        |
+| Framework        | Hono               | 4.9.1      | Lightweight web framework for Workers          |
+| LTI Libraries    | @atomicjolt/lti-\* | Various    | Complete LTI 1.3 implementation                |
+| Frontend         | React              | 19.1.0     | SPA for client interface                       |
+| State Management | Redux Toolkit      | 2.8.2      | Client-side state with RTK Query for API calls |
+| Build System     | Vite               | 5.x        | Fast HMR and optimized builds                  |
+| Database         | Cloudflare D1      | Configured | SQL database (SQLite-based) for edge           |
+| KV Storage       | Cloudflare KV      | Active     | Key-value storage for platform configs         |
+| Durable Objects  | Cloudflare DO      | Active     | Stateful edge computing for real-time features |
+| AI Integration   | Cloudflare AI      | Configured | Edge AI inference (binding configured)         |
+| TypeScript       | TypeScript         | 5.9.2      | Strict mode enforced                           |
+| Testing          | Vitest             | 3.1.4      | Unit and integration testing                   |
 
 ### Repository Structure Reality Check
 
@@ -145,6 +145,7 @@ Database schema comprehensively defined in `src/db/schema.sql`:
 ### API Specifications
 
 Current endpoints:
+
 - **LTI Endpoints**: `/lti/init`, `/lti/redirect`, `/lti/launch`, `/lti/jwks`
 - **Dynamic Registration**: `/lti/register`, `/lti/register_finish`
 - **LTI Services**: `/lti/names_and_roles`, `/lti/sign_deep_link`
@@ -152,6 +153,7 @@ Current endpoints:
 - **Health Check**: `/up` - Returns version and status
 
 Planned additions from PRD:
+
 - `/api/assessment/*` - Assessment configuration and results
 - WebSocket/SSE for real-time chat via Durable Objects
 - Canvas postMessage handlers for content extraction
@@ -178,13 +180,13 @@ Planned additions from PRD:
 
 ### External Services
 
-| Service              | Purpose            | Integration Type      | Key Files                     |
-| -------------------- | ------------------ | -------------------- | ----------------------------- |
-| LMS Platforms        | LTI launches       | LTI 1.3 protocol     | `src/index.ts`               |
-| Cloudflare KV        | Config storage     | Native binding       | All LTI endpoints            |
-| Cloudflare D1        | Relational data    | Native binding       | `src/db/` (not integrated)   |
-| Cloudflare AI        | Edge inference     | Native binding       | Configured but unused        |
-| External AI APIs     | Chat responses     | REST (planned)       | Not implemented              |
+| Service          | Purpose         | Integration Type | Key Files                  |
+| ---------------- | --------------- | ---------------- | -------------------------- |
+| LMS Platforms    | LTI launches    | LTI 1.3 protocol | `src/index.ts`             |
+| Cloudflare KV    | Config storage  | Native binding   | All LTI endpoints          |
+| Cloudflare D1    | Relational data | Native binding   | `src/db/` (not integrated) |
+| Cloudflare AI    | Edge inference  | Native binding   | Configured but unused      |
+| External AI APIs | Chat responses  | REST (planned)   | Not implemented            |
 
 ### Internal Integration Points
 
@@ -292,7 +294,7 @@ npm run db:query    # Execute SQL queries
 
 - **Logs**: `npm run tail` or check Cloudflare dashboard
 - **Local Testing**: Use Wrangler's local mode with `--local` flag
-- **Common Issues**: 
+- **Common Issues**:
   - KV namespace IDs must match in wrangler.jsonc
   - JWT_SECRET must be set for chat API
   - D1 requires manual database creation

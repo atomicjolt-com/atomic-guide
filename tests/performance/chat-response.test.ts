@@ -1,4 +1,4 @@
-import {  describe, it, expect, vi, beforeEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 
 import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 /**
@@ -63,7 +63,7 @@ describe('Chat Response Performance', () => {
         // Simulate concurrent chat requests
         new Promise((resolve) => {
           setTimeout(() => resolve(`Response ${i}`), Math.random() * 200);
-        }),
+        })
     );
 
     await Promise.all(requests);
@@ -122,7 +122,7 @@ describe('Chat Response Performance', () => {
       JSON.stringify({
         question: 'What is photosynthesis?',
         answer: 'Cached answer about photosynthesis',
-      }),
+      })
     );
 
     const startTime = performance.now();

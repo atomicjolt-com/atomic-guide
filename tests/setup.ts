@@ -33,34 +33,34 @@ class MockWebSocket {
   extensions: string = '';
   bufferedAmount: number = 0;
   binaryType: 'blob' | 'arraybuffer' = 'blob';
-  
+
   onopen: ((event: Event) => void) | null = null;
   onclose: ((event: CloseEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
   onmessage: ((event: MessageEvent) => void) | null = null;
-  
+
   addEventListener = vi.fn();
   removeEventListener = vi.fn();
   dispatchEvent = vi.fn();
-  
+
   send = vi.fn();
   close = vi.fn();
-  
+
   accept = vi.fn();
 }
 
 class MockWebSocketPair {
   0: MockWebSocket;
   1: MockWebSocket;
-  
+
   constructor() {
     const client = new MockWebSocket();
     const server = new MockWebSocket();
-    
+
     // Link the websockets so messages sent on one are received on the other
     const originalClientSend = client.send;
     const originalServerSend = server.send;
-    
+
     client.send = vi.fn((data) => {
       originalClientSend.call(client, data);
       if (server.onmessage) {
@@ -69,7 +69,7 @@ class MockWebSocketPair {
         }, 0);
       }
     });
-    
+
     server.send = vi.fn((data) => {
       originalServerSend.call(server, data);
       if (client.onmessage) {
@@ -78,7 +78,7 @@ class MockWebSocketPair {
         }, 0);
       }
     });
-    
+
     this[0] = client;
     this[1] = server;
   }

@@ -40,6 +40,7 @@ npm run dev
 ### 1. AI Chat Assistant
 
 Navigate to the test page and try:
+
 - Ask a math question: "Explain the quadratic formula"
 - Request code help: "Show me a Python fibonacci function"
 - Test LaTeX rendering: "Write the integral of x^2"
@@ -47,6 +48,7 @@ Navigate to the test page and try:
 ### 2. Assessment Generation
 
 Click "Generate Assessment" and:
+
 - Enter a topic (e.g., "Photosynthesis")
 - Select question types (multiple choice, essay)
 - Review the AI-generated quiz
@@ -54,6 +56,7 @@ Click "Generate Assessment" and:
 ### 3. FAQ Search
 
 Try the semantic search:
+
 - Search for "how to integrate"
 - Click suggested questions
 - See context-aware answers
@@ -92,8 +95,9 @@ npm run db:query
 ```
 
 Then run:
+
 ```sql
-INSERT INTO users (id, email, name, role) 
+INSERT INTO users (id, email, name, role)
 VALUES ('test-1', 'test@example.com', 'Test User', 'student');
 ```
 
@@ -122,6 +126,7 @@ npm test -- --watch
 ### 1. Configure Production
 
 Update `wrangler.jsonc`:
+
 ```json
 {
   "env": {
@@ -147,6 +152,7 @@ npm run tail
 ### 3. Access Your App
 
 Your app is now live at:
+
 - `https://atomic-guide.YOUR-SUBDOMAIN.workers.dev`
 - Or your custom domain if configured
 
@@ -155,6 +161,7 @@ Your app is now live at:
 ### 1. Register with an LMS
 
 Use your registration URL:
+
 ```
 https://your-domain.com/lti/register
 ```
@@ -162,6 +169,7 @@ https://your-domain.com/lti/register
 ### 2. Add to Course
 
 In your LMS:
+
 1. Go to Course Settings
 2. Add External Tool
 3. Paste registration URL
@@ -244,12 +252,12 @@ export function MyComponent() {
 
 ## 🆘 Quick Troubleshooting
 
-| Issue | Quick Fix |
-|-------|-----------|
-| Port in use | Change port: `npm run dev -- --port 3001` |
-| Database error | Reset: `npm run db:reset` |
-| Build fails | Check types: `npm run check` |
-| Tests fail | Update snapshots: `npm test -- -u` |
+| Issue          | Quick Fix                                 |
+| -------------- | ----------------------------------------- |
+| Port in use    | Change port: `npm run dev -- --port 3001` |
+| Database error | Reset: `npm run db:reset`                 |
+| Build fails    | Check types: `npm run check`              |
+| Tests fail     | Update snapshots: `npm test -- -u`        |
 
 ## 📖 Next Steps
 

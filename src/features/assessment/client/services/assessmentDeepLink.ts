@@ -164,15 +164,15 @@ export function extractAssessmentConfig(customParams: Record<string, string>): A
       console.error('Invalid JSON in assessment configuration:', jsonError);
       return null;
     }
-    
+
     // Validate with Zod schema
     const validationResult = safeValidateAssessmentConfig(parsedData);
-    
+
     if (!validationResult.success) {
       console.error('Assessment configuration validation failed:', validationResult.errors);
       return null;
     }
-    
+
     return validationResult.data;
   } catch (error) {
     console.error('Failed to extract assessment configuration:', error);

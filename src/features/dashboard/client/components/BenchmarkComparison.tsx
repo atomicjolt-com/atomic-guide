@@ -54,10 +54,10 @@ interface BenchmarkComparisonProps {
 
 /**
  * Benchmark comparison component displaying privacy-preserving peer performance comparisons
- * 
+ *
  * Uses differential privacy techniques to provide meaningful performance context
  * while protecting individual student privacy through mathematical anonymization.
- * 
+ *
  * Features:
  * - Anonymous peer comparison with confidence intervals
  * - Granular privacy consent controls
@@ -70,7 +70,7 @@ export default function BenchmarkComparison({
   courseId,
   jwt,
   onPrivacyOptInChange,
-  showPrivacyExplanation = false
+  showPrivacyExplanation = false,
 }: BenchmarkComparisonProps): React.ReactElement {
   const [benchmarkData, setBenchmarkData] = useState<BenchmarkData | null>(null);
   const [privacyConsent, setPrivacyConsent] = useState<PrivacyConsent | null>(null);
@@ -80,26 +80,29 @@ export default function BenchmarkComparison({
   const [selectedMetric, setSelectedMetric] = useState<string>('overallMastery');
 
   // Available metrics for comparison
-  const metrics = useMemo(() => ([
-    { 
-      key: 'overallMastery', 
-      label: 'Overall Mastery', 
-      icon: '🎯',
-      description: 'Overall course concept mastery'
-    },
-    { 
-      key: 'learningVelocity', 
-      label: 'Learning Velocity', 
-      icon: '⚡',
-      description: 'Concepts mastered per day'
-    },
-    { 
-      key: 'confidenceLevel', 
-      label: 'Confidence Level', 
-      icon: '💪',
-      description: 'Self-reported learning confidence'
-    },
-  ]), []);
+  const metrics = useMemo(
+    () => [
+      {
+        key: 'overallMastery',
+        label: 'Overall Mastery',
+        icon: '🎯',
+        description: 'Overall course concept mastery',
+      },
+      {
+        key: 'learningVelocity',
+        label: 'Learning Velocity',
+        icon: '⚡',
+        description: 'Concepts mastered per day',
+      },
+      {
+        key: 'confidenceLevel',
+        label: 'Confidence Level',
+        icon: '💪',
+        description: 'Self-reported learning confidence',
+      },
+    ],
+    []
+  );
 
   // Fetch privacy consent status
   useEffect(() => {
@@ -107,7 +110,7 @@ export default function BenchmarkComparison({
       try {
         const response = await fetch(`/api/analytics/privacy/consent/${userId}?courseId=${courseId}`, {
           headers: {
-            'Authorization': `Bearer ${jwt}`,
+            Authorization: `Bearer ${jwt}`,
             'Content-Type': 'application/json',
           },
         });
@@ -145,29 +148,25 @@ export default function BenchmarkComparison({
         setLoading(true);
         setError(null);
 
-        const response = await fetch(
-          `/api/analytics/benchmark/${userId}/${courseId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${jwt}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+        const response = await fetch(`/api/analytics/benchmark/${userId}/${courseId}`, {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to fetch benchmark data: ${response.statusText}`);
         }
 
         const data = await response.json();
-        
+
         if (!data.success) {
           throw new Error(data.error || 'Failed to load benchmark data');
         }
 
         const validatedData = BenchmarkDataSchema.parse(data.data);
         setBenchmarkData(validatedData);
-
       } catch (err) {
         console.error('Benchmark data fetch error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load benchmark data');
@@ -187,7 +186,7 @@ export default function BenchmarkComparison({
       const response = await fetch(`/api/analytics/privacy/consent/${userId}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          Authorization: `Bearer ${jwt}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -213,7 +212,6 @@ export default function BenchmarkComparison({
       if (!optedIn) {
         setBenchmarkData(null);
       }
-
     } catch (err) {
       console.error('Privacy consent update error:', err);
       setError('Failed to update privacy preferences');
@@ -240,9 +238,7 @@ export default function BenchmarkComparison({
             aria-label="Include my data in anonymous peer comparisons"
           />
           <span className={styles.checkboxCustom} />
-          <span className={styles.consentLabel}>
-            Include my data in anonymous peer comparisons
-          </span>
+          <span className={styles.consentLabel}>Include my data in anonymous peer comparisons</span>
         </label>
 
         <button
@@ -292,7 +288,7 @@ export default function BenchmarkComparison({
       return <div className={styles.noData}>Enable peer comparisons to see benchmark data</div>;
     }
 
-    const metric = metrics.find(m => m.key === selectedMetric);
+    const metric = metrics.find((m) => m.key === selectedMetric);
     if (!metric) return <div className={styles.noData}>Metric not found</div>;
 
     const studentValue = benchmarkData.studentMetrics[selectedMetric as keyof typeof benchmarkData.studentMetrics] as number;
@@ -315,8 +311,10 @@ export default function BenchmarkComparison({
               className={styles.metricSelect}
               aria-label="Select metric for comparison"
             >
-              {metrics.map(m => (
-                <option key={m.key} value={m.key}>{m.label}</option>
+              {metrics.map((m) => (
+                <option key={m.key} value={m.key}>
+                  {m.label}
+                </option>
               ))}
             </select>
           </div>
@@ -328,14 +326,9 @@ export default function BenchmarkComparison({
             <div className={styles.performanceBar}>
               <div className={styles.barLabel}>Your Performance</div>
               <div className={styles.barWrapper}>
-                <div 
-                  className={`${styles.performanceLevel} ${styles.student}`}
-                  style={{ width: `${Math.max(studentValue * 100, 5)}%` }}
-                >
+                <div className={`${styles.performanceLevel} ${styles.student}`} style={{ width: `${Math.max(studentValue * 100, 5)}%` }}>
                   <span className={styles.performanceValue}>
-                    {selectedMetric === 'learningVelocity' 
-                      ? studentValue.toFixed(1) 
-                      : `${Math.round(studentValue * 100)}%`}
+                    {selectedMetric === 'learningVelocity' ? studentValue.toFixed(1) : `${Math.round(studentValue * 100)}%`}
                   </span>
                 </div>
               </div>
@@ -348,14 +341,9 @@ export default function BenchmarkComparison({
                 <span className={styles.sampleSize}>({sampleSize} students)</span>
               </div>
               <div className={styles.barWrapper}>
-                <div 
-                  className={`${styles.performanceLevel} ${styles.average}`}
-                  style={{ width: `${Math.max(courseAverage * 100, 5)}%` }}
-                >
+                <div className={`${styles.performanceLevel} ${styles.average}`} style={{ width: `${Math.max(courseAverage * 100, 5)}%` }}>
                   <span className={styles.performanceValue}>
-                    {selectedMetric === 'learningVelocity' 
-                      ? courseAverage.toFixed(1) 
-                      : `${Math.round(courseAverage * 100)}%`}
+                    {selectedMetric === 'learningVelocity' ? courseAverage.toFixed(1) : `${Math.round(courseAverage * 100)}%`}
                   </span>
                 </div>
               </div>
@@ -365,23 +353,19 @@ export default function BenchmarkComparison({
             <div className={styles.confidenceInterval}>
               <div className={styles.intervalLabel}>95% Confidence Range</div>
               <div className={styles.intervalBar}>
-                <div 
+                <div
                   className={styles.intervalRange}
                   style={{
                     left: `${confidenceLow * 100}%`,
-                    width: `${(confidenceHigh - confidenceLow) * 100}%`
+                    width: `${(confidenceHigh - confidenceLow) * 100}%`,
                   }}
                 />
                 <div className={styles.intervalLabels}>
                   <span className={styles.intervalLow}>
-                    {selectedMetric === 'learningVelocity' 
-                      ? confidenceLow.toFixed(1) 
-                      : `${Math.round(confidenceLow * 100)}%`}
+                    {selectedMetric === 'learningVelocity' ? confidenceLow.toFixed(1) : `${Math.round(confidenceLow * 100)}%`}
                   </span>
                   <span className={styles.intervalHigh}>
-                    {selectedMetric === 'learningVelocity' 
-                      ? confidenceHigh.toFixed(1) 
-                      : `${Math.round(confidenceHigh * 100)}%`}
+                    {selectedMetric === 'learningVelocity' ? confidenceHigh.toFixed(1) : `${Math.round(confidenceHigh * 100)}%`}
                   </span>
                 </div>
               </div>
@@ -392,23 +376,15 @@ export default function BenchmarkComparison({
           <div className={styles.performanceContext}>
             <div className={styles.percentileInfo}>
               <span className={styles.percentileLabel}>Your Percentile Rank:</span>
-              <span className={styles.percentileValue}>
-                {Math.round(percentileRank * 100)}th percentile
-              </span>
+              <span className={styles.percentileValue}>{Math.round(percentileRank * 100)}th percentile</span>
             </div>
             <div className={styles.contextDescription}>
               {percentileRank >= 0.75 ? (
-                <span className={styles.contextPositive}>
-                  You're performing above most of your peers! 🌟
-                </span>
-              ) : percentileRank >= 0.50 ? (
-                <span className={styles.contextNeutral}>
-                  You're performing around the class average 📊
-                </span>
+                <span className={styles.contextPositive}>You're performing above most of your peers! 🌟</span>
+              ) : percentileRank >= 0.5 ? (
+                <span className={styles.contextNeutral}>You're performing around the class average 📊</span>
               ) : (
-                <span className={styles.contextEncouraging}>
-                  There's opportunity to improve with focused practice 💪
-                </span>
+                <span className={styles.contextEncouraging}>There's opportunity to improve with focused practice 💪</span>
               )}
             </div>
           </div>
@@ -417,12 +393,8 @@ export default function BenchmarkComparison({
         {/* Privacy Information */}
         <div className={styles.privacyInfo}>
           <div className={styles.privacyMetadata}>
-            <span className={styles.privacyMethod}>
-              Privacy Method: {benchmarkData.privacyMetadata.anonymizationMethod}
-            </span>
-            <span className={styles.privacyStrength}>
-              Privacy Strength: ε={benchmarkData.privacyMetadata.epsilon.toFixed(1)}
-            </span>
+            <span className={styles.privacyMethod}>Privacy Method: {benchmarkData.privacyMetadata.anonymizationMethod}</span>
+            <span className={styles.privacyStrength}>Privacy Strength: ε={benchmarkData.privacyMetadata.epsilon.toFixed(1)}</span>
             <span className={styles.dataFreshness}>
               Updated: {new Date(benchmarkData.privacyMetadata.dataFreshness).toLocaleDateString()}
             </span>
@@ -449,10 +421,7 @@ export default function BenchmarkComparison({
         <div className={styles.error}>
           <h3>Error Loading Benchmarks</h3>
           <p>{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className={styles.retryBtn}
-          >
+          <button onClick={() => window.location.reload()} className={styles.retryBtn}>
             Try Again
           </button>
         </div>
@@ -464,9 +433,7 @@ export default function BenchmarkComparison({
     <div className={styles.benchmarkComparison}>
       <div className={styles.header}>
         <h2>Peer Performance Comparison</h2>
-        <p className={styles.subtitle}>
-          See how your progress compares to peers while protecting everyone's privacy
-        </p>
+        <p className={styles.subtitle}>See how your progress compares to peers while protecting everyone's privacy</p>
       </div>
 
       {renderPrivacyControls()}
@@ -478,15 +445,10 @@ export default function BenchmarkComparison({
           <div className={styles.noConsentIcon}>📊</div>
           <h3>Peer Comparisons Available</h3>
           <p>
-            Enable anonymous peer comparisons to see how your performance 
-            relates to other students in your course. Your individual data 
+            Enable anonymous peer comparisons to see how your performance relates to other students in your course. Your individual data
             remains completely private.
           </p>
-          <button
-            type="button"
-            className={styles.enableBtn}
-            onClick={() => handlePrivacyOptInChange(true)}
-          >
+          <button type="button" className={styles.enableBtn} onClick={() => handlePrivacyOptInChange(true)}>
             Enable Peer Comparisons
           </button>
         </div>

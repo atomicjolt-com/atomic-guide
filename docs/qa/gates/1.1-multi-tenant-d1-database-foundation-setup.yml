@@ -11,7 +11,7 @@ top_issues: []
 waiver:
   active: false
 
-quality_score: 100  # 100 - (0*FAILs) - (0*CONCERNS)
+quality_score: 100 # 100 - (0*FAILs) - (0*CONCERNS)
 expires: '2025-02-04T00:00:00Z'
 
 evidence:

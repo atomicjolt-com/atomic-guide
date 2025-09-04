@@ -35,7 +35,7 @@ top_issues:
 
 waiver: { active: false }
 
-quality_score: 35  # 100 - (20*3 high) - (10*2 medium) - (5*1 for test gaps) = 35
+quality_score: 35 # 100 - (20*3 high) - (10*2 medium) - (5*1 for test gaps) = 35
 
 expires: '2025-09-10T19:50:00Z'
 
@@ -63,7 +63,7 @@ nfr_validation:
     notes: 'Well-structured code with clear separation of concerns. TypeScript strict mode enforced. Good documentation in story file.'
 
 recommendations:
-  immediate:  # Must fix before production
+  immediate: # Must fix before production
     - action: 'Remove hard-coded fallback secret "default-dev-secret" and fail securely when missing'
       refs: ['client/services/LMSContentExtractor.ts:138']
       priority: P0
@@ -79,7 +79,7 @@ recommendations:
     - action: 'Add course membership validation for content access'
       refs: ['src/api/handlers/content.ts']
       priority: P1
-  future:  # Can be addressed later
+  future: # Can be addressed later
     - action: 'Create comprehensive integration test suite for LMS workflows'
       refs: ['tests/integration/']
       priority: P2
@@ -94,17 +94,17 @@ recommendations:
       priority: P3
 
 risk_summary:
-  security_risk: 10  # Critical - authentication bypass and domain validation vulnerabilities
-  performance_risk: 4  # Medium - potential CPU limits
-  reliability_risk: 2  # Low - good error handling
-  maintainability_risk: 2  # Low - well-structured code
-  overall_risk: 10  # Critical security risk
+  security_risk: 10 # Critical - authentication bypass and domain validation vulnerabilities
+  performance_risk: 4 # Medium - potential CPU limits
+  reliability_risk: 2 # Low - good error handling
+  maintainability_risk: 2 # Low - well-structured code
+  overall_risk: 10 # Critical security risk
 
 test_coverage:
-  unit_tests: '86.7%'  # 13 of 15 passing
-  integration_tests: '0%'  # Not implemented
+  unit_tests: '86.7%' # 13 of 15 passing
+  integration_tests: '0%' # Not implemented
   e2e_tests: 'N/A'
-  security_tests: 'Partial'  # Basic origin validation only
+  security_tests: 'Partial' # Basic origin validation only
 
 acceptance_criteria_validation:
   - ac: 1
@@ -170,24 +170,24 @@ acceptance_criteria_validation:
 
 notes: |
   CRITICAL SECURITY REVIEW - IMMEDIATE ACTION REQUIRED
-  
+
   This comprehensive security review has identified critical vulnerabilities that create
   severe security risks:
-  
+
   1. AUTHENTICATION BYPASS: Hard-coded fallback secret "default-dev-secret" allows attackers
      to forge message signatures and bypass authentication entirely.
-  
+
   2. DOMAIN VALIDATION BYPASS: The origin validation logic can be bypassed using malicious
      subdomains (e.g., evil.instructure.com.malicious.com would pass validation).
-  
+
   3. DATA LEAKAGE RISK: Target origin determination fallbacks could send sensitive student
      data to unintended origins.
-  
+
   While the implementation demonstrates excellent architectural design and all 20 acceptance
   criteria have been addressed, these security vulnerabilities are critical blockers for
   production deployment. The code quality is high (A-), test coverage is good (B+), but
   security posture is unacceptable (C).
-  
+
   RECOMMENDATION: Development team must address all P0 security fixes immediately before
   any further testing or deployment. Once security issues are resolved, this will be an
   exceptional implementation ready for production use.

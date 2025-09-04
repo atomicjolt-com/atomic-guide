@@ -9,26 +9,26 @@
 /* Brand Colors */
 :root {
   /* Brand Colors */
-  --aj-yellow: #FFDD00;
-  --aj-yellow-dark: #EBCB00;
-  --aj-yellow-light: #FFEB66;
-  --aj-off-white: #FFFDF0;
+  --aj-yellow: #ffdd00;
+  --aj-yellow-dark: #ebcb00;
+  --aj-yellow-light: #ffeb66;
+  --aj-off-white: #fffdf0;
   --aj-black: #000000;
-  --aj-white: #FFFFFF;
-  
+  --aj-white: #ffffff;
+
   /* Neutral Palette */
-  --aj-neutral-lightest: #EEEEEE;
-  --aj-neutral-light: #D0D0D0;
+  --aj-neutral-lightest: #eeeeee;
+  --aj-neutral-light: #d0d0d0;
   --aj-neutral: #666666;
   --aj-neutral-dark: #333333;
   --aj-neutral-darkest: #111111;
-  
+
   /* System Colors */
-  --aj-success-green: #027A48;
-  --aj-success-green-light: #ECFDF3;
-  --aj-error-red: #B42318;
-  --aj-error-red-light: #FEF3F2;
-  
+  --aj-success-green: #027a48;
+  --aj-success-green-light: #ecfdf3;
+  --aj-error-red: #b42318;
+  --aj-error-red-light: #fef3f2;
+
   /* Typography Scale */
   --h1-desktop: 3.5rem;
   --h1-mobile: 2.5rem;
@@ -44,7 +44,7 @@
   --body-regular: 1rem;
   --body-small: 0.875rem;
   --body-tiny: 0.875rem;
-  
+
   /* Shadows */
   --shadow-xxsmall: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-xsmall: 0 2px 4px rgba(0, 0, 0, 0.06);
@@ -57,11 +57,17 @@
 
 /* Global Typography and Resets */
 * {
-  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Rubik',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -225,31 +231,30 @@ html, body {
   .dashboard-header h1 {
     font-size: var(--h3-mobile);
   }
-  
+
   .app-content {
     padding: 1rem;
   }
-  
+
   .app-navigation {
     gap: 1rem;
     padding: 0.75rem 1rem;
   }
-  
+
   .nav-button {
     font-size: var(--body-small);
   }
-  
+
   .dashboard-tabs {
     gap: 1rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .tab-button {
     font-size: var(--body-small);
   }
 }
-
 
 /* Ensure all content uses full width */
 .dashboard-container > *,

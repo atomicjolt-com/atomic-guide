@@ -13,7 +13,7 @@ function escapeHtml(text: string): string {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    '\'': '&#039;',
+    "'": '&#039;',
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
@@ -95,38 +95,30 @@ export async function handleChatMessage(c: Context): Promise<Response> {
     const chatDO = c.env.CHAT_CONVERSATIONS.get(doId);
 
     // Store user message in conversation
-    await chatDO.fetch(new Request('https://do/add-message', {
-      method: 'POST',
-      body: JSON.stringify({
-        role: 'user',
-        content: sanitizedMessage,
-        timestamp: new Date().toISOString()
+    await chatDO.fetch(
+      new Request('https://do/add-message', {
+        method: 'POST',
+        body: JSON.stringify({
+          role: 'user',
+          content: sanitizedMessage,
+          timestamp: new Date().toISOString(),
+        }),
       })
-    }));
+    );
 
     // Initialize AI services
     const aiService = new AIService(c.env.AI);
     const _modelRegistry = new ModelRegistry();
     const promptBuilder = new PromptBuilder();
     const contextEnricher = new ContextEnricher();
-    const faqKnowledgeBase = new FAQKnowledgeBase(
-      aiService,
-      c.env.FAQ_INDEX,
-      c.env.CLIENT_AUTH_TOKENS,
-      c.env.DB
-    );
+    const faqKnowledgeBase = new FAQKnowledgeBase(aiService, c.env.FAQ_INDEX, c.env.CLIENT_AUTH_TOKENS, c.env.DB);
     const suggestionEngine = new SuggestionEngine();
 
     // Get AI configuration for tenant
     const aiConfig = await getAIConfig(c.env.DB, tenantId);
-    
+
     // Check FAQ first for quick responses
-    const faqs = await faqKnowledgeBase.searchSimilarFAQs(
-      sanitizedMessage,
-      tenantId,
-      body.page_context.course_id || undefined,
-      3
-    );
+    const faqs = await faqKnowledgeBase.searchSimilarFAQs(sanitizedMessage, tenantId, body.page_context.course_id || undefined, 3);
 
     let responseContent: string;
     let tokensUsed = 0;
@@ -139,7 +131,7 @@ export async function handleChatMessage(c: Context): Promise<Response> {
     } else {
       // Get conversation history from Durable Object
       const historyResponse = await chatDO.fetch(new Request('https://do/get-history'));
-      const conversationHistory = await historyResponse.json() as Array<{ role: string; content: string }>;
+      const conversationHistory = (await historyResponse.json()) as Array<{ role: string; content: string }>;
 
       // Get learner profile if available
       const learnerProfile = await getLearnerProfile(c.env.DB, userId, tenantId);
@@ -150,7 +142,7 @@ export async function handleChatMessage(c: Context): Promise<Response> {
         moduleId: body.page_context.module_id || undefined,
         pageContent: body.page_context.page_content || undefined,
         currentElement: body.page_context.current_element || undefined,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const enrichedContext = await contextEnricher.enrichContext(
@@ -168,44 +160,38 @@ export async function handleChatMessage(c: Context): Promise<Response> {
         pageContent: enrichedContext.extractedContent,
         learnerProfile: learnerProfile,
         conversationHistory: conversationHistory.slice(-10), // Last 10 messages
-        currentQuestion: sanitizedMessage
+        currentQuestion: sanitizedMessage,
       };
 
       const templateId = promptBuilder.selectTemplateForContext(promptContext);
       const { systemPrompt, userPrompt } = promptBuilder.buildPrompt(promptContext, templateId);
 
       // Generate AI response
-      const aiResponse = await aiService.generateResponse(
-        userPrompt,
-        systemPrompt,
-        {
-          modelName: aiConfig.modelName,
-          maxTokens: Math.min(2048, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday),
-          temperature: 0.7
-        }
-      );
+      const aiResponse = await aiService.generateResponse(userPrompt, systemPrompt, {
+        modelName: aiConfig.modelName,
+        maxTokens: Math.min(2048, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday),
+        temperature: 0.7,
+      });
 
       responseContent = aiResponse.response;
       tokensUsed = aiResponse.tokensUsed || 0;
 
       // Generate suggestions
-      const suggestionsData = await suggestionEngine.generateSuggestions(
-        conversationHistory,
-        enrichedContext,
-        learnerProfile
-      );
-      suggestions = suggestionsData.map(s => s.description);
+      const suggestionsData = await suggestionEngine.generateSuggestions(conversationHistory, enrichedContext, learnerProfile);
+      suggestions = suggestionsData.map((s) => s.description);
     }
 
     // Store AI response in conversation
-    await chatDO.fetch(new Request('https://do/add-message', {
-      method: 'POST',
-      body: JSON.stringify({
-        role: 'assistant',
-        content: responseContent,
-        timestamp: new Date().toISOString()
+    await chatDO.fetch(
+      new Request('https://do/add-message', {
+        method: 'POST',
+        body: JSON.stringify({
+          role: 'assistant',
+          content: responseContent,
+          timestamp: new Date().toISOString(),
+        }),
       })
-    }));
+    );
 
     // Track token usage
     if (tokensUsed > 0) {
@@ -220,60 +206,73 @@ export async function handleChatMessage(c: Context): Promise<Response> {
       suggestions: suggestions.length > 0 ? suggestions : undefined,
       token_usage: {
         used: tokensUsed,
-        remaining: Math.max(0, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday - tokensUsed)
-      }
+        remaining: Math.max(0, aiConfig.tokenLimitPerSession - aiConfig.tokensUsedToday - tokensUsed),
+      },
     };
 
     return c.json(response, 200);
   } catch (error) {
     console.error('Chat message error:', error);
-    
+
     // Provide user-friendly error messages
     if (error instanceof Error) {
       if (error.message.includes('rate limit')) {
-        return c.json({ 
-          error: 'Too many requests. Please wait a moment before sending another message.',
-          retryAfter: 60
-        }, 429);
+        return c.json(
+          {
+            error: 'Too many requests. Please wait a moment before sending another message.',
+            retryAfter: 60,
+          },
+          429
+        );
       }
-      
+
       if (error.message.includes('token limit')) {
-        return c.json({ 
-          error: 'Conversation has reached the token limit. Please start a new conversation.',
-          code: 'TOKEN_LIMIT_EXCEEDED'
-        }, 403);
+        return c.json(
+          {
+            error: 'Conversation has reached the token limit. Please start a new conversation.',
+            code: 'TOKEN_LIMIT_EXCEEDED',
+          },
+          403
+        );
       }
-      
+
       if (error.message.includes('AI service')) {
         // Fallback to helpful message when AI fails
-        return c.json({
-          message_id: `msg-${Date.now()}`,
-          content: 'I\'m experiencing technical difficulties at the moment. While I work on resolving this, you might want to:\n\n• Review your course materials\n• Check the discussion forums\n• Contact your instructor directly\n\nPlease try again in a few moments.',
-          timestamp: new Date().toISOString(),
-          conversation_id: body.conversation_id || '',
-          fallback: true
-        }, 200);
+        return c.json(
+          {
+            message_id: `msg-${Date.now()}`,
+            content:
+              "I'm experiencing technical difficulties at the moment. While I work on resolving this, you might want to:\n\n• Review your course materials\n• Check the discussion forums\n• Contact your instructor directly\n\nPlease try again in a few moments.",
+            timestamp: new Date().toISOString(),
+            conversation_id: body.conversation_id || '',
+            fallback: true,
+          },
+          200
+        );
       }
     }
-    
+
     return c.json({ error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }
 
 // Helper function to get AI config for tenant
 async function getAIConfig(db: any, tenantId: string): Promise<any> {
-  const result = await db.prepare(
-    'SELECT * FROM ai_config WHERE tenant_id = ?'
-  ).bind(tenantId).first();
+  const result = await db.prepare('SELECT * FROM ai_config WHERE tenant_id = ?').bind(tenantId).first();
 
   if (result) {
     // Get today's token usage
     const today = new Date().toISOString().split('T')[0];
-    const usageResult = await db.prepare(`
+    const usageResult = await db
+      .prepare(
+        `
       SELECT SUM(tokens_used) as total 
       FROM token_usage 
       WHERE tenant_id = ? AND DATE(created_at) = ?
-    `).bind(tenantId, today).first();
+    `
+      )
+      .bind(tenantId, today)
+      .first();
 
     return {
       modelName: result.model_name || '@cf/meta/llama-3.1-8b-instruct',
@@ -282,7 +281,7 @@ async function getAIConfig(db: any, tenantId: string): Promise<any> {
       rateLimitPerMinute: result.rate_limit_per_minute || 10,
       rateLimitBurst: result.rate_limit_burst || 3,
       enabled: result.enabled !== false,
-      tokensUsedToday: usageResult?.total || 0
+      tokensUsedToday: usageResult?.total || 0,
     };
   }
 
@@ -294,23 +293,28 @@ async function getAIConfig(db: any, tenantId: string): Promise<any> {
     rateLimitPerMinute: 10,
     rateLimitBurst: 3,
     enabled: true,
-    tokensUsedToday: 0
+    tokensUsedToday: 0,
   };
 }
 
 // Helper function to get learner profile
 async function getLearnerProfile(db: any, userId: string, tenantId: string): Promise<any> {
-  const result = await db.prepare(`
+  const result = await db
+    .prepare(
+      `
     SELECT * FROM learner_profiles 
     WHERE user_id = ? AND tenant_id = ?
-  `).bind(userId, tenantId).first();
+  `
+    )
+    .bind(userId, tenantId)
+    .first();
 
   if (result) {
     return {
       learningStyle: result.learning_style,
       performanceLevel: result.performance_level,
       struggleAreas: result.struggle_areas ? JSON.parse(result.struggle_areas) : [],
-      preferredLanguage: result.preferred_language || 'en'
+      preferredLanguage: result.preferred_language || 'en',
     };
   }
 
@@ -327,19 +331,16 @@ async function trackTokenUsage(
   modelName: string
 ): Promise<void> {
   const id = `usage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  await db.prepare(`
+
+  await db
+    .prepare(
+      `
     INSERT INTO token_usage (id, tenant_id, user_id, conversation_id, tokens_used, model_name, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    id,
-    tenantId,
-    userId,
-    conversationId,
-    tokensUsed,
-    modelName,
-    new Date().toISOString()
-  ).run();
+  `
+    )
+    .bind(id, tenantId, userId, conversationId, tokensUsed, modelName, new Date().toISOString())
+    .run();
 }
 
 // Search endpoint schemas
@@ -349,7 +350,7 @@ const searchQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(20),
   offset: z.coerce.number().min(0).default(0),
   startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional()
+  endDate: z.string().datetime().optional(),
 });
 
 export async function searchChatHistory(c: Context) {
@@ -446,7 +447,7 @@ export async function searchChatHistory(c: Context) {
       topics: row.topics ? JSON.parse(row.topics) : [],
       messageCount: row.message_count || 0,
       startedAt: row.started_at,
-      lastMessageAt: row.last_message_at
+      lastMessageAt: row.last_message_at,
     }));
 
     const countQuery = `
@@ -464,7 +465,7 @@ export async function searchChatHistory(c: Context) {
       conversations,
       total: countResult?.total || 0,
       limit: params.limit,
-      offset: params.offset
+      offset: params.offset,
     });
   } catch (error) {
     console.error('Error searching chat history:', error);
@@ -502,7 +503,8 @@ export async function getChatConversation(c: Context) {
     const tenantId = payload.tenant_id || payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
     const learnerId = payload.sub || payload.user_id;
 
-    const summaryResult = await DB.prepare(`
+    const summaryResult = await DB.prepare(
+      `
       SELECT 
         id,
         conversation_id,
@@ -512,7 +514,10 @@ export async function getChatConversation(c: Context) {
         updated_at AS last_message_at
       FROM conversation_summaries
       WHERE tenant_id = ? AND learner_id = ? AND conversation_id = ?
-    `).bind(tenantId, learnerId, conversationId).first();
+    `
+    )
+      .bind(tenantId, learnerId, conversationId)
+      .first();
 
     if (!summaryResult) {
       return c.json({ error: 'Conversation not found' }, 404);
@@ -521,9 +526,11 @@ export async function getChatConversation(c: Context) {
     const doId = CHAT_CONVERSATIONS.idFromName(`${tenantId}:${conversationId}`);
     const stub = CHAT_CONVERSATIONS.get(doId);
 
-    const response = await stub.fetch(new Request('https://do/messages', {
-      method: 'GET'
-    }));
+    const response = await stub.fetch(
+      new Request('https://do/messages', {
+        method: 'GET',
+      })
+    );
 
     const messages = await response.json();
 
@@ -535,7 +542,7 @@ export async function getChatConversation(c: Context) {
       topics: summaryResult.topics ? JSON.parse(summaryResult.topics) : [],
       startedAt: summaryResult.started_at,
       lastMessageAt: summaryResult.last_message_at,
-      messages: messages || []
+      messages: messages || [],
     });
   } catch (error) {
     console.error('Error fetching conversation:', error);
@@ -570,7 +577,8 @@ export async function exportUserData(c: Context) {
     const learnerId = payload.sub || payload.user_id;
 
     // Get all conversations
-    const conversationsResult = await DB.prepare(`
+    const conversationsResult = await DB.prepare(
+      `
       SELECT 
         cs.*,
         COUNT(cm.id) as message_count
@@ -579,26 +587,41 @@ export async function exportUserData(c: Context) {
       WHERE cs.tenant_id = ? AND cs.learner_id = ?
       GROUP BY cs.id
       ORDER BY cs.created_at DESC
-    `).bind(tenantId, learnerId).all();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .all();
 
     // Get all messages
-    const messagesResult = await DB.prepare(`
+    const messagesResult = await DB.prepare(
+      `
       SELECT * FROM chat_messages
       WHERE tenant_id = ? AND learner_id = ?
       ORDER BY created_at DESC
-    `).bind(tenantId, learnerId).all();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .all();
 
     // Get learner profile
-    const profileResult = await DB.prepare(`
+    const profileResult = await DB.prepare(
+      `
       SELECT * FROM learner_profiles
       WHERE tenant_id = ? AND user_id = ?
-    `).bind(tenantId, learnerId).first();
+    `
+    )
+      .bind(tenantId, learnerId)
+      .first();
 
     // Get learning style
-    const learningStyleResult = await DB.prepare(`
+    const learningStyleResult = await DB.prepare(
+      `
       SELECT * FROM learning_styles
       WHERE learner_id = ?
-    `).bind(learnerId).first();
+    `
+    )
+      .bind(learnerId)
+      .first();
 
     const exportData = {
       exportDate: new Date().toISOString(),
@@ -608,7 +631,7 @@ export async function exportUserData(c: Context) {
       learningStyle: learningStyleResult || null,
       conversations: conversationsResult.results.map((conv: any) => ({
         ...conv,
-        topics: conv.topics ? JSON.parse(conv.topics) : []
+        topics: conv.topics ? JSON.parse(conv.topics) : [],
       })),
       messages: messagesResult.results,
       statistics: {
@@ -616,9 +639,9 @@ export async function exportUserData(c: Context) {
         totalMessages: messagesResult.results.length,
         dateRange: {
           earliest: messagesResult.results[messagesResult.results.length - 1]?.created_at || null,
-          latest: messagesResult.results[0]?.created_at || null
-        }
-      }
+          latest: messagesResult.results[0]?.created_at || null,
+        },
+      },
     };
 
     if (format === 'csv') {
@@ -627,16 +650,16 @@ export async function exportUserData(c: Context) {
       return new Response(csvData, {
         headers: {
           'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="atomic-guide-export-${Date.now()}.csv"`
-        }
+          'Content-Disposition': `attachment; filename="atomic-guide-export-${Date.now()}.csv"`,
+        },
       });
     } else {
       // Return JSON format
       return new Response(JSON.stringify(exportData, null, 2), {
         headers: {
           'Content-Type': 'application/json',
-          'Content-Disposition': `attachment; filename="atomic-guide-export-${Date.now()}.json"`
-        }
+          'Content-Disposition': `attachment; filename="atomic-guide-export-${Date.now()}.json"`,
+        },
       });
     }
   } catch (error) {
@@ -647,14 +670,14 @@ export async function exportUserData(c: Context) {
 
 function convertToCSV(data: any): string {
   const csvRows: string[] = [];
-  
+
   // Add header section
   csvRows.push('Export Information');
   csvRows.push(`Export Date,${data.exportDate}`);
   csvRows.push(`User ID,${data.userId}`);
   csvRows.push(`Tenant ID,${data.tenantId}`);
   csvRows.push('');
-  
+
   // Add statistics
   csvRows.push('Statistics');
   csvRows.push(`Total Conversations,${data.statistics.totalConversations}`);
@@ -662,35 +685,31 @@ function convertToCSV(data: any): string {
   csvRows.push(`Earliest Message,${data.statistics.dateRange.earliest || 'N/A'}`);
   csvRows.push(`Latest Message,${data.statistics.dateRange.latest || 'N/A'}`);
   csvRows.push('');
-  
+
   // Add conversations
   csvRows.push('Conversations');
   csvRows.push('ID,Summary,Topics,Created At,Updated At,Message Count');
   data.conversations.forEach((conv: any) => {
-    csvRows.push([
-      conv.id,
-      `"${conv.summary?.replace(/"/g, '""') || ''}"`,
-      `"${conv.topics?.join(', ') || ''}"`,
-      conv.created_at,
-      conv.updated_at,
-      conv.message_count
-    ].join(','));
+    csvRows.push(
+      [
+        conv.id,
+        `"${conv.summary?.replace(/"/g, '""') || ''}"`,
+        `"${conv.topics?.join(', ') || ''}"`,
+        conv.created_at,
+        conv.updated_at,
+        conv.message_count,
+      ].join(',')
+    );
   });
   csvRows.push('');
-  
+
   // Add messages
   csvRows.push('Messages');
   csvRows.push('ID,Conversation ID,Role,Content,Created At');
   data.messages.forEach((msg: any) => {
-    csvRows.push([
-      msg.id,
-      msg.conversation_id,
-      msg.role,
-      `"${msg.content?.replace(/"/g, '""') || ''}"`,
-      msg.created_at
-    ].join(','));
+    csvRows.push([msg.id, msg.conversation_id, msg.role, `"${msg.content?.replace(/"/g, '""') || ''}"`, msg.created_at].join(','));
   });
-  
+
   return csvRows.join('\n');
 }
 
@@ -724,24 +743,36 @@ export async function deleteChatConversation(c: Context) {
     const tenantId = payload.tenant_id || payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
     const learnerId = payload.sub || payload.user_id;
 
-    const verifyResult = await DB.prepare(`
+    const verifyResult = await DB.prepare(
+      `
       SELECT id FROM conversation_summaries
       WHERE tenant_id = ? AND learner_id = ? AND conversation_id = ?
-    `).bind(tenantId, learnerId, conversationId).first();
+    `
+    )
+      .bind(tenantId, learnerId, conversationId)
+      .first();
 
     if (!verifyResult) {
       return c.json({ error: 'Conversation not found or unauthorized' }, 404);
     }
 
-    await DB.prepare(`
+    await DB.prepare(
+      `
       DELETE FROM chat_messages
       WHERE tenant_id = ? AND conversation_id = ?
-    `).bind(tenantId, conversationId).run();
+    `
+    )
+      .bind(tenantId, conversationId)
+      .run();
 
-    await DB.prepare(`
+    await DB.prepare(
+      `
       DELETE FROM conversation_summaries
       WHERE tenant_id = ? AND learner_id = ? AND conversation_id = ?
-    `).bind(tenantId, learnerId, conversationId).run();
+    `
+    )
+      .bind(tenantId, learnerId, conversationId)
+      .run();
 
     return c.json({ success: true, message: 'Conversation deleted successfully' });
   } catch (error) {

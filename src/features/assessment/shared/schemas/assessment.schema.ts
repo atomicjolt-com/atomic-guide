@@ -79,9 +79,7 @@ export const aiGuidanceSchema = z.object({
  */
 export const assessmentConfigSchema = z.object({
   assessmentType: assessmentTypeSchema,
-  masteryThreshold: z.number()
-    .min(0, 'Threshold must be at least 0')
-    .max(100, 'Threshold cannot exceed 100'),
+  masteryThreshold: z.number().min(0, 'Threshold must be at least 0').max(100, 'Threshold cannot exceed 100'),
   gradingSchema: gradingSchemaSchema,
   rubric: rubricSchema,
   questions: z.array(assessmentQuestionSchema),
@@ -146,9 +144,9 @@ export function validateAssessmentConfig(config: unknown): AssessmentConfig {
  * @param config - Raw configuration data
  * @returns Success/error result with parsed data or errors
  */
-export function safeValidateAssessmentConfig(config: unknown): 
-  { success: true; data: AssessmentConfig } | 
-  { success: false; errors: z.ZodError } {
+export function safeValidateAssessmentConfig(
+  config: unknown
+): { success: true; data: AssessmentConfig } | { success: false; errors: z.ZodError } {
   const result = assessmentConfigSchema.safeParse(config);
   if (result.success) {
     return { success: true, data: result.data };

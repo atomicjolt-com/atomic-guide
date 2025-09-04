@@ -48,13 +48,9 @@ export class QuestionGenerationService {
    * @param options - Generation options
    * @returns Promise resolving to generated questions
    */
-  async generateQuestions(
-    context: ContentContext,
-    config: AssessmentConfig,
-    options: QuestionGenerationOptions
-  ): Promise<Question[]> {
+  async generateQuestions(context: ContentContext, config: AssessmentConfig, options: QuestionGenerationOptions): Promise<Question[]> {
     const prompt = this.buildQuestionPrompt(context, config, options);
-    
+
     try {
       const response = await this.aiService.generateResponse(prompt, {
         maxTokens: 2000,
@@ -76,11 +72,7 @@ export class QuestionGenerationService {
    * @param count - Number of questions to generate
    * @returns Promise resolving to generated questions
    */
-  async generateFromObjectives(
-    objectives: string[],
-    config: AssessmentConfig,
-    count: number
-  ): Promise<Question[]> {
+  async generateFromObjectives(objectives: string[], config: AssessmentConfig, count: number): Promise<Question[]> {
     const prompt = `Create ${count} ${config.assessmentType} assessment questions based on these learning objectives:
 
 ${objectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
@@ -118,18 +110,14 @@ Return as JSON array with format:
   /**
    * Builds the AI prompt for question generation
    */
-  private buildQuestionPrompt(
-    context: ContentContext,
-    config: AssessmentConfig,
-    options: QuestionGenerationOptions
-  ): string {
+  private buildQuestionPrompt(context: ContentContext, config: AssessmentConfig, options: QuestionGenerationOptions): string {
     const questionTypes = options.questionTypes || ['multiple_choice', 'short_answer'];
     const difficultyMap = {
       1: 'very easy',
       2: 'easy',
       3: 'moderate',
       4: 'challenging',
-      5: 'very challenging'
+      5: 'very challenging',
     };
 
     return `Create ${options.count} ${config.assessmentType} assessment questions based on this content:
@@ -177,7 +165,7 @@ Ensure questions are:
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       return parsed.map((q: any) => ({
         id: q.id || crypto.randomUUID(),
         text: q.text || 'Generated question',
@@ -198,8 +186,8 @@ Ensure questions are:
    */
   private validateAndCleanQuestions(questions: Question[], config: AssessmentConfig): Question[] {
     return questions
-      .filter(q => q.text && q.text.length > 10)
-      .map(q => ({
+      .filter((q) => q.text && q.text.length > 10)
+      .map((q) => ({
         ...q,
         points: Math.min(q.points, config.gradingSchema.maxScore),
         text: q.text.trim(),
@@ -212,7 +200,7 @@ Ensure questions are:
    */
   private validateQuestionType(type: string): 'multiple_choice' | 'short_answer' | 'essay' | 'true_false' {
     const validTypes = ['multiple_choice', 'short_answer', 'essay', 'true_false'];
-    return validTypes.includes(type) ? type as any : 'short_answer';
+    return validTypes.includes(type) ? (type as any) : 'short_answer';
   }
 
   /**

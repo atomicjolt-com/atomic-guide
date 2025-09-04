@@ -42,7 +42,7 @@ export type PerformanceBudget = z.infer<typeof _PerformanceBudgetSchema>;
 
 /**
  * Mobile optimization utility class
- * 
+ *
  * Provides device detection, performance budgeting, and optimization
  * strategies for mobile and low-end devices.
  */
@@ -122,13 +122,13 @@ export class MobileOptimization {
    * Calculate performance budget based on device capabilities
    */
   private calculatePerformanceBudget(capabilities: DeviceCapabilities): PerformanceBudget {
-    const isLowEnd = 
-      capabilities.memoryLimit && capabilities.memoryLimit <= 4 ||
+    const isLowEnd =
+      (capabilities.memoryLimit && capabilities.memoryLimit <= 4) ||
       capabilities.hardwareConcurrency <= 2 ||
       ['slow-2g', '2g'].includes(capabilities.connectionType);
 
-    const isMidTier = 
-      capabilities.memoryLimit && capabilities.memoryLimit <= 8 ||
+    const isMidTier =
+      (capabilities.memoryLimit && capabilities.memoryLimit <= 8) ||
       capabilities.hardwareConcurrency <= 4 ||
       capabilities.connectionType === '3g';
 
@@ -210,7 +210,7 @@ export class MobileOptimization {
    * Notify observers of capability changes
    */
   private notifyObservers(): void {
-    this.observers.forEach(observer => observer(this.capabilities));
+    this.observers.forEach((observer) => observer(this.capabilities));
   }
 
   /**
@@ -218,7 +218,7 @@ export class MobileOptimization {
    */
   public onCapabilitiesChange(callback: (capabilities: DeviceCapabilities) => void): () => void {
     this.observers.add(callback);
-    
+
     return () => {
       this.observers.delete(callback);
     };
@@ -268,7 +268,7 @@ export class MobileOptimization {
     updateThrottle: number;
   } {
     const budget = this.performanceBudget;
-    
+
     switch (budget.chartComplexity) {
       case 'minimal':
         return {
@@ -277,7 +277,7 @@ export class MobileOptimization {
           renderingStrategy: 'canvas',
           updateThrottle: 500,
         };
-      
+
       case 'standard':
         return {
           maxDataPoints: 100,
@@ -285,7 +285,7 @@ export class MobileOptimization {
           renderingStrategy: 'canvas',
           updateThrottle: 200,
         };
-      
+
       case 'full':
         return {
           maxDataPoints: 250,
@@ -308,7 +308,7 @@ export class MobileOptimization {
 
     // Choose format based on capabilities
     const format = capabilities.isMobile ? 'webp' : 'png';
-    
+
     // Determine quality based on connection and memory
     let quality = 85;
     if (this.isLowEndDevice() || ['slow-2g', '2g'].includes(capabilities.connectionType)) {
@@ -350,31 +350,31 @@ export class MobileOptimization {
     switch (feature) {
       case 'animations':
         return budget.enableAnimations && !capabilities.reducedMotion;
-      
+
       case 'hapticFeedback':
         return capabilities.isTouch && 'vibrate' in navigator;
-      
+
       case 'offlineMode':
         return 'serviceWorker' in navigator && capabilities.isMobile;
-      
+
       case 'backgroundSync':
         return !this.isLowEndDevice() && 'serviceWorker' in navigator;
-      
+
       case 'pushNotifications':
         return 'Notification' in window && !this.isLowEndDevice();
-      
+
       case 'webWorkers':
         return 'Worker' in window && capabilities.hardwareConcurrency > 2;
-      
+
       case 'intersectionObserver':
         return 'IntersectionObserver' in window;
-      
+
       case 'resizeObserver':
         return 'ResizeObserver' in window;
-      
+
       case 'webGL':
         return this.hasWebGLSupport() && !this.isLowEndDevice();
-      
+
       default:
         return true;
     }

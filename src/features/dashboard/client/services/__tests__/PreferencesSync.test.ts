@@ -3,7 +3,7 @@
  * @module features/dashboard/client/services/__tests__/PreferencesSync.test
  */
 
-import {  describe, it, expect, vi, beforeEach, afterEach } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, afterEach } from '@/tests/infrastructure';
 import { PreferencesSync } from '../PreferencesSync';
 
 import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
@@ -52,11 +52,11 @@ describe('PreferencesSync', () => {
     vi.clearAllMocks();
     mockFetch.mockClear();
     mockLocalStorage.clear();
-    
+
     // Set online status to true by default
     const navigator = window.navigator;
     navigator.onLine = true;
-    
+
     preferencesSync = new PreferencesSync(userId, tenantId, jwt);
   });
 
@@ -116,10 +116,7 @@ describe('PreferencesSync', () => {
     it('should save default preferences to localStorage', () => {
       preferencesSync.getPreferences();
 
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        `dashboard_prefs_${userId}`,
-        expect.any(String)
-      );
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(`dashboard_prefs_${userId}`, expect.any(String));
     });
   });
 
@@ -155,7 +152,7 @@ describe('PreferencesSync', () => {
         expect.objectContaining({
           method: 'PUT',
           headers: expect.objectContaining({
-            'Authorization': `Bearer ${jwt}`,
+            Authorization: `Bearer ${jwt}`,
             'Content-Type': 'application/json',
           }),
           body: expect.stringContaining('"benchmarkOptIn":true'),
@@ -253,12 +250,8 @@ describe('PreferencesSync', () => {
       // Wait for the event to be processed
       await vi.runOnlyPendingTimersAsync();
 
-      expect(callback1).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'offline' })
-      );
-      expect(callback2).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'offline' })
-      );
+      expect(callback1).toHaveBeenCalledWith(expect.objectContaining({ status: 'offline' }));
+      expect(callback2).toHaveBeenCalledWith(expect.objectContaining({ status: 'offline' }));
     });
 
     it('should allow unsubscribing from status updates', () => {
@@ -270,7 +263,7 @@ describe('PreferencesSync', () => {
       // Trigger a status change
       const navigator = window.navigator;
       navigator.onLine = false;
-      
+
       // Simulate offline event
       window.dispatchEvent(new Event('offline'));
 
@@ -308,10 +301,11 @@ describe('PreferencesSync', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: serverPrefs,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: serverPrefs,
+          }),
       });
 
       // Instead of relying on event timing, directly call the private syncFromServer method
@@ -323,7 +317,7 @@ describe('PreferencesSync', () => {
         expect.stringContaining(`/api/preferences/sync/${userId}`),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': `Bearer ${jwt}`,
+            Authorization: `Bearer ${jwt}`,
           }),
         })
       );
@@ -354,10 +348,11 @@ describe('PreferencesSync', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: serverPrefs,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: serverPrefs,
+          }),
       });
 
       // Get local preferences first (version 1)
@@ -402,19 +397,23 @@ describe('PreferencesSync', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: serverPrefs,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: serverPrefs,
+          }),
       });
 
       // Trigger sync
       window.dispatchEvent(new Event('online'));
-      
+
       // Wait for async operations to complete (but not the periodic sync)
-      await vi.waitFor(() => {
-        expect(mockFetch).toHaveBeenCalled();
-      }, { timeout: 1000 });
+      await vi.waitFor(
+        () => {
+          expect(mockFetch).toHaveBeenCalled();
+        },
+        { timeout: 1000 }
+      );
 
       // Local preferences should be preserved
       const finalPrefs = preferencesSync.getPreferences();
@@ -439,12 +438,12 @@ describe('PreferencesSync', () => {
       });
 
       const localPrefs = preferencesSync.getPreferences();
-      
+
       // Update lastKnownVersion after the update to simulate the version being tracked
       // Then reset it to 0 to create conflict conditions
       preferencesSync['lastKnownVersion'] = 0;
 
-      // Mock server with conflicting changes - to trigger hasConflict(), 
+      // Mock server with conflicting changes - to trigger hasConflict(),
       // both versions must be > lastKnownVersion and have different deviceSyncId
       const serverPrefs = {
         ...localPrefs,
@@ -458,10 +457,11 @@ describe('PreferencesSync', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: serverPrefs,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: serverPrefs,
+          }),
       });
 
       const statusCallback = vi.fn();
@@ -555,10 +555,7 @@ describe('PreferencesSync', () => {
       // Advance timer to trigger periodic sync
       vi.advanceTimersByTime(30000);
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/preferences/sync/${userId}`),
-        expect.any(Object)
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining(`/api/preferences/sync/${userId}`), expect.any(Object));
     });
 
     it('should not sync when offline', () => {
@@ -590,9 +587,7 @@ describe('PreferencesSync', () => {
     it('should clear local preferences', () => {
       preferencesSync.clearLocalPreferences();
 
-      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
-        `dashboard_prefs_${userId}`
-      );
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(`dashboard_prefs_${userId}`);
     });
   });
 
@@ -622,10 +617,11 @@ describe('PreferencesSync', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: { invalid: 'data' },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: { invalid: 'data' },
+          }),
       });
 
       const statusCallback = vi.fn();

@@ -26,10 +26,10 @@ All API requests must include the JWT token in the Authorization header:
 const response = await fetch('/api/endpoint', {
   method: 'POST',
   headers: {
-    'Authorization': `Bearer ${window.LAUNCH_SETTINGS.jwt}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${window.LAUNCH_SETTINGS.jwt}`,
+    'Content-Type': 'application/json',
   },
-  body: JSON.stringify(data)
+  body: JSON.stringify(data),
 });
 ```
 
@@ -39,21 +39,21 @@ The JWT token contains the following claims:
 
 ```typescript
 interface JWTPayload {
-  sub: string;           // User ID
-  iss: string;           // Platform issuer
-  aud: string;           // Tool client ID
-  exp: number;           // Expiration timestamp
-  iat: number;           // Issued at timestamp
-  nonce: string;         // Unique nonce
-  
+  sub: string; // User ID
+  iss: string; // Platform issuer
+  aud: string; // Tool client ID
+  exp: number; // Expiration timestamp
+  iat: number; // Issued at timestamp
+  nonce: string; // Unique nonce
+
   // LTI-specific claims
-  "https://purl.imsglobal.org/spec/lti/claim/context": {
+  'https://purl.imsglobal.org/spec/lti/claim/context': {
     id: string;
     label: string;
     title: string;
   };
-  "https://purl.imsglobal.org/spec/lti/claim/roles": string[];
-  "https://purl.imsglobal.org/spec/lti/claim/resource_link": {
+  'https://purl.imsglobal.org/spec/lti/claim/roles': string[];
+  'https://purl.imsglobal.org/spec/lti/claim/resource_link': {
     id: string;
   };
 }
@@ -64,6 +64,7 @@ interface JWTPayload {
 ### Public Endpoints
 
 These endpoints do not require authentication:
+
 - `GET /` - Home page
 - `GET /lti/init` - LTI initialization
 - `GET /lti/redirect` - LTI redirect handler
@@ -75,24 +76,24 @@ All other API endpoints require valid JWT authentication:
 
 ```typescript
 // Chat API
-POST /api/chat/message
-GET /api/chat/history
+POST / api / chat / message;
+GET / api / chat / history;
 
 // Assessment API
-POST /api/assessment/deep-link
-GET /api/assessment/results
+POST / api / assessment / deep - link;
+GET / api / assessment / results;
 
 // Analytics API
-GET /api/analytics/performance
-GET /api/analytics/engagement
+GET / api / analytics / performance;
+GET / api / analytics / engagement;
 
 // Content API
-POST /api/content/extract
-GET /api/content/search
+POST / api / content / extract;
+GET / api / content / search;
 
 // Settings API
-GET /api/settings/user
-PUT /api/settings/user
+GET / api / settings / user;
+PUT / api / settings / user;
 ```
 
 ## Server-Side JWT Validation
@@ -142,7 +143,7 @@ import { apiClient } from '@shared/client/services/api';
 
 // API client automatically includes JWT token
 const response = await apiClient.post('/api/chat/message', {
-  message: 'Hello, world!'
+  message: 'Hello, world!',
 });
 ```
 
@@ -154,12 +155,12 @@ JWT tokens are long-lived and tied to the LTI session. Token refresh is not impl
 
 Common authentication errors and their responses:
 
-| Error | Status | Response |
-|-------|--------|----------|
-| Missing token | 401 | `{"error": "Authentication required"}` |
-| Invalid token | 401 | `{"error": "Invalid token"}` |
-| Expired token | 401 | `{"error": "Token expired"}` |
-| Insufficient permissions | 403 | `{"error": "Insufficient permissions"}` |
+| Error                    | Status | Response                                |
+| ------------------------ | ------ | --------------------------------------- |
+| Missing token            | 401    | `{"error": "Authentication required"}`  |
+| Invalid token            | 401    | `{"error": "Invalid token"}`            |
+| Expired token            | 401    | `{"error": "Token expired"}`            |
+| Insufficient permissions | 403    | `{"error": "Insufficient permissions"}` |
 
 ## Security Considerations
 

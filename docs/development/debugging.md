@@ -106,11 +106,11 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Component Error:', error);
     console.error('Stack:', errorInfo.componentStack);
-    
+
     // Log to error service
     logError(error, errorInfo);
   }
-  
+
   render() {
     if (this.state.hasError) {
       return <div>Error details: {this.state.error?.message}</div>;
@@ -173,19 +173,19 @@ curl -v 'http://localhost:5988/api/chat' \
 app.use((c, next) => {
   console.log('Request origin:', c.req.header('Origin'));
   console.log('Request method:', c.req.method);
-  
+
   // Log CORS headers being set
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
-  
+
   console.log('Setting CORS headers:', headers);
   Object.entries(headers).forEach(([key, value]) => {
     c.header(key, value);
   });
-  
+
   return next();
 });
 ```
@@ -219,9 +219,12 @@ class DatabaseDebugger {
     console.log('Query:', sql);
     console.log('Params:', params);
     console.time('Execution time');
-    
+
     try {
-      const result = await db.prepare(sql).bind(...params).all();
+      const result = await db
+        .prepare(sql)
+        .bind(...params)
+        .all();
       console.log('Result count:', result.results.length);
       console.timeEnd('Execution time');
       console.groupEnd();
@@ -261,7 +264,7 @@ npm run tail -- --format pretty
 export class DebugDurableObject {
   constructor(state: DurableObjectState) {
     this.state = state;
-    
+
     // Log all storage operations
     const originalGet = this.state.storage.get.bind(this.state.storage);
     this.state.storage.get = async (key: string) => {
@@ -270,7 +273,7 @@ export class DebugDurableObject {
       return value;
     };
   }
-  
+
   async fetch(request: Request) {
     console.log('DO Request:', request.method, request.url);
     const response = await this.handleRequest(request);
@@ -322,11 +325,11 @@ setInterval(() => {
 // Find memory leaks
 class MemoryLeakDetector {
   private snapshots: WeakMap<object, number> = new WeakMap();
-  
+
   track(obj: object) {
     this.snapshots.set(obj, performance.now());
   }
-  
+
   checkLeaks() {
     // Force garbage collection (Chrome DevTools)
     if (global.gc) {
@@ -357,31 +360,31 @@ npm list --depth=0 | awk '{print $2}' | xargs -I {} sh -c 'echo "{}: $(npm view 
 ```typescript
 class Logger {
   private context: Record<string, any> = {};
-  
+
   setContext(context: Record<string, any>) {
     this.context = { ...this.context, ...context };
   }
-  
+
   log(level: string, message: string, data?: any) {
     const log = {
       timestamp: new Date().toISOString(),
       level,
       message,
       ...this.context,
-      ...data
+      ...data,
     };
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.log(JSON.stringify(log, null, 2));
     } else {
       console.log(JSON.stringify(log));
     }
   }
-  
+
   error(message: string, error?: Error) {
     this.log('error', message, {
       error: error?.message,
-      stack: error?.stack
+      stack: error?.stack,
     });
   }
 }
@@ -396,13 +399,13 @@ export const debug = {
   log: (...args: any[]) => {
     console.log(`[${new Date().toISOString()}]`, ...args);
   },
-  
+
   // Log and return value (for chain debugging)
   tap: <T>(value: T, label?: string): T => {
     console.log(label || 'Debug:', value);
     return value;
   },
-  
+
   // Time execution
   time: async <T>(label: string, fn: () => Promise<T>): Promise<T> => {
     console.time(label);
@@ -415,17 +418,17 @@ export const debug = {
       throw error;
     }
   },
-  
+
   // Trace function calls
   trace: (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
     const original = descriptor.value;
-    descriptor.value = function(...args: any[]) {
+    descriptor.value = function (...args: any[]) {
       console.log(`Calling ${propertyKey} with:`, args);
       const result = original.apply(this, args);
       console.log(`${propertyKey} returned:`, result);
       return result;
     };
-  }
+  },
 };
 
 // Usage examples:
@@ -454,7 +457,7 @@ if (import.meta.env.DEV) {
     document.body.appendChild(root);
     ReactDOM.render(<DebugPanel />, root);
   });
-  
+
   // Expose debugging tools globally
   window.debug = {
     store: () => console.log(store.getState()),
@@ -475,7 +478,7 @@ class ProductionLogger {
       // Send to logging service
       fetch('/api/logs', {
         method: 'POST',
-        body: JSON.stringify({ level, message, data })
+        body: JSON.stringify({ level, message, data }),
       });
     }
   }
@@ -485,7 +488,7 @@ class ProductionLogger {
 const DEBUG_FLAGS = {
   logApiCalls: searchParams.get('debug_api') === 'true',
   logStateChanges: searchParams.get('debug_state') === 'true',
-  showPerformance: searchParams.get('debug_perf') === 'true'
+  showPerformance: searchParams.get('debug_perf') === 'true',
 };
 ```
 
@@ -499,6 +502,7 @@ const DEBUG_FLAGS = {
    - Review console warnings
 
 2. **Verify Environment**
+
    ```bash
    node --version  # Should be v18+
    npm --version   # Should be v9+
@@ -506,18 +510,20 @@ const DEBUG_FLAGS = {
    ```
 
 3. **Check Services**
+
    ```bash
    # Is dev server running?
    lsof -i :5988
-   
+
    # Database accessible?
    npm run db:query
-   
+
    # Wrangler authenticated?
    wrangler whoami
    ```
 
 4. **Clear Caches**
+
    ```bash
    rm -rf .wrangler
    rm -rf node_modules/.cache
@@ -537,6 +543,7 @@ const DEBUG_FLAGS = {
 ### Error Messages
 
 When asking for help, provide:
+
 1. **Full error message** including stack trace
 2. **Steps to reproduce** the issue
 3. **Environment details** (OS, Node version, etc.)

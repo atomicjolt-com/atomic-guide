@@ -22,11 +22,13 @@ export class AnalyticsTestUtils {
   /**
    * Create a mock analytics environment with pre-configured data
    */
-  static createMockAnalyticsEnv(config: {
-    withData?: boolean;
-    withErrors?: boolean;
-    withLatency?: number;
-  } = {}): AnalyticsEnv {
+  static createMockAnalyticsEnv(
+    config: {
+      withData?: boolean;
+      withErrors?: boolean;
+      withLatency?: number;
+    } = {}
+  ): AnalyticsEnv {
     const mockData = new Map<string, any>();
 
     if (config.withData) {
@@ -38,26 +40,24 @@ export class AnalyticsTestUtils {
     const db = MockFactory.createD1Database({
       data: mockData,
       latency: config.withLatency,
-      failOnQuery: config.withErrors ? (query) => query.includes('ERROR') : undefined
+      failOnQuery: config.withErrors ? (query) => query.includes('ERROR') : undefined,
     }) as MockD1Database;
 
     // Configure specific query responses
     const originalPrepare = db.prepare;
     db.prepare = vi.fn((query: string) => {
       const stmt = originalPrepare.call(db, query);
-      
+
       // Mock specific analytics queries
       if (query.includes('SELECT * FROM student_performance')) {
-        stmt.first = vi.fn().mockResolvedValue(
-          AnalyticsTestUtils.getMockStudentPerformance()
-        );
+        stmt.first = vi.fn().mockResolvedValue(AnalyticsTestUtils.getMockStudentPerformance());
       }
-      
+
       if (query.includes('SELECT * FROM learning_recommendations')) {
         stmt.all = vi.fn().mockResolvedValue({
           results: AnalyticsTestUtils.getMockRecommendations(),
           success: true,
-          meta: {}
+          meta: {},
         });
       }
 
@@ -67,11 +67,7 @@ export class AnalyticsTestUtils {
     return {
       DB: db,
       ANALYTICS_QUEUE: MockFactory.createQueue() as MockQueue,
-      AI: MockFactory.createAI(
-        new Map([
-          ['recommendation_ai', { recommendations: ['Review arrays', 'Practice loops'] }]
-        ])
-      ) as MockAI
+      AI: MockFactory.createAI(new Map([['recommendation_ai', { recommendations: ['Review arrays', 'Practice loops'] }]])) as MockAI,
     };
   }
 
@@ -85,8 +81,8 @@ export class AnalyticsTestUtils {
       learning_velocity: 2.0,
       performance_data: JSON.stringify({
         conceptMasteries: { arrays: 0.8, loops: 0.7 },
-        assessmentScores: [0.7, 0.75, 0.8, 0.85]
-      })
+        assessmentScores: [0.7, 0.75, 0.8, 0.85],
+      }),
     };
   }
 
@@ -100,30 +96,26 @@ export class AnalyticsTestUtils {
         type: 'review',
         priority: 'high',
         concepts_involved: JSON.stringify(['arrays']),
-        suggested_actions: JSON.stringify(['Review array methods'])
+        suggested_actions: JSON.stringify(['Review array methods']),
       },
       {
         id: 'rec-2',
         type: 'practice',
         priority: 'medium',
         concepts_involved: JSON.stringify(['loops']),
-        suggested_actions: JSON.stringify(['Complete loop exercises'])
-      }
+        suggested_actions: JSON.stringify(['Complete loop exercises']),
+      },
     ];
   }
 
   /**
    * Assert analytics event was tracked
    */
-  static assertAnalyticsEvent(
-    mockQueue: MockQueue,
-    eventType: string,
-    data?: Partial<any>
-  ): void {
+  static assertAnalyticsEvent(mockQueue: MockQueue, eventType: string, data?: Partial<any>): void {
     expect(mockQueue.send).toHaveBeenCalledWith(
       expect.objectContaining({
         type: eventType,
-        ...data
+        ...data,
       })
     );
   }
@@ -131,16 +123,10 @@ export class AnalyticsTestUtils {
   /**
    * Assert performance calculation
    */
-  static assertPerformanceCalculated(
-    mockDb: MockD1Database,
-    studentId: string,
-    expectedMastery?: number
-  ): void {
+  static assertPerformanceCalculated(mockDb: MockD1Database, studentId: string, expectedMastery?: number): void {
     const stmt = mockDb.prepare('');
-    expect(stmt.bind).toHaveBeenCalledWith(
-      expect.stringContaining(studentId)
-    );
-    
+    expect(stmt.bind).toHaveBeenCalledWith(expect.stringContaining(studentId));
+
     if (expectedMastery !== undefined) {
       expect(stmt.first).toHaveBeenCalledWith();
     }
@@ -160,15 +146,15 @@ export class AnalyticsTestUtils {
           priority: 5,
           taskData: { studentId: `student-${i}` },
           timestamp: new Date().toISOString(),
-          retryCount: 0
+          retryCount: 0,
         },
         timestamp: new Date(),
         attempts: 0,
         ack: vi.fn(),
-        retry: vi.fn()
+        retry: vi.fn(),
       })),
       ackAll: vi.fn(),
-      retryAll: vi.fn()
+      retryAll: vi.fn(),
     };
   }
 
@@ -178,17 +164,17 @@ export class AnalyticsTestUtils {
   static generatePerformanceTrend(days: number = 30) {
     const trend = [];
     let mastery = 0.5;
-    
+
     for (let i = 0; i < days; i++) {
-      mastery = Math.min(1.0, mastery + (Math.random() * 0.05));
+      mastery = Math.min(1.0, mastery + Math.random() * 0.05);
       trend.push({
         date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000).toISOString(),
         mastery,
         sessionsCompleted: Math.floor(Math.random() * 5) + 1,
-        conceptsLearned: Math.floor(Math.random() * 3)
+        conceptsLearned: Math.floor(Math.random() * 3),
       });
     }
-    
+
     return trend;
   }
 }

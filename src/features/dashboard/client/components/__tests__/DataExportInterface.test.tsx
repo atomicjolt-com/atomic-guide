@@ -3,7 +3,7 @@
  * @module features/dashboard/client/components/__tests__/DataExportInterface.test
  */
 
-import {  describe, it, expect, vi, beforeEach, afterEach , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DataExportInterface from '../DataExportInterface';
@@ -18,15 +18,15 @@ const mockPreviewData = {
   sampleData: [
     {
       'Assessment ID': 'quiz_001',
-      'Score': 85,
-      'Date': '2024-01-15',
-      'Duration': '00:15:30',
+      Score: 85,
+      Date: '2024-01-15',
+      Duration: '00:15:30',
     },
     {
       'Assessment ID': 'quiz_002',
-      'Score': 92,
-      'Date': '2024-01-16',
-      'Duration': '00:12:45',
+      Score: 92,
+      Date: '2024-01-16',
+      Duration: '00:12:45',
     },
   ],
   totalRecords: 25,
@@ -58,10 +58,6 @@ const defaultProps = {
 describe('DataExportInterface', () => {
   beforeEach(async () => {
     // Setup test infrastructure - removed ServiceTestHarness as this tests React components
-    
-    
-    ;
-  
   });
 
   afterEach(() => {
@@ -99,10 +95,10 @@ describe('DataExportInterface', () => {
       // Check that the date inputs are updated (approximately - within a day)
       const startDateInput = screen.getByLabelText(/start date/i) as HTMLInputElement;
       const endDateInput = screen.getByLabelText(/end date/i) as HTMLInputElement;
-      
+
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      
+
       expect(startDateInput.value).toBe(weekAgo.toISOString().split('T')[0]);
       expect(endDateInput.value).toBe(new Date().toISOString().split('T')[0]);
     });
@@ -163,10 +159,11 @@ describe('DataExportInterface', () => {
     beforeEach(() => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPreviewData,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPreviewData,
+          }),
       });
     });
 
@@ -188,7 +185,7 @@ describe('DataExportInterface', () => {
           expect.objectContaining({
             method: 'POST',
             headers: expect.objectContaining({
-              'Authorization': `Bearer ${defaultProps.jwt}`,
+              Authorization: `Bearer ${defaultProps.jwt}`,
               'Content-Type': 'application/json',
             }),
           })
@@ -219,10 +216,11 @@ describe('DataExportInterface', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPreviewData,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPreviewData,
+          }),
       });
 
       render(<DataExportInterface {...defaultProps} />);
@@ -288,26 +286,29 @@ describe('DataExportInterface', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPreviewData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPreviewData,
+            }),
         })
         // Mock export generation
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: { ...mockExportStatus, status: 'preparing' },
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: { ...mockExportStatus, status: 'preparing' },
+            }),
         })
         // Mock status polling
         .mockResolvedValue({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockExportStatus,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockExportStatus,
+            }),
         });
 
       render(<DataExportInterface {...defaultProps} />);
@@ -356,10 +357,11 @@ describe('DataExportInterface', () => {
       // Mock status update
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: mockExportStatus,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockExportStatus,
+          }),
       });
 
       const generateButton = screen.getByRole('button', { name: /generate export/i });
@@ -401,10 +403,11 @@ describe('DataExportInterface', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPreviewData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPreviewData,
+            }),
         })
         .mockRejectedValueOnce(new Error('Export generation failed'));
 
@@ -454,10 +457,11 @@ describe('DataExportInterface', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: { ...mockPreviewData, sampleData: [] },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: { ...mockPreviewData, sampleData: [] },
+          }),
       });
 
       render(<DataExportInterface {...defaultProps} />);
@@ -482,7 +486,7 @@ describe('DataExportInterface', () => {
       const configureStep = screen.getByText('Configure');
       const previewStep = screen.getByText('Preview');
       const downloadStep = screen.getByText('Download');
-      
+
       expect(configureStep).toBeInTheDocument();
       expect(previewStep).toBeInTheDocument();
       expect(downloadStep).toBeInTheDocument();
@@ -497,10 +501,11 @@ describe('DataExportInterface', () => {
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPreviewData,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPreviewData,
+          }),
       });
 
       render(<DataExportInterface {...defaultProps} />);
@@ -526,24 +531,27 @@ describe('DataExportInterface', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPreviewData,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPreviewData,
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockExportStatus,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockExportStatus,
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: mockExportStatus,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockExportStatus,
+            }),
         });
 
       render(<DataExportInterface {...defaultProps} onExportComplete={mockOnComplete} />);

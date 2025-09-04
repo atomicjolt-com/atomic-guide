@@ -12,7 +12,7 @@ try {
   const gitStatus = execSync('git status --porcelain wrangler.jsonc', { encoding: 'utf8' });
   if (gitStatus.trim()) {
     console.log('⚠️  Warning: You have uncommitted changes to wrangler.jsonc');
-    console.log('   It\'s recommended to commit or stash these changes first.');
+    console.log("   It's recommended to commit or stash these changes first.");
     console.log('   A backup will be created, but using git is safer.\n');
   }
 } catch {
@@ -53,7 +53,7 @@ function createNamespace(binding, isPreview = false) {
   // First check if namespace already exists
   const searchTitle = binding + suffix;
   const existing = existingNamespaces.find(
-    (ns) => ns.title === searchTitle || ns.title === binding + (isPreview ? '_preview' : '') || (ns.title === binding && !isPreview),
+    (ns) => ns.title === searchTitle || ns.title === binding + (isPreview ? '_preview' : '') || (ns.title === binding && !isPreview)
   );
 
   if (existing) {

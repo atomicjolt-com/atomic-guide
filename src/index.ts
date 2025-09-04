@@ -32,9 +32,20 @@ import indexHtml from './features/site/server/html/index_html';
 import launchHtml from './features/lti/server/html/launch_html';
 import { getClientAssetPath } from './shared/server/utils/manifest';
 import dbTestApp from './shared/server/db/test-connection';
-import { handleChatMessage, searchChatHistory, getChatConversation, deleteChatConversation, exportUserData } from './features/chat/server/handlers/chat';
+import {
+  handleChatMessage,
+  searchChatHistory,
+  getChatConversation,
+  deleteChatConversation,
+  exportUserData,
+} from './features/chat/server/handlers/chat';
 import { handleChatStream } from './features/chat/server/handlers/chatStream';
-import { getConversations, getLearningInsights, updateLearningStyle, getConversationSummary } from './features/dashboard/server/handlers/dashboard';
+import {
+  getConversations,
+  getLearningInsights,
+  updateLearningStyle,
+  getConversationSummary,
+} from './features/dashboard/server/handlers/dashboard';
 import faqHandler from './features/faq/server/handlers/faq';
 import richMediaHandler from './features/chat/server/handlers/richMedia';
 import suggestionHandler from './features/chat/server/handlers/suggestions';

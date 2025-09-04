@@ -1,12 +1,12 @@
 // Mock modules BEFORE other imports
 import { vi } from 'vitest';
 vi.mock('hono/jwt', () => ({
-  verify: vi.fn().mockResolvedValue({ tenant_id: 'test-tenant', sub: 'test-user' })
+  verify: vi.fn().mockResolvedValue({ tenant_id: 'test-tenant', sub: 'test-user' }),
 }));
 
 // Mock getLearnerProfile
 vi.mock('../../src/utils/responseFormatter', () => ({
-  formatResponse: vi.fn((response: any) => response)
+  formatResponse: vi.fn((response: any) => response),
 }));
 
 // Mock AI Service
@@ -16,14 +16,14 @@ vi.mock('../../src/services/AIService', () => ({
       response: 'This is a test AI response.',
       tokensUsed: 50,
       model: '@cf/meta/llama-3.1-8b-instruct',
-      cached: false
-    })
-  }))
+      cached: false,
+    }),
+  })),
 }));
 
 // Mock other services
 vi.mock('../../src/services/ModelRegistry', () => ({
-  ModelRegistry: vi.fn().mockImplementation(() => ({}))
+  ModelRegistry: vi.fn().mockImplementation(() => ({})),
 }));
 
 vi.mock('../../src/services/PromptBuilder', () => ({
@@ -31,9 +31,9 @@ vi.mock('../../src/services/PromptBuilder', () => ({
     selectTemplateForContext: vi.fn().mockReturnValue('default'),
     buildPrompt: vi.fn().mockReturnValue({
       systemPrompt: 'You are a helpful assistant.',
-      userPrompt: 'Test message'
-    })
-  }))
+      userPrompt: 'Test message',
+    }),
+  })),
 }));
 
 vi.mock('../../src/services/ContextEnricher', () => ({
@@ -42,23 +42,23 @@ vi.mock('../../src/services/ContextEnricher', () => ({
       page: {
         courseName: 'Test Course',
         moduleName: 'Test Module',
-        assignmentTitle: null
+        assignmentTitle: null,
       },
-      extractedContent: 'Page content'
-    })
-  }))
+      extractedContent: 'Page content',
+    }),
+  })),
 }));
 
 vi.mock('../../src/services/FAQKnowledgeBase', () => ({
   FAQKnowledgeBase: vi.fn().mockImplementation(() => ({
-    searchSimilarFAQs: vi.fn().mockResolvedValue([])
-  }))
+    searchSimilarFAQs: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 vi.mock('../../src/services/SuggestionEngine', () => ({
   SuggestionEngine: vi.fn().mockImplementation(() => ({
-    generateSuggestions: vi.fn().mockResolvedValue([])
-  }))
+    generateSuggestions: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
@@ -73,16 +73,20 @@ describe('Chat API Handler', () => {
     const mockDO = {
       fetch: vi.fn().mockImplementation((request: Request) => {
         if (request.url.includes('get-history')) {
-          return Promise.resolve(new Response(JSON.stringify([]), { 
-            headers: { 'content-type': 'application/json' }
-          }));
+          return Promise.resolve(
+            new Response(JSON.stringify([]), {
+              headers: { 'content-type': 'application/json' },
+            })
+          );
         }
-        return Promise.resolve(new Response(JSON.stringify({ success: true }), { 
-          headers: { 'content-type': 'application/json' }
-        }));
-      })
+        return Promise.resolve(
+          new Response(JSON.stringify({ success: true }), {
+            headers: { 'content-type': 'application/json' },
+          })
+        );
+      }),
     };
-    
+
     return {
       req: {
         header: (name: string) => {
@@ -97,7 +101,7 @@ describe('Chat API Handler', () => {
         JWT_SECRET: 'test-secret',
         CHAT_CONVERSATIONS: {
           idFromName: vi.fn().mockReturnValue('mock-do-id'),
-          get: vi.fn().mockReturnValue(mockDO)
+          get: vi.fn().mockReturnValue(mockDO),
         },
         AI: {},
         FAQ_INDEX: {},
@@ -115,17 +119,17 @@ describe('Chat API Handler', () => {
                     context_window: 4096,
                     system_prompt: 'You are a helpful educational assistant.',
                     token_limit_per_session: 5000,
-                    tokens_used_today: 1000
-                  })
-                })
+                    tokens_used_today: 1000,
+                  }),
+                }),
               };
             }
             // Mock for token usage query
             if (query.includes('token_usage') && query.includes('SUM')) {
               return {
                 bind: vi.fn().mockReturnValue({
-                  first: vi.fn().mockResolvedValue({ total: 1000 })
-                })
+                  first: vi.fn().mockResolvedValue({ total: 1000 }),
+                }),
               };
             }
             // Mock for learner profile query
@@ -136,17 +140,17 @@ describe('Chat API Handler', () => {
                     learning_style: 'visual',
                     performance_level: 'intermediate',
                     struggle_areas: JSON.stringify(['algebra']),
-                    preferred_difficulty: 'moderate'
-                  })
-                })
+                    preferred_difficulty: 'moderate',
+                  }),
+                }),
               };
             }
             // Mock for token usage insert
             if (query.includes('INSERT INTO token_usage')) {
               return {
                 bind: vi.fn().mockReturnValue({
-                  run: vi.fn().mockResolvedValue({})
-                })
+                  run: vi.fn().mockResolvedValue({}),
+                }),
               };
             }
             // Default mock
@@ -154,11 +158,11 @@ describe('Chat API Handler', () => {
               bind: vi.fn().mockReturnValue({
                 first: vi.fn().mockResolvedValue(null),
                 all: vi.fn().mockResolvedValue([]),
-                run: vi.fn().mockResolvedValue({})
-              })
+                run: vi.fn().mockResolvedValue({}),
+              }),
             };
-          })
-        }
+          }),
+        },
       },
       json: (data: any, status?: number) => ({
         json: data,
@@ -245,7 +249,7 @@ describe('Chat API Handler', () => {
 
     const ctx = createMockContext(body, 'valid-jwt-token');
     ctx.env.JWT_SECRET = undefined;
-    
+
     const response = await handleChatMessage(ctx);
 
     expect(response.status).toBe(500);

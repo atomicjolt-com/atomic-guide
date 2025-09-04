@@ -1,4 +1,4 @@
-import {  describe, it, expect , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
@@ -18,7 +18,7 @@ describe('ChatFAB', () => {
         <ChatFAB />
       </Provider>
     );
-    
+
     const button = screen.getByLabelText('Atomic Guide Assistant - Click for help');
     expect(button).toBeInTheDocument();
     expect(button).toHaveClass(styles.chatFAB);
@@ -31,10 +31,10 @@ describe('ChatFAB', () => {
         <ChatFAB />
       </Provider>
     );
-    
+
     const button = screen.getByLabelText('Atomic Guide Assistant - Click for help');
     fireEvent.click(button);
-    
+
     const state = store.getState();
     expect(state.chat.isOpen).toBe(true);
   });
@@ -46,10 +46,10 @@ describe('ChatFAB', () => {
         <ChatFAB />
       </Provider>
     );
-    
+
     const button = screen.getByLabelText('Atomic Guide Assistant - Click for help');
     fireEvent.keyDown(button, { key: 'Enter' });
-    
+
     const state = store.getState();
     expect(state.chat.isOpen).toBe(true);
   });
@@ -61,10 +61,10 @@ describe('ChatFAB', () => {
         <ChatFAB />
       </Provider>
     );
-    
+
     const button = screen.getByLabelText('Atomic Guide Assistant - Click for help');
     fireEvent.keyDown(button, { key: ' ' });
-    
+
     const state = store.getState();
     expect(state.chat.isOpen).toBe(true);
   });
@@ -72,13 +72,13 @@ describe('ChatFAB', () => {
   it('applies active class when chat is open', () => {
     const store = createMockStore();
     store.dispatch({ type: 'chat/openChat' });
-    
+
     render(
       <Provider store={store}>
         <ChatFAB />
       </Provider>
     );
-    
+
     const button = screen.getByLabelText('Atomic Guide Assistant - Click for help');
     expect(button).toHaveClass(styles.active);
   });
@@ -90,7 +90,7 @@ describe('ChatFAB', () => {
         <ChatFAB />
       </Provider>
     );
-    
+
     const button = screen.getByLabelText('Atomic Guide Assistant - Click for help');
     expect(button).toHaveAttribute('tabIndex', '0');
   });

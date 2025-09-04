@@ -13,6 +13,7 @@ This architecture document combines:
 ## Architectural Approach
 
 **Architecture Pattern:** Vertical Slice Architecture
+
 - Features organized by business domain, not technical layers
 - Shared module for cross-cutting concerns
 - Clear feature boundaries with minimal cross-dependencies

@@ -1,7 +1,10 @@
 @import url('./styles/loader.css');
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   margin: 0;
   padding: 0;
   width: 100%;
@@ -17,7 +20,7 @@ form {
   text-align: center;
 }
 
-input[type="submit"] {
+input[type='submit'] {
   background-color: #3498db;
   color: white;
   border: none;
@@ -28,7 +31,7 @@ input[type="submit"] {
   transition: background-color 0.2s;
 }
 
-input[type="submit"]:hover {
+input[type='submit']:hover {
   background-color: #2980b9;
 }
 
@@ -46,7 +49,11 @@ input[type="submit"]:hover {
 }
 
 .aj-title {
-  font-family: 'Lato', 'Helvetica Nue', Helvetica, Arial sans-serif;
+  font-family:
+    'Lato',
+    'Helvetica Nue',
+    Helvetica,
+    Arial sans-serif;
   font-weight: 400;
   font-size: 20px;
   line-height: 1;
@@ -76,7 +83,11 @@ input[type="submit"]:hover {
 }
 
 .aj-text {
-  font-family: 'Lato', 'Helvetica Nue', Helvetica, Arial sans-serif;
+  font-family:
+    'Lato',
+    'Helvetica Nue',
+    Helvetica,
+    Arial sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 1.4;
@@ -87,43 +98,51 @@ input[type="submit"]:hover {
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
 }
 
-.aj-btn.aj-btn--blue:hover:enabled, a.aj-btn.aj-btn--blue:hover:enabled {
-    box-shadow: 0 3px 4px rgba(0, 50, 150, 0.3);
-    background-color: #2D7DAE;
+.aj-btn.aj-btn--blue:hover:enabled,
+a.aj-btn.aj-btn--blue:hover:enabled {
+  box-shadow: 0 3px 4px rgba(0, 50, 150, 0.3);
+  background-color: #2d7dae;
 }
 
-.aj-btn:hover:enabled, a.aj-btn:hover:enabled {
-    cursor: pointer;
-    background-color: #efefef;
+.aj-btn:hover:enabled,
+a.aj-btn:hover:enabled {
+  cursor: pointer;
+  background-color: #efefef;
 }
 
 .aj-btn.aj-btn--blue:disabled {
-    opacity: 0.5;
+  opacity: 0.5;
 }
 
-.aj-btn.aj-btn--blue, a.aj-btn.aj-btn--blue {
-    font-family: "Lato", "Helvetica Nue", Helvetica, Arial sans-serif;
-    font-weight: 700;
-    background-color: #2D7DAE;
-    border: none;
-    font-size: 16px;
-    line-height: 27px;
-    text-align: left;
-    color: #ffffff;
-    border-radius: none;
-    border: 2px solid #2D7DAE;
+.aj-btn.aj-btn--blue,
+a.aj-btn.aj-btn--blue {
+  font-family:
+    'Lato',
+    'Helvetica Nue',
+    Helvetica,
+    Arial sans-serif;
+  font-weight: 700;
+  background-color: #2d7dae;
+  border: none;
+  font-size: 16px;
+  line-height: 27px;
+  text-align: left;
+  color: #ffffff;
+  border-radius: none;
+  border: 2px solid #2d7dae;
 }
 
-.aj-btn, a.aj-btn {
-    height: 40px;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    justify-content: center;
-    border-radius: 5px;
-    white-space: nowrap;
-    position: relative;
-    isolation: isolate;
-    padding: 0 12px;
-    text-decoration: none;
+.aj-btn,
+a.aj-btn {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  border-radius: 5px;
+  white-space: nowrap;
+  position: relative;
+  isolation: isolate;
+  padding: 0 12px;
+  text-decoration: none;
 }

@@ -5,12 +5,7 @@
 
 import { z } from 'zod';
 import type { D1Database, Ai } from '@cloudflare/workers-types';
-import { 
-  StudentPerformanceProfile, 
-  ConceptMastery, 
-  LearningRecommendation,
-  StrugglePattern 
-} from './PerformanceAnalyticsService';
+import { StudentPerformanceProfile, ConceptMastery, LearningRecommendation, StrugglePattern } from './PerformanceAnalyticsService';
 
 /**
  * Schema for learning style preferences
@@ -80,11 +75,11 @@ export type RecommendationWeights = z.infer<typeof RecommendationWeightsSchema>;
 
 /**
  * Adaptive learning service providing personalized learning recommendations
- * 
+ *
  * Uses rule-based algorithms to analyze student performance, learning patterns,
  * and preferences to generate targeted learning recommendations. Supports
  * optional AI enhancement for recommendation ranking and personalization.
- * 
+ *
  * @class AdaptiveLearningService
  */
 export class AdaptiveLearningService {
@@ -122,7 +117,7 @@ export class AdaptiveLearningService {
 
   /**
    * Generate adaptive learning recommendations for a student
-   * 
+   *
    * @param paramsOrProfile - Adaptive learning parameters or student performance profile
    * @param options - Additional options for recommendation generation
    * @returns Promise resolving to array of learning recommendations
@@ -133,13 +128,13 @@ export class AdaptiveLearningService {
   ): Promise<LearningRecommendation[]> {
     // Convert profile to params if needed
     let params: AdaptiveLearningParams;
-    
+
     if ('overallMastery' in paramsOrProfile) {
       // It's a StudentPerformanceProfile
       const profile = paramsOrProfile as StudentPerformanceProfile;
       const strugglingConcepts: string[] = [];
       const strongConcepts: string[] = [];
-      
+
       profile.conceptMasteries.forEach((mastery, conceptId) => {
         if (mastery.masteryLevel < 0.5) {
           strugglingConcepts.push(conceptId);
@@ -147,7 +142,7 @@ export class AdaptiveLearningService {
           strongConcepts.push(conceptId);
         }
       });
-      
+
       params = {
         studentId: profile.studentId,
         courseId: profile.courseId,
@@ -157,30 +152,23 @@ export class AdaptiveLearningService {
         strugglingConcepts,
         strongConcepts,
         difficultyPreference: 'moderate',
-        goalType: 'mastery'
+        goalType: 'mastery',
       };
     } else {
       params = paramsOrProfile as AdaptiveLearningParams;
     }
-    
+
     const validatedParams = AdaptiveLearningParamsSchema.parse(params);
-    
+
     // Get student performance context
-    const context = await this.getStudentLearningContext(
-      validatedParams.studentId,
-      validatedParams.courseId
-    );
+    const context = await this.getStudentLearningContext(validatedParams.studentId, validatedParams.courseId);
 
     // Determine recommendation strategy based on student state
     const strategy = this.determineRecommendationStrategy(context);
     const weights = AdaptiveLearningService.DEFAULT_WEIGHTS[strategy];
 
     // Generate rule-based recommendations
-    const ruleBasedRecommendations = await this.generateRuleBasedRecommendations(
-      validatedParams,
-      context,
-      weights
-    );
+    const ruleBasedRecommendations = await this.generateRuleBasedRecommendations(validatedParams, context, weights);
 
     // Optionally enhance with AI ranking
     const recommendations = this.useAiEnhancement
@@ -189,10 +177,7 @@ export class AdaptiveLearningService {
 
     // Apply time constraints if specified
     if (validatedParams.timeAvailable) {
-      return this.filterRecommendationsByTime(
-        recommendations,
-        validatedParams.timeAvailable
-      );
+      return this.filterRecommendationsByTime(recommendations, validatedParams.timeAvailable);
     }
 
     return recommendations;
@@ -214,27 +199,28 @@ export class AdaptiveLearningService {
   }> {
     // Get performance profile
     const profileResult = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM student_performance_profiles 
         WHERE tenant_id = ? AND student_id = ? AND course_id = ?
-      `)
+      `
+      )
       .bind(this.tenantId, studentId, courseId)
       .first();
 
-    const profile = profileResult ? {
-      ...profileResult,
-      performanceData: JSON.parse(profileResult.performance_data as string),
-    } as StudentPerformanceProfile : null;
+    const profile = profileResult
+      ? ({
+          ...profileResult,
+          performanceData: JSON.parse(profileResult.performance_data as string),
+        } as StudentPerformanceProfile)
+      : null;
 
     // Get concept masteries
     const conceptMasteriesResult = profile
-      ? await this.db
-          .prepare('SELECT * FROM concept_masteries WHERE profile_id = ?')
-          .bind(profile.id)
-          .all()
+      ? await this.db.prepare('SELECT * FROM concept_masteries WHERE profile_id = ?').bind(profile.id).all()
       : { results: [] };
 
-    const conceptMasteries = conceptMasteriesResult.results.map(row => ({
+    const conceptMasteries = conceptMasteriesResult.results.map((row) => ({
       ...row,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -243,17 +229,19 @@ export class AdaptiveLearningService {
 
     // Get recent struggle patterns
     const strugglesResult = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT * FROM struggle_patterns 
         WHERE tenant_id = ? AND student_id = ? 
           AND detected_at > datetime('now', '-30 days')
           AND (resolved_at IS NULL OR resolved_at > datetime('now', '-7 days'))
         ORDER BY severity DESC, detected_at DESC
-      `)
+      `
+      )
       .bind(this.tenantId, studentId)
       .all();
 
-    const recentStrugglePatterns = strugglesResult.results.map(row => ({
+    const recentStrugglePatterns = strugglesResult.results.map((row) => ({
       ...row,
       conceptsInvolved: row.concepts_involved ? JSON.parse(row.concepts_involved as string) : [],
       suggestedInterventions: row.suggested_interventions ? JSON.parse(row.suggested_interventions as string) : [],
@@ -263,17 +251,16 @@ export class AdaptiveLearningService {
     })) as StrugglePattern[];
 
     // Get learning style
-    const learningStyleResult = await this.db
-      .prepare('SELECT * FROM learning_styles WHERE learner_id = ?')
-      .bind(studentId)
-      .first();
+    const learningStyleResult = await this.db.prepare('SELECT * FROM learning_styles WHERE learner_id = ?').bind(studentId).first();
 
-    const learningStyle = learningStyleResult ? {
-      ...learningStyleResult,
-      detectedPatterns: JSON.parse(learningStyleResult.detected_patterns as string),
-      createdAt: learningStyleResult.created_at,
-      updatedAt: learningStyleResult.updated_at,
-    } as LearningStyle : null;
+    const learningStyle = learningStyleResult
+      ? ({
+          ...learningStyleResult,
+          detectedPatterns: JSON.parse(learningStyleResult.detected_patterns as string),
+          createdAt: learningStyleResult.created_at,
+          updatedAt: learningStyleResult.updated_at,
+        } as LearningStyle)
+      : null;
 
     // Get available content with analysis
     const availableContent = await this.getAvailableContent(courseId);
@@ -302,7 +289,7 @@ export class AdaptiveLearningService {
     if (!context.profile) return 'balanced';
 
     const overallMastery = context.profile.overallMastery;
-    const strugglingConcepts = context.conceptMasteries.filter(cm => cm.masteryLevel < 0.6).length;
+    const strugglingConcepts = context.conceptMasteries.filter((cm) => cm.masteryLevel < 0.6).length;
     const recentStruggles = context.recentStrugglePatterns.length;
 
     // Struggling student strategy
@@ -330,43 +317,23 @@ export class AdaptiveLearningService {
     const recommendations: LearningRecommendation[] = [];
 
     // Rule 1: Address knowledge gaps (mastery < 0.7)
-    const knowledgeGapRecommendations = await this.generateKnowledgeGapRecommendations(
-      context,
-      params,
-      weights.masteryGap
-    );
+    const knowledgeGapRecommendations = await this.generateKnowledgeGapRecommendations(context, params, weights.masteryGap);
     recommendations.push(...knowledgeGapRecommendations);
 
     // Rule 2: Build on strong concepts for advancement
-    const advancementRecommendations = await this.generateAdvancementRecommendations(
-      context,
-      params,
-      weights.learningVelocity
-    );
+    const advancementRecommendations = await this.generateAdvancementRecommendations(context, params, weights.learningVelocity);
     recommendations.push(...advancementRecommendations);
 
     // Rule 3: Address confidence issues
-    const confidenceRecommendations = await this.generateConfidenceRecommendations(
-      context,
-      params,
-      weights.confidenceLevel
-    );
+    const confidenceRecommendations = await this.generateConfidenceRecommendations(context, params, weights.confidenceLevel);
     recommendations.push(...confidenceRecommendations);
 
     // Rule 4: Resolve struggle patterns
-    const struggleRecommendations = await this.generateStruggleRecommendations(
-      context,
-      params,
-      weights.strugglingPattern
-    );
+    const struggleRecommendations = await this.generateStruggleRecommendations(context, params, weights.strugglingPattern);
     recommendations.push(...struggleRecommendations);
 
     // Rule 5: Learning style optimization
-    const styleRecommendations = await this.generateLearningStyleRecommendations(
-      context,
-      params,
-      weights.learningStyle
-    );
+    const styleRecommendations = await this.generateLearningStyleRecommendations(context, params, weights.learningStyle);
     recommendations.push(...styleRecommendations);
 
     // Sort by calculated priority scores
@@ -388,10 +355,8 @@ export class AdaptiveLearningService {
 
     for (const concept of lowMasteryConcepts.slice(0, 3)) {
       const prerequisites = context.prerequisiteMap.get(concept.conceptId) || [];
-      const unmetPrerequisites = prerequisites.filter(prereq => {
-        const prereqMastery = context.conceptMasteries.find((cm: ConceptMastery) => 
-          cm.conceptId === prereq
-        );
+      const unmetPrerequisites = prerequisites.filter((prereq) => {
+        const prereqMastery = context.conceptMasteries.find((cm: ConceptMastery) => cm.conceptId === prereq);
         return !prereqMastery || prereqMastery.masteryLevel < 0.8;
       });
 
@@ -408,7 +373,7 @@ export class AdaptiveLearningService {
           `Review fundamental concepts for ${concept.conceptName}`,
           'Complete prerequisite practice exercises',
           'Watch explanatory videos',
-          'Take diagnostic assessment'
+          'Take diagnostic assessment',
         ],
         estimatedTimeMinutes: Math.ceil((0.8 - concept.masteryLevel) * 60),
         contentReferences: await this.findRelevantContent(targetConcepts, 'review'),
@@ -433,9 +398,7 @@ export class AdaptiveLearningService {
   ): Promise<LearningRecommendation[]> {
     const recommendations: LearningRecommendation[] = [];
     const strongConcepts = context.conceptMasteries
-      .filter((cm: ConceptMastery) => 
-        cm.masteryLevel >= 0.8 && cm.improvementTrend === 'improving'
-      )
+      .filter((cm: ConceptMastery) => cm.masteryLevel >= 0.8 && cm.improvementTrend === 'improving')
       .sort((a: ConceptMastery, b: ConceptMastery) => b.masteryLevel - a.masteryLevel);
 
     for (const concept of strongConcepts.slice(0, 2)) {
@@ -453,7 +416,7 @@ export class AdaptiveLearningService {
             `Explore advanced applications of ${concept.conceptName}`,
             'Complete challenge problems',
             'Begin advanced topic sequence',
-            'Consider peer tutoring opportunities'
+            'Consider peer tutoring opportunities',
           ],
           estimatedTimeMinutes: 45,
           contentReferences: await this.findRelevantContent(advancedConcepts, 'advance'),
@@ -491,7 +454,7 @@ export class AdaptiveLearningService {
           'Use self-assessment tools',
           'Join study groups for peer support',
           'Practice time management techniques',
-          'Break complex problems into smaller steps'
+          'Break complex problems into smaller steps',
         ],
         estimatedTimeMinutes: 30,
         contentReferences: [],
@@ -518,7 +481,7 @@ export class AdaptiveLearningService {
 
     for (const pattern of context.recentStrugglePatterns.slice(0, 2)) {
       const recommendationType = this.mapPatternToRecommendationType(pattern.patternType);
-      
+
       recommendations.push({
         id: crypto.randomUUID(),
         profileId: context.profile?.id || '',
@@ -527,10 +490,7 @@ export class AdaptiveLearningService {
         conceptsInvolved: pattern.conceptsInvolved,
         suggestedActions: pattern.suggestedInterventions,
         estimatedTimeMinutes: Math.ceil(pattern.severity * 60),
-        contentReferences: await this.findRelevantContent(
-          pattern.conceptsInvolved, 
-          recommendationType
-        ),
+        contentReferences: await this.findRelevantContent(pattern.conceptsInvolved, recommendationType),
         reasoning: `Addressing ${pattern.patternType} pattern with ${Math.round(pattern.severity * 100)}% severity`,
         status: 'active',
         createdAt: new Date().toISOString(),
@@ -555,9 +515,7 @@ export class AdaptiveLearningService {
     if (context.learningStyle && weight > 0) {
       const styleType = context.learningStyle.styleType;
       const optimizedContent = context.availableContent
-        .filter((content: ContentRecommendation) => 
-          this.isContentSuitableForLearningStyle(content, styleType)
-        )
+        .filter((content: ContentRecommendation) => this.isContentSuitableForLearningStyle(content, styleType))
         .slice(0, 2);
 
       if (optimizedContent.length > 0) {
@@ -570,10 +528,10 @@ export class AdaptiveLearningService {
           suggestedActions: [
             `Engage with ${styleType} learning materials`,
             'Focus on preferred content formats',
-            'Use learning style strengths'
+            'Use learning style strengths',
           ],
           estimatedTimeMinutes: optimizedContent.reduce(
-            (total: number, content: ContentRecommendation) => total + content.estimatedTime, 
+            (total: number, content: ContentRecommendation) => total + content.estimatedTime,
             0
           ),
           contentReferences: optimizedContent.map((c: ContentRecommendation) => c.contentId),
@@ -592,10 +550,7 @@ export class AdaptiveLearningService {
   /**
    * Enhance recommendations with AI ranking (optional)
    */
-  private async enhanceRecommendationsWithAI(
-    recommendations: LearningRecommendation[],
-    context: any
-  ): Promise<LearningRecommendation[]> {
+  private async enhanceRecommendationsWithAI(recommendations: LearningRecommendation[], context: any): Promise<LearningRecommendation[]> {
     if (!this.useAiEnhancement || recommendations.length === 0) {
       return recommendations;
     }
@@ -626,7 +581,7 @@ export class AdaptiveLearningService {
 Student Context: ${JSON.stringify(aiContext, null, 2)}
 
 Recommendations: ${JSON.stringify(
-        recommendations.map(r => ({
+        recommendations.map((r) => ({
           id: r.id,
           type: r.recommendationType,
           priority: r.priority,
@@ -656,22 +611,22 @@ Please rank these recommendations from most to least effective for this student,
       if (aiResponse?.response) {
         const rankedIds = JSON.parse(aiResponse.response as string);
         const reorderedRecommendations: LearningRecommendation[] = [];
-        
+
         // Add recommendations in AI-suggested order
         for (const id of rankedIds) {
-          const rec = recommendations.find(r => r.id === id);
+          const rec = recommendations.find((r) => r.id === id);
           if (rec) {
             reorderedRecommendations.push(rec);
           }
         }
-        
+
         // Add any missed recommendations at the end
         for (const rec of recommendations) {
-          if (!reorderedRecommendations.find(r => r.id === rec.id)) {
+          if (!reorderedRecommendations.find((r) => r.id === rec.id)) {
             reorderedRecommendations.push(rec);
           }
         }
-        
+
         return reorderedRecommendations;
       }
     } catch (error) {
@@ -684,10 +639,7 @@ Please rank these recommendations from most to least effective for this student,
   /**
    * Rank recommendations by priority and effectiveness
    */
-  private rankRecommendations(
-    recommendations: LearningRecommendation[],
-    _params: AdaptiveLearningParams
-  ): LearningRecommendation[] {
+  private rankRecommendations(recommendations: LearningRecommendation[], _params: AdaptiveLearningParams): LearningRecommendation[] {
     return recommendations.sort((a, b) => {
       // Primary sort: Priority (high > medium > low)
       const priorityScore = { high: 3, medium: 2, low: 1 };
@@ -709,10 +661,7 @@ Please rank these recommendations from most to least effective for this student,
   /**
    * Filter recommendations by available time
    */
-  private filterRecommendationsByTime(
-    recommendations: LearningRecommendation[],
-    timeAvailable: number
-  ): LearningRecommendation[] {
+  private filterRecommendationsByTime(recommendations: LearningRecommendation[], timeAvailable: number): LearningRecommendation[] {
     const filtered: LearningRecommendation[] = [];
     let remainingTime = timeAvailable;
 
@@ -735,7 +684,8 @@ Please rank these recommendations from most to least effective for this student,
 
   private async getAvailableContent(courseId: string): Promise<ContentRecommendation[]> {
     const result = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT 
           lc.id as content_id,
           lc.page_type,
@@ -749,11 +699,12 @@ Please rank these recommendations from most to least effective for this student,
         WHERE ccm.course_id = ? AND lc.tenant_id = ?
         ORDER BY ca.analysis_confidence DESC
         LIMIT 50
-      `)
+      `
+      )
       .bind(courseId, this.tenantId)
       .all();
 
-    return result.results.map(row => ({
+    return result.results.map((row) => ({
       contentId: row.content_id as string,
       contentType: this.mapPageTypeToContentType(row.page_type as string),
       title: `Content ${row.content_id}`,
@@ -769,12 +720,14 @@ Please rank these recommendations from most to least effective for this student,
 
   private async buildPrerequisiteMap(courseId: string): Promise<Map<string, string[]>> {
     const result = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT source_concept_id, target_concept_id 
         FROM concept_relationships
         WHERE tenant_id = ? AND course_id = ? 
           AND relationship_type = 'prerequisite'
-      `)
+      `
+      )
       .bind(this.tenantId, courseId)
       .all();
 
@@ -782,7 +735,7 @@ Please rank these recommendations from most to least effective for this student,
     for (const row of result.results) {
       const target = row.target_concept_id as string;
       const source = row.source_concept_id as string;
-      
+
       if (!map.has(target)) {
         map.set(target, []);
       }
@@ -794,39 +747,40 @@ Please rank these recommendations from most to least effective for this student,
 
   private async findAdvancedConcepts(conceptId: string): Promise<string[]> {
     const result = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT target_concept_id 
         FROM concept_relationships
         WHERE tenant_id = ? AND source_concept_id = ? 
           AND relationship_type = 'builds_upon'
         ORDER BY strength DESC
         LIMIT 3
-      `)
+      `
+      )
       .bind(this.tenantId, conceptId)
       .all();
 
-    return result.results.map(row => row.target_concept_id as string);
+    return result.results.map((row) => row.target_concept_id as string);
   }
 
-  private async findRelevantContent(
-    conceptIds: string[],
-    _recommendationType: string
-  ): Promise<string[]> {
+  private async findRelevantContent(conceptIds: string[], _recommendationType: string): Promise<string[]> {
     if (conceptIds.length === 0) return [];
 
     const placeholders = conceptIds.map(() => '?').join(',');
     const result = await this.db
-      .prepare(`
+      .prepare(
+        `
         SELECT DISTINCT ccm.content_id
         FROM course_content_mapping ccm
         WHERE ccm.content_id IN (${placeholders})
           AND ccm.tenant_id = ?
         LIMIT 5
-      `)
+      `
+      )
       .bind(...conceptIds, this.tenantId)
       .all();
 
-    return result.results.map(row => row.content_id as string);
+    return result.results.map((row) => row.content_id as string);
   }
 
   private mapPatternToRecommendationType(patternType: string): 'review' | 'practice' | 'advance' | 'seek_help' {
@@ -844,10 +798,7 @@ Please rank these recommendations from most to least effective for this student,
     }
   }
 
-  private isContentSuitableForLearningStyle(
-    content: ContentRecommendation,
-    styleType: string
-  ): boolean {
+  private isContentSuitableForLearningStyle(content: ContentRecommendation, styleType: string): boolean {
     const suitability = {
       visual: ['interactive', 'video'],
       auditory: ['video', 'reading'],

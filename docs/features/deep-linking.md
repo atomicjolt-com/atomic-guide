@@ -15,7 +15,7 @@ sequenceDiagram
     participant LMS
     participant User
     participant AtomicGuide
-    
+
     LMS->>User: Instructor clicks "Add Content"
     User->>LMS: Initiates deep linking
     LMS->>AtomicGuide: Deep Linking Request (JWT)
@@ -31,12 +31,12 @@ sequenceDiagram
 
 ```typescript
 enum ContentType {
-  ASSESSMENT = 'assessment',        // Quizzes and exams
-  CHAT_WIDGET = 'chat',            // AI chat assistant
-  ANALYTICS = 'analytics',         // Dashboard views
-  RESOURCE = 'resource',           // Learning materials
-  ACTIVITY = 'activity',           // Interactive exercises
-  MODULE = 'module'                // Complete learning modules
+  ASSESSMENT = 'assessment', // Quizzes and exams
+  CHAT_WIDGET = 'chat', // AI chat assistant
+  ANALYTICS = 'analytics', // Dashboard views
+  RESOURCE = 'resource', // Learning materials
+  ACTIVITY = 'activity', // Interactive exercises
+  MODULE = 'module', // Complete learning modules
 }
 ```
 
@@ -45,33 +45,35 @@ enum ContentType {
 ```typescript
 interface DeepLinkContentItem {
   '@context': 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem';
-  '@graph': [{
-    '@type': 'LtiLinkItem';
-    mediaType: 'application/vnd.ims.lti.v1.ltilink';
-    title: string;
-    text?: string;
-    url: string;
-    icon?: {
-      '@id': string;
-      width?: number;
-      height?: number;
-    };
-    thumbnail?: {
-      '@id': string;
-      width?: number;
-      height?: number;
-    };
-    lineItem?: {
-      scoreMaximum: number;
-      label: string;
-      resourceId: string;
-    };
-    custom?: Record<string, any>;
-    iframe?: {
-      width?: number;
-      height?: number;
-    };
-  }];
+  '@graph': [
+    {
+      '@type': 'LtiLinkItem';
+      mediaType: 'application/vnd.ims.lti.v1.ltilink';
+      title: string;
+      text?: string;
+      url: string;
+      icon?: {
+        '@id': string;
+        width?: number;
+        height?: number;
+      };
+      thumbnail?: {
+        '@id': string;
+        width?: number;
+        height?: number;
+      };
+      lineItem?: {
+        scoreMaximum: number;
+        label: string;
+        resourceId: string;
+      };
+      custom?: Record<string, any>;
+      iframe?: {
+        width?: number;
+        height?: number;
+      };
+    },
+  ];
 }
 ```
 
@@ -85,34 +87,30 @@ export class DeepLinkingHandler {
   async handleDeepLinkingRequest(request: Request): Promise<Response> {
     // 1. Validate incoming JWT
     const token = await this.validatePlatformJWT(request);
-    
+
     // 2. Extract deep linking claim
-    const deepLinkingSettings = token[
-      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'
-    ];
-    
+    const deepLinkingSettings = token['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'];
+
     // 3. Store state for return
     await this.storeDeepLinkingState({
       deploymentId: token.deployment_id,
       returnUrl: deepLinkingSettings.deep_link_return_url,
       acceptTypes: deepLinkingSettings.accept_types,
-      acceptPresentationTargets: deepLinkingSettings.accept_presentation_document_targets
+      acceptPresentationTargets: deepLinkingSettings.accept_presentation_document_targets,
     });
-    
+
     // 4. Redirect to content selection UI
     return Response.redirect('/deeplink/select');
   }
 
-  async createContentItemResponse(
-    selections: ContentSelection[]
-  ): Promise<string> {
+  async createContentItemResponse(selections: ContentSelection[]): Promise<string> {
     const contentItems = selections.map(this.createContentItem);
-    
+
     const message = {
       'https://purl.imsglobal.org/spec/lti-dl/claim/content_items': contentItems,
-      'https://purl.imsglobal.org/spec/lti-dl/claim/msg': 'Content successfully added'
+      'https://purl.imsglobal.org/spec/lti-dl/claim/msg': 'Content successfully added',
     };
-    
+
     return this.signJWT(message);
   }
 }
@@ -144,19 +142,19 @@ export function DeepLinkSelector() {
 
   return (
     <div className="deep-link-selector">
-      <ContentTypeTabs 
+      <ContentTypeTabs
         value={contentType}
         onChange={setContentType}
       />
-      
+
       <ContentGrid
         items={availableContent[contentType]}
         onSelect={handleSelection}
         selected={selectedItems}
       />
-      
+
       <SelectionSummary items={selectedItems} />
-      
+
       <button onClick={handleSubmit}>
         Add to Course
       </button>
@@ -247,7 +245,7 @@ class MoodleDeepLinkAdapter {
       // Moodle-specific properties
       module_type: this.mapToMoodleType(item.type),
       section: item.custom?.section || 0,
-      visible: item.custom?.visible ?? true
+      visible: item.custom?.visible ?? true,
     };
   }
 }
@@ -263,7 +261,7 @@ class DeepLinkingSecurity {
     // 1. Verify signature with platform public key
     const publicKey = await this.getPlatformPublicKey();
     const verified = await this.verifyJWT(token, publicKey);
-    
+
     // 2. Validate required claims
     this.validateRequiredClaims(verified, [
       'iss',
@@ -272,15 +270,14 @@ class DeepLinkingSecurity {
       'iat',
       'nonce',
       'https://purl.imsglobal.org/spec/lti/claim/deployment_id',
-      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'
+      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings',
     ]);
-    
+
     // 3. Check message type
-    if (verified['https://purl.imsglobal.org/spec/lti/claim/message_type'] 
-        !== 'LtiDeepLinkingRequest') {
+    if (verified['https://purl.imsglobal.org/spec/lti/claim/message_type'] !== 'LtiDeepLinkingRequest') {
       throw new Error('Invalid message type');
     }
-    
+
     return verified;
   }
 }
@@ -301,7 +298,7 @@ async signContentItems(items: ContentItem[]): Promise<string> {
     'https://purl.imsglobal.org/spec/lti/claim/version': '1.3.0',
     'https://purl.imsglobal.org/spec/lti-dl/claim/content_items': items
   };
-  
+
   return await this.signJWT(payload, this.privateKey);
 }
 ```
@@ -317,7 +314,7 @@ enum DeepLinkingError {
   INVALID_CONTENT_TYPE = 'Content type not accepted by platform',
   AUTHORIZATION_FAILED = 'User not authorized for deep linking',
   PLATFORM_ERROR = 'Platform returned an error',
-  TIMEOUT = 'Deep linking session timeout'
+  TIMEOUT = 'Deep linking session timeout',
 }
 
 class DeepLinkingErrorHandler {
@@ -325,9 +322,9 @@ class DeepLinkingErrorHandler {
     const errorResponse = {
       error: error,
       timestamp: new Date().toISOString(),
-      suggestion: this.getSuggestion(error)
+      suggestion: this.getSuggestion(error),
     };
-    
+
     // Return to platform with error
     return this.createErrorResponse(errorResponse);
   }
@@ -387,22 +384,21 @@ describe('Deep Linking', () => {
   it('should handle deep linking request', async () => {
     const jwt = createMockDeepLinkingJWT();
     const response = await handleDeepLinkingRequest(jwt);
-    
+
     expect(response.status).toBe(302);
     expect(response.headers.get('Location')).toContain('/deeplink/select');
   });
-  
+
   it('should create valid content items', async () => {
     const selections = [
       { type: 'assessment', id: 'quiz-1' },
-      { type: 'chat', id: 'widget-1' }
+      { type: 'chat', id: 'widget-1' },
     ];
-    
+
     const jwt = await createContentItemResponse(selections);
     const decoded = decodeJWT(jwt);
-    
-    expect(decoded['https://purl.imsglobal.org/spec/lti-dl/claim/content_items'])
-      .toHaveLength(2);
+
+    expect(decoded['https://purl.imsglobal.org/spec/lti-dl/claim/content_items']).toHaveLength(2);
   });
 });
 ```
@@ -410,6 +406,7 @@ describe('Deep Linking', () => {
 ## Best Practices
 
 ### Do's
+
 - ✅ Always validate JWT signatures
 - ✅ Check accept_types before showing content
 - ✅ Provide clear content descriptions
@@ -417,6 +414,7 @@ describe('Deep Linking', () => {
 - ✅ Handle errors gracefully
 
 ### Don'ts
+
 - ❌ Don't store sensitive data in custom parameters
 - ❌ Don't exceed platform selection limits
 - ❌ Don't assume platform capabilities
@@ -425,23 +423,23 @@ describe('Deep Linking', () => {
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Content not appearing | Check accept_types match |
-| JWT validation fails | Verify platform public key |
-| Return URL error | Validate deep_link_return_url |
-| Grade sync not working | Ensure lineItem included |
-| Wrong presentation | Check accept_presentation_document_targets |
+| Issue                  | Solution                                   |
+| ---------------------- | ------------------------------------------ |
+| Content not appearing  | Check accept_types match                   |
+| JWT validation fails   | Verify platform public key                 |
+| Return URL error       | Validate deep_link_return_url              |
+| Grade sync not working | Ensure lineItem included                   |
+| Wrong presentation     | Check accept_presentation_document_targets |
 
 ## Platform Compatibility
 
-| Platform | Version | Deep Linking | Grade Passback | Notes |
-|----------|---------|--------------|----------------|-------|
-| Canvas | Latest | ✅ | ✅ | Full support |
-| Moodle | 3.9+ | ✅ | ✅ | Full support |
-| Blackboard | Learn 3.0+ | ✅ | ✅ | Full support |
-| D2L Brightspace | 20.20+ | ✅ | ✅ | Full support |
-| Schoology | Latest | ✅ | ⚠️ | Limited AGS |
+| Platform        | Version    | Deep Linking | Grade Passback | Notes        |
+| --------------- | ---------- | ------------ | -------------- | ------------ |
+| Canvas          | Latest     | ✅           | ✅             | Full support |
+| Moodle          | 3.9+       | ✅           | ✅             | Full support |
+| Blackboard      | Learn 3.0+ | ✅           | ✅             | Full support |
+| D2L Brightspace | 20.20+     | ✅           | ✅             | Full support |
+| Schoology       | Latest     | ✅           | ⚠️             | Limited AGS  |
 
 ## Future Enhancements
 

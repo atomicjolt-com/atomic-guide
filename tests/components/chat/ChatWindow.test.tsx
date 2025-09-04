@@ -1,4 +1,4 @@
-import {  describe, it, expect , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '../../../client/store';
@@ -19,7 +19,7 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>,
+      </Provider>
     );
 
     expect(screen.queryByText('Atomic Guide')).not.toBeInTheDocument();
@@ -30,7 +30,7 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>,
+      </Provider>
     );
 
     expect(screen.getByText('Atomic Guide')).toBeInTheDocument();
@@ -41,7 +41,7 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>,
+      </Provider>
     );
 
     const minimizeButton = screen.getByLabelText('Minimize chat');
@@ -58,7 +58,7 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>,
+      </Provider>
     );
 
     const maximizeButton = screen.getByLabelText('Maximize chat');
@@ -73,7 +73,7 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>,
+      </Provider>
     );
 
     const closeButton = screen.getByLabelText('Close chat');
@@ -90,7 +90,7 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>,
+      </Provider>
     );
 
     expect(screen.queryByRole('log')).not.toBeInTheDocument();
@@ -102,7 +102,7 @@ describe('ChatWindow', () => {
     render(
       <Provider store={store}>
         <ChatWindow />
-      </Provider>,
+      </Provider>
     );
 
     expect(screen.getByRole('log')).toBeInTheDocument();

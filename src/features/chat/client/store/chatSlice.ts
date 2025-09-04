@@ -36,8 +36,8 @@ const initialState: ChatState = {
     math_notation_style: 'latex',
     code_highlight_theme: 'light',
     diagram_complexity: 'detailed',
-    bandwidth_preference: 'high'
-  }
+    bandwidth_preference: 'high',
+  },
 };
 
 const chatSlice = createSlice({

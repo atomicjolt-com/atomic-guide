@@ -9,12 +9,14 @@ The assessment system enables instructors to create AI-generated quizzes, assign
 ## Key Features
 
 ### AI-Powered Generation
+
 - **Intelligent Question Creation**: Generate questions based on course content
 - **Multiple Question Types**: MCQ, essay, fill-in-blank, matching, coding
 - **Adaptive Difficulty**: Questions adjust based on learning objectives
 - **Context-Aware**: Uses extracted course materials for relevance
 
 ### Deep Linking Integration
+
 - **LTI 1.3 Deep Linking 2.0**: Full protocol implementation
 - **Seamless Embedding**: Direct integration into LMS assignments
 - **Automatic Authentication**: Single sign-on from LMS
@@ -23,12 +25,14 @@ The assessment system enables instructors to create AI-generated quizzes, assign
 ### Assessment Types
 
 #### Formative Assessments
+
 - Practice quizzes with immediate feedback
 - Self-paced learning checks
 - Unlimited attempts
 - Detailed explanations
 
 #### Summative Assessments
+
 - Graded assignments and exams
 - Time limits and attempt restrictions
 - Academic integrity features
@@ -65,15 +69,15 @@ interface AssessmentConfig {
 
 ### Supported Question Types
 
-| Type | Description | AI Generation | Auto-Grade |
-|------|-------------|---------------|------------|
-| Multiple Choice | Single/multiple correct answers | ✅ | ✅ |
-| True/False | Binary choice questions | ✅ | ✅ |
-| Essay | Long-form text responses | ✅ | Partial |
-| Fill in Blank | Complete missing text | ✅ | ✅ |
-| Matching | Connect related items | ✅ | ✅ |
-| Code | Programming exercises | ✅ | ✅ |
-| Calculation | Mathematical problems | ✅ | ✅ |
+| Type            | Description                     | AI Generation | Auto-Grade |
+| --------------- | ------------------------------- | ------------- | ---------- |
+| Multiple Choice | Single/multiple correct answers | ✅            | ✅         |
+| True/False      | Binary choice questions         | ✅            | ✅         |
+| Essay           | Long-form text responses        | ✅            | Partial    |
+| Fill in Blank   | Complete missing text           | ✅            | ✅         |
+| Matching        | Connect related items           | ✅            | ✅         |
+| Code            | Programming exercises           | ✅            | ✅         |
+| Calculation     | Mathematical problems           | ✅            | ✅         |
 
 ## Deep Linking Workflow
 
@@ -120,6 +124,7 @@ graph LR
 ### API Endpoints
 
 #### Create Assessment
+
 ```typescript
 POST /api/assessments/create
 Authorization: Bearer <jwt>
@@ -144,6 +149,7 @@ Response:
 ```
 
 #### Launch Assessment
+
 ```typescript
 POST /lti/assessment/launch
 Content-Type: application/x-www-form-urlencoded
@@ -314,7 +320,7 @@ AssessmentEngine.registerQuestionType({
   component: DiagramQuestion,
   validator: validateDiagram,
   scorer: scoreDiagram,
-  generator: generateDiagramQuestion
+  generator: generateDiagramQuestion,
 });
 ```
 
@@ -335,12 +341,12 @@ npm run test:grades -- --concurrent=100
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Deep link fails | Invalid JWT | Check platform configuration |
-| Grades not syncing | Missing AGS scope | Update LTI registration |
-| Questions not generating | AI service error | Check model availability |
-| Preview not loading | Browser blocking popup | Allow popups for domain |
+| Issue                    | Cause                  | Solution                     |
+| ------------------------ | ---------------------- | ---------------------------- |
+| Deep link fails          | Invalid JWT            | Check platform configuration |
+| Grades not syncing       | Missing AGS scope      | Update LTI registration      |
+| Questions not generating | AI service error       | Check model availability     |
+| Preview not loading      | Browser blocking popup | Allow popups for domain      |
 
 ## Future Enhancements
 

@@ -18,7 +18,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
   onLoad,
   onError,
   onInteraction,
-  className = ''
+  className = '',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +37,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
       // Sanitize the LaTeX content to prevent XSS
       const sanitizedContent = DOMPurify.sanitize(content, {
         ALLOWED_TAGS: [],
-        ALLOWED_ATTR: []
+        ALLOWED_ATTR: [],
       });
 
       // Render LaTeX with KaTeX
@@ -48,13 +48,13 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
         trust: false, // Security: don't allow \href and other potentially dangerous commands
         maxSize: 10, // Limit expansion size
         maxExpand: 1000, // Limit macro expansion
-        strict: 'warn' // Warn about deprecated/non-standard LaTeX
+        strict: 'warn', // Warn about deprecated/non-standard LaTeX
       });
 
       // Sanitize the rendered HTML as well
       const sanitizedHTML = DOMPurify.sanitize(rendered, {
         ADD_TAGS: ['math', 'mi', 'mo', 'mn', 'mrow', 'msup', 'msub', 'mfrac', 'msqrt'], // Allow MathML
-        ADD_ATTR: ['xmlns']
+        ADD_ATTR: ['xmlns'],
       });
 
       containerRef.current.innerHTML = sanitizedHTML;
@@ -63,13 +63,12 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
       const renderTime = endTime - startTime;
       setLoadTime(renderTime);
       onLoad?.(renderTime);
-      
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to render LaTeX';
       setHasError(true);
       setErrorMessage(errorMsg);
       onError?.(error instanceof Error ? error : new Error(errorMsg));
-      
+
       // Fallback to plain text
       if (containerRef.current) {
         containerRef.current.innerHTML = `<code>${DOMPurify.sanitize(content)}</code>`;
@@ -94,7 +93,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
 
   const handleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     // Create modal for fullscreen view
     const modal = document.createElement('div');
     modal.className = 'katex-fullscreen-modal';
@@ -141,7 +140,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
 
     content.appendChild(closeButton);
     modal.appendChild(content);
-    
+
     // Close on outside click
     modal.onclick = (e) => {
       if (e.target === modal) {
@@ -156,13 +155,16 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
   if (isLoading) {
     return (
       <div className={`katex-loading ${className}`} style={{ minHeight: inline ? '1.2em' : '2em' }}>
-        <div className="katex-skeleton" style={{
-          background: '#f0f0f0',
-          borderRadius: '4px',
-          height: inline ? '1.2em' : '2em',
-          width: inline ? '4em' : '100%',
-          animation: 'katex-pulse 1.5s ease-in-out infinite'
-        }} />
+        <div
+          className="katex-skeleton"
+          style={{
+            background: '#f0f0f0',
+            borderRadius: '4px',
+            height: inline ? '1.2em' : '2em',
+            width: inline ? '4em' : '100%',
+            animation: 'katex-pulse 1.5s ease-in-out infinite',
+          }}
+        />
       </div>
     );
   }
@@ -172,47 +174,42 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
       <div className={`katex-error ${className}`}>
         <div className="error-content" style={{ color: '#dc3545', fontSize: '0.9em' }}>
           <span>⚠️ Math rendering failed</span>
-          <button 
-            onClick={() => renderMath()} 
-            style={{ 
-              marginLeft: '8px', 
-              padding: '2px 8px', 
-              border: '1px solid #dc3545', 
-              background: 'white', 
+          <button
+            onClick={() => renderMath()}
+            style={{
+              marginLeft: '8px',
+              padding: '2px 8px',
+              border: '1px solid #dc3545',
+              background: 'white',
               color: '#dc3545',
               borderRadius: '4px',
               cursor: 'pointer',
-              fontSize: '0.8em'
+              fontSize: '0.8em',
             }}
           >
             Retry
           </button>
         </div>
-        {errorMessage && (
-          <div style={{ fontSize: '0.8em', color: '#6c757d', marginTop: '4px' }}>
-            {errorMessage}
-          </div>
-        )}
+        {errorMessage && <div style={{ fontSize: '0.8em', color: '#6c757d', marginTop: '4px' }}>{errorMessage}</div>}
       </div>
     );
   }
 
   return (
     <div className={`katex-container ${inline ? 'katex-inline' : 'katex-display'} ${className}`}>
-      <div 
-        ref={containerRef}
-        onClick={onInteraction}
-        style={{ cursor: inline ? 'default' : 'pointer' }}
-      />
-      
+      <div ref={containerRef} onClick={onInteraction} style={{ cursor: inline ? 'default' : 'pointer' }} />
+
       {!inline && (
-        <div className="katex-controls" style={{
-          display: 'none',
-          position: 'absolute',
-          top: '4px',
-          right: '4px',
-          gap: '4px'
-        }}>
+        <div
+          className="katex-controls"
+          style={{
+            display: 'none',
+            position: 'absolute',
+            top: '4px',
+            right: '4px',
+            gap: '4px',
+          }}
+        >
           <button
             onClick={handleCopyToClipboard}
             title="Copy LaTeX to clipboard"
@@ -222,7 +219,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
               background: 'white',
               borderRadius: '4px',
               cursor: 'pointer',
-              fontSize: '12px'
+              fontSize: '12px',
             }}
           >
             Copy
@@ -236,14 +233,14 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
               background: 'white',
               borderRadius: '4px',
               cursor: 'pointer',
-              fontSize: '12px'
+              fontSize: '12px',
             }}
           >
             ⛶
           </button>
         </div>
       )}
-      
+
       <style>{`
         .katex-container {
           position: relative;

@@ -103,7 +103,7 @@ const deepLinkSlice = createSlice({
      */
     updateQuestion: (state, action: PayloadAction<{ id: string; updates: Partial<AssessmentQuestion> }>) => {
       const { id, updates } = action.payload;
-      const index = state.assessmentConfig.questions.findIndex(q => q.id === id);
+      const index = state.assessmentConfig.questions.findIndex((q) => q.id === id);
       if (index !== -1) {
         state.assessmentConfig.questions[index] = {
           ...state.assessmentConfig.questions[index],
@@ -116,9 +116,7 @@ const deepLinkSlice = createSlice({
      * Removes a question by ID
      */
     removeQuestion: (state, action: PayloadAction<string>) => {
-      state.assessmentConfig.questions = state.assessmentConfig.questions.filter(
-        q => q.id !== action.payload
-      );
+      state.assessmentConfig.questions = state.assessmentConfig.questions.filter((q) => q.id !== action.payload);
     },
 
     /**
@@ -205,11 +203,9 @@ export const {
 export default deepLinkSlice.reducer;
 
 // Selector functions
-export const selectAssessmentConfig = (state: { deepLink: DeepLinkState }): AssessmentConfig =>
-  state.deepLink.assessmentConfig;
+export const selectAssessmentConfig = (state: { deepLink: DeepLinkState }): AssessmentConfig => state.deepLink.assessmentConfig;
 
-export const selectPageContent = (state: { deepLink: DeepLinkState }): LMSContentExtraction | null =>
-  state.deepLink.pageContent;
+export const selectPageContent = (state: { deepLink: DeepLinkState }): LMSContentExtraction | null => state.deepLink.pageContent;
 
 export const selectDeepLinkStatus = (state: { deepLink: DeepLinkState }) => ({
   isExtracting: state.deepLink.isExtracting,
@@ -219,5 +215,4 @@ export const selectDeepLinkStatus = (state: { deepLink: DeepLinkState }) => ({
   successMessage: state.deepLink.successMessage,
 });
 
-export const selectQuestions = (state: { deepLink: DeepLinkState }): AssessmentQuestion[] =>
-  state.deepLink.assessmentConfig.questions;
+export const selectQuestions = (state: { deepLink: DeepLinkState }): AssessmentQuestion[] => state.deepLink.assessmentConfig.questions;

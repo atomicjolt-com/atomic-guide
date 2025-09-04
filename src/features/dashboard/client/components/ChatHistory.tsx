@@ -30,12 +30,7 @@ interface ChatHistoryProps {
 
 // Simple text sanitization to prevent XSS
 function sanitizeText(text: string): string {
-  return text
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g, '&#x2F;');
 }
 
 export default function ChatHistory({
@@ -43,7 +38,7 @@ export default function ChatHistory({
   isLoading = false,
   onConversationSelect,
   onConversationDelete,
-  onSearch
+  onSearch,
 }: ChatHistoryProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -52,8 +47,8 @@ export default function ChatHistory({
 
   const allTopics = useMemo(() => {
     const topicsSet = new Set<string>();
-    conversations.forEach(conv => {
-      conv.topics.forEach(topic => topicsSet.add(topic));
+    conversations.forEach((conv) => {
+      conv.topics.forEach((topic) => topicsSet.add(topic));
     });
     return Array.from(topicsSet).sort();
   }, [conversations]);
@@ -62,54 +57,65 @@ export default function ChatHistory({
     let filtered = conversations;
 
     if (searchQuery) {
-      filtered = filtered.filter(conv =>
-        conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.topics.some(topic => topic.toLowerCase().includes(searchQuery.toLowerCase()))
+      filtered = filtered.filter(
+        (conv) =>
+          conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          conv.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          conv.topics.some((topic) => topic.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
     if (filterTopic) {
-      filtered = filtered.filter(conv =>
-        conv.topics.includes(filterTopic)
-      );
+      filtered = filtered.filter((conv) => conv.topics.includes(filterTopic));
     }
 
     return filtered;
   }, [conversations, searchQuery, filterTopic]);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    if (onSearch) {
-      onSearch(query);
-    }
-  }, [onSearch]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const query = e.target.value;
+      setSearchQuery(query);
+      if (onSearch) {
+        onSearch(query);
+      }
+    },
+    [onSearch]
+  );
 
-  const handleConversationClick = useCallback((conversationId: string) => {
-    setSelectedConversationId(conversationId);
-    if (onConversationSelect) {
-      onConversationSelect(conversationId);
-    }
-  }, [onConversationSelect]);
+  const handleConversationClick = useCallback(
+    (conversationId: string) => {
+      setSelectedConversationId(conversationId);
+      if (onConversationSelect) {
+        onConversationSelect(conversationId);
+      }
+    },
+    [onConversationSelect]
+  );
 
-  const toggleConversationExpanded = useCallback((conversationId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newExpanded = new Set(expandedConversations);
-    if (newExpanded.has(conversationId)) {
-      newExpanded.delete(conversationId);
-    } else {
-      newExpanded.add(conversationId);
-    }
-    setExpandedConversations(newExpanded);
-  }, [expandedConversations]);
+  const toggleConversationExpanded = useCallback(
+    (conversationId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      const newExpanded = new Set(expandedConversations);
+      if (newExpanded.has(conversationId)) {
+        newExpanded.delete(conversationId);
+      } else {
+        newExpanded.add(conversationId);
+      }
+      setExpandedConversations(newExpanded);
+    },
+    [expandedConversations]
+  );
 
-  const handleDelete = useCallback((conversationId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onConversationDelete && window.confirm('Are you sure you want to delete this conversation?')) {
-      onConversationDelete(conversationId);
-    }
-  }, [onConversationDelete]);
+  const handleDelete = useCallback(
+    (conversationId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onConversationDelete && window.confirm('Are you sure you want to delete this conversation?')) {
+        onConversationDelete(conversationId);
+      }
+    },
+    [onConversationDelete]
+  );
 
   const renderConversationCard = (conversation: ConversationSummary) => {
     const isExpanded = expandedConversations.has(conversation.id);
@@ -132,29 +138,21 @@ export default function ChatHistory({
               {isExpanded ? '▼' : '▶'}
             </button>
           </div>
-          <button
-            className={styles.deleteButton}
-            onClick={(e) => handleDelete(conversation.id, e)}
-            aria-label="Delete conversation"
-          >
+          <button className={styles.deleteButton} onClick={(e) => handleDelete(conversation.id, e)} aria-label="Delete conversation">
             ✕
           </button>
         </div>
 
         <div className={styles.cardMeta}>
-          <span className={styles.messageCount}>
-            {conversation.messageCount} messages
-          </span>
-          <span className={styles.timestamp}>
-            {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
-          </span>
+          <span className={styles.messageCount}>{conversation.messageCount} messages</span>
+          <span className={styles.timestamp}>{formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}</span>
         </div>
 
         <p className={styles.summary}>{conversation.summary}</p>
 
         {conversation.topics.length > 0 && (
           <div className={styles.topics}>
-            {conversation.topics.map(topic => (
+            {conversation.topics.map((topic) => (
               <span
                 key={topic}
                 className={styles.topicTag}
@@ -177,21 +175,12 @@ export default function ChatHistory({
               </div>
               <div className={styles.messages}>
                 {conversation.messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`${styles.message} ${styles[message.role]}`}
-                  >
+                  <div key={message.id} className={`${styles.message} ${styles[message.role]}`}>
                     <div className={styles.messageHeader}>
-                      <span className={styles.messageRole}>
-                        {message.role === 'user' ? 'You' : 'AI Guide'}
-                      </span>
-                      <span className={styles.messageTime}>
-                        {format(new Date(message.timestamp), 'p')}
-                      </span>
+                      <span className={styles.messageRole}>{message.role === 'user' ? 'You' : 'AI Guide'}</span>
+                      <span className={styles.messageTime}>{format(new Date(message.timestamp), 'p')}</span>
                     </div>
-                    <div className={styles.messageContent}>
-                      {sanitizeText(message.content)}
-                    </div>
+                    <div className={styles.messageContent}>{sanitizeText(message.content)}</div>
                   </div>
                 ))}
               </div>
@@ -222,11 +211,7 @@ export default function ChatHistory({
           {filterTopic && (
             <div className={styles.activeFilter}>
               <span>Topic: {filterTopic}</span>
-              <button
-                className={styles.clearFilter}
-                onClick={() => setFilterTopic('')}
-                aria-label="Clear topic filter"
-              >
+              <button className={styles.clearFilter} onClick={() => setFilterTopic('')} aria-label="Clear topic filter">
                 ✕
               </button>
             </div>
@@ -240,8 +225,10 @@ export default function ChatHistory({
               aria-label="Filter by topic"
             >
               <option value="">All Topics</option>
-              {allTopics.map(topic => (
-                <option key={topic} value={topic}>{topic}</option>
+              {allTopics.map((topic) => (
+                <option key={topic} value={topic}>
+                  {topic}
+                </option>
               ))}
             </select>
           )}

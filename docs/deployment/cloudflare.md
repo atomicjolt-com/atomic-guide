@@ -18,6 +18,7 @@ Atomic Guide is built specifically for Cloudflare's edge computing platform, uti
 ## Prerequisites
 
 ### Required Tools
+
 ```bash
 # Install Wrangler CLI
 npm install -g wrangler
@@ -30,11 +31,13 @@ wrangler auth login
 ```
 
 ### Account Requirements
+
 - Cloudflare account with Workers paid plan
 - Domain configured in Cloudflare (optional but recommended)
 - API tokens with appropriate permissions
 
 ### Environment Setup
+
 ```bash
 # Clone repository
 git clone https://github.com/your-org/atomic-guide.git
@@ -62,6 +65,7 @@ npm run db:setup
 ```
 
 Manual database creation:
+
 ```bash
 # Create database manually
 wrangler d1 create atomic-guide-db
@@ -80,7 +84,7 @@ npm run kv:setup
 # Manual creation:
 wrangler kv:namespace create KEY_SETS
 wrangler kv:namespace create KEY_SETS --preview
-wrangler kv:namespace create REMOTE_JWKS  
+wrangler kv:namespace create REMOTE_JWKS
 wrangler kv:namespace create REMOTE_JWKS --preview
 wrangler kv:namespace create CLIENT_AUTH_TOKENS
 wrangler kv:namespace create CLIENT_AUTH_TOKENS --preview
@@ -107,7 +111,7 @@ wrangler queues create video-processing-queue
 # Create analytics queue
 wrangler queues create analytics-queue
 
-# Create webhook queue  
+# Create webhook queue
 wrangler queues create webhook-queue
 ```
 
@@ -134,60 +138,56 @@ Ensure your `wrangler.jsonc` includes all required bindings:
   "compatibility_date": "2024-01-15",
   "compatibility_flags": ["nodejs_compat"],
   "send_metrics": true,
-  
+
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
   },
-  
+
   "kv_namespaces": [
     { "binding": "KEY_SETS", "id": "your-key-sets-id", "preview_id": "preview-id" },
     { "binding": "REMOTE_JWKS", "id": "your-jwks-id", "preview_id": "preview-id" },
     { "binding": "CLIENT_AUTH_TOKENS", "id": "your-tokens-id", "preview_id": "preview-id" },
-    { "binding": "PLATFORMS", "id": "your-platforms-id", "preview_id": "preview-id" }
+    { "binding": "PLATFORMS", "id": "your-platforms-id", "preview_id": "preview-id" },
   ],
-  
-  "d1_databases": [
-    { "binding": "DB", "database_name": "atomic-guide-db", "database_id": "your-db-id" }
-  ],
-  
+
+  "d1_databases": [{ "binding": "DB", "database_name": "atomic-guide-db", "database_id": "your-db-id" }],
+
   "r2_buckets": [
     { "binding": "VIDEO_STORAGE", "bucket_name": "atomic-guide-videos" },
-    { "binding": "FILE_STORAGE", "bucket_name": "atomic-guide-files" }
+    { "binding": "FILE_STORAGE", "bucket_name": "atomic-guide-files" },
   ],
-  
+
   "ai": {
-    "binding": "AI"
+    "binding": "AI",
   },
-  
-  "vectorize": [
-    { "binding": "FAQ_INDEX", "index_name": "faq-index" }
-  ],
-  
+
+  "vectorize": [{ "binding": "FAQ_INDEX", "index_name": "faq-index" }],
+
   "queues": {
     "producers": [
       { "binding": "VIDEO_QUEUE", "queue": "video-processing-queue" },
       { "binding": "ANALYTICS_QUEUE", "queue": "analytics-queue" },
-      { "binding": "WEBHOOK_QUEUE", "queue": "webhook-queue" }
+      { "binding": "WEBHOOK_QUEUE", "queue": "webhook-queue" },
     ],
     "consumers": [
       { "queue": "video-processing-queue", "max_batch_size": 10 },
       { "queue": "analytics-queue", "max_batch_size": 100 },
-      { "queue": "webhook-queue", "max_batch_size": 50 }
-    ]
+      { "queue": "webhook-queue", "max_batch_size": 50 },
+    ],
   },
-  
+
   "durable_objects": {
     "bindings": [
       { "name": "OIDC_STATE", "class_name": "OidcStateDurableObject" },
       { "name": "CHAT_ROOM", "class_name": "ChatRoomDurableObject" },
-      { "name": "ANALYTICS", "class_name": "AnalyticsDurableObject" }
-    ]
+      { "name": "ANALYTICS", "class_name": "AnalyticsDurableObject" },
+    ],
   },
-  
+
   "rules": [
     { "type": "Text", "globs": ["**/*.txt", "**/*.md"] },
-    { "type": "Data", "globs": ["**/*.bin", "**/*.dat"] }
-  ]
+    { "type": "Data", "globs": ["**/*.bin", "**/*.dat"] },
+  ],
 }
 ```
 
@@ -208,6 +208,7 @@ wrangler secret put ANALYTICS_API_KEY
 ```
 
 Environment variables in code:
+
 ```typescript
 interface Env {
   // Bindings
@@ -215,28 +216,28 @@ interface Env {
   VIDEO_STORAGE: R2Bucket;
   AI: Ai;
   FAQ_INDEX: VectorizeIndex;
-  
+
   // KV Namespaces
   KEY_SETS: KVNamespace;
   REMOTE_JWKS: KVNamespace;
   CLIENT_AUTH_TOKENS: KVNamespace;
   PLATFORMS: KVNamespace;
-  
+
   // Queues
   VIDEO_QUEUE: Queue;
   ANALYTICS_QUEUE: Queue;
   WEBHOOK_QUEUE: Queue;
-  
+
   // Durable Objects
   OIDC_STATE: DurableObjectNamespace;
   CHAT_ROOM: DurableObjectNamespace;
   ANALYTICS: DurableObjectNamespace;
-  
+
   // Secrets
   JWT_SECRET: string;
   LTI_WEBHOOK_SECRET: string;
   OPENAI_API_KEY: string;
-  
+
   // Variables
   ENVIRONMENT: 'development' | 'production';
 }
@@ -336,9 +337,9 @@ SSL certificates are automatically managed by Cloudflare. Ensure:
   "routes": [
     {
       "pattern": "guide.yourdomain.com/*",
-      "zone_name": "yourdomain.com"
-    }
-  ]
+      "zone_name": "yourdomain.com",
+    },
+  ],
 }
 ```
 
@@ -350,14 +351,14 @@ SSL certificates are automatically managed by Cloudflare. Ensure:
 // Set cache headers for static assets
 export function handleStaticAssets(request: Request): Response {
   const url = new URL(request.url);
-  
+
   if (url.pathname.startsWith('/assets/')) {
     return new Response(asset, {
       headers: {
         'Content-Type': getContentType(url.pathname),
         'Cache-Control': 'public, max-age=31536000, immutable',
-        'ETag': generateETag(asset)
-      }
+        ETag: generateETag(asset),
+      },
     });
   }
 }
@@ -374,13 +375,13 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           'lti-vendor': ['@atomicjolt/lti-endpoints'],
-          'ui-vendor': ['@headlessui/react', '@heroicons/react']
-        }
-      }
+          'ui-vendor': ['@headlessui/react', '@heroicons/react'],
+        },
+      },
     },
     minify: 'terser',
-    sourcemap: false // Disable for production
-  }
+    sourcemap: false, // Disable for production
+  },
 });
 ```
 
@@ -392,12 +393,12 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Cache frequently used services
     const services = await initializeServices(env);
-    
+
     // Use waitUntil for non-critical tasks
     ctx.waitUntil(logAnalytics(request));
-    
+
     return await handleRequest(request, env, services);
-  }
+  },
 };
 ```
 
@@ -406,6 +407,7 @@ export default {
 ### 1. Worker Analytics
 
 Enable Worker Analytics in Cloudflare dashboard:
+
 - Go to Workers & Pages > atomic-guide > Analytics
 - Enable detailed analytics
 - Set up custom metrics
@@ -417,7 +419,7 @@ Enable Worker Analytics in Cloudflare dashboard:
 if (typeof window !== 'undefined') {
   window.cloudflareRum = {
     token: 'your-rum-token',
-    endpoint: 'https://cloudflareinsights.com/cdn-cgi/rum'
+    endpoint: 'https://cloudflareinsights.com/cdn-cgi/rum',
   };
 }
 ```
@@ -426,15 +428,11 @@ if (typeof window !== 'undefined') {
 
 ```typescript
 // Track custom metrics
-export async function trackCustomMetric(
-  name: string, 
-  value: number, 
-  env: Env
-): Promise<void> {
+export async function trackCustomMetric(name: string, value: number, env: Env): Promise<void> {
   await env.ANALYTICS_QUEUE.send({
     metric: name,
     value,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 }
 ```
@@ -444,6 +442,7 @@ export async function trackCustomMetric(
 ### Common Deployment Issues
 
 #### 1. KV Namespace Errors
+
 ```bash
 # Error: KV namespace not found
 # Solution: Verify namespace IDs in wrangler.jsonc
@@ -451,6 +450,7 @@ wrangler kv:namespace list
 ```
 
 #### 2. Database Connection Errors
+
 ```bash
 # Error: D1 database not found
 # Solution: Check database binding
@@ -459,6 +459,7 @@ npm run db:status
 ```
 
 #### 3. Build Errors
+
 ```bash
 # Error: TypeScript compilation failed
 # Solution: Fix TypeScript errors
@@ -467,6 +468,7 @@ tsc --noEmit
 ```
 
 #### 4. Asset Loading Issues
+
 ```bash
 # Error: Assets not found
 # Solution: Check manifest generation
@@ -503,22 +505,25 @@ wrangler analytics --metric requests
 ## Security Considerations
 
 ### 1. Secrets Management
+
 - Never commit secrets to version control
 - Use `wrangler secret` command for sensitive data
 - Rotate secrets regularly
 - Use different secrets for different environments
 
 ### 2. CORS Configuration
+
 ```typescript
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://yourdomain.com',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Max-Age': '86400'
+  'Access-Control-Max-Age': '86400',
 };
 ```
 
 ### 3. Rate Limiting
+
 ```typescript
 // Implement rate limiting
 const rateLimiter = new Map<string, number>();
@@ -526,11 +531,12 @@ const rateLimiter = new Map<string, number>();
 export function checkRateLimit(clientIP: string): boolean {
   const now = Date.now();
   const lastRequest = rateLimiter.get(clientIP) || 0;
-  
-  if (now - lastRequest < 1000) { // 1 request per second
+
+  if (now - lastRequest < 1000) {
+    // 1 request per second
     return false;
   }
-  
+
   rateLimiter.set(clientIP, now);
   return true;
 }
@@ -539,6 +545,7 @@ export function checkRateLimit(clientIP: string): boolean {
 ## Rollback Strategy
 
 ### 1. Deployment Rollback
+
 ```bash
 # Deploy previous version
 wrangler deploy --compatibility-date=2024-01-01
@@ -549,6 +556,7 @@ npm run deploy
 ```
 
 ### 2. Database Rollback
+
 ```bash
 # Rollback database migration
 npm run db:rollback
@@ -558,6 +566,7 @@ npm run db:status
 ```
 
 ### 3. Emergency Procedures
+
 ```bash
 # Quick rollback script
 #!/bin/bash

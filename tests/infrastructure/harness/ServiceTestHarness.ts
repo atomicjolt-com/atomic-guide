@@ -121,12 +121,12 @@ export class ServiceTestHarness<T> {
     // Create reset function
     const reset = () => {
       // Reset all mocks
-      this.mocks.forEach(mock => {
+      this.mocks.forEach((mock) => {
         if (vi.isMockFunction(mock)) {
           mock.mockClear();
         } else if (typeof mock === 'object' && mock !== null) {
           // Reset object mocks
-          Object.keys(mock).forEach(key => {
+          Object.keys(mock).forEach((key) => {
             if (vi.isMockFunction(mock[key])) {
               mock[key].mockClear();
             }
@@ -149,11 +149,11 @@ export class ServiceTestHarness<T> {
     // Create cleanup function
     const cleanup = async () => {
       // Run custom cleanup functions
-      await Promise.all(this.cleanupFns.map(fn => fn()));
-      
+      await Promise.all(this.cleanupFns.map((fn) => fn()));
+
       // Clear all mocks
       reset();
-      
+
       // Clear mock registry
       this.mocks.clear();
       this.dependencies = {};
@@ -176,7 +176,7 @@ export class ServiceTestHarness<T> {
       dependencies: this.dependencies,
       reset,
       cleanup,
-      verify
+      verify,
     };
   }
 
@@ -225,21 +225,12 @@ export function setupServiceWithDb<T>(
   serviceClass: new (...args: any[]) => T,
   dbConfig?: Parameters<typeof MockFactory.createD1Database>[0]
 ): TestHarnessResult<T> {
-  return new ServiceTestHarness(serviceClass)
-    .withDatabase(dbConfig)
-    .build();
+  return new ServiceTestHarness(serviceClass).withDatabase(dbConfig).build();
 }
 
 /**
  * Quick helper for setting up a service with all common dependencies
  */
-export function setupFullService<T>(
-  serviceClass: new (...args: any[]) => T
-): TestHarnessResult<T> {
-  return new ServiceTestHarness(serviceClass)
-    .withDatabase()
-    .withKVStore()
-    .withQueue()
-    .withAI()
-    .build();
+export function setupFullService<T>(serviceClass: new (...args: any[]) => T): TestHarnessResult<T> {
+  return new ServiceTestHarness(serviceClass).withDatabase().withKVStore().withQueue().withAI().build();
 }

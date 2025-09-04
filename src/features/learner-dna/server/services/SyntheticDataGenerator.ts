@@ -1,21 +1,21 @@
 /**
  * @fileoverview Comprehensive synthetic data generator for Learner DNA Foundation
  * @module features/learner-dna/server/services/SyntheticDataGenerator
- * 
+ *
  * This service generates realistic cognitive and behavioral patterns without using real student data.
  * All algorithms are based on established educational psychology research and learning science.
- * 
+ *
  * Key Research Foundations:
  * - Ebbinghaus Forgetting Curve (1885) - Memory retention over time
  * - Bloom's Taxonomy (1956) - Cognitive skill hierarchy
- * - VARK Learning Styles (Fleming, 1987) - Multimodal learning preferences  
+ * - VARK Learning Styles (Fleming, 1987) - Multimodal learning preferences
  * - Cognitive Load Theory (Sweller, 1988) - Working memory limitations
  * - Zone of Proximal Development (Vygotsky) - Optimal challenge level
  * - Spacing Effect (Cepeda et al., 2006) - Distributed practice benefits
  */
 
 import { z } from 'zod';
-import type { 
+import type {
   CognitiveProfile,
   LearningVelocityPattern,
   MemoryRetentionCurve,
@@ -26,12 +26,10 @@ import type {
   LearningSessionData,
   PrivacyAttackData,
   SyntheticDataGenerationParams,
-  DataQualityMetrics
+  DataQualityMetrics,
 } from '../../shared/schemas/learner-dna.schema';
 
-import {
-  LearnerDNASchemas
-} from '../../shared/schemas/learner-dna.schema';
+import { LearnerDNASchemas } from '../../shared/schemas/learner-dna.schema';
 
 /**
  * Educational psychology research constants
@@ -46,7 +44,7 @@ const EDUCATIONAL_RESEARCH_CONSTANTS = {
     ASYMPTOTIC_RETENTION_MEAN: 0.15,
     ASYMPTOTIC_RETENTION_STD: 0.08,
   },
-  
+
   // Learning velocity research (from spaced learning studies)
   LEARNING_VELOCITY: {
     BASE_RATE_MEAN: 2.5, // concepts per hour
@@ -70,8 +68,8 @@ const EDUCATIONAL_RESEARCH_CONSTANTS = {
   VARK_DISTRIBUTIONS: {
     VISUAL: { mean: 0.35, std: 0.15 },
     AUDITORY: { mean: 0.25, std: 0.12 },
-    KINESTHETIC: { mean: 0.20, std: 0.10 },
-    READING_WRITING: { mean: 0.20, std: 0.10 },
+    KINESTHETIC: { mean: 0.2, std: 0.1 },
+    READING_WRITING: { mean: 0.2, std: 0.1 },
   },
 
   // Response time research (from cognitive psychology)
@@ -161,7 +159,7 @@ const PERSONA_PROFILES = {
 
 /**
  * Synthetic Data Generator for Learner DNA
- * 
+ *
  * Generates realistic cognitive and behavioral patterns based on educational psychology research.
  * Designed to enable safe development and testing without exposing real student data.
  */
@@ -218,18 +216,12 @@ export class SyntheticDataGenerator {
     const multiplier = personaProfile?.learningVelocityMultiplier || 1.0;
 
     const constants = EDUCATIONAL_RESEARCH_CONSTANTS.LEARNING_VELOCITY;
-    
-    const baseRate = Math.max(0.1, Math.min(10.0,
-      this.normalRandom(constants.BASE_RATE_MEAN, constants.BASE_RATE_STD) * multiplier
-    ));
 
-    const acceleration = Math.max(0.8, Math.min(2.5,
-      this.normalRandom(constants.ACCELERATION_MEAN, constants.ACCELERATION_STD)
-    ));
+    const baseRate = Math.max(0.1, Math.min(10.0, this.normalRandom(constants.BASE_RATE_MEAN, constants.BASE_RATE_STD) * multiplier));
 
-    const fatigueDecay = Math.max(0.1, Math.min(1.0,
-      this.normalRandom(constants.FATIGUE_DECAY_MEAN, constants.FATIGUE_DECAY_STD)
-    ));
+    const acceleration = Math.max(0.8, Math.min(2.5, this.normalRandom(constants.ACCELERATION_MEAN, constants.ACCELERATION_STD)));
+
+    const fatigueDecay = Math.max(0.1, Math.min(1.0, this.normalRandom(constants.FATIGUE_DECAY_MEAN, constants.FATIGUE_DECAY_STD)));
 
     // Time-of-day patterns based on chronobiology research
     const timeOfDayMultipliers = {
@@ -258,23 +250,24 @@ export class SyntheticDataGenerator {
 
     const constants = EDUCATIONAL_RESEARCH_CONSTANTS.EBBINGHAUS;
 
-    const initialRetention = Math.max(0.7, Math.min(1.0,
-      this.normalRandom(constants.INITIAL_RETENTION_MEAN, constants.INITIAL_RETENTION_STD)
-    ));
+    const initialRetention = Math.max(
+      0.7,
+      Math.min(1.0, this.normalRandom(constants.INITIAL_RETENTION_MEAN, constants.INITIAL_RETENTION_STD))
+    );
 
     // Decay constant inversely related to memory strength
-    const decayConstant = Math.max(0.1, Math.min(3.0,
-      this.normalRandom(constants.DECAY_CONSTANT_MEAN, constants.DECAY_CONSTANT_STD) / memoryMultiplier
-    ));
+    const decayConstant = Math.max(
+      0.1,
+      Math.min(3.0, this.normalRandom(constants.DECAY_CONSTANT_MEAN, constants.DECAY_CONSTANT_STD) / memoryMultiplier)
+    );
 
-    const asymptoticRetention = Math.max(0.0, Math.min(0.4,
-      this.normalRandom(constants.ASYMPTOTIC_RETENTION_MEAN, constants.ASYMPTOTIC_RETENTION_STD)
-    ));
+    const asymptoticRetention = Math.max(
+      0.0,
+      Math.min(0.4, this.normalRandom(constants.ASYMPTOTIC_RETENTION_MEAN, constants.ASYMPTOTIC_RETENTION_STD))
+    );
 
     // Spaced repetition effectiveness (based on Cepeda et al. research)
-    const spacedRepetitionBonus = Math.max(1.1, Math.min(3.0,
-      this.normalRandom(2.0, 0.4) * memoryMultiplier
-    ));
+    const spacedRepetitionBonus = Math.max(1.1, Math.min(3.0, this.normalRandom(2.0, 0.4) * memoryMultiplier));
 
     return LearnerDNASchemas.MemoryRetentionCurve.parse({
       initialRetention,
@@ -292,15 +285,12 @@ export class SyntheticDataGenerator {
    */
   generateInteractionTimingPattern(persona?: StudentPersona): InteractionTimingPattern {
     const personaProfile = persona ? PERSONA_PROFILES[persona] : null;
-    
+
     const constants = EDUCATIONAL_RESEARCH_CONSTANTS.RESPONSE_TIMES;
-    
+
     // Base response time influenced by processing speed and anxiety
     const anxietyFactor = personaProfile?.anxietySensitivity || 0.5;
-    const baseResponseTime = Math.round(
-      constants.SIMPLE_DECISION_MS * (1 + anxietyFactor * 0.5) + 
-      this.normalRandom(0, 200)
-    );
+    const baseResponseTime = Math.round(constants.SIMPLE_DECISION_MS * (1 + anxietyFactor * 0.5) + this.normalRandom(0, 200));
 
     // Generate 24-hour engagement pattern (circadian rhythm simulation)
     const engagementByHour: number[] = [];
@@ -309,7 +299,7 @@ export class SyntheticDataGenerator {
       const morningPeak = Math.exp(-Math.pow((hour - 11) / 3, 2));
       const eveningPeak = Math.exp(-Math.pow((hour - 19) / 2, 2)) * 0.8;
       const nightDip = hour >= 22 || hour <= 6 ? 0.3 : 1.0;
-      
+
       const baseEngagement = (morningPeak + eveningPeak) * nightDip + 0.4;
       const noise = this.normalRandom(0, 0.1);
       engagementByHour.push(Math.max(0.3, Math.min(1.0, baseEngagement + noise)));
@@ -319,19 +309,13 @@ export class SyntheticDataGenerator {
       baseResponseTime: Math.max(500, Math.min(30000, baseResponseTime)),
       responseVariability: Math.max(0.1, Math.min(2.0, this.normalRandom(1.0, 0.3))),
       complexityMultiplier: Math.max(1.2, Math.min(5.0, this.normalRandom(2.5, 0.8))),
-      preferredSessionDuration: Math.round(Math.max(5, Math.min(120, 
-        personaProfile?.preferredSessionDuration || this.normalRandom(45, 20)
-      ))),
-      breakFrequency: Math.round(Math.max(1, Math.min(10, 
-        personaProfile?.breakFrequency || this.normalRandom(4, 2)
-      ))),
-      engagementDeclineRate: Math.max(0.0, Math.min(0.1, 
-        personaProfile?.engagementDeclineRate || this.normalRandom(0.02, 0.01)
-      )),
+      preferredSessionDuration: Math.round(
+        Math.max(5, Math.min(120, personaProfile?.preferredSessionDuration || this.normalRandom(45, 20)))
+      ),
+      breakFrequency: Math.round(Math.max(1, Math.min(10, personaProfile?.breakFrequency || this.normalRandom(4, 2)))),
+      engagementDeclineRate: Math.max(0.0, Math.min(0.1, personaProfile?.engagementDeclineRate || this.normalRandom(0.02, 0.01))),
       engagementByHour,
-      procrastinationFactor: Math.max(0.0, Math.min(2.0, 
-        personaProfile?.procrastinationFactor || this.normalRandom(1.0, 0.3)
-      )),
+      procrastinationFactor: Math.max(0.0, Math.min(2.0, personaProfile?.procrastinationFactor || this.normalRandom(1.0, 0.3))),
     });
   }
 
@@ -340,7 +324,7 @@ export class SyntheticDataGenerator {
    */
   generateComprehensionStyle(persona?: StudentPersona): ComprehensionStyle {
     const personaProfile = persona ? PERSONA_PROFILES[persona] : null;
-    
+
     let visual: number, auditory: number, kinesthetic: number, readingWriting: number;
 
     // Use persona-specific preferences if available
@@ -356,7 +340,7 @@ export class SyntheticDataGenerator {
       auditory = Math.max(0, this.normalRandom(vark.AUDITORY.mean, vark.AUDITORY.std));
       kinesthetic = Math.max(0, this.normalRandom(vark.KINESTHETIC.mean, vark.KINESTHETIC.std));
       readingWriting = Math.max(0, this.normalRandom(vark.READING_WRITING.mean, vark.READING_WRITING.std));
-      
+
       // Normalize to sum approximately to 1.0
       const total = visual + auditory + kinesthetic + readingWriting;
       if (total > 0) {
@@ -378,8 +362,7 @@ export class SyntheticDataGenerator {
 
     // Processing speed preference
     const speedRandom = this.rng();
-    const processingSpeed = speedRandom < 0.3 ? 'slow_deep' : 
-                           speedRandom < 0.8 ? 'moderate' : 'fast_surface';
+    const processingSpeed = speedRandom < 0.3 ? 'slow_deep' : speedRandom < 0.8 ? 'moderate' : 'fast_surface';
 
     return LearnerDNASchemas.ComprehensionStyle.parse({
       visual,
@@ -399,57 +382,78 @@ export class SyntheticDataGenerator {
   generateStrugglePatternIndicators(persona?: StudentPersona): StrugglePatternIndicators {
     const personaProfile = persona ? PERSONA_PROFILES[persona] : null;
 
-    const confusionTendency = Math.max(0, Math.min(1, 
-      personaProfile?.confusionTendency !== undefined 
-        ? personaProfile.confusionTendency 
-        : this.betaRandom(1.2, 2.8) // skewed toward lower confusion
-    ));
+    const confusionTendency = Math.max(
+      0,
+      Math.min(
+        1,
+        personaProfile?.confusionTendency !== undefined ? personaProfile.confusionTendency : this.betaRandom(1.2, 2.8) // skewed toward lower confusion
+      )
+    );
 
-    const frustrationTolerance = Math.max(0, Math.min(1,
-      personaProfile?.frustrationTolerance !== undefined
-        ? personaProfile.frustrationTolerance
-        : this.betaRandom(2, 2) // normal distribution around 0.5
-    ));
+    const frustrationTolerance = Math.max(
+      0,
+      Math.min(
+        1,
+        personaProfile?.frustrationTolerance !== undefined ? personaProfile.frustrationTolerance : this.betaRandom(2, 2) // normal distribution around 0.5
+      )
+    );
 
-    const helpSeekingDelay = Math.round(Math.max(0, Math.min(1800,
-      personaProfile?.helpSeekingDelay !== undefined
-        ? personaProfile.helpSeekingDelay
-        : this.normalRandom(300, 200) // 5 minutes average with variation
-    )));
+    const helpSeekingDelay = Math.round(
+      Math.max(
+        0,
+        Math.min(
+          1800,
+          personaProfile?.helpSeekingDelay !== undefined ? personaProfile.helpSeekingDelay : this.normalRandom(300, 200) // 5 minutes average with variation
+        )
+      )
+    );
 
-    const persistenceLevel = Math.max(0, Math.min(1,
-      personaProfile?.persistenceLevel !== undefined
-        ? personaProfile.persistenceLevel
-        : this.betaRandom(2.5, 1.5) // skewed toward higher persistence
-    ));
+    const persistenceLevel = Math.max(
+      0,
+      Math.min(
+        1,
+        personaProfile?.persistenceLevel !== undefined ? personaProfile.persistenceLevel : this.betaRandom(2.5, 1.5) // skewed toward higher persistence
+      )
+    );
 
-    const cognitiveLoadCapacity = Math.max(0.3, Math.min(2.0,
-      personaProfile?.cognitiveLoadCapacity !== undefined
-        ? personaProfile.cognitiveLoadCapacity
-        : this.normalRandom(1.0, 0.3) // based on working memory research
-    ));
+    const cognitiveLoadCapacity = Math.max(
+      0.3,
+      Math.min(
+        2.0,
+        personaProfile?.cognitiveLoadCapacity !== undefined ? personaProfile.cognitiveLoadCapacity : this.normalRandom(1.0, 0.3) // based on working memory research
+      )
+    );
 
-    const anxietySensitivity = Math.max(0, Math.min(1,
-      personaProfile?.anxietySensitivity !== undefined
-        ? personaProfile.anxietySensitivity
-        : this.betaRandom(1.5, 2.5) // skewed toward lower anxiety
-    ));
+    const anxietySensitivity = Math.max(
+      0,
+      Math.min(
+        1,
+        personaProfile?.anxietySensitivity !== undefined ? personaProfile.anxietySensitivity : this.betaRandom(1.5, 2.5) // skewed toward lower anxiety
+      )
+    );
 
-    const metacognitiveAwareness = Math.max(0, Math.min(1,
-      this.betaRandom(2, 1.8) // slightly skewed toward higher awareness
-    ));
+    const metacognitiveAwareness = Math.max(
+      0,
+      Math.min(
+        1,
+        this.betaRandom(2, 1.8) // slightly skewed toward higher awareness
+      )
+    );
 
-    const errorRecognitionSpeed = personaProfile?.errorRecognitionSpeed || 
+    const errorRecognitionSpeed =
+      personaProfile?.errorRecognitionSpeed ||
       (() => {
         const rand = this.rng();
         return rand < 0.4 ? 'immediate' : rand < 0.8 ? 'delayed' : 'poor';
       })();
 
-    const imposterSyndromeTendency = Math.max(0, Math.min(1,
-      personaProfile?.imposterSyndromeTendency !== undefined
-        ? personaProfile.imposterSyndromeTendency
-        : this.betaRandom(1.5, 3) // skewed toward lower imposter syndrome
-    ));
+    const imposterSyndromeTendency = Math.max(
+      0,
+      Math.min(
+        1,
+        personaProfile?.imposterSyndromeTendency !== undefined ? personaProfile.imposterSyndromeTendency : this.betaRandom(1.5, 3) // skewed toward lower imposter syndrome
+      )
+    );
 
     return LearnerDNASchemas.StrugglePatternIndicators.parse({
       confusionTendency,
@@ -499,26 +503,26 @@ export class SyntheticDataGenerator {
   private selectRandomPersona(): StudentPersona {
     const personas: Array<{ persona: StudentPersona; weight: number }> = [
       { persona: 'fast_learner', weight: 0.15 },
-      { persona: 'struggling_student', weight: 0.20 },
+      { persona: 'struggling_student', weight: 0.2 },
       { persona: 'visual_learner', weight: 0.12 },
       { persona: 'auditory_learner', weight: 0.08 },
       { persona: 'kinesthetic_learner', weight: 0.08 },
-      { persona: 'perfectionist', weight: 0.10 },
+      { persona: 'perfectionist', weight: 0.1 },
       { persona: 'procrastinator', weight: 0.12 },
-      { persona: 'anxious_student', weight: 0.10 },
+      { persona: 'anxious_student', weight: 0.1 },
       { persona: 'confident_student', weight: 0.05 },
     ];
 
     const random = this.rng();
     let cumulativeWeight = 0;
-    
+
     for (const { persona, weight } of personas) {
       cumulativeWeight += weight;
       if (random <= cumulativeWeight) {
         return persona;
       }
     }
-    
+
     return 'struggling_student'; // fallback
   }
 
@@ -528,7 +532,7 @@ export class SyntheticDataGenerator {
   private generateDemographics() {
     const ageGroups = ['18-22', '23-30', '31-40', '41-50', '50+'];
     const ageWeights = [0.4, 0.3, 0.15, 0.1, 0.05];
-    
+
     const academicLevels = ['high_school', 'undergraduate', 'graduate', 'professional'];
     const academicWeights = [0.15, 0.6, 0.2, 0.05];
 
@@ -546,7 +550,8 @@ export class SyntheticDataGenerator {
 
     // Generate correlated learning disabilities (realistic prevalence)
     const learningDisabilities: Array<'dyslexia' | 'adhd' | 'dyscalculia' | 'autism' | 'none'> = [];
-    if (this.rng() < 0.15) { // ~15% have some learning difference
+    if (this.rng() < 0.15) {
+      // ~15% have some learning difference
       const disabilities = ['dyslexia', 'adhd', 'dyscalculia', 'autism'];
       const disabilityWeights = [0.05, 0.06, 0.03, 0.02]; // Approximate prevalence rates
       const selected = selectWeighted(disabilities, disabilityWeights) as 'dyslexia' | 'adhd' | 'dyscalculca' | 'autism';
@@ -569,18 +574,12 @@ export class SyntheticDataGenerator {
   /**
    * Generate realistic learning session data based on cognitive profile
    */
-  generateLearningSession(
-    profile: CognitiveProfile,
-    conceptsToStudy: string[],
-    sessionDate: Date = new Date()
-  ): LearningSessionData {
+  generateLearningSession(profile: CognitiveProfile, conceptsToStudy: string[], sessionDate: Date = new Date()): LearningSessionData {
     const sessionId = crypto.randomUUID();
-    
+
     // Session duration based on persona and timing patterns
     const baseDuration = profile.interactionTiming.preferredSessionDuration * 60; // convert to seconds
-    const actualDuration = Math.max(60, Math.round(
-      baseDuration + this.normalRandom(0, baseDuration * 0.3)
-    ));
+    const actualDuration = Math.max(60, Math.round(baseDuration + this.normalRandom(0, baseDuration * 0.3)));
 
     const startTime = new Date(sessionDate);
     const endTime = new Date(startTime.getTime() + actualDuration * 1000);
@@ -608,14 +607,10 @@ export class SyntheticDataGenerator {
 
     // Generate confusion events based on struggle patterns
     const confusionEvents = [];
-    const confusionCount = Math.round(
-      profile.strugglePatterns.confusionTendency * conceptsToStudy.length * 2
-    );
-    
+    const confusionCount = Math.round(profile.strugglePatterns.confusionTendency * conceptsToStudy.length * 2);
+
     for (let i = 0; i < confusionCount; i++) {
-      const eventTime = new Date(
-        startTime.getTime() + this.rng() * actualDuration * 1000
-      );
+      const eventTime = new Date(startTime.getTime() + this.rng() * actualDuration * 1000);
       const conceptId = conceptsToStudy[Math.floor(this.rng() * conceptsToStudy.length)];
       const severity = this.rng() < 0.2 ? 'high' : this.rng() < 0.5 ? 'medium' : 'low';
       const resolved = this.rng() < profile.strugglePatterns.persistenceLevel;
@@ -635,30 +630,21 @@ export class SyntheticDataGenerator {
     const engagementScore = Math.max(0, Math.min(1, timeEngagement - frustrationPenalty));
 
     // Cognitive load indicator
-    const cognitiveLoadIndicator = Math.min(2.0, 
-      1.0 + (conceptsToStudy.length / profile.strugglePatterns.cognitiveLoadCapacity) * 0.3
-    );
+    const cognitiveLoadIndicator = Math.min(2.0, 1.0 + (conceptsToStudy.length / profile.strugglePatterns.cognitiveLoadCapacity) * 0.3);
 
     // Help request count based on help-seeking behavior
-    const helpRequestCount = Math.round(
-      confusionCount * (1 - profile.strugglePatterns.helpSeekingDelay / 1800)
-    );
+    const helpRequestCount = Math.round(confusionCount * (1 - profile.strugglePatterns.helpSeekingDelay / 1800));
 
     // Break count based on preferences
     const breaksCount = Math.round(
-      actualDuration / (profile.interactionTiming.preferredSessionDuration * 60) * 
-      profile.interactionTiming.breakFrequency
+      (actualDuration / (profile.interactionTiming.preferredSessionDuration * 60)) * profile.interactionTiming.breakFrequency
     );
 
     // Mastery gained (simplified model)
-    const masteryGained = Math.max(0, Math.min(1,
-      accuracy * profile.learningVelocity.baseRate / conceptsToStudy.length * 0.3
-    ));
+    const masteryGained = Math.max(0, Math.min(1, ((accuracy * profile.learningVelocity.baseRate) / conceptsToStudy.length) * 0.3));
 
     // Expected retention based on memory curve
-    const retentionExpected = Math.max(0, Math.min(1,
-      profile.memoryRetention.initialRetention * accuracy
-    ));
+    const retentionExpected = Math.max(0, Math.min(1, profile.memoryRetention.initialRetention * accuracy));
 
     return LearnerDNASchemas.LearningSessionData.parse({
       sessionId,
@@ -705,16 +691,16 @@ export class SyntheticDataGenerator {
             Math.max(...targetProfile.interactionTiming.engagementByHour)
           ),
         };
-        
+
         // Simulate attack success based on uniqueness of combination
-        const demographicMatches = availableProfiles.filter(p => 
-          p.demographics.ageGroup === targetProfile.demographics.ageGroup &&
-          p.demographics.academicLevel === targetProfile.demographics.academicLevel
+        const demographicMatches = availableProfiles.filter(
+          (p) =>
+            p.demographics.ageGroup === targetProfile.demographics.ageGroup &&
+            p.demographics.academicLevel === targetProfile.demographics.academicLevel
         ).length;
-        
+
         attackSuccess = demographicMatches <= 3; // k-anonymity violation
-        confidenceScore = demographicMatches === 1 ? 0.95 : 
-                         demographicMatches <= 3 ? 0.7 : 0.3;
+        confidenceScore = demographicMatches === 1 ? 0.95 : demographicMatches <= 3 ? 0.7 : 0.3;
         methodUsed = 'demographic_fingerprinting';
         dataPointsUsed = 5;
         if (attackSuccess) defensesDefeated.push('k_anonymity');
@@ -727,7 +713,7 @@ export class SyntheticDataGenerator {
           velocitySignature: targetProfile.learningVelocity.baseRate,
           memoryStrength: targetProfile.memoryRetention.memoryStrengthMultiplier,
         };
-        
+
         attackSuccess = this.rng() < 0.6; // Reasonable success rate for membership inference
         confidenceScore = attackSuccess ? 0.8 : 0.4;
         methodUsed = 'shadow_model_attack';
@@ -741,10 +727,10 @@ export class SyntheticDataGenerator {
           responseTimeVariability: targetProfile.interactionTiming.responseVariability,
           frustrationTolerance: targetProfile.strugglePatterns.frustrationTolerance,
         };
-        
+
         // Higher success if unique patterns exist
-        attackSuccess = targetProfile.strugglePatterns.anxietySensitivity > 0.8 || 
-                       targetProfile.demographics.learningDisabilities[0] !== 'none';
+        attackSuccess =
+          targetProfile.strugglePatterns.anxietySensitivity > 0.8 || targetProfile.demographics.learningDisabilities[0] !== 'none';
         confidenceScore = attackSuccess ? 0.75 : 0.25;
         methodUsed = 'behavioral_correlation_analysis';
         dataPointsUsed = 8;
@@ -757,7 +743,7 @@ export class SyntheticDataGenerator {
           persona: targetProfile.persona,
           cognitiveLoadCapacity: targetProfile.strugglePatterns.cognitiveLoadCapacity,
         };
-        
+
         attackSuccess = this.rng() < 0.4; // More difficult attack
         confidenceScore = attackSuccess ? 0.65 : 0.2;
         methodUsed = 'gradient_descent_reconstruction';
@@ -771,11 +757,8 @@ export class SyntheticDataGenerator {
           withTarget: this.normalRandom(0.75, 0.1),
           withoutTarget: this.normalRandom(0.73, 0.1),
         };
-        
-        const difference = Math.abs(
-          (auxiliaryData.queryResults as any).withTarget - 
-          (auxiliaryData.queryResults as any).withoutTarget
-        );
+
+        const difference = Math.abs((auxiliaryData.queryResults as any).withTarget - (auxiliaryData.queryResults as any).withoutTarget);
         attackSuccess = difference > 0.05; // Significant difference indicates presence
         confidenceScore = Math.min(0.9, difference * 10);
         methodUsed = 'differential_query_analysis';
@@ -822,23 +805,20 @@ export class SyntheticDataGenerator {
       const sessionCount = Math.round(this.normalRandom(10, 5));
       for (let j = 0; j < sessionCount; j++) {
         const sessionDate = new Date(
-          params.timeRange.startDate.getTime() + 
-          this.rng() * (params.timeRange.endDate.getTime() - params.timeRange.startDate.getTime())
+          params.timeRange.startDate.getTime() + this.rng() * (params.timeRange.endDate.getTime() - params.timeRange.startDate.getTime())
         );
-        const conceptsToStudy = conceptPool
-          .sort(() => this.rng() - 0.5)
-          .slice(0, Math.ceil(this.rng() * 3) + 1);
-        
+        const conceptsToStudy = conceptPool.sort(() => this.rng() - 0.5).slice(0, Math.ceil(this.rng() * 3) + 1);
+
         const session = this.generateLearningSession(profile, conceptsToStudy, sessionDate);
         sessions.push(session);
       }
     }
 
     // Generate privacy attack tests
-    const attackTypes: Array<'linkage_attack' | 'membership_inference' | 'attribute_inference' | 'reconstruction_attack' | 'differential_attack'> = [
-      'linkage_attack', 'membership_inference', 'attribute_inference', 'reconstruction_attack', 'differential_attack'
-    ];
-    
+    const attackTypes: Array<
+      'linkage_attack' | 'membership_inference' | 'attribute_inference' | 'reconstruction_attack' | 'differential_attack'
+    > = ['linkage_attack', 'membership_inference', 'attribute_inference', 'reconstruction_attack', 'differential_attack'];
+
     for (let i = 0; i < Math.min(100, profiles.length); i++) {
       const targetProfile = profiles[i];
       const attackType = attackTypes[Math.floor(this.rng() * attackTypes.length)];
@@ -866,21 +846,21 @@ export class SyntheticDataGenerator {
     attacks: PrivacyAttackData[]
   ): Promise<DataQualityMetrics> {
     // Statistical metrics
-    const learningRates = profiles.map(p => p.learningVelocity.baseRate);
+    const learningRates = profiles.map((p) => p.learningVelocity.baseRate);
     const meanLearningRate = learningRates.reduce((a, b) => a + b) / learningRates.length;
     const expectedMean = EDUCATIONAL_RESEARCH_CONSTANTS.LEARNING_VELOCITY.BASE_RATE_MEAN;
     const meanSquareError = Math.pow(meanLearningRate - expectedMean, 2);
 
     // Calculate correlation accuracy (simplified)
-    const memoryStrengths = profiles.map(p => p.memoryRetention.memoryStrengthMultiplier);
+    const memoryStrengths = profiles.map((p) => p.memoryRetention.memoryStrengthMultiplier);
     const correlationAccuracy = this.calculateCorrelation(learningRates, memoryStrengths);
 
     // Privacy metrics
-    const successfulAttacks = attacks.filter(a => a.attackSuccess).length;
+    const successfulAttacks = attacks.filter((a) => a.attackSuccess).length;
     const reidentificationRisk = successfulAttacks / attacks.length;
 
     // Ebbinghaus curve validation
-    const retentionCurves = profiles.map(p => p.memoryRetention.initialRetention);
+    const retentionCurves = profiles.map((p) => p.memoryRetention.initialRetention);
     const avgInitialRetention = retentionCurves.reduce((a, b) => a + b) / retentionCurves.length;
     const expectedRetention = EDUCATIONAL_RESEARCH_CONSTANTS.EBBINGHAUS.INITIAL_RETENTION_MEAN;
     const ebbinghausCorrelation = 1 - Math.abs(avgInitialRetention - expectedRetention);
@@ -894,18 +874,16 @@ export class SyntheticDataGenerator {
       psychologyCompliance: {
         ebbinghausCorrelation: Math.max(0, ebbinghausCorrelation),
         learningCurveRealism: 0.85, // Based on validation against research
-        struggePpatternValidity: 0.80, // Based on expert review
+        struggePpatternValidity: 0.8, // Based on expert review
       },
       privacyMetrics: {
         reidentificationRisk,
-        attributeInferenceAccuracy: attacks
-          .filter(a => a.attackType === 'attribute_inference')
-          .reduce((acc, a) => acc + (a.attackSuccess ? 1 : 0), 0) / 
-          Math.max(1, attacks.filter(a => a.attackType === 'attribute_inference').length),
-        linkageAttackSuccess: attacks
-          .filter(a => a.attackType === 'linkage_attack')
-          .reduce((acc, a) => acc + (a.attackSuccess ? 1 : 0), 0) / 
-          Math.max(1, attacks.filter(a => a.attackType === 'linkage_attack').length),
+        attributeInferenceAccuracy:
+          attacks.filter((a) => a.attackType === 'attribute_inference').reduce((acc, a) => acc + (a.attackSuccess ? 1 : 0), 0) /
+          Math.max(1, attacks.filter((a) => a.attackType === 'attribute_inference').length),
+        linkageAttackSuccess:
+          attacks.filter((a) => a.attackType === 'linkage_attack').reduce((acc, a) => acc + (a.attackSuccess ? 1 : 0), 0) /
+          Math.max(1, attacks.filter((a) => a.attackType === 'linkage_attack').length),
       },
       utilityMetrics: {
         queryAccuracy: 0.88, // Based on synthetic vs real data comparisons
@@ -935,19 +913,15 @@ export class SyntheticDataGenerator {
   /**
    * Calculate memory retention over time using Ebbinghaus curve
    */
-  calculateMemoryRetention(
-    curve: MemoryRetentionCurve,
-    timeElapsedHours: number,
-    spacedRepetitions: number = 0
-  ): number {
+  calculateMemoryRetention(curve: MemoryRetentionCurve, timeElapsedHours: number, spacedRepetitions: number = 0): number {
     const { initialRetention, decayConstant, asymptoticRetention, spacedRepetitionBonus } = curve;
-    
+
     // Basic Ebbinghaus curve: R(t) = a*e^(-bt) + c
-    const baseRetention = initialRetention * Math.exp(-decayConstant * timeElapsedHours / 24) + asymptoticRetention;
-    
+    const baseRetention = initialRetention * Math.exp((-decayConstant * timeElapsedHours) / 24) + asymptoticRetention;
+
     // Apply spaced repetition bonus
     const repetitionBonus = Math.pow(spacedRepetitionBonus, spacedRepetitions);
-    
+
     return Math.min(1.0, baseRetention * repetitionBonus);
   }
 
@@ -961,20 +935,20 @@ export class SyntheticDataGenerator {
     timeOfDay: number
   ): number {
     const { baseRate, acceleration, fatigueDecay, recoveryRate, timeOfDayMultipliers } = pattern;
-    
+
     // Time of day adjustment
     const hourBucket = timeOfDay < 12 ? 'morning' : timeOfDay < 18 ? 'afternoon' : 'evening';
     const timeAdjustment = timeOfDayMultipliers[hourBucket];
-    
+
     // Fatigue effect (decreases with continuous study)
     const fatigueEffect = Math.exp(-fatigueDecay * timeSinceLastBreakHours);
-    
+
     // Experience acceleration (improves with total study time)
     const experienceEffect = 1 + (acceleration - 1) * Math.tanh(studyTimeHours / 20);
-    
+
     // Recovery bonus (improves after breaks)
     const recoveryEffect = 1 + (recoveryRate - 1) * Math.exp(-timeSinceLastBreakHours);
-    
+
     return baseRate * timeAdjustment * fatigueEffect * experienceEffect * recoveryEffect;
   }
 }

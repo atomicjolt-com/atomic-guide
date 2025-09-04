@@ -10,11 +10,9 @@ This document defines the coding standards and style guidelines for the Atomic G
 
 ```typescript
 // ✅ CORRECT: Explicit types, no any, proper error handling
-export async function processUserData(
-  userData: unknown
-): Promise<ProcessedUserData> {
+export async function processUserData(userData: unknown): Promise<ProcessedUserData> {
   const validatedData = UserDataSchema.parse(userData);
-  
+
   try {
     return await this.process(validatedData);
   } catch (error) {
@@ -42,7 +40,10 @@ import { z } from 'zod';
 export const UserIdSchema = z.string().uuid().brand<'UserId'>();
 export type UserId = z.infer<typeof UserIdSchema>;
 
-export const CourseIdSchema = z.string().regex(/^course_\d+$/).brand<'CourseId'>();
+export const CourseIdSchema = z
+  .string()
+  .regex(/^course_\d+$/)
+  .brand<'CourseId'>();
 export type CourseId = z.infer<typeof CourseIdSchema>;
 
 // ✅ Usage
@@ -70,15 +71,17 @@ export type UserRole = 'student' | 'instructor' | 'admin';
 export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 // ✅ CORRECT: Use type for complex computed types
-export type APIResponse<T> = {
-  success: boolean;
-  data: T;
-  timestamp: string;
-} | {
-  success: false;
-  error: string;
-  timestamp: string;
-};
+export type APIResponse<T> =
+  | {
+      success: boolean;
+      data: T;
+      timestamp: string;
+    }
+  | {
+      success: false;
+      error: string;
+      timestamp: string;
+    };
 ```
 
 ### 3. Function Definitions
@@ -87,27 +90,22 @@ export type APIResponse<T> = {
 
 ```typescript
 // ✅ CORRECT: Explicit return types
-export function calculateGrade(
-  score: number, 
-  maxScore: number
-): GradeResult {
+export function calculateGrade(score: number, maxScore: number): GradeResult {
   if (maxScore <= 0) {
     throw new Error('Max score must be positive');
   }
-  
+
   const percentage = (score / maxScore) * 100;
   return {
     score,
     maxScore,
     percentage,
-    letterGrade: this.getLetterGrade(percentage)
+    letterGrade: this.getLetterGrade(percentage),
   };
 }
 
 // ✅ CORRECT: Async functions with Promise types
-export async function fetchUserData(
-  userId: UserId
-): Promise<UserData | null> {
+export async function fetchUserData(userId: UserId): Promise<UserData | null> {
   try {
     const response = await this.api.get(`/users/${userId}`);
     return UserDataSchema.parse(response.data);
@@ -164,11 +162,7 @@ export async function processVideo(videoId: string): Promise<ProcessedVideo> {
     const video = await this.getVideo(videoId);
     return await this.process(video);
   } catch (error) {
-    throw new ProcessingError(
-      `Failed to process video ${videoId}`,
-      'transcription',
-      error
-    );
+    throw new ProcessingError(`Failed to process video ${videoId}`, 'transcription', error);
   }
 }
 ```
@@ -179,11 +173,11 @@ export async function processVideo(videoId: string): Promise<ProcessedVideo> {
 
 **Use function declarations with explicit typing:**
 
-```typescript
+````typescript
 // ✅ CORRECT: Function component with explicit props interface
 /**
  * Video player component with playback controls and transcription display.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -197,13 +191,13 @@ export async function processVideo(videoId: string): Promise<ProcessedVideo> {
 interface VideoPlayerProps {
   /** Unique identifier for the video */
   videoId: string;
-  
+
   /** Whether to start playback automatically @default false */
   autoPlay?: boolean;
-  
+
   /** Callback when user clicks on transcription text */
   onTranscriptionClick?: (timestamp: number) => void;
-  
+
   /** Additional CSS classes to apply */
   className?: string;
 }
@@ -216,9 +210,9 @@ export function VideoPlayer({
 }: VideoPlayerProps): ReactElement {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  
+
   // Component implementation...
-  
+
   return (
     <div className={`video-player ${className || ''}`}>
       {/* Component JSX */}
@@ -230,7 +224,7 @@ export function VideoPlayer({
 export const VideoPlayer = ({ videoId, autoPlay, onTranscriptionClick }) => {
   return <div>Video Player</div>;
 };
-```
+````
 
 ### 2. Hooks Usage
 
@@ -240,7 +234,7 @@ export const VideoPlayer = ({ videoId, autoPlay, onTranscriptionClick }) => {
 // ✅ CORRECT: Custom hooks with proper typing
 /**
  * Hook for managing video playback state and controls.
- * 
+ *
  * @param videoId - Unique identifier for the video
  * @returns Video playback state and control functions
  */
@@ -252,21 +246,21 @@ export function useVideoPlayer(videoId: string) {
     volume: 1,
     isLoading: true
   });
-  
+
   const play = useCallback((): void => {
     setState(prev => ({ ...prev, isPlaying: true }));
   }, []);
-  
+
   const pause = useCallback((): void => {
     setState(prev => ({ ...prev, isPlaying: false }));
   }, []);
-  
+
   const seekTo = useCallback((time: number): void => {
     if (time >= 0 && time <= state.duration) {
       setState(prev => ({ ...prev, currentTime: time }));
     }
   }, [state.duration]);
-  
+
   return {
     ...state,
     play,
@@ -278,7 +272,7 @@ export function useVideoPlayer(videoId: string) {
 // ✅ CORRECT: Effect hooks with proper dependencies
 export function VideoPlayer({ videoId }: VideoPlayerProps): ReactElement {
   const { state, play, pause } = useVideoPlayer(videoId);
-  
+
   useEffect(() => {
     // Load video metadata when videoId changes
     const loadVideo = async (): Promise<void> => {
@@ -289,10 +283,10 @@ export function VideoPlayer({ videoId }: VideoPlayerProps): ReactElement {
         console.error('Failed to load video metadata:', error);
       }
     };
-    
+
     loadVideo();
   }, [videoId]); // Explicit dependency array
-  
+
   return <div>Video Player</div>;
 }
 ```
@@ -313,19 +307,19 @@ export function UserForm({ onSubmit, onCancel }: FormProps): ReactElement {
     name: '',
     email: ''
   });
-  
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    
+
     const validatedData = UserFormDataSchema.parse(formData);
     onSubmit(validatedData);
   };
-  
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = event.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       <input
@@ -351,16 +345,16 @@ const userAuthenticationToken = 'abc123';
 const isVideoProcessingComplete = true;
 const maxUploadSizeBytes = 100 * 1024 * 1024;
 
-function calculateUserEngagementScore(userId: UserId): number { }
-function generateVideoTranscription(videoFile: File): Promise<string> { }
+function calculateUserEngagementScore(userId: UserId): number {}
+function generateVideoTranscription(videoFile: File): Promise<string> {}
 
 // ❌ FORBIDDEN: Abbreviated or unclear names
 const token = 'abc123';
 const flag = true;
 const max = 100;
 
-function calc(id: string): number { }
-function gen(file: File): Promise<string> { }
+function calc(id: string): number {}
+function gen(file: File): Promise<string> {}
 ```
 
 ### 2. Constants
@@ -373,19 +367,19 @@ export const API_RATE_LIMIT_PER_MINUTE = 100;
 
 export const VIDEO_PROCESSING_STAGES = {
   UPLOAD: 'upload',
-  TRANSCRIPTION: 'transcription', 
+  TRANSCRIPTION: 'transcription',
   ANALYSIS: 'analysis',
-  COMPLETE: 'complete'
+  COMPLETE: 'complete',
 } as const;
 
 // ✅ CORRECT: Enum-like objects with const assertion
 export const UserRoles = {
   STUDENT: 'student',
   INSTRUCTOR: 'instructor',
-  ADMIN: 'admin'
+  ADMIN: 'admin',
 } as const;
 
-export type UserRole = typeof UserRoles[keyof typeof UserRoles];
+export type UserRole = (typeof UserRoles)[keyof typeof UserRoles];
 ```
 
 ### 3. Types and Interfaces
@@ -407,9 +401,9 @@ export interface APIResponse<TData> {
 }
 
 // ✅ CORRECT: Suffix interfaces with descriptive terms
-export interface VideoPlayerProps { }
-export interface ProcessingOptions { }
-export interface DatabaseConnection { }
+export interface VideoPlayerProps {}
+export interface ProcessingOptions {}
+export interface DatabaseConnection {}
 ```
 
 ### 4. Files and Directories
@@ -480,7 +474,7 @@ function useVideoUpload(options: UploadOptions) {
 
 const VIDEO_UPLOAD_CONFIG = {
   maxSize: 500 * 1024 * 1024,
-  allowedTypes: ['mp4', 'mov', 'avi']
+  allowedTypes: ['mp4', 'mov', 'avi'],
 };
 
 // Export section
@@ -493,8 +487,8 @@ export type { VideoUploaderProps, UploadOptions };
 export default VideoUploader;
 
 // ❌ FORBIDDEN: Inline exports throughout file
-export function VideoUploader() { }
-export const useVideoUpload = () => { };
+export function VideoUploader() {}
+export const useVideoUpload = () => {};
 ```
 
 ### 3. Function Organization
@@ -507,39 +501,35 @@ export class VideoProcessor {
   // Public methods first
   async processVideo(video: VideoFile): Promise<ProcessedVideo> {
     this.validateVideoFile(video);
-    
+
     const transcription = await this.generateTranscription(video);
     const analysis = await this.analyzeContent(transcription);
-    
+
     return this.createProcessedVideo(video, transcription, analysis);
   }
-  
+
   async batchProcessVideos(videos: VideoFile[]): Promise<ProcessedVideo[]> {
-    return Promise.all(videos.map(video => this.processVideo(video)));
+    return Promise.all(videos.map((video) => this.processVideo(video)));
   }
-  
+
   // Private helper methods at bottom
   private validateVideoFile(video: VideoFile): void {
     if (video.size > MAX_VIDEO_SIZE_BYTES) {
       throw new ValidationError('Video file too large');
     }
   }
-  
+
   private async generateTranscription(video: VideoFile): Promise<string> {
     // Implementation
   }
-  
-  private createProcessedVideo(
-    video: VideoFile,
-    transcription: string,
-    analysis: ContentAnalysis
-  ): ProcessedVideo {
+
+  private createProcessedVideo(video: VideoFile, transcription: string, analysis: ContentAnalysis): ProcessedVideo {
     return {
       id: crypto.randomUUID(),
       originalVideo: video,
       transcription,
       analysis,
-      processedAt: new Date().toISOString()
+      processedAt: new Date().toISOString(),
     };
   }
 }
@@ -551,14 +541,14 @@ export class VideoProcessor {
 
 **All public APIs must have comprehensive JSDoc:**
 
-```typescript
+````typescript
 /**
  * Service for managing video processing operations including upload,
  * transcription, and content analysis.
- * 
+ *
  * This service integrates with Cloudflare Workers AI for transcription
  * generation and provides caching mechanisms for improved performance.
- * 
+ *
  * @example
  * ```typescript
  * const processor = new VideoProcessor(env.AI, env.DB);
@@ -572,21 +562,21 @@ export class VideoProcessor {
 export class VideoProcessor {
   /**
    * Process a video file through the complete pipeline.
-   * 
+   *
    * The processing pipeline includes:
    * 1. File validation and format checking
    * 2. Transcription generation using Workers AI
    * 3. Content analysis and insight extraction
    * 4. Result caching and storage
-   * 
+   *
    * @param videoFile - The video file to process (max 500MB)
    * @param options - Processing configuration options
    * @returns Promise resolving to the processed video data
-   * 
+   *
    * @throws {ValidationError} When video file is invalid or too large
    * @throws {ProcessingError} When processing fails at any stage
    * @throws {APIError} When external API calls fail
-   * 
+   *
    * @example
    * ```typescript
    * try {
@@ -602,36 +592,33 @@ export class VideoProcessor {
    * }
    * ```
    */
-  async processVideo(
-    videoFile: VideoFile,
-    options: ProcessingOptions = {}
-  ): Promise<ProcessedVideo> {
+  async processVideo(videoFile: VideoFile, options: ProcessingOptions = {}): Promise<ProcessedVideo> {
     // Implementation
   }
 }
-```
+````
 
 ### 2. Component Documentation
 
 **React components need usage examples:**
 
-```typescript
+````typescript
 /**
  * Interactive video player with transcription overlay and playback controls.
- * 
+ *
  * Features:
  * - Play/pause controls with keyboard shortcuts
  * - Scrubbing timeline with thumbnail previews
  * - Interactive transcription with timestamp navigation
  * - Volume control and playback speed adjustment
  * - Fullscreen support with responsive design
- * 
+ *
  * @component
  * @example
  * ```tsx
  * // Basic usage
  * <VideoPlayer videoId="video_123" />
- * 
+ *
  * // With transcription interaction
  * <VideoPlayer
  *   videoId="video_123"
@@ -640,7 +627,7 @@ export class VideoProcessor {
  *     console.log('Seek to:', timestamp);
  *   }}
  * />
- * 
+ *
  * // With custom styling
  * <VideoPlayer
  *   videoId="video_123"
@@ -653,22 +640,22 @@ export class VideoProcessor {
 interface VideoPlayerProps {
   /** Unique identifier for the video to play */
   videoId: string;
-  
+
   /** Whether to display transcription overlay @default true */
   showTranscription?: boolean;
-  
+
   /** Color theme for the player @default "light" */
   theme?: 'light' | 'dark';
-  
+
   /** Start playback automatically when component mounts @default false */
   autoPlay?: boolean;
-  
+
   /** Callback fired when user clicks on transcription text */
   onTranscriptionClick?: (timestamp: number) => void;
-  
+
   /** Callback fired when playback state changes */
   onPlaybackChange?: (isPlaying: boolean) => void;
-  
+
   /** Additional CSS classes to apply to the player container */
   className?: string;
 }
@@ -676,7 +663,7 @@ interface VideoPlayerProps {
 export function VideoPlayer(props: VideoPlayerProps): ReactElement {
   // Component implementation
 }
-```
+````
 
 ## CSS and Styling
 
@@ -735,11 +722,11 @@ export function VideoPlayer(props: VideoPlayerProps): ReactElement {
 }
 
 /* Dark theme variant */
-.videoPlayer[data-theme="dark"] {
+.videoPlayer[data-theme='dark'] {
   border: 1px solid #333;
 }
 
-.videoPlayer[data-theme="dark"] .controls {
+.videoPlayer[data-theme='dark'] .controls {
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
 }
 ```
@@ -750,14 +737,14 @@ import styles from './VideoPlayer.module.css';
 
 export function VideoPlayer({ theme = 'light', className }: VideoPlayerProps): ReactElement {
   return (
-    <div 
+    <div
       className={`${styles.videoPlayer} ${className || ''}`}
       data-theme={theme}
     >
       <video className={styles.videoElement}>
         {/* Video element */}
       </video>
-      
+
       <div className={styles.controls}>
         <button className={styles.playButton}>
           Play
@@ -789,7 +776,7 @@ export function VideoPlayer({ theme = 'light', className }: VideoPlayerProps): R
   .videoPlayer {
     max-width: 600px;
   }
-  
+
   .controls {
     padding: 1rem;
     flex-wrap: nowrap;
@@ -822,7 +809,7 @@ export function VideoPlayer({ theme = 'light', className }: VideoPlayerProps): R
 export function VideoList({ videos, onVideoSelect }: VideoListProps): ReactElement {
   // React 19 compiler handles memoization automatically
   // Only manual optimization if profiling shows issues
-  
+
   return (
     <div className="video-list">
       {videos.map(video => (
@@ -843,11 +830,11 @@ export const ExpensiveComponent = React.memo(function ExpensiveComponent({
 }: ExpensiveComponentProps): ReactElement {
   // Only memoize if this component has expensive computations
   // and profiling shows performance issues
-  
+
   const expensiveValue = useMemo(() => {
     return computeExpensiveValue(data);
   }, [data, computeExpensiveValue]);
-  
+
   return <div>{expensiveValue}</div>;
 });
 ```
@@ -865,7 +852,7 @@ const AnalyticsDashboard = lazy(() => import('./AnalyticsDashboard'));
 
 export function App(): ReactElement {
   const [currentView, setCurrentView] = useState<string>('home');
-  
+
   return (
     <div className="app">
       <Suspense fallback={<div>Loading...</div>}>
@@ -889,11 +876,7 @@ The project uses ESLint with strict rules:
 
 ```json
 {
-  "extends": [
-    "@typescript-eslint/recommended-requiring-type-checking",
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended"
-  ],
+  "extends": ["@typescript-eslint/recommended-requiring-type-checking", "plugin:react/recommended", "plugin:react-hooks/recommended"],
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/explicit-function-return-type": "error",
@@ -917,7 +900,7 @@ All code must pass linting before merge. Use `npm run lint-fix` to automatically
 {
   "recommendations": [
     "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode", 
+    "esbenp.prettier-vscode",
     "ms-vscode.vscode-typescript-next",
     "dbaeumer.vscode-eslint",
     "bradlc.vscode-tailwindcss",

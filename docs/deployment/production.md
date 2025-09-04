@@ -5,6 +5,7 @@ This document outlines the complete production deployment process for Atomic Gui
 ## Production Environment Overview
 
 ### Infrastructure Stack
+
 - **Primary**: Cloudflare Workers (Global Edge Network)
 - **Database**: Cloudflare D1 (SQLite at Edge)
 - **Storage**: Cloudflare R2 (Object Storage)
@@ -13,6 +14,7 @@ This document outlines the complete production deployment process for Atomic Gui
 - **Security**: Cloudflare Security Services
 
 ### Performance Characteristics
+
 - **Cold Start**: < 100ms globally
 - **Response Time**: < 50ms median
 - **Availability**: 99.9% SLA
@@ -21,6 +23,7 @@ This document outlines the complete production deployment process for Atomic Gui
 ## Pre-Production Checklist
 
 ### Code Quality Gates
+
 - [ ] All tests passing (`npm test`)
 - [ ] TypeScript compilation clean (`npm run check`)
 - [ ] Lint checks passing (`npm run lint`)
@@ -29,6 +32,7 @@ This document outlines the complete production deployment process for Atomic Gui
 - [ ] Code coverage > 80%
 
 ### Security Checklist
+
 - [ ] All secrets configured via `wrangler secret`
 - [ ] No hardcoded credentials in code
 - [ ] HTTPS enforced for all endpoints
@@ -39,6 +43,7 @@ This document outlines the complete production deployment process for Atomic Gui
 - [ ] XSS protection enabled
 
 ### Infrastructure Checklist
+
 - [ ] D1 database created and migrated
 - [ ] All KV namespaces configured
 - [ ] R2 buckets created with proper permissions
@@ -79,36 +84,36 @@ wrangler secret put DB_ENCRYPTION_KEY
   "compatibility_flags": ["nodejs_compat"],
   "send_metrics": true,
   "logpush": true,
-  
+
   "env": {
     "production": {
       "vars": {
         "ENVIRONMENT": "production",
         "LOG_LEVEL": "error",
-        "DEBUG": "false"
+        "DEBUG": "false",
       },
-      
+
       "routes": [
         {
           "pattern": "guide.yourdomain.com/*",
-          "zone_name": "yourdomain.com"
-        }
+          "zone_name": "yourdomain.com",
+        },
       ],
-      
+
       "limits": {
         "cpu_ms": 30000,
-        "memory_mb": 128
-      }
-    }
+        "memory_mb": 128,
+      },
+    },
   },
-  
+
   "placement": {
-    "mode": "smart"
+    "mode": "smart",
   },
-  
+
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }
 ```
 
@@ -158,37 +163,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run tests
         run: npm test -- --coverage
-      
+
       - name: Type check
         run: npm run check
-      
+
       - name: Security audit
         run: npm audit --audit-level=high
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Run database migrations
         run: npm run db:migrate:remote -- --env production
-      
+
       - name: Deploy to Cloudflare
         run: npm run deploy -- --env production
-      
+
       - name: Smoke tests
         run: npm run test:smoke -- --env production
-      
+
       - name: Notify deployment
         uses: ./.github/actions/notify-deployment
         with:
@@ -246,24 +251,24 @@ npm run monitor:health
 export const productionConfig = {
   // Cache configuration
   cache: {
-    staticAssets: '1y',      // 1 year for immutable assets
-    apiResponses: '5m',      // 5 minutes for API responses
-    ltiConfig: '1h',         // 1 hour for LTI configuration
+    staticAssets: '1y', // 1 year for immutable assets
+    apiResponses: '5m', // 5 minutes for API responses
+    ltiConfig: '1h', // 1 hour for LTI configuration
   },
-  
+
   // Rate limiting
   rateLimit: {
-    global: 1000,            // requests per minute globally
-    perUser: 100,            // requests per minute per user
-    perIP: 200,              // requests per minute per IP
+    global: 1000, // requests per minute globally
+    perUser: 100, // requests per minute per user
+    perIP: 200, // requests per minute per IP
   },
-  
+
   // Resource limits
   limits: {
-    maxUploadSize: 100 * 1024 * 1024,  // 100MB
-    maxBatchSize: 100,                   // Max items per batch
-    requestTimeout: 30000,               // 30 seconds
-  }
+    maxUploadSize: 100 * 1024 * 1024, // 100MB
+    maxBatchSize: 100, // Max items per batch
+    requestTimeout: 30000, // 30 seconds
+  },
 };
 ```
 
@@ -274,7 +279,7 @@ export const productionConfig = {
 export const securityHeaders = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
   'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'SAMEORIGIN',  // Allow LMS iframe embedding
+  'X-Frame-Options': 'SAMEORIGIN', // Allow LMS iframe embedding
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Content-Security-Policy': [
@@ -283,22 +288,22 @@ export const securityHeaders = {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "connect-src 'self' wss: https:",
-    "frame-ancestors *",  // Allow embedding in LMS
-  ].join('; ')
+    'frame-ancestors *', // Allow embedding in LMS
+  ].join('; '),
 };
 
 // Apply security headers
 export function addSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
-  
+
   Object.entries(securityHeaders).forEach(([key, value]) => {
     headers.set(key, value);
   });
-  
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
-    headers
+    headers,
   });
 }
 ```
@@ -316,19 +321,19 @@ export class ProductionErrorHandler {
       url: request.url,
       method: request.method,
       timestamp: new Date().toISOString(),
-      userAgent: request.headers.get('User-Agent')
+      userAgent: request.headers.get('User-Agent'),
     });
-    
+
     // Return generic error to user
     return new Response(
       JSON.stringify({
         error: 'An unexpected error occurred',
         timestamp: new Date().toISOString(),
-        requestId: crypto.randomUUID()
+        requestId: crypto.randomUUID(),
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
@@ -351,15 +356,15 @@ export async function handleHealthCheck(env: Env): Promise<Response> {
       kv: await checkKV(env.KEY_SETS),
       r2: await checkR2(env.VIDEO_STORAGE),
       ai: await checkAI(env.AI),
-      vectorize: await checkVectorize(env.FAQ_INDEX)
-    }
+      vectorize: await checkVectorize(env.FAQ_INDEX),
+    },
   };
-  
-  const allHealthy = Object.values(health.checks).every(check => check.status === 'ok');
-  
+
+  const allHealthy = Object.values(health.checks).every((check) => check.status === 'ok');
+
   return new Response(JSON.stringify(health), {
     status: allHealthy ? 200 : 503,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
@@ -378,15 +383,10 @@ async function checkDatabase(db: D1Database): Promise<{ status: string; latency:
 
 ```typescript
 // Performance metrics
-export async function recordMetrics(
-  request: Request,
-  response: Response,
-  startTime: number,
-  env: Env
-): Promise<void> {
+export async function recordMetrics(request: Request, response: Response, startTime: number, env: Env): Promise<void> {
   const duration = Date.now() - startTime;
   const path = new URL(request.url).pathname;
-  
+
   const metrics = {
     timestamp: Date.now(),
     path,
@@ -395,9 +395,9 @@ export async function recordMetrics(
     duration,
     userAgent: request.headers.get('User-Agent'),
     country: request.cf?.country || 'unknown',
-    colo: request.cf?.colo || 'unknown'
+    colo: request.cf?.colo || 'unknown',
   };
-  
+
   // Send to analytics queue for processing
   await env.ANALYTICS_QUEUE.send(metrics);
 }
@@ -412,22 +412,22 @@ alerts:
     condition: error_rate > 5%
     duration: 5m
     severity: critical
-    
+
   - name: High Latency
     condition: p95_latency > 1000ms
     duration: 5m
     severity: warning
-    
+
   - name: Database Connection Issues
     condition: db_connection_errors > 10
     duration: 2m
     severity: critical
-    
+
   - name: Memory Usage High
     condition: memory_usage > 90%
     duration: 10m
     severity: warning
-    
+
   - name: Queue Backlog
     condition: queue_backlog > 1000
     duration: 5m
@@ -503,13 +503,13 @@ tar czf "config-backup-$(date +%Y%m%d).tar.gz" backup-*.json
 ```jsonc
 {
   "placement": {
-    "mode": "smart"  // Cloudflare automatically places workers optimally
+    "mode": "smart", // Cloudflare automatically places workers optimally
   },
-  
+
   "limits": {
-    "cpu_ms": 30000,    // 30 seconds CPU time limit
-    "memory_mb": 128    // 128MB memory limit
-  }
+    "cpu_ms": 30000, // 30 seconds CPU time limit
+    "memory_mb": 128, // 128MB memory limit
+  },
 }
 ```
 
@@ -522,15 +522,13 @@ export class GlobalDatabaseService {
     private primaryDB: D1Database,
     private replicaDBs: Map<string, D1Database>
   ) {}
-  
+
   async read(query: string, region?: string): Promise<any> {
-    const db = region && this.replicaDBs.has(region)
-      ? this.replicaDBs.get(region)!
-      : this.primaryDB;
-      
+    const db = region && this.replicaDBs.has(region) ? this.replicaDBs.get(region)! : this.primaryDB;
+
     return await db.prepare(query).first();
   }
-  
+
   async write(query: string): Promise<any> {
     // Always write to primary
     return await this.primaryDB.prepare(query).run();
@@ -545,16 +543,16 @@ export class GlobalDatabaseService {
 export const queueConfig = {
   video_processing: {
     max_batch_size: 10,
-    max_batch_timeout: 30000,  // 30 seconds
+    max_batch_timeout: 30000, // 30 seconds
     max_retries: 3,
-    dead_letter_queue: 'video_processing_dlq'
+    dead_letter_queue: 'video_processing_dlq',
   },
-  
+
   analytics: {
     max_batch_size: 100,
-    max_batch_timeout: 10000,  // 10 seconds
-    max_retries: 2
-  }
+    max_batch_timeout: 10000, // 10 seconds
+    max_retries: 2,
+  },
 };
 ```
 
@@ -566,23 +564,26 @@ export const queueConfig = {
 // Client-side performance monitoring
 export function trackWebVitals(): void {
   if (typeof window === 'undefined') return;
-  
+
   import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-    getCLS(metric => sendMetric('CLS', metric));
-    getFID(metric => sendMetric('FID', metric));
-    getFCP(metric => sendMetric('FCP', metric));
-    getLCP(metric => sendMetric('LCP', metric));
-    getTTFB(metric => sendMetric('TTFB', metric));
+    getCLS((metric) => sendMetric('CLS', metric));
+    getFID((metric) => sendMetric('FID', metric));
+    getFCP((metric) => sendMetric('FCP', metric));
+    getLCP((metric) => sendMetric('LCP', metric));
+    getTTFB((metric) => sendMetric('TTFB', metric));
   });
 }
 
 function sendMetric(name: string, metric: any): void {
-  navigator.sendBeacon('/api/metrics', JSON.stringify({
-    name,
-    value: metric.value,
-    id: metric.id,
-    timestamp: Date.now()
-  }));
+  navigator.sendBeacon(
+    '/api/metrics',
+    JSON.stringify({
+      name,
+      value: metric.value,
+      id: metric.id,
+      timestamp: Date.now(),
+    })
+  );
 }
 ```
 
@@ -592,25 +593,25 @@ function sendMetric(name: string, metric: any): void {
 // RUM implementation
 export class RealUserMonitoring {
   private buffer: MetricEvent[] = [];
-  
+
   track(event: MetricEvent): void {
     this.buffer.push(event);
-    
+
     if (this.buffer.length >= 10) {
       this.flush();
     }
   }
-  
+
   private async flush(): Promise<void> {
     if (this.buffer.length === 0) return;
-    
+
     const events = this.buffer.splice(0);
-    
+
     try {
       await fetch('/api/metrics/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(events)
+        body: JSON.stringify(events),
       });
     } catch (error) {
       console.warn('Failed to send metrics:', error);
@@ -651,7 +652,7 @@ name: Security Scan
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Weekly
+    - cron: '0 0 * * 0' # Weekly
   push:
     branches: [main]
 
@@ -660,10 +661,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Run security audit
         run: npm audit --audit-level=high
-      
+
       - name: SAST scan
         uses: github/super-linter@v4
         env:
@@ -675,13 +676,13 @@ jobs:
 
 ### 1. Common Issues and Solutions
 
-| Issue | Symptoms | Solution |
-|-------|----------|----------|
-| High Latency | Response times > 1s | Check database queries, optimize hot paths |
-| Memory Errors | 1015 errors | Reduce memory usage, optimize data structures |
-| Rate Limiting | 429 errors | Implement client-side retry logic |
-| Database Locks | Timeouts on writes | Optimize transaction scope |
-| Queue Backlog | Delayed processing | Scale queue consumers |
+| Issue          | Symptoms            | Solution                                      |
+| -------------- | ------------------- | --------------------------------------------- |
+| High Latency   | Response times > 1s | Check database queries, optimize hot paths    |
+| Memory Errors  | 1015 errors         | Reduce memory usage, optimize data structures |
+| Rate Limiting  | 429 errors          | Implement client-side retry logic             |
+| Database Locks | Timeouts on writes  | Optimize transaction scope                    |
+| Queue Backlog  | Delayed processing  | Scale queue consumers                         |
 
 ### 2. Emergency Procedures
 

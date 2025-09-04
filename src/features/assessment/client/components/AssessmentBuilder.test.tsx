@@ -3,7 +3,7 @@
  * @module features/assessment/client/components/AssessmentBuilder.test
  */
 
-import {  describe, it, expect, vi , MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AssessmentBuilder } from './AssessmentBuilder';
@@ -20,10 +20,6 @@ describe('AssessmentBuilder', () => {
 
   beforeEach(async () => {
     // Setup test infrastructure - removed ServiceTestHarness as this tests React components
-    
-    
-    ;
-  
   });
 
   describe('Rendering', () => {
