@@ -160,8 +160,11 @@ describe('DeepLinkingInterface', () => {
     const previewButton = screen.getByRole('button', { name: /preview assessment/i });
     await user.click(previewButton);
 
-    // Should show error message about missing questions (component allows preview with default title)
+    // Component allows preview with default title but shows error about questions
     expect(screen.getByText(/You haven't added any questions yet/i)).toBeInTheDocument();
+    
+    // Should also show the assessment preview
+    expect(screen.getByText(/Assessment Preview/i)).toBeInTheDocument();
   });
 
   it('should validate required fields before submission', async () => {
