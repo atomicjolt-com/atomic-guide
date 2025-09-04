@@ -147,6 +147,13 @@ describe('Analytics API Handlers', () => {
     });
 
     it('should handle service errors gracefully', async () => {
+      // Mock privacy service to allow access first
+      vi.mocked(PrivacyPreservingAnalytics).mockImplementation(() => ({
+        validatePrivacyConsent: vi.fn().mockResolvedValue({ isAllowed: true, reason: 'consent_granted' }),
+        auditDataAccess: vi.fn().mockResolvedValue(undefined),
+        getAnonymizedBenchmark: vi.fn().mockResolvedValue({ benchmarkData: { average: 0.72 } })
+      }));
+
       // Mock service to throw error for this test
       vi.mocked(PerformanceAnalyticsService).mockImplementation(() => ({
         getStudentAnalytics: vi.fn().mockRejectedValue(new Error('Database error')),
@@ -301,6 +308,19 @@ describe('Analytics API Handlers', () => {
     });
 
     it('should queue analytics update after completion', async () => {
+      // Mock the analytics service to call the queue when queueAnalyticsTask is invoked
+      const mockQueueAnalyticsTask = vi.fn().mockImplementation(async (task) => {
+        await mockEnv.ANALYTICS_QUEUE.send(task);
+        return 'task-123';
+      });
+      
+      vi.mocked(PerformanceAnalyticsService).mockImplementation(() => ({
+        getStudentAnalytics: vi.fn().mockResolvedValue({
+          profile: { studentId: 'student-1', overallMastery: 0.75 },
+          conceptMasteries: []
+        }),
+        queueAnalyticsTask: mockQueueAnalyticsTask
+      }));
       
       mockEnv.DB.run.mockResolvedValue({ success: true });
       
@@ -316,7 +336,7 @@ describe('Analytics API Handlers', () => {
       }, mockEnv);
 
       expect(res.status).toBe(200);
-      // Verify analytics task was queued - this would be tested in the service integration
+      // Verify analytics task was queued
       expect(mockEnv.ANALYTICS_QUEUE.send).toHaveBeenCalled();
     });
 
@@ -390,6 +410,35 @@ describe('Analytics API Handlers', () => {
 
   describe('POST /analytics/recommendations/adaptive', () => {
     it('should generate adaptive recommendations', async () => {
+      // Reset mocks to ensure clean state
+      vi.mocked(PrivacyPreservingAnalytics).mockImplementation(() => ({
+        validatePrivacyConsent: vi.fn().mockResolvedValue({ isAllowed: true, reason: 'consent_granted' }),
+        auditDataAccess: vi.fn().mockResolvedValue(undefined),
+        getAnonymizedBenchmark: vi.fn().mockResolvedValue({ benchmarkData: { average: 0.72 } })
+      }));
+
+      vi.mocked(PerformanceAnalyticsService).mockImplementation(() => ({
+        getStudentAnalytics: vi.fn().mockResolvedValue({
+          profile: {
+            studentId: 'student-1',
+            overallMastery: 0.75,
+            learningVelocity: 2.0,
+            confidenceLevel: 0.8
+          },
+          conceptMasteries: [
+            { conceptId: 'arrays', masteryLevel: 0.8 },
+            { conceptId: 'loops', masteryLevel: 0.6 }
+          ]
+        }),
+        queueAnalyticsTask: vi.fn().mockResolvedValue('task-123')
+      }));
+
+      vi.mocked(AdaptiveLearningService).mockImplementation(() => ({
+        generateAdaptiveRecommendations: vi.fn().mockResolvedValue([
+          { id: 'rec-1', type: 'review', priority: 'high', conceptId: 'loops' }
+        ])
+      }));
+
       const res = await app.request('/analytics/recommendations/adaptive', {
         method: 'POST',
         headers: {

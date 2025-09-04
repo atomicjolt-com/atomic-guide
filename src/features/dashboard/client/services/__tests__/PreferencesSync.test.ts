@@ -244,12 +244,15 @@ describe('PreferencesSync', () => {
       const navigator = window.navigator;
       navigator.onLine = false;
 
-      // Simulate offline event by creating and dispatching event
-      window.dispatchEvent(new Event('offline'));
+      // Get the actual event handler that was registered
+      const offlineHandlerCall = mockAddEventListener.mock.calls.find(call => call[0] === 'offline');
+      expect(offlineHandlerCall).toBeDefined();
+      const offlineHandler = offlineHandlerCall![1];
 
-      // Wait for the event to be processed
-      await vi.runOnlyPendingTimersAsync();
+      // Call the handler directly to simulate the offline event
+      offlineHandler();
 
+      // Callbacks should be called synchronously
       expect(callback1).toHaveBeenCalledWith(expect.objectContaining({ status: 'offline' }));
       expect(callback2).toHaveBeenCalledWith(expect.objectContaining({ status: 'offline' }));
     });
@@ -308,10 +311,11 @@ describe('PreferencesSync', () => {
           }),
       });
 
-      // Instead of relying on event timing, directly call the private syncFromServer method
-      // by accessing it through the service instance
-      const syncFromServerMethod = preferencesSync['syncFromServer'].bind(preferencesSync);
-      await syncFromServerMethod();
+      // Create a fresh instance to ensure clean state
+      const freshPrefsSync = new PreferencesSync(userId, tenantId, jwt);
+      
+      // Call the private syncFromServer method directly
+      await freshPrefsSync['syncFromServer']();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(`/api/preferences/sync/${userId}`),
@@ -321,6 +325,9 @@ describe('PreferencesSync', () => {
           }),
         })
       );
+      
+      // Clean up
+      freshPrefsSync.destroy();
     });
 
     it('should use server preferences when newer', async () => {
