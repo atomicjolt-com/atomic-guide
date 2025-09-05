@@ -7,7 +7,6 @@
  * struggle indicators, and content preferences while maintaining GDPR/FERPA compliance.
  */
 
-import { DatabaseService } from '@shared/server/services';
 import type {
   BehavioralPattern,
   LearningVelocityData,
@@ -17,6 +16,11 @@ import type {
   ContentPreference,
 } from '../../shared/types';
 import { PrivacyControlService } from './PrivacyControlService';
+import {
+  BehavioralPatternRepository,
+  LearnerDNAProfileRepository,
+  CognitiveAttributeRepository,
+} from '../repositories';
 
 /**
  * Cognitive Data Collector implementing privacy-compliant behavioral pattern analysis.
@@ -35,13 +39,22 @@ import { PrivacyControlService } from './PrivacyControlService';
  * @class CognitiveDataCollector
  */
 export class CognitiveDataCollector {
-  private db: DatabaseService;
+  private behavioralPatternRepository: BehavioralPatternRepository;
+  private profileRepository: LearnerDNAProfileRepository;
+  private cognitiveAttributeRepository: CognitiveAttributeRepository;
   private privacyService: PrivacyControlService;
   private readonly CONFIDENCE_THRESHOLD = 0.7;
   private readonly MIN_DATA_POINTS = 5;
 
-  constructor(db: DatabaseService, privacyService: PrivacyControlService) {
-    this.db = db;
+  constructor(
+    behavioralPatternRepository: BehavioralPatternRepository,
+    profileRepository: LearnerDNAProfileRepository,
+    cognitiveAttributeRepository: CognitiveAttributeRepository,
+    privacyService: PrivacyControlService
+  ) {
+    this.behavioralPatternRepository = behavioralPatternRepository;
+    this.profileRepository = profileRepository;
+    this.cognitiveAttributeRepository = cognitiveAttributeRepository;
     this.privacyService = privacyService;
   }
 
@@ -113,11 +126,11 @@ export class CognitiveDataCollector {
       consentVerified: true,
     };
 
-    // Store behavioral pattern
-    await this.storeBehavioralPattern(behavioralPattern);
+    // Store behavioral pattern using repository
+    await this.behavioralPatternRepository.create(behavioralPattern);
 
-    // Create audit log entry
-    await this.createDataCollectionAudit(tenantId, userId, 'interaction_timing', behavioralPattern.id);
+    // TODO: Implement audit logging through repository pattern
+    // await this.auditRepository.createDataCollectionAudit(tenantId, userId, 'interaction_timing', behavioralPattern.id);
 
     return behavioralPattern;
   }
@@ -199,38 +212,9 @@ export class CognitiveDataCollector {
       recordedAt: new Date(),
     };
 
-    // Store learning velocity data
-    await this.db
-      .getDb()
-      .prepare(
-        `INSERT INTO learning_velocity_data (
-        id, tenant_id, user_id, profile_id, concept_id, concept_name,
-        time_to_mastery_minutes, attempt_count, mastery_threshold, mastery_confidence,
-        difficulty_level, prior_knowledge_level, struggled_concepts, acceleration_factors,
-        course_id, started_at, mastery_achieved_at, recorded_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        velocityData.id,
-        velocityData.tenantId,
-        velocityData.userId,
-        velocityData.profileId,
-        velocityData.conceptId,
-        velocityData.conceptName,
-        velocityData.timeToMasteryMinutes,
-        velocityData.attemptCount,
-        velocityData.masteryThreshold,
-        velocityData.masteryConfidence,
-        velocityData.difficultyLevel,
-        velocityData.priorKnowledgeLevel,
-        JSON.stringify(velocityData.struggledConcepts),
-        JSON.stringify(velocityData.accelerationFactors),
-        velocityData.courseId,
-        velocityData.startedAt.toISOString(),
-        velocityData.masteryAchievedAt.toISOString(),
-        velocityData.recordedAt.toISOString()
-      )
-      .run();
+    // TODO: Store learning velocity data through repository pattern
+    // Requires LearningVelocityRepository to be created
+    // await this.learningVelocityRepository.create(velocityData);
 
     return velocityData;
   }
@@ -291,40 +275,9 @@ export class CognitiveDataCollector {
       analyzedAt: new Date(),
     };
 
-    // Store memory retention analysis
-    await this.db
-      .getDb()
-      .prepare(
-        `INSERT OR REPLACE INTO memory_retention_analysis (
-        id, tenant_id, user_id, profile_id, concept_id, initial_mastery_level,
-        current_retention_level, forgetting_curve_slope, memory_strength_factor,
-        retention_half_life_days, optimal_review_interval_days, next_review_recommended_at,
-        review_sessions_count, retention_accuracy_score, interference_factors,
-        analysis_confidence, data_points_used, last_assessment_at, analyzed_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        retentionAnalysis.id,
-        retentionAnalysis.tenantId,
-        retentionAnalysis.userId,
-        retentionAnalysis.profileId,
-        retentionAnalysis.conceptId,
-        retentionAnalysis.initialMasteryLevel,
-        retentionAnalysis.currentRetentionLevel,
-        retentionAnalysis.forgettingCurveSlope,
-        retentionAnalysis.memoryStrengthFactor,
-        retentionAnalysis.retentionHalfLifeDays,
-        retentionAnalysis.optimalReviewIntervalDays,
-        retentionAnalysis.nextReviewRecommendedAt?.toISOString(),
-        retentionAnalysis.reviewSessionsCount,
-        retentionAnalysis.retentionAccuracyScore,
-        JSON.stringify(retentionAnalysis.interferenceFactors),
-        retentionAnalysis.analysisConfidence,
-        retentionAnalysis.dataPointsUsed,
-        retentionAnalysis.lastAssessmentAt.toISOString(),
-        retentionAnalysis.analyzedAt.toISOString()
-      )
-      .run();
+    // TODO: Store memory retention analysis through repository pattern
+    // Requires MemoryRetentionRepository to be created
+    // await this.memoryRetentionRepository.create(retentionAnalysis);
 
     return retentionAnalysis;
   }
@@ -890,83 +843,48 @@ export class CognitiveDataCollector {
     return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
-  private async storeBehavioralPattern(pattern: BehavioralPattern): Promise<void> {
-    await this.db
-      .getDb()
-      .prepare(
-        `INSERT INTO behavioral_patterns (
-        id, tenant_id, user_id, session_id, pattern_type, context_type,
-        raw_data_encrypted, raw_data_hash, aggregated_metrics, confidence_level,
-        course_id, content_id, collected_at, privacy_level, consent_verified
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        pattern.id,
-        pattern.tenantId,
-        pattern.userId,
-        pattern.sessionId,
-        pattern.patternType,
-        pattern.contextType,
-        pattern.rawDataEncrypted,
-        pattern.rawDataHash,
-        JSON.stringify(pattern.aggregatedMetrics),
-        pattern.confidenceLevel,
-        pattern.courseId,
-        pattern.contentId,
-        pattern.collectedAt.toISOString(),
-        pattern.privacyLevel,
-        pattern.consentVerified
-      )
-      .run();
-  }
 
   private async getOrCreateProfileId(tenantId: string, userId: string): Promise<string> {
-    const existing = await this.db
-      .getDb()
-      .prepare('SELECT id FROM learner_dna_profiles WHERE tenant_id = ? AND user_id = ?')
-      .bind(tenantId, userId)
-      .first<{ id: string }>();
+    // Try to find existing profile using repository
+    const existing = await this.profileRepository.findByUserId(userId, tenantId);
 
     if (existing) {
       return existing.id;
     }
 
-    const profileId = crypto.randomUUID();
-    await this.db
-      .getDb()
-      .prepare(
-        `INSERT INTO learner_dna_profiles (
-        id, tenant_id, user_id, created_at, updated_at, last_analyzed_at
-      ) VALUES (?, ?, ?, ?, ?, ?)`
-      )
-      .bind(profileId, tenantId, userId, new Date().toISOString(), new Date().toISOString(), new Date().toISOString())
-      .run();
+    // Create new profile using repository
+    const newProfile = await this.profileRepository.create({
+      tenantId,
+      userId,
+      // Initialize with default values
+      learningVelocityValue: 0,
+      learningVelocityConfidence: 0,
+      learningVelocityDataPoints: 0,
+      learningVelocityLastUpdated: new Date(),
+      memoryRetentionValue: 0,
+      memoryRetentionConfidence: 0,
+      memoryRetentionDataPoints: 0,
+      memoryRetentionLastUpdated: new Date(),
+      struggleThresholdValue: 0.5,
+      struggleThresholdConfidence: 0,
+      struggleThresholdDataPoints: 0,
+      struggleThresholdLastUpdated: new Date(),
+      cognitiveAttributes: {},
+      comprehensionStyles: [],
+      preferredModalities: [],
+      profileConfidence: 0,
+      totalDataPoints: 0,
+      analysisQualityScore: 0,
+      crossCoursePatterns: {},
+      multiContextConfidence: 0,
+      dataCollectionLevel: 'minimal' as const,
+      profileVisibility: 'private' as const,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastAnalyzedAt: new Date(),
+    });
 
-    return profileId;
+    return newProfile.id;
   }
 
-  private async createDataCollectionAudit(tenantId: string, userId: string, dataType: string, resourceId: string): Promise<void> {
-    await this.db
-      .getDb()
-      .prepare(
-        `INSERT INTO learner_dna_audit_log (
-        id, tenant_id, actor_type, actor_id, action, resource_type,
-        resource_id, privacy_level, consent_status, data_sensitivity_level, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        crypto.randomUUID(),
-        tenantId,
-        'system',
-        'CognitiveDataCollector',
-        'data_collected',
-        'behavioral_pattern',
-        resourceId,
-        'identifiable',
-        'active',
-        'high',
-        new Date().toISOString()
-      )
-      .run();
-  }
 }

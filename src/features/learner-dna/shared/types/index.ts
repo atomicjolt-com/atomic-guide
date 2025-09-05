@@ -460,12 +460,30 @@ export interface CrossCoursePattern {
  * Cognitive attribute with metadata
  */
 export interface CognitiveAttribute {
+  id: string;
+  tenantId: string;
+  userId: string;
+  profileId: string;
+  
   attribute: string;
   value: number | string;
   confidence: number;
   dataPoints: number;
   lastUpdated: Date;
   evidenceSource: 'assessment' | 'chat' | 'timing' | 'behavior' | 'manual';
+  
+  // Context information
+  courseId?: string;
+  sessionId?: string;
+  contextData: Record<string, any>;
+  
+  // Quality metrics
+  validationScore: number;
+  stabilityScore: number;
+  
+  // Timestamps
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**

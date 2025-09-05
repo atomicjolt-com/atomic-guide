@@ -418,6 +418,84 @@ export const behavioralPatternSchema = z.object({
 });
 
 /**
+ * Schema for comprehensive Learner DNA Profile
+ */
+export const learnerDnaProfileSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string(),
+  userId: z.string(),
+
+  // Core cognitive attributes with confidence scoring
+  learningVelocityValue: z.number().min(0).max(10),
+  learningVelocityConfidence: z.number().min(0).max(1),
+  learningVelocityDataPoints: z.number().int().min(0),
+  learningVelocityLastUpdated: z.date(),
+
+  memoryRetentionValue: z.number().min(0).max(1),
+  memoryRetentionConfidence: z.number().min(0).max(1),
+  memoryRetentionDataPoints: z.number().int().min(0),
+  memoryRetentionLastUpdated: z.date(),
+
+  struggleThresholdValue: z.number().min(0).max(1),
+  struggleThresholdConfidence: z.number().min(0).max(1),
+  struggleThresholdDataPoints: z.number().int().min(0),
+  struggleThresholdLastUpdated: z.date(),
+
+  // Complex attributes as JSON
+  cognitiveAttributes: z.record(z.any()).default({}),
+  comprehensionStyles: z.array(z.string()).default([]),
+  preferredModalities: z.array(z.string()).default([]),
+
+  // Profile quality
+  profileConfidence: z.number().min(0).max(1).default(0),
+  totalDataPoints: z.number().int().min(0).default(0),
+  analysisQualityScore: z.number().min(0).max(1).default(0),
+
+  // Cross-course intelligence
+  crossCoursePatterns: z.record(z.any()).default({}),
+  multiContextConfidence: z.number().min(0).max(1).default(0),
+
+  // Privacy and visibility
+  dataCollectionLevel: z.enum(['minimal', 'standard', 'comprehensive']).default('minimal'),
+  profileVisibility: z.enum(['private', 'course_aggregate', 'anonymized']).default('private'),
+
+  // Timestamps
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+  lastAnalyzedAt: z.date().default(() => new Date()),
+});
+
+/**
+ * Schema for cognitive attribute with metadata
+ */
+export const cognitiveAttributeSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string(),
+  userId: z.string(),
+  profileId: z.string().uuid(),
+  
+  attribute: z.string().min(1),
+  value: z.union([z.number(), z.string()]),
+  confidence: z.number().min(0).max(1),
+  dataPoints: z.number().int().min(0),
+  lastUpdated: z.date().default(() => new Date()),
+  evidenceSource: z.enum(['assessment', 'chat', 'timing', 'behavior', 'manual']),
+  
+  // Context information
+  courseId: z.string().optional(),
+  sessionId: z.string().optional(),
+  contextData: z.record(z.any()).default({}),
+  
+  // Quality metrics
+  validationScore: z.number().min(0).max(1).default(0),
+  stabilityScore: z.number().min(0).max(1).default(0),
+  
+  // Timestamps
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+/**
  * Export all schemas for easy import
  */
 export const LearnerDNASchemas = {
@@ -435,4 +513,6 @@ export const LearnerDNASchemas = {
   LearnerDNAPrivacyConsent: learnerDnaPrivacyConsentSchema,
   PrivacyConsentUpdate: privacyConsentUpdateSchema,
   BehavioralPattern: behavioralPatternSchema,
+  LearnerDNAProfile: learnerDnaProfileSchema,
+  CognitiveAttribute: cognitiveAttributeSchema,
 } as const;
