@@ -507,6 +507,7 @@ describe('AdvancedPatternRecognizer', () => {
   describe('Real-Time Behavioral Signal Analysis (AC 6)', () => {
     it('should analyze behavioral signals within performance targets', async () => {
       // Arrange
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
       const mockPatterns = [
         createMockBehavioralPattern({
           aggregatedMetrics: {
@@ -553,6 +554,7 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should handle no recent data gracefully', async () => {
       // Arrange: No recent patterns
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
       mockAll.mockResolvedValue({ results: [] });
 
       // Act
@@ -573,6 +575,7 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should identify optimal intervention timing', async () => {
       // Arrange: Optimal conditions
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
       const optimalPatterns = [
         createMockBehavioralPattern({
           aggregatedMetrics: {
@@ -608,6 +611,7 @@ describe('AdvancedPatternRecognizer', () => {
     });
 
     it('should provide contextual recommendations', async () => {
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
       const scenarios = [
         {
           name: 'High cognitive load',

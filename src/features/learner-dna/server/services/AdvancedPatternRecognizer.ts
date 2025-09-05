@@ -191,6 +191,7 @@ export class AdvancedPatternRecognizer {
       const currentFeatures = this.extractBehavioralFeatures(recentPatterns);
       const baselineFeatures = historicalBaseline.averageFeatures;
 
+
       // Apply lightweight struggle prediction model
       const struggleAnalysis = this.applyStrugglePredictionModel(
         currentFeatures,
@@ -473,11 +474,12 @@ export class AdvancedPatternRecognizer {
     } catch (error) {
       console.error('Real-time behavioral analysis failed:', error);
       
-      // Re-throw privacy errors - they should not have fallbacks
+      // For privacy errors, re-throw to maintain privacy enforcement consistency
       if (error instanceof Error && error.message.includes('PRIVACY_ERROR')) {
         throw error;
       }
       
+      // For other errors (database failures, etc.), return fallback values
       return {
         cognitiveLoad: 0.5,
         attentionLevel: 0.5,
@@ -646,6 +648,7 @@ export class AdvancedPatternRecognizer {
       return this.getDefaultFeatures();
     }
 
+
     // Aggregate metrics across patterns
     let totalResponseTime = 0;
     let responseTimeVariances: number[] = [];
@@ -737,6 +740,7 @@ export class AdvancedPatternRecognizer {
       attentionDecrease: Math.max(0, (baselineFeatures.attentionScore - currentFeatures.attentionScore) / baselineFeatures.attentionScore),
       cognitiveLoadIncrease: Math.max(0, (currentFeatures.cognitiveLoadEstimate - baselineFeatures.cognitiveLoadEstimate) / Math.max(baselineFeatures.cognitiveLoadEstimate, 0.1))
     };
+
 
     // Apply simple linear model with feature weights
     const riskScore = Math.min(1.0, 

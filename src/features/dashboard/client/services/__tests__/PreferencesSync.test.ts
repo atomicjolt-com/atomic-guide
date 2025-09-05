@@ -245,7 +245,7 @@ describe('PreferencesSync', () => {
       navigator.onLine = false;
 
       // Get the actual event handler that was registered
-      const offlineHandlerCall = mockAddEventListener.mock.calls.find(call => call[0] === 'offline');
+      const offlineHandlerCall = mockAddEventListener.mock.calls.find((call) => call[0] === 'offline');
       expect(offlineHandlerCall).toBeDefined();
       const offlineHandler = offlineHandlerCall![1];
 
@@ -313,7 +313,7 @@ describe('PreferencesSync', () => {
 
       // Create a fresh instance to ensure clean state
       const freshPrefsSync = new PreferencesSync(userId, tenantId, jwt);
-      
+
       // Call the private syncFromServer method directly
       await freshPrefsSync['syncFromServer']();
 
@@ -325,7 +325,7 @@ describe('PreferencesSync', () => {
           }),
         })
       );
-      
+
       // Clean up
       freshPrefsSync.destroy();
     });
@@ -552,7 +552,7 @@ describe('PreferencesSync', () => {
     beforeEach(() => {
       // Set up fake timers for these tests
       vi.useFakeTimers();
-      
+
       // Recreate PreferencesSync instance with fake timers active
       preferencesSync.destroy();
       preferencesSync = new PreferencesSync(userId, tenantId, jwt);

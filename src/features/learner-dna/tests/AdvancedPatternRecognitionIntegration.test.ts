@@ -191,8 +191,9 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       // Create good historical patterns for baseline (first 10 patterns are good performance)
       const allHistoricalPatterns = createHistoricalBehavioralPatterns(30);
       // Use only the first 10 patterns (good performance) for the baseline
-      const historicalPatterns = allHistoricalPatterns.slice(0, 10).map(p => ({
+      const historicalPatterns = allHistoricalPatterns.slice(0, 10).map((p, index) => ({
         ...p,
+        id: `historical-pattern-${index}`, // Make sure IDs are different from recent patterns
         aggregatedMetrics: {
           avgResponseTimeMs: 3000, // Fast response times
           responseTimeVariability: 0.2,
@@ -215,7 +216,7 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
         const minutesAgo = i * 5; // 0, 5, 10, 15, 20 minutes ago
         const recentTime = Date.now() - minutesAgo * 60 * 1000;
         recentPatterns.push({
-          id: `recent-pattern-${i}`,
+          id: `recent-struggling-pattern-${i}`, // Clear differentiation
           tenantId: testTenantId,
           userId: testUserId,
           sessionId: `recent-session-${i}`,
@@ -291,27 +292,14 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       };
       
       // Handle multiple database calls - return appropriate data based on the query
-      // The query contains time filters that help distinguish between recent and historical calls
       mockAll.mockImplementation((query: any) => {
-        // Check if this is a query for recent patterns (last 30 minutes) or historical (last 30 days)
-        const queryStr = typeof query === 'string' ? query : '';
-        
-        // getRecentBehavioralPatterns queries for data within the last X minutes (typically queries with short time window)
-        // getHistoricalBaseline queries for data from the last 30 days (queries with longer time window)
-        
-        // Check query content to determine which data to return
-        // Recent patterns query contains a recent timestamp filter
-        // Historical baseline query contains a longer date range
-        
-        // Since we can't easily inspect the query, use call sequence:
-        // predictStruggle calls getRecentBehavioralPatterns first, then getHistoricalBaseline
         const callIndex = mockAll.mock.calls.length - 1;
         
         // First call is getRecentBehavioralPatterns - return struggling patterns
         if (callIndex === 0) {
           return Promise.resolve(recentPatternData);
         } 
-        // Second call is getHistoricalBaseline - return baseline patterns
+        // Second call is getHistoricalBaseline - return baseline patterns  
         else if (callIndex === 1) {
           return Promise.resolve(historicalPatternData);
         }
@@ -542,6 +530,10 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       }));
 
       const learnerProfile = createIntegrationProfile();
+
+      // Set up privacy service mocking
+      const mockValidatePermission = vi.fn().mockResolvedValue(true);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
 
       mockFirst.mockResolvedValue({
         learning_velocity_value: learnerProfile.learningVelocityValue,
