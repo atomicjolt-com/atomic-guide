@@ -296,18 +296,36 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
         // Check if this is a query for recent patterns (last 30 minutes) or historical (last 30 days)
         const queryStr = typeof query === 'string' ? query : '';
         
-        // getRecentBehavioralPatterns queries for data within the last X minutes
-        // getHistoricalBaseline queries for data from the last 30 days
-        // We'll return recent data for short time windows and historical for longer ones
+        // getRecentBehavioralPatterns queries for data within the last X minutes (typically queries with short time window)
+        // getHistoricalBaseline queries for data from the last 30 days (queries with longer time window)
         
-        // For now, alternate between recent and historical to ensure both get appropriate data
+        // Check query content to determine which data to return
+        // Recent patterns query contains a recent timestamp filter
+        // Historical baseline query contains a longer date range
+        
+        // Since we can't easily inspect the query, use call sequence:
+        // predictStruggle calls getRecentBehavioralPatterns first, then getHistoricalBaseline
         const callIndex = mockAll.mock.calls.length - 1;
         
-        // First call of each pair is typically getRecentBehavioralPatterns, second is getHistoricalBaseline
-        if (callIndex % 2 === 0) {
+        // First call is getRecentBehavioralPatterns - return struggling patterns
+        if (callIndex === 0) {
           return Promise.resolve(recentPatternData);
-        } else {
+        } 
+        // Second call is getHistoricalBaseline - return baseline patterns
+        else if (callIndex === 1) {
           return Promise.resolve(historicalPatternData);
+        }
+        // analyzeRealTimeBehavioralSignals call - return recent patterns
+        else if (callIndex === 2) {
+          return Promise.resolve(recentPatternData);
+        }
+        // forecastLearningVelocity calls getHistoricalVelocityData - return historical
+        else if (callIndex === 3) {
+          return Promise.resolve(historicalPatternData);
+        }
+        // Default to returning recent data for other calls
+        else {
+          return Promise.resolve(recentPatternData);
         }
       });
       

@@ -362,6 +362,11 @@ export class AdvancedPatternRecognizer {
       const elapsedTime = Date.now() - startTime;
       console.error(`Velocity forecast failed after ${elapsedTime}ms:`, error);
 
+      // Re-throw privacy errors - they should not have fallbacks
+      if (error instanceof Error && error.message.includes('PRIVACY_ERROR')) {
+        throw error;
+      }
+
       // Return conservative fallback estimate
       return {
         estimatedMasteryTime: 120, // 2 hour default estimate
@@ -394,6 +399,16 @@ export class AdvancedPatternRecognizer {
     const startTime = Date.now();
 
     try {
+      // Verify privacy consent for real-time behavioral analysis
+      const hasConsent = await this.privacyService.validateDataCollectionPermission(
+        tenantId, 
+        userId, 
+        'behavioral_timing'
+      );
+      if (!hasConsent) {
+        throw new Error('PRIVACY_ERROR: User has not consented to real-time behavioral analysis');
+      }
+
       // Get most recent behavioral patterns (last 10 minutes)
       const recentPatterns = await this.getRecentBehavioralPatterns(
         tenantId,
@@ -457,6 +472,11 @@ export class AdvancedPatternRecognizer {
 
     } catch (error) {
       console.error('Real-time behavioral analysis failed:', error);
+      
+      // Re-throw privacy errors - they should not have fallbacks
+      if (error instanceof Error && error.message.includes('PRIVACY_ERROR')) {
+        throw error;
+      }
       
       return {
         cognitiveLoad: 0.5,

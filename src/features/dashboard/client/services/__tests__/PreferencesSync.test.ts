@@ -549,6 +549,20 @@ describe('PreferencesSync', () => {
   });
 
   describe('Periodic Sync', () => {
+    beforeEach(() => {
+      // Set up fake timers for these tests
+      vi.useFakeTimers();
+      
+      // Recreate PreferencesSync instance with fake timers active
+      preferencesSync.destroy();
+      preferencesSync = new PreferencesSync(userId, tenantId, jwt);
+    });
+
+    afterEach(() => {
+      // Clean up timers after each test
+      vi.useRealTimers();
+    });
+
     it('should sync periodically when online', async () => {
       // Ensure we're online
       const navigator = window.navigator;
@@ -565,8 +579,8 @@ describe('PreferencesSync', () => {
       // Advance timer to trigger periodic sync
       vi.advanceTimersByTime(30000);
 
-      // Wait for async operations to complete
-      await vi.runAllTimersAsync();
+      // Run only the pending timers (avoid infinite loop)
+      await vi.runOnlyPendingTimersAsync();
 
       expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining(`/api/preferences/sync/${userId}`), expect.any(Object));
     });

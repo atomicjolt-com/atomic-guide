@@ -47,13 +47,7 @@ describe('Analytics API Handlers', () => {
       );
     });
 
-    it('should return 403 when courseId is missing', async () => {
-      // Make privacy check fail for missing courseId
-      testContext.mockServices.privacy.validatePrivacyConsent.mockResolvedValue({
-        isAllowed: false,
-        reason: 'missing_course_context'
-      });
-
+    it('should return 400 when courseId is missing', async () => {
       const res = await testContext.request('/analytics/student/student-1/performance', {
         method: 'GET',
         headers: {
@@ -61,7 +55,12 @@ describe('Analytics API Handlers', () => {
         }
       });
 
-      expect(res.status).toBe(403); // Will be 403 due to privacy check failure
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data).toEqual({
+        success: false,
+        error: 'courseId query parameter is required'
+      });
     });
 
     it('should handle privacy consent denial', async () => {
@@ -263,7 +262,8 @@ describe('Analytics API Handlers', () => {
       expect(data).toEqual({
         success: true,
         data: {
-          benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
+          average: 0.72, 
+          percentiles: { p50: 0.7, p90: 0.9 }
         }
       });
 

@@ -12,14 +12,14 @@ vi.mock('../../src/utils/responseFormatter', () => ({
 
 // Mock AI Service
 vi.mock('../../src/services/AIService', () => ({
-  AIService: vi.fn().mockImplementation(() => ({
-    generateResponse: vi.fn().mockResolvedValue({
+  AIService: class {
+    generateResponse = vi.fn().mockResolvedValue({
       response: 'This is a test AI response.',
       tokensUsed: 50,
       model: '@cf/meta/llama-3.1-8b-instruct',
       cached: false,
-    }),
-  })),
+    });
+  },
 }));
 
 // Mock other services
@@ -28,26 +28,26 @@ vi.mock('../../src/services/ModelRegistry', () => ({
 }));
 
 vi.mock('../../src/services/PromptBuilder', () => ({
-  PromptBuilder: vi.fn().mockImplementation(() => ({
-    selectTemplateForContext: vi.fn().mockReturnValue('default'),
-    buildPrompt: vi.fn().mockReturnValue({
+  PromptBuilder: class {
+    selectTemplateForContext = vi.fn().mockReturnValue('default');
+    buildPrompt = vi.fn().mockReturnValue({
       systemPrompt: 'You are a helpful assistant.',
       userPrompt: 'Test message',
-    }),
-  })),
+    });
+  },
 }));
 
 vi.mock('../../src/services/ContextEnricher', () => ({
-  ContextEnricher: vi.fn().mockImplementation(() => ({
-    enrichContext: vi.fn().mockResolvedValue({
+  ContextEnricher: class {
+    enrichContext = vi.fn().mockResolvedValue({
       page: {
         courseName: 'Test Course',
         moduleName: 'Test Module',
         assignmentTitle: null,
       },
       extractedContent: 'Page content',
-    }),
-  })),
+    });
+  },
 }));
 
 vi.mock('../../src/services/FAQKnowledgeBase', () => ({
@@ -58,9 +58,9 @@ vi.mock('../../src/services/FAQKnowledgeBase', () => ({
 }));
 
 vi.mock('../../src/services/SuggestionEngine', () => ({
-  SuggestionEngine: vi.fn().mockImplementation(() => ({
-    generateSuggestions: vi.fn().mockResolvedValue([]),
-  })),
+  SuggestionEngine: class {
+    generateSuggestions = vi.fn().mockResolvedValue([]);
+  },
 }));
 
 import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';

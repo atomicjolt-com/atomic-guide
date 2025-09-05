@@ -50,7 +50,8 @@ export function createMockServices(): ServiceContainer {
       }),
       auditDataAccess: vi.fn().mockResolvedValue(undefined),
       getAnonymizedBenchmark: vi.fn().mockResolvedValue({
-        benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
+        average: 0.72, 
+        percentiles: { p50: 0.7, p90: 0.9 }
       })
     } as any,
     adaptive: {

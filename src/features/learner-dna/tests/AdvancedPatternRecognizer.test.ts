@@ -273,13 +273,10 @@ describe('AdvancedPatternRecognizer', () => {
       // Arrange: Mock no consent
       mockValidateDataCollectionPermission.mockResolvedValue(false);
 
-      // Act
-      const result = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
-
-      // Assert: Should return fallback values
-      expect(result.riskLevel).toBe(0.5);
-      expect(result.confidence).toBe(0.0);
-      expect(result.contributingFactors).toContain('prediction_unavailable');
+      // Act & Assert: Should throw privacy error
+      await expect(recognizer.predictStruggle('tenant-1', 'user-1', 'course-1'))
+        .rejects
+        .toThrow('PRIVACY_ERROR: User has not consented to predictive behavioral analysis');
     });
 
     it('should provide fallback prediction on error', async () => {
@@ -836,25 +833,20 @@ describe('AdvancedPatternRecognizer', () => {
 
   describe('Privacy and Compliance', () => {
     it('should enforce consent requirements consistently', async () => {
-      // Test struggle prediction and velocity forecasting respect privacy consent
-      const methodsWithConfidence = [
-        () => recognizer.predictStruggle('tenant-1', 'user-1', 'course-1'),
-        () => recognizer.forecastLearningVelocity('tenant-1', 'user-1', 'course-1', 'concept-1')
-      ];
+      // Test struggle prediction respects privacy consent
+      mockValidateDataCollectionPermission.mockResolvedValue(false);
+      
+      // Struggle prediction should throw error when no consent
+      await expect(recognizer.predictStruggle('tenant-1', 'user-1', 'course-1'))
+        .rejects
+        .toThrow('PRIVACY_ERROR');
+      
+      // Learning velocity forecast should throw error when no consent
+      await expect(recognizer.forecastLearningVelocity('tenant-1', 'user-1', 'course-1', 'concept-1'))
+        .rejects
+        .toThrow('PRIVACY_ERROR');
 
-      for (const method of methodsWithConfidence) {
-        // Arrange: No consent
-        mockValidateDataCollectionPermission.mockResolvedValue(false);
-
-        // Act
-        const result = await method();
-
-        // Assert: Should return fallback with zero confidence
-        expect(result).toBeDefined();
-        expect((result as any).confidence).toBe(0.0);
-      }
-
-      // Test behavioral analysis separately (different return type)
+      // Test behavioral analysis separately (might return fallback)
       mockValidateDataCollectionPermission.mockResolvedValue(false);
       const behavioralResult = await recognizer.analyzeRealTimeBehavioralSignals('tenant-1', 'user-1', 'course-1');
       expect(behavioralResult).toBeDefined();
