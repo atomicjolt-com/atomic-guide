@@ -41,12 +41,21 @@ For complete documentation, see the [docs](./docs/) directory or start with:
 
 ## 🛠️ Key Features
 
+### Core Learning Platform
 - **🤖 AI Chat Assistant** - Context-aware tutoring with LaTeX and code support
 - **📝 Automated Assessments** - AI-generated quizzes with deep linking
 - **📊 Learning Analytics** - Real-time insights and performance tracking
 - **📚 Content Intelligence** - Semantic search across course materials
 - **🔌 LTI 1.3 Integration** - Seamless LMS integration
 - **⚡ Edge Performance** - Sub-50ms response times globally
+
+### 🧬 NEW: Learner DNA & Predictive Intelligence (v1.4+)
+- **🎯 Cognitive Profiling** - Privacy-first learning pattern recognition that builds personalized student profiles
+- **🔮 Predictive Interventions** - AI-powered early warning system that predicts struggles 15-20 minutes before they occur
+- **💡 Proactive Recommendations** - Intelligent suggestions delivered automatically based on real-time behavioral analysis
+- **👩‍🏫 Instructor Alerts** - Early warning notifications with specific, actionable intervention recommendations
+- **🛡️ Privacy Controls** - Comprehensive consent management with transparent data collection and student agency
+- **📈 Learning Velocity** - Personalized time-to-mastery predictions based on individual cognitive patterns
 
 ## 🧑‍💻 Development
 
