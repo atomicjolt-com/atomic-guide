@@ -17,22 +17,27 @@ interface PreferencesEnv {
 }
 
 /**
- * Preferences schema
+ * Preferences schema - matches client-side DashboardPreferencesSchema
  */
 const PreferencesSchema = z.object({
   userId: z.string().min(1),
-  deviceId: z.string().min(1),
+  tenantId: z.string().min(1),
   preferences: z.object({
-    suggestionsEnabled: z.boolean().optional(),
-    faqSuggestionsEnabled: z.boolean().optional(),
-    orientationLock: z.enum(['portrait', 'landscape', 'auto']).optional(),
-    theme: z.enum(['light', 'dark', 'auto']).optional(),
-    videoQuality: z.enum(['low', 'medium', 'high', 'auto']).optional(),
-    autoplay: z.boolean().optional(),
-    notifications: z.boolean().optional(),
-    soundEnabled: z.boolean().optional(),
+    chartTypes: z.record(z.enum(['line', 'bar', 'radar'])).optional(),
+    timeRanges: z.record(z.enum(['week', 'month', 'semester'])).optional(),
+    collapsedSections: z.array(z.string()).optional(),
+    benchmarkOptIn: z.boolean().optional(),
+    exportFormats: z.array(z.enum(['csv', 'json', 'xapi'])).optional(),
+    activeView: z.enum(['overview', 'benchmarks', 'export']).optional(),
+    expandedSections: z.array(z.string()).optional(),
   }),
-  timestamp: z.string(),
+  mobileSettings: z.object({
+    gesturesEnabled: z.boolean().optional(),
+    hapticFeedback: z.boolean().optional(),
+    orientationLock: z.enum(['none', 'portrait', 'landscape']).optional(),
+  }),
+  lastModified: z.string(),
+  deviceSyncId: z.string(),
   version: z.number(),
 });
 
@@ -54,7 +59,13 @@ export function createPreferencesApi(
   api.put('/sync', zValidator('json', PreferencesSchema), async (c) => {
     try {
       const data = c.req.valid('json');
-      const { userId, deviceId, preferences, timestamp, version } = data;
+      const { userId, preferences, mobileSettings, lastModified, deviceSyncId, version } = data;
+
+      // Combine preferences and mobileSettings for storage
+      const fullPreferences = {
+        ...preferences,
+        mobileSettings,
+      };
 
       // Store preferences in database
       await c.env.DB.prepare(
@@ -73,9 +84,9 @@ export function createPreferencesApi(
         .bind(
           tenantId,
           userId,
-          deviceId,
-          JSON.stringify(preferences),
-          timestamp,
+          deviceSyncId,
+          JSON.stringify(fullPreferences),
+          lastModified,
           version
         )
         .run();
@@ -135,35 +146,63 @@ export function createPreferencesApi(
 
       if (!result) {
         // Return default preferences if none exist
+        const now = new Date().toISOString();
         return c.json({
           success: true,
           data: {
             userId,
-            deviceId,
+            tenantId,
             preferences: {
-              suggestionsEnabled: true,
-              faqSuggestionsEnabled: true,
-              orientationLock: 'auto',
-              theme: 'auto',
-              videoQuality: 'auto',
-              autoplay: true,
-              notifications: true,
-              soundEnabled: true,
+              chartTypes: {},
+              timeRanges: {},
+              collapsedSections: [],
+              benchmarkOptIn: false,
+              exportFormats: ['csv'],
+              activeView: 'overview',
+              expandedSections: ['overview'],
             },
-            timestamp: new Date().toISOString(),
+            mobileSettings: {
+              gesturesEnabled: true,
+              hapticFeedback: true,
+              orientationLock: 'none',
+            },
+            lastModified: now,
+            deviceSyncId: deviceId,
             version: 1,
           },
         });
       }
 
+      // Parse stored preferences to get the full dashboard preferences structure
+      const storedPrefs = JSON.parse(result.preferences as string);
+      
+      // Extract dashboard-specific preferences and mobile settings
+      const dashboardPrefs = {
+        chartTypes: storedPrefs.chartTypes || {},
+        timeRanges: storedPrefs.timeRanges || {},
+        collapsedSections: storedPrefs.collapsedSections || [],
+        benchmarkOptIn: storedPrefs.benchmarkOptIn || false,
+        exportFormats: storedPrefs.exportFormats || ['csv'],
+        activeView: storedPrefs.activeView || 'overview',
+        expandedSections: storedPrefs.expandedSections || ['overview'],
+      };
+
+      const mobileSettings = storedPrefs.mobileSettings || {
+        gesturesEnabled: true,
+        hapticFeedback: true,
+        orientationLock: 'none',
+      };
+
       return c.json({
         success: true,
         data: {
           userId,
-          deviceId,
-          preferences: JSON.parse(result.preferences as string),
-          timestamp: result.timestamp,
-          version: result.version,
+          tenantId,
+          preferences: dashboardPrefs,
+          mobileSettings,
+          lastModified: result.timestamp as string || new Date().toISOString(),
+          deviceSyncId: deviceId,
+          version: result.version as number || 1,
         },
       });
     } catch (error) {

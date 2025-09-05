@@ -62,10 +62,6 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({ role =
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
-
   const fetchAnalytics = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -91,6 +87,10 @@ export const SuggestionAnalytics: React.FC<SuggestionAnalyticsProps> = ({ role =
       setIsLoading(false);
     }
   }, [selectedTimeframe, role]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const getTenantId = (): string => {
     return localStorage.getItem('tenantId') || '';
