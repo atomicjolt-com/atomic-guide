@@ -5,8 +5,8 @@ description: Run tests and fix failing tests
 
 ## Instructions and Context
 
-The application does contains failing tests. I need you to use specialized AI agents to review the
-tests output and provide fixes until all the tests are passing.
+The application contains failing tests. I need you to use specialized AI agents to review the
+test output and provide fixes until all the tests are passing.
 
 - When writing code that generates test data create data specific to the test. Make sure that it is
   random so that we don't end up with insert or update conficts in the database.
