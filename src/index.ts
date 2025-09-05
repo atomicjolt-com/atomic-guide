@@ -46,6 +46,8 @@ import {
   updateLearningStyle,
   getConversationSummary,
 } from './features/dashboard/server/handlers/dashboard';
+import { createAnalyticsApi } from './features/dashboard/server/handlers/analyticsApi';
+import { createPreferencesApi } from './features/dashboard/server/handlers/preferencesApi';
 import faqHandler from './features/faq/server/handlers/faq';
 import richMediaHandler from './features/chat/server/handlers/richMedia';
 import suggestionHandler from './features/chat/server/handlers/suggestions';
@@ -204,6 +206,14 @@ app.route('/api/dashboard/suggestions', suggestionHandler);
 
 // Mount content extraction and analysis routes
 app.route('/api/content', contentHandler);
+
+// Mount analytics API routes
+const analyticsApi = createAnalyticsApi('default'); // TODO: Get tenant ID from context
+app.route('/api/analytics', analyticsApi);
+
+// Mount preferences API routes
+const preferencesApi = createPreferencesApi('default'); // TODO: Get tenant ID from context
+app.route('/api/preferences', preferencesApi);
 
 // Error handling
 app.onError((err: Error, c) => {
