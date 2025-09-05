@@ -46,8 +46,7 @@ CREATE TABLE IF NOT EXISTS learner_dna_privacy_consent (
 
 CREATE INDEX idx_dna_consent_user ON learner_dna_privacy_consent(tenant_id, user_id);
 CREATE INDEX idx_dna_consent_level ON learner_dna_privacy_consent(data_collection_level, consent_given_at);
-CREATE INDEX idx_dna_consent_withdrawn ON learner_dna_privacy_consent(withdrawal_requested_at) 
-    WHERE withdrawal_requested_at IS NOT NULL;
+CREATE INDEX idx_dna_consent_withdrawn ON learner_dna_privacy_consent(withdrawal_requested_at);
 CREATE INDEX idx_dna_consent_parental ON learner_dna_privacy_consent(parental_consent_required, parental_consent_given);
 
 -- Data retention policies and automated purging
@@ -111,7 +110,7 @@ CREATE TABLE IF NOT EXISTS behavioral_patterns (
 
 CREATE INDEX idx_behavioral_patterns_user ON behavioral_patterns(tenant_id, user_id, pattern_type);
 CREATE INDEX idx_behavioral_patterns_session ON behavioral_patterns(session_id, collected_at);
-CREATE INDEX idx_behavioral_patterns_purge ON behavioral_patterns(purge_at) WHERE purge_at IS NOT NULL;
+CREATE INDEX idx_behavioral_patterns_purge ON behavioral_patterns(purge_at);
 CREATE INDEX idx_behavioral_patterns_context ON behavioral_patterns(tenant_id, course_id, context_type);
 CREATE INDEX idx_behavioral_patterns_privacy ON behavioral_patterns(privacy_level, anonymized_at);
 
@@ -206,8 +205,7 @@ CREATE TABLE IF NOT EXISTS cognitive_attributes (
 
 CREATE INDEX idx_cognitive_attributes_profile ON cognitive_attributes(profile_id, attribute_type);
 CREATE INDEX idx_cognitive_attributes_confidence ON cognitive_attributes(confidence_score, data_points_count);
-CREATE INDEX idx_cognitive_attributes_significance ON cognitive_attributes(statistical_significance) 
-    WHERE statistical_significance IS NOT NULL;
+CREATE INDEX idx_cognitive_attributes_significance ON cognitive_attributes(statistical_significance);
 
 -- ============================================
 -- LEARNING ANALYTICS AND PATTERN RECOGNITION
@@ -288,8 +286,7 @@ CREATE TABLE IF NOT EXISTS memory_retention_analysis (
 );
 
 CREATE INDEX idx_memory_analysis_profile ON memory_retention_analysis(profile_id);
-CREATE INDEX idx_memory_analysis_review ON memory_retention_analysis(next_review_recommended_at) 
-    WHERE next_review_recommended_at IS NOT NULL;
+CREATE INDEX idx_memory_analysis_review ON memory_retention_analysis(next_review_recommended_at);
 CREATE INDEX idx_memory_analysis_retention ON memory_retention_analysis(current_retention_level, analysis_confidence);
 
 -- ============================================
@@ -339,8 +336,7 @@ CREATE TABLE IF NOT EXISTS anonymized_cognitive_insights (
 
 CREATE INDEX idx_cognitive_insights_course ON anonymized_cognitive_insights(tenant_id, course_id);
 CREATE INDEX idx_cognitive_insights_type ON anonymized_cognitive_insights(aggregation_type, calculated_at);
-CREATE INDEX idx_cognitive_insights_valid ON anonymized_cognitive_insights(valid_until) 
-    WHERE valid_until > CURRENT_TIMESTAMP;
+CREATE INDEX idx_cognitive_insights_valid ON anonymized_cognitive_insights(valid_until);
 
 -- Cross-course pattern correlation (privacy-preserving)
 CREATE TABLE IF NOT EXISTS cross_course_patterns (
@@ -443,8 +439,7 @@ CREATE TABLE IF NOT EXISTS cognitive_profile_validation (
 
 CREATE INDEX idx_profile_validation_profile ON cognitive_profile_validation(profile_id, validation_type);
 CREATE INDEX idx_profile_validation_accuracy ON cognitive_profile_validation(accuracy_score, validated_at);
-CREATE INDEX idx_profile_validation_due ON cognitive_profile_validation(next_validation_due) 
-    WHERE next_validation_due IS NOT NULL;
+CREATE INDEX idx_profile_validation_due ON cognitive_profile_validation(next_validation_due);
 
 -- ============================================
 -- AUDIT AND COMPLIANCE FRAMEWORK
@@ -528,8 +523,7 @@ CREATE TABLE IF NOT EXISTS privacy_impact_assessments (
 );
 
 CREATE INDEX idx_privacy_assessments_tenant ON privacy_impact_assessments(tenant_id);
-CREATE INDEX idx_privacy_assessments_review ON privacy_impact_assessments(next_review_due) 
-    WHERE next_review_due IS NOT NULL;
+CREATE INDEX idx_privacy_assessments_review ON privacy_impact_assessments(next_review_due);
 
 -- Insert migration record
 INSERT INTO schema_migrations (version, name) VALUES (5, 'learner_dna_tables');

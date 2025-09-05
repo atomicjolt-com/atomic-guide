@@ -1,11 +1,3 @@
--- Migration 006: Advanced Pattern Recognition Tables for Story 4.2
--- 
--- Creates database schema extensions for advanced cognitive profiling
--- and predictive intervention capabilities
---
--- SCOPE: Phase 1 MVP with single-course analysis only
--- PRIVACY: Consent-based data collection with clear retention policies
-
 -- Prediction results storage
 CREATE TABLE IF NOT EXISTS prediction_results (
     id TEXT PRIMARY KEY,
@@ -199,43 +191,3 @@ CREATE TABLE IF NOT EXISTS intervention_timing_analysis (
     intervention_delivered_at TEXT,
     actual_effectiveness REAL
 );
-
--- Create indexes after all tables exist
-CREATE INDEX IF NOT EXISTS idx_prediction_results_user_course ON prediction_results(tenant_id, user_id, course_id);
-CREATE INDEX IF NOT EXISTS idx_prediction_results_type_created ON prediction_results(prediction_type, created_at);
-CREATE INDEX IF NOT EXISTS idx_prediction_results_validation ON prediction_results(validated_at);
-
-CREATE INDEX IF NOT EXISTS idx_learning_interventions_user ON learning_interventions(tenant_id, user_id);
-CREATE INDEX IF NOT EXISTS idx_learning_interventions_course ON learning_interventions(course_id);
-CREATE INDEX IF NOT EXISTS idx_learning_interventions_delivery ON learning_interventions(delivery_timestamp);
-CREATE INDEX IF NOT EXISTS idx_learning_interventions_type ON learning_interventions(intervention_type);
-CREATE INDEX IF NOT EXISTS idx_learning_interventions_effectiveness ON learning_interventions(effectiveness_score);
-
-CREATE INDEX IF NOT EXISTS idx_instructor_alerts_instructor ON instructor_alerts(tenant_id, instructor_id);
-CREATE INDEX IF NOT EXISTS idx_instructor_alerts_student ON instructor_alerts(tenant_id, student_ids);
-CREATE INDEX IF NOT EXISTS idx_instructor_alerts_course ON instructor_alerts(course_id);
-CREATE INDEX IF NOT EXISTS idx_instructor_alerts_priority ON instructor_alerts(priority, created_at);
-CREATE INDEX IF NOT EXISTS idx_instructor_alerts_unviewed ON instructor_alerts(viewed, created_at);
-
-CREATE INDEX IF NOT EXISTS idx_behavioral_features_user_session ON behavioral_features(tenant_id, user_id, session_id);
-CREATE INDEX IF NOT EXISTS idx_behavioral_features_course ON behavioral_features(course_id, extracted_at);
-CREATE INDEX IF NOT EXISTS idx_behavioral_features_time ON behavioral_features(time_of_day, day_of_week);
-CREATE INDEX IF NOT EXISTS idx_behavioral_features_consent ON behavioral_features(consent_verified, extracted_at);
-
-CREATE INDEX IF NOT EXISTS idx_prediction_models_tenant_type ON prediction_models(tenant_id, model_type);
-CREATE INDEX IF NOT EXISTS idx_prediction_models_active ON prediction_models(is_active, model_type) WHERE is_active = TRUE;
-CREATE INDEX IF NOT EXISTS idx_prediction_models_performance ON prediction_models(validation_accuracy, created_at);
-
-CREATE INDEX IF NOT EXISTS idx_intervention_experiments_tenant ON intervention_experiments(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_intervention_experiments_status ON intervention_experiments(status, start_date);
-CREATE INDEX IF NOT EXISTS idx_intervention_experiments_active ON intervention_experiments(end_date) WHERE status = 'active';
-
-CREATE INDEX IF NOT EXISTS idx_intervention_outcomes_intervention ON intervention_outcomes(intervention_id);
-CREATE INDEX IF NOT EXISTS idx_intervention_outcomes_user ON intervention_outcomes(tenant_id, user_id);
-CREATE INDEX IF NOT EXISTS idx_intervention_outcomes_experiment ON intervention_outcomes(experiment_id);
-CREATE INDEX IF NOT EXISTS idx_intervention_outcomes_type ON intervention_outcomes(outcome_type, measured_at);
-
-CREATE INDEX IF NOT EXISTS idx_timing_analysis_user ON intervention_timing_analysis(tenant_id, user_id);
-CREATE INDEX IF NOT EXISTS idx_timing_analysis_optimal ON intervention_timing_analysis(optimal_timing, analyzed_at);
-CREATE INDEX IF NOT EXISTS idx_timing_analysis_time ON intervention_timing_analysis(time_of_day, day_of_week);
-CREATE INDEX IF NOT EXISTS idx_timing_analysis_delivered ON intervention_timing_analysis(intervention_delivered) WHERE intervention_delivered = TRUE;
