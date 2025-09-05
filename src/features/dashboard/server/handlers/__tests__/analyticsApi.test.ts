@@ -5,13 +5,15 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Hono } from 'hono';
-import { createAnalyticsApi } from '../analyticsApi';
 import type { D1Database, Queue, Ai } from '@cloudflare/workers-types';
-import { PerformanceAnalyticsService } from '../../services/PerformanceAnalyticsService';
-import { PrivacyPreservingAnalytics } from '../../services/PrivacyPreservingAnalytics';
-import { AdaptiveLearningService } from '../../services/AdaptiveLearningService';
 
-// Mock the service classes
+// Create persistent mocks
+const mockValidatePrivacyConsent = vi.fn();
+const mockAuditDataAccess = vi.fn();
+const mockGetAnonymizedBenchmark = vi.fn();
+const mockQueueAnalyticsTask = vi.fn();
+
+// Mock the service classes before imports
 vi.mock('../../services/PerformanceAnalyticsService', () => ({
   PerformanceAnalyticsService: vi.fn().mockImplementation(() => ({
     getStudentAnalytics: vi.fn().mockResolvedValue({
@@ -26,19 +28,16 @@ vi.mock('../../services/PerformanceAnalyticsService', () => ({
         { conceptId: 'loops', masteryLevel: 0.6 }
       ]
     }),
-    queueAnalyticsTask: vi.fn().mockResolvedValue('task-123')
+    queueAnalyticsTask: mockQueueAnalyticsTask,
+    getClassWideAnalytics: vi.fn().mockResolvedValue({
+      courseId: 'course-1',
+      averageScore: 0.78,
+      strugglingStudents: [],
+      topPerformers: []
+    }),
+    updateRecommendationStatus: vi.fn().mockResolvedValue(true)
   }))
 }));
-
-// Create persistent mocks
-const mockValidatePrivacyConsent = vi.fn().mockResolvedValue({ 
-  isAllowed: true, 
-  reason: 'consent_granted' 
-});
-const mockAuditDataAccess = vi.fn().mockResolvedValue(undefined);
-const mockGetAnonymizedBenchmark = vi.fn().mockResolvedValue({
-  benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
-});
 
 vi.mock('../../services/PrivacyPreservingAnalytics', () => ({
   PrivacyPreservingAnalytics: vi.fn().mockImplementation(() => ({
@@ -55,6 +54,9 @@ vi.mock('../../services/AdaptiveLearningService', () => ({
     ])
   }))
 }));
+
+// Import after mocks are set up
+import { createAnalyticsApi } from '../analyticsApi';
 
 // Helper to create mock environment
 const createMockEnv = () => ({
@@ -88,6 +90,7 @@ describe('Analytics API Handlers', () => {
     mockGetAnonymizedBenchmark.mockResolvedValue({
       benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
     });
+    mockQueueAnalyticsTask.mockResolvedValue('task-123');
     
     mockEnv = createMockEnv();
     app = new Hono();

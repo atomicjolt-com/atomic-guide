@@ -202,15 +202,16 @@ describe('PredictiveInterventionEngine', () => {
       // Arrange: Recent intervention of same type
       vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
       
+      // Mock the database to return recent interventions for both calls
+      const recentIntervention = {
+        intervention_type: 'concept_clarification',
+        delivery_timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString() // 20 min ago
+      };
+      
       // Set up the mock to return different values for consecutive calls
       const mockAll = vi.fn()
-        .mockResolvedValueOnce({ results: [] }) // No daily limit reached
-        .mockResolvedValueOnce({ 
-          results: [{
-            intervention_type: 'concept_clarification', // Use the correct field name
-            delivery_timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString() // 20 min ago
-          }]
-        });
+        .mockResolvedValueOnce({ results: [] }) // First call: No daily limit reached (24 hour check)
+        .mockResolvedValueOnce({ results: [recentIntervention] }); // Second call: Recent intervention (cooldown check)
 
       mockDb.getDb = vi.fn(() => ({
         prepare: vi.fn(() => ({
@@ -438,13 +439,11 @@ describe('PredictiveInterventionEngine', () => {
     });
 
     it('should provide fallback on error', async () => {
-      // Arrange: Database error
-      const mockFirst = vi.fn().mockRejectedValue(new Error('Database error'));
-
+      // Arrange: Database error on learner profile fetch
       mockDb.getDb = vi.fn(() => ({
         prepare: vi.fn(() => ({
           bind: vi.fn(() => ({
-            first: mockFirst,
+            first: vi.fn().mockRejectedValue(new Error('Database error')),
             all: vi.fn().mockResolvedValue({ results: [] }),
             run: vi.fn().mockResolvedValue({ success: true })
           }))
@@ -472,11 +471,19 @@ describe('PredictiveInterventionEngine', () => {
       // Arrange: Mock course students
       const courseStudents = ['student-1', 'student-2', 'student-3'];
       
-      const mockAll = vi.fn()
-        .mockResolvedValueOnce({ 
-          results: courseStudents.map(id => ({ user_id: id }))
-        })
-        .mockResolvedValue({ results: [] }); // Default for any other calls
+      // Track call count to handle getCourseStudents and storeEarlyWarningAlerts calls differently
+      let callCount = 0;
+      const mockAll = vi.fn(() => {
+        callCount++;
+        if (callCount === 1) {
+          // First call is getCourseStudents
+          return Promise.resolve({ 
+            results: courseStudents.map(id => ({ user_id: id }))
+          });
+        }
+        // Other calls return empty
+        return Promise.resolve({ results: [] });
+      });
 
       mockDb.getDb = vi.fn(() => ({
         prepare: vi.fn(() => ({
