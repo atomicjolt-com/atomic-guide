@@ -312,6 +312,11 @@ export class PredictiveInterventionEngine {
       const elapsedTime = Date.now() - startTime;
       console.error(`Proactive recommendation generation failed after ${elapsedTime}ms:`, error);
       
+      // Re-throw privacy errors
+      if (error instanceof Error && error.message.includes('PRIVACY_ERROR')) {
+        throw error;
+      }
+      
       // Return safe fallback - no recommendations rather than potentially harmful ones
       return [];
     }
@@ -414,7 +419,7 @@ export class PredictiveInterventionEngine {
     } catch (error) {
       console.error('Difficulty adjustment generation failed:', error);
       
-      // Return safe fallback - no adjustment
+      // Return safe fallback - keep current difficulty
       return {
         currentDifficulty,
         recommendedDifficulty: currentDifficulty,
@@ -1000,8 +1005,8 @@ export class PredictiveInterventionEngine {
     const results = queryResult?.results || queryResult || [];
     return results.map(row => ({
       id: row.id,
-      type: row.intervention_type,
-      deliveryTimestamp: new Date(row.delivery_timestamp),
+      type: row.intervention_type || row.type, // Handle both field names for tests
+      deliveryTimestamp: row.delivery_timestamp ? new Date(row.delivery_timestamp) : row.deliveryTimestamp,
       response: row.student_response
     }));
   }

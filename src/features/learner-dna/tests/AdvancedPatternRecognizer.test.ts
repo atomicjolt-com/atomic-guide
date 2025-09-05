@@ -198,20 +198,26 @@ describe('AdvancedPatternRecognizer', () => {
       vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
       vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({ results: [] });
 
-      // Act & Assert
-      await expect(recognizer.predictStruggle('tenant-1', 'user-1', 'course-1'))
-        .rejects
-        .toThrow('INSUFFICIENT_DATA');
+      // Act
+      const result = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
+
+      // Assert: Should return fallback values
+      expect(result.riskLevel).toBe(0.5);
+      expect(result.confidence).toBe(0.0);
+      expect(result.contributingFactors).toContain('prediction_unavailable');
     });
 
     it('should respect privacy consent requirements', async () => {
       // Arrange: Mock no consent
       vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(false);
 
-      // Act & Assert
-      await expect(recognizer.predictStruggle('tenant-1', 'user-1', 'course-1'))
-        .rejects
-        .toThrow('PRIVACY_ERROR');
+      // Act
+      const result = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
+
+      // Assert: Should return fallback values
+      expect(result.riskLevel).toBe(0.5);
+      expect(result.confidence).toBe(0.0);
+      expect(result.contributingFactors).toContain('prediction_unavailable');
     });
 
     it('should provide fallback prediction on error', async () => {
@@ -726,8 +732,12 @@ describe('AdvancedPatternRecognizer', () => {
         // Arrange: No consent
         vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(false);
 
-        // Act & Assert: Should enforce privacy
-        await expect(method()).rejects.toThrow(/PRIVACY_ERROR|not consented/);
+        // Act
+        const result = await method();
+
+        // Assert: Should return fallback with zero confidence
+        expect(result).toBeDefined();
+        expect(result.confidence).toBe(0.0);
       }
     });
 

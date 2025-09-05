@@ -205,7 +205,7 @@ describe('PredictiveInterventionEngine', () => {
         .mockResolvedValueOnce({ results: [] }) // No daily limit reached
         .mockResolvedValueOnce({ 
           results: [{
-            type: 'concept_clarification',
+            intervention_type: 'concept_clarification', // Use the correct field name
             delivery_timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString() // 20 min ago
           }]
         });
@@ -453,7 +453,8 @@ describe('PredictiveInterventionEngine', () => {
       vi.mocked(mockDb.getDb().prepare().bind().all)
         .mockResolvedValueOnce({ 
           results: courseStudents.map(id => ({ user_id: id }))
-        });
+        })
+        .mockResolvedValue({ results: [] }); // Default for any other calls
 
       // Mock privacy consent for all students
       vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
