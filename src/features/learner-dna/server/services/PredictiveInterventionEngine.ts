@@ -948,44 +948,49 @@ export class PredictiveInterventionEngine {
   // Database helper methods (simplified)
 
   private async getLearnerProfile(tenantId: string, userId: string): Promise<LearnerDNAProfile | null> {
-    const result = await this.db
-      .getDb()
-      .prepare('SELECT * FROM learner_dna_profiles WHERE tenant_id = ? AND user_id = ?')
-      .bind(tenantId, userId)
-      .first<any>();
+    try {
+      const result = await this.db
+        .getDb()
+        .prepare('SELECT * FROM learner_dna_profiles WHERE tenant_id = ? AND user_id = ?')
+        .bind(tenantId, userId)
+        .first<any>();
 
-    if (!result) return null;
+      if (!result) return null;
 
-    return {
-      id: result.id,
-      tenantId: result.tenant_id,
-      userId: result.user_id,
-      learningVelocityValue: result.learning_velocity_value,
-      learningVelocityConfidence: result.learning_velocity_confidence,
-      learningVelocityDataPoints: result.learning_velocity_data_points,
-      learningVelocityLastUpdated: new Date(result.learning_velocity_last_updated),
-      memoryRetentionValue: result.memory_retention_value,
-      memoryRetentionConfidence: result.memory_retention_confidence,
-      memoryRetentionDataPoints: result.memory_retention_data_points,
-      memoryRetentionLastUpdated: new Date(result.memory_retention_last_updated),
-      struggleThresholdValue: result.struggle_threshold_value,
-      struggleThresholdConfidence: result.struggle_threshold_confidence,
-      struggleThresholdDataPoints: result.struggle_threshold_data_points,
-      struggleThresholdLastUpdated: new Date(result.struggle_threshold_last_updated),
-      cognitiveAttributes: JSON.parse(result.cognitive_attributes || '{}'),
-      comprehensionStyles: JSON.parse(result.comprehension_styles || '[]'),
-      preferredModalities: JSON.parse(result.preferred_modalities || '[]'),
-      profileConfidence: result.profile_confidence,
-      totalDataPoints: result.total_data_points,
-      analysisQualityScore: result.analysis_quality_score,
-      crossCoursePatterns: JSON.parse(result.cross_course_patterns || '{}'),
-      multiContextConfidence: result.multi_context_confidence,
-      dataCollectionLevel: result.data_collection_level,
-      profileVisibility: result.profile_visibility,
-      createdAt: new Date(result.created_at),
-      updatedAt: new Date(result.updated_at),
-      lastAnalyzedAt: new Date(result.last_analyzed_at),
-    };
+      return {
+        id: result.id,
+        tenantId: result.tenant_id,
+        userId: result.user_id,
+        learningVelocityValue: result.learning_velocity_value,
+        learningVelocityConfidence: result.learning_velocity_confidence,
+        learningVelocityDataPoints: result.learning_velocity_data_points,
+        learningVelocityLastUpdated: new Date(result.learning_velocity_last_updated),
+        memoryRetentionValue: result.memory_retention_value,
+        memoryRetentionConfidence: result.memory_retention_confidence,
+        memoryRetentionDataPoints: result.memory_retention_data_points,
+        memoryRetentionLastUpdated: new Date(result.memory_retention_last_updated),
+        struggleThresholdValue: result.struggle_threshold_value,
+        struggleThresholdConfidence: result.struggle_threshold_confidence,
+        struggleThresholdDataPoints: result.struggle_threshold_data_points,
+        struggleThresholdLastUpdated: new Date(result.struggle_threshold_last_updated),
+        cognitiveAttributes: JSON.parse(result.cognitive_attributes || '{}'),
+        comprehensionStyles: JSON.parse(result.comprehension_styles || '[]'),
+        preferredModalities: JSON.parse(result.preferred_modalities || '[]'),
+        profileConfidence: result.profile_confidence,
+        totalDataPoints: result.total_data_points,
+        analysisQualityScore: result.analysis_quality_score,
+        crossCoursePatterns: JSON.parse(result.cross_course_patterns || '{}'),
+        multiContextConfidence: result.multi_context_confidence,
+        dataCollectionLevel: result.data_collection_level,
+        profileVisibility: result.profile_visibility,
+        createdAt: new Date(result.created_at),
+        updatedAt: new Date(result.updated_at),
+        lastAnalyzedAt: new Date(result.last_analyzed_at),
+      };
+    } catch (error) {
+      // Re-throw database errors so they can be caught by the calling method
+      throw new Error(`Failed to retrieve learner profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private async getRecentInterventions(tenantId: string, userId: string, hours: number): Promise<any[]> {

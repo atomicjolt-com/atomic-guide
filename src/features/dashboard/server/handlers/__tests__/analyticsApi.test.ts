@@ -30,16 +30,21 @@ vi.mock('../../services/PerformanceAnalyticsService', () => ({
   }))
 }));
 
+// Create persistent mocks
+const mockValidatePrivacyConsent = vi.fn().mockResolvedValue({ 
+  isAllowed: true, 
+  reason: 'consent_granted' 
+});
+const mockAuditDataAccess = vi.fn().mockResolvedValue(undefined);
+const mockGetAnonymizedBenchmark = vi.fn().mockResolvedValue({
+  benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
+});
+
 vi.mock('../../services/PrivacyPreservingAnalytics', () => ({
   PrivacyPreservingAnalytics: vi.fn().mockImplementation(() => ({
-    validatePrivacyConsent: vi.fn().mockResolvedValue({ 
-      isAllowed: true, 
-      reason: 'consent_granted' 
-    }),
-    auditDataAccess: vi.fn().mockResolvedValue(undefined),
-    getAnonymizedBenchmark: vi.fn().mockResolvedValue({
-      benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
-    })
+    validatePrivacyConsent: mockValidatePrivacyConsent,
+    auditDataAccess: mockAuditDataAccess,
+    getAnonymizedBenchmark: mockGetAnonymizedBenchmark
   }))
 }));
 
@@ -73,6 +78,17 @@ describe('Analytics API Handlers', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Reset mocks to default behavior
+    mockValidatePrivacyConsent.mockResolvedValue({ 
+      isAllowed: true, 
+      reason: 'consent_granted' 
+    });
+    mockAuditDataAccess.mockResolvedValue(undefined);
+    mockGetAnonymizedBenchmark.mockResolvedValue({
+      benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
+    });
+    
     mockEnv = createMockEnv();
     app = new Hono();
     
@@ -122,17 +138,11 @@ describe('Analytics API Handlers', () => {
     });
 
     it('should handle privacy consent denial', async () => {
-      // Mock privacy service to deny consent for this test
-      vi.mocked(PrivacyPreservingAnalytics).mockImplementation(() => ({
-        validatePrivacyConsent: vi.fn().mockResolvedValue({
-          isAllowed: false,
-          reason: 'no_consent'
-        }),
-        auditDataAccess: vi.fn().mockResolvedValue(undefined),
-        getAnonymizedBenchmark: vi.fn().mockResolvedValue({
-          benchmarkData: { average: 0.72, percentiles: { p50: 0.7, p90: 0.9 } }
-        })
-      }));
+      // Override privacy consent for this test
+      mockValidatePrivacyConsent.mockResolvedValue({
+        isAllowed: false,
+        reason: 'no_consent'
+      });
 
       const res = await app.request('/analytics/student/student-1/performance?courseId=course-1', {
         method: 'GET'

@@ -104,13 +104,16 @@ app.use('/*', async (c: Context, next: Next) => {
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   // Content Security Policy - adjust as needed
+  const isDevelopment = c.env.ENVIRONMENT === 'development';
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Needed for some LMS platforms
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self'",
+    isDevelopment
+      ? "connect-src 'self' ws://localhost:5988 wss://localhost:5988 ws://atomic-guide.atomicjolt.win wss://atomic-guide.atomicjolt.win"
+      : "connect-src 'self'",
     'frame-ancestors *', // Allow embedding in any domain for LTI
   ].join('; ');
   c.header('Content-Security-Policy', csp);

@@ -122,7 +122,14 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
       const analytics = await analyticsService.getStudentAnalytics(studentId, courseId);
 
       // Audit access
-      await privacyService.auditDataAccess(studentId, 'student', 'view_profile', `Student performance analytics for course ${courseId}`);
+      await privacyService.auditDataAccess({
+        tenantId,
+        userId: studentId,
+        targetStudentId: studentId,
+        operation: 'view_profile',
+        dataCategory: 'student_analytics',
+        timestamp: new Date(),
+      });
 
       return c.json({
         success: true,
@@ -175,7 +182,13 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
       const contentEngagement = await getContentEngagement(c.env.DB, tenantId, courseId);
 
       // Audit access
-      await privacyService.auditDataAccess(instructorId, 'instructor', 'view_profile', `Course analytics overview for ${courseId}`);
+      await privacyService.auditDataAccess({
+        tenantId,
+        userId: instructorId,
+        operation: 'view_course_overview',
+        dataCategory: 'course_analytics',
+        timestamp: new Date(),
+      });
 
       return c.json({
         success: true,
@@ -301,12 +314,13 @@ export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: Analytics
       }
 
       // Audit benchmark access
-      await privacyService.auditDataAccess(
-        'anonymous',
-        'system',
-        'generate_benchmark',
-        `Benchmark: ${params.benchmarkType} for ${params.courseId}`
-      );
+      await privacyService.auditDataAccess({
+        tenantId,
+        userId: 'anonymous',
+        operation: 'generate_benchmark',
+        dataCategory: 'course_benchmarks',
+        timestamp: new Date(),
+      });
 
       return c.json({
         success: true,

@@ -1,5 +1,6 @@
 // Mock modules BEFORE other imports
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
+
 vi.mock('hono/jwt', () => ({
   verify: vi.fn().mockResolvedValue({ tenant_id: 'test-tenant', sub: 'test-user' }),
 }));
@@ -64,10 +65,16 @@ vi.mock('../../src/services/SuggestionEngine', () => ({
 import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { handleChatMessage } from '../../src/api/handlers/chat';
 import { Context } from 'hono';
+import { verify } from 'hono/jwt';
 
 import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 
 describe('Chat API Handler', () => {
+  beforeEach(() => {
+    // Reset JWT mock to default behavior for each test
+    vi.mocked(verify).mockResolvedValue({ tenant_id: 'test-tenant', sub: 'test-user' });
+  });
+
   const createMockContext = (body: any, jwt?: string): Context => {
     // Mock Durable Object
     const mockDO = {

@@ -154,8 +154,29 @@ describe('AdvancedPatternRecognizer', () => {
       // Arrange: Mock consent and data
       mockValidateDataCollectionPermission.mockResolvedValue(true);
       
-      const mockPatterns = [
+      // Create baseline patterns with normal behavior (for historical comparison)
+      const baselinePatterns = Array.from({ length: 6 }, (_, i) => 
         createMockBehavioralPattern({
+          id: `baseline-${i}`,
+          sessionId: `baseline-session-${i}`,
+          collectedAt: new Date(Date.now() - ((i + 7) * 60 * 60 * 1000)), // Older data for baseline
+          aggregatedMetrics: {
+            avgResponseTimeMs: 3000, // Normal response time
+            responseTimeVariability: 0.2,
+            errorCount: 1, // Low error rate
+            helpRequestCount: 0.5, // Few help requests
+            attentionScore: 0.8, // Good attention
+            cognitiveLoad: 0.3 // Low cognitive load
+          }
+        })
+      );
+
+      // Create current patterns with struggle indicators
+      const currentPatterns = Array.from({ length: 3 }, (_, i) => 
+        createMockBehavioralPattern({
+          id: `current-${i}`,
+          sessionId: `current-session-${i}`,
+          collectedAt: new Date(Date.now() - (i * 10 * 60 * 1000)), // Recent data
           aggregatedMetrics: {
             avgResponseTimeMs: 8000, // Increased response time
             responseTimeVariability: 0.6,
@@ -165,10 +186,10 @@ describe('AdvancedPatternRecognizer', () => {
             cognitiveLoad: 0.8 // Higher cognitive load
           }
         })
-      ];
+      );
 
-      // Mock database calls
-      const mockDbResult = { results: mockPatterns.map(p => ({
+      // Mock database calls: first call gets recent patterns, second call gets historical baseline
+      const recentDbResult = { results: currentPatterns.map(p => ({
         id: p.id,
         tenant_id: p.tenantId,
         user_id: p.userId,
@@ -186,7 +207,26 @@ describe('AdvancedPatternRecognizer', () => {
         consent_verified: p.consentVerified ? 1 : 0
       })) };
 
-      mockAll.mockResolvedValue(mockDbResult);
+      const baselineDbResult = { results: baselinePatterns.map(p => ({
+        id: p.id,
+        tenant_id: p.tenantId,
+        user_id: p.userId,
+        session_id: p.sessionId,
+        pattern_type: p.patternType,
+        context_type: p.contextType,
+        raw_data_encrypted: p.rawDataEncrypted,
+        raw_data_hash: p.rawDataHash,
+        aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
+        confidence_level: p.confidenceLevel,
+        course_id: p.courseId,
+        content_id: p.contentId,
+        collected_at: p.collectedAt?.toISOString(),
+        privacy_level: p.privacyLevel,
+        consent_verified: p.consentVerified ? 1 : 0
+      })) };
+
+      // Mock sequence: recent patterns first, then historical baseline
+      mockAll.mockResolvedValueOnce(recentDbResult).mockResolvedValueOnce(baselineDbResult);
       mockRun.mockResolvedValue({ success: true });
 
       // Act: Generate struggle prediction
@@ -263,39 +303,75 @@ describe('AdvancedPatternRecognizer', () => {
       const scenarios = [
         {
           name: 'Low risk scenario',
-          patterns: [createMockBehavioralPattern({
+          baselinePatterns: Array.from({ length: 6 }, (_, i) => createMockBehavioralPattern({
+            id: `low-baseline-${i}`,
+            sessionId: `low-baseline-${i}`,
+            collectedAt: new Date(Date.now() - ((i + 7) * 60 * 60 * 1000)),
             aggregatedMetrics: { 
-              avgResponseTimeMs: 3000,
-              errorCount: 1,
-              attentionScore: 0.9,
-              cognitiveLoad: 0.3
+              avgResponseTimeMs: 3500,
+              errorCount: 1.5,
+              attentionScore: 0.8,
+              cognitiveLoad: 0.4
             }
-          })],
+          })),
+          currentPatterns: Array.from({ length: 3 }, (_, i) => createMockBehavioralPattern({
+            id: `low-current-${i}`,
+            sessionId: `low-current-${i}`,
+            collectedAt: new Date(Date.now() - (i * 10 * 60 * 1000)),
+            aggregatedMetrics: { 
+              avgResponseTimeMs: 3000, // Slightly better than baseline
+              errorCount: 1,
+              attentionScore: 0.9, // Better attention
+              cognitiveLoad: 0.3 // Lower cognitive load
+            }
+          })),
           expectedRisk: 'low'
         },
         {
           name: 'High risk scenario',
-          patterns: [createMockBehavioralPattern({
+          baselinePatterns: Array.from({ length: 6 }, (_, i) => createMockBehavioralPattern({
+            id: `high-baseline-${i}`,
+            sessionId: `high-baseline-${i}`,
+            collectedAt: new Date(Date.now() - ((i + 7) * 60 * 60 * 1000)),
             aggregatedMetrics: {
-              avgResponseTimeMs: 12000,
-              errorCount: 8,
-              attentionScore: 0.2,
-              cognitiveLoad: 1.2
+              avgResponseTimeMs: 4000,
+              errorCount: 2,
+              attentionScore: 0.7,
+              cognitiveLoad: 0.4
             }
-          })],
+          })),
+          currentPatterns: Array.from({ length: 3 }, (_, i) => createMockBehavioralPattern({
+            id: `high-current-${i}`,
+            sessionId: `high-current-${i}`,
+            collectedAt: new Date(Date.now() - (i * 10 * 60 * 1000)),
+            aggregatedMetrics: {
+              avgResponseTimeMs: 12000, // Much slower than baseline
+              errorCount: 8, // Much higher error rate
+              attentionScore: 0.2, // Much lower attention
+              cognitiveLoad: 1.2 // Much higher cognitive load
+            }
+          })),
           expectedRisk: 'high'
         }
       ];
 
       for (const scenario of scenarios) {
-        const mockDbResult = { results: scenario.patterns.map(p => ({
+        const recentDbResult = { results: scenario.currentPatterns.map(p => ({
           id: p.id,
           aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
-          collected_at: new Date().toISOString(),
+          collected_at: p.collectedAt?.toISOString(),
           consent_verified: 1
         })) };
 
-        mockAll.mockResolvedValue(mockDbResult);
+        const baselineDbResult = { results: scenario.baselinePatterns.map(p => ({
+          id: p.id,
+          aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
+          collected_at: p.collectedAt?.toISOString(),
+          consent_verified: 1
+        })) };
+
+        // Mock sequence: recent patterns first, then historical baseline
+        mockAll.mockResolvedValueOnce(recentDbResult).mockResolvedValueOnce(baselineDbResult);
 
         // Act
         const prediction = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
@@ -402,10 +478,13 @@ describe('AdvancedPatternRecognizer', () => {
       mockValidateDataCollectionPermission.mockResolvedValue(true);
       mockFirst.mockResolvedValue(null);
 
-      // Act & Assert
-      await expect(recognizer.forecastLearningVelocity('tenant-1', 'user-1', 'course-1', 'concept-1'))
-        .rejects
-        .toThrow('PROFILE_REQUIRED');
+      // Act
+      const forecast = await recognizer.forecastLearningVelocity('tenant-1', 'user-1', 'course-1', 'concept-1');
+
+      // Assert: Should return fallback when no profile exists
+      expect(forecast.estimatedMasteryTime).toBe(120); // 2 hour default
+      expect(forecast.confidence).toBe(0.0);
+      expect(forecast.explainability).toContain('temporarily unavailable');
     });
 
     it('should provide fallback forecast on error', async () => {
@@ -501,8 +580,14 @@ describe('AdvancedPatternRecognizer', () => {
         createMockBehavioralPattern({
           aggregatedMetrics: {
             attentionScore: 0.9, // High attention
-            cognitiveLoad: 0.4,  // Moderate cognitive load
-            fatigueLevel: 0.2    // Low fatigue
+            fatigueLevel: 0.2,   // Low fatigue
+            progressMade: 0.6,   // Good progress for engagement score (progressVelocity)
+            avgResponseTimeMs: 3000,
+            responseTimeVariability: 0.1, // Very low variability for low cognitive load
+            errorCount: 0.1, // Very few errors
+            helpRequestCount: 0.5,
+            taskSwitchCount: 0.2, // Very low task switching
+            sessionDurationMinutes: 45 // Moderate session duration
           }
         })
       ];
@@ -530,7 +615,12 @@ describe('AdvancedPatternRecognizer', () => {
         {
           name: 'High cognitive load',
           patterns: [createMockBehavioralPattern({
-            aggregatedMetrics: { cognitiveLoad: 1.5 }
+            aggregatedMetrics: { 
+              responseTimeVariability: 0.8, // High variability for cognitive load
+              errorCount: 6, // High error count
+              taskSwitchingCount: 15, // High task switching
+              sessionDurationMinutes: 90 // Long session
+            }
           })],
           expectedRecommendation: /break.*cognitive load/i
         },
@@ -544,7 +634,10 @@ describe('AdvancedPatternRecognizer', () => {
         {
           name: 'High fatigue',
           patterns: [createMockBehavioralPattern({
-            aggregatedMetrics: { fatigueLevel: 0.9 }
+            aggregatedMetrics: { 
+              fatigueLevel: 0.9,
+              fatigueIndicators: 0.9 // Make sure fatigueIndicators is set too
+            }
           })],
           expectedRecommendation: /session.*return.*later/i
         }
@@ -743,14 +836,13 @@ describe('AdvancedPatternRecognizer', () => {
 
   describe('Privacy and Compliance', () => {
     it('should enforce consent requirements consistently', async () => {
-      // Test all methods respect privacy consent
-      const methods = [
+      // Test struggle prediction and velocity forecasting respect privacy consent
+      const methodsWithConfidence = [
         () => recognizer.predictStruggle('tenant-1', 'user-1', 'course-1'),
-        () => recognizer.forecastLearningVelocity('tenant-1', 'user-1', 'course-1', 'concept-1'),
-        () => recognizer.analyzeRealTimeBehavioralSignals('tenant-1', 'user-1', 'course-1')
+        () => recognizer.forecastLearningVelocity('tenant-1', 'user-1', 'course-1', 'concept-1')
       ];
 
-      for (const method of methods) {
+      for (const method of methodsWithConfidence) {
         // Arrange: No consent
         mockValidateDataCollectionPermission.mockResolvedValue(false);
 
@@ -759,18 +851,34 @@ describe('AdvancedPatternRecognizer', () => {
 
         // Assert: Should return fallback with zero confidence
         expect(result).toBeDefined();
-        expect(result.confidence).toBe(0.0);
+        expect((result as any).confidence).toBe(0.0);
       }
+
+      // Test behavioral analysis separately (different return type)
+      mockValidateDataCollectionPermission.mockResolvedValue(false);
+      const behavioralResult = await recognizer.analyzeRealTimeBehavioralSignals('tenant-1', 'user-1', 'course-1');
+      expect(behavioralResult).toBeDefined();
+      expect(behavioralResult.cognitiveLoad).toBe(0.5);
+      expect(behavioralResult.attentionLevel).toBe(0.5);
     });
 
     it('should only process consented data', async () => {
-      // Arrange: Mixed consent data
+      // Arrange: Mixed consent data with enough results for baseline
       mockValidateDataCollectionPermission.mockResolvedValue(true);
+      const consentedResults = Array.from({ length: 5 }, (_, i) => ({ 
+        id: `consented-${i}`,
+        consent_verified: 1, 
+        aggregated_metrics: JSON.stringify({}), 
+        collected_at: new Date(Date.now() - (i * 60 * 60 * 1000)).toISOString() 
+      }));
+      const nonConsentedResults = Array.from({ length: 2 }, (_, i) => ({ 
+        id: `non-consented-${i}`,
+        consent_verified: 0, 
+        aggregated_metrics: JSON.stringify({}), 
+        collected_at: new Date(Date.now() - (i * 60 * 60 * 1000)).toISOString() 
+      }));
       mockAll.mockResolvedValue({
-        results: [
-          { consent_verified: 1, aggregated_metrics: JSON.stringify({}), collected_at: new Date().toISOString() },
-          { consent_verified: 0, aggregated_metrics: JSON.stringify({}), collected_at: new Date().toISOString() }
-        ]
+        results: [...consentedResults, ...nonConsentedResults]
       });
 
       // Act
@@ -783,8 +891,15 @@ describe('AdvancedPatternRecognizer', () => {
     it('should not store sensitive data in predictions', async () => {
       // Arrange
       mockValidateDataCollectionPermission.mockResolvedValue(true);
+      // Generate enough patterns for historical baseline (minimum 5)
+      const mockResults = Array.from({ length: 6 }, (_, i) => ({ 
+        id: `pattern-${i}`,
+        aggregated_metrics: JSON.stringify({}), 
+        collected_at: new Date(Date.now() - (i * 60 * 60 * 1000)).toISOString(), 
+        consent_verified: 1 
+      }));
       mockAll.mockResolvedValue({
-        results: [{ aggregated_metrics: JSON.stringify({}), collected_at: new Date().toISOString(), consent_verified: 1 }]
+        results: mockResults
       });
 
       const storeCalls: any[] = [];

@@ -27,5 +27,9 @@ export default defineConfig({
   server: {
     allowedHosts: true,
     port: 5988,
+    hmr: {
+      port: 5988,
+      host: 'localhost',
+    },
   },
 });

@@ -201,7 +201,9 @@ describe('PredictiveInterventionEngine', () => {
     it('should apply cooldown filtering to prevent spam', async () => {
       // Arrange: Recent intervention of same type
       vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all)
+      
+      // Set up the mock to return different values for consecutive calls
+      const mockAll = vi.fn()
         .mockResolvedValueOnce({ results: [] }) // No daily limit reached
         .mockResolvedValueOnce({ 
           results: [{
@@ -210,12 +212,21 @@ describe('PredictiveInterventionEngine', () => {
           }]
         });
 
+      mockDb.getDb = vi.fn(() => ({
+        prepare: vi.fn(() => ({
+          bind: vi.fn(() => ({
+            all: mockAll,
+            run: vi.fn().mockResolvedValue({ success: true }),
+            first: vi.fn()
+          }))
+        }))
+      }));
+
       const strugglePrediction = createMockStrugglePrediction({ riskLevel: 0.9 });
       const behavioralAnalysis = createMockBehavioralAnalysis();
 
       vi.mocked(mockPatternRecognizer.analyzeRealTimeBehavioralSignals).mockResolvedValue(behavioralAnalysis);
       vi.mocked(mockPatternRecognizer.predictStruggle).mockResolvedValue(strugglePrediction);
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockResolvedValue({ success: true });
 
       // Act
       const recommendations = await interventionEngine.generateProactiveRecommendations(
@@ -428,7 +439,17 @@ describe('PredictiveInterventionEngine', () => {
 
     it('should provide fallback on error', async () => {
       // Arrange: Database error
-      vi.mocked(mockDb.getDb().prepare().bind().first).mockRejectedValue(new Error('Database error'));
+      const mockFirst = vi.fn().mockRejectedValue(new Error('Database error'));
+
+      mockDb.getDb = vi.fn(() => ({
+        prepare: vi.fn(() => ({
+          bind: vi.fn(() => ({
+            first: mockFirst,
+            all: vi.fn().mockResolvedValue({ results: [] }),
+            run: vi.fn().mockResolvedValue({ success: true })
+          }))
+        }))
+      }));
 
       // Act
       const adjustment = await interventionEngine.generateAdaptiveDifficultyAdjustment(
@@ -450,11 +471,22 @@ describe('PredictiveInterventionEngine', () => {
     it('should generate alerts for high-risk students', async () => {
       // Arrange: Mock course students
       const courseStudents = ['student-1', 'student-2', 'student-3'];
-      vi.mocked(mockDb.getDb().prepare().bind().all)
+      
+      const mockAll = vi.fn()
         .mockResolvedValueOnce({ 
           results: courseStudents.map(id => ({ user_id: id }))
         })
         .mockResolvedValue({ results: [] }); // Default for any other calls
+
+      mockDb.getDb = vi.fn(() => ({
+        prepare: vi.fn(() => ({
+          bind: vi.fn(() => ({
+            first: vi.fn(),
+            all: mockAll,
+            run: vi.fn().mockResolvedValue({ success: true })
+          }))
+        }))
+      }));
 
       // Mock privacy consent for all students
       vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
@@ -478,8 +510,6 @@ describe('PredictiveInterventionEngine', () => {
       vi.mocked(mockPatternRecognizer.analyzeRealTimeBehavioralSignals)
         .mockResolvedValueOnce(cognitiveOverloadAnalysis)
         .mockResolvedValue(createMockBehavioralAnalysis()); // Normal for others
-
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockResolvedValue({ success: true });
 
       // Act
       const alerts = await interventionEngine.generateEarlyWarningAlerts(

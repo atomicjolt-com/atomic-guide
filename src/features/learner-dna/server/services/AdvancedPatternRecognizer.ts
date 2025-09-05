@@ -500,7 +500,14 @@ export class AdvancedPatternRecognizer {
       contextType: row.context_type,
       rawDataEncrypted: row.raw_data_encrypted,
       rawDataHash: row.raw_data_hash,
-      aggregatedMetrics: JSON.parse(row.aggregated_metrics || '{}'),
+      aggregatedMetrics: (() => {
+        try {
+          return JSON.parse(row.aggregated_metrics || '{}');
+        } catch (error) {
+          console.warn(`Failed to parse aggregated_metrics for pattern ${row.id}:`, error);
+          return {};
+        }
+      })(),
       confidenceLevel: row.confidence_level,
       courseId: row.course_id,
       contentId: row.content_id,
@@ -541,7 +548,14 @@ export class AdvancedPatternRecognizer {
     // Handle both D1 production format and test format
     const historicalPatterns = queryResult?.results || queryResult || [];
     const patterns = historicalPatterns.map(row => ({
-      aggregatedMetrics: JSON.parse(row.aggregated_metrics || '{}'),
+      aggregatedMetrics: (() => {
+        try {
+          return JSON.parse(row.aggregated_metrics || '{}');
+        } catch (error) {
+          console.warn(`Failed to parse aggregated_metrics for pattern ${row.id}:`, error);
+          return {};
+        }
+      })(),
       collectedAt: new Date(row.collected_at)
     }));
 
@@ -846,13 +860,29 @@ export class AdvancedPatternRecognizer {
       struggleThresholdConfidence: result.struggle_threshold_confidence,
       struggleThresholdDataPoints: result.struggle_threshold_data_points,
       struggleThresholdLastUpdated: new Date(result.struggle_threshold_last_updated),
-      cognitiveAttributes: JSON.parse(result.cognitive_attributes || '{}'),
-      comprehensionStyles: JSON.parse(result.comprehension_styles || '[]'),
-      preferredModalities: JSON.parse(result.preferred_modalities || '[]'),
+      cognitiveAttributes: (() => {
+        try {
+          return JSON.parse(result.cognitive_attributes || '{}');
+        } catch { return {}; }
+      })(),
+      comprehensionStyles: (() => {
+        try {
+          return JSON.parse(result.comprehension_styles || '[]');
+        } catch { return []; }
+      })(),
+      preferredModalities: (() => {
+        try {
+          return JSON.parse(result.preferred_modalities || '[]');
+        } catch { return []; }
+      })(),
       profileConfidence: result.profile_confidence,
       totalDataPoints: result.total_data_points,
       analysisQualityScore: result.analysis_quality_score,
-      crossCoursePatterns: JSON.parse(result.cross_course_patterns || '{}'),
+      crossCoursePatterns: (() => {
+        try {
+          return JSON.parse(result.cross_course_patterns || '{}');
+        } catch { return {}; }
+      })(),
       multiContextConfidence: result.multi_context_confidence,
       dataCollectionLevel: result.data_collection_level,
       profileVisibility: result.profile_visibility,
