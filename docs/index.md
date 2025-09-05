@@ -34,7 +34,7 @@ Welcome to the Atomic Guide documentation! This is your comprehensive guide to u
 - [Learning Analytics](./features/analytics.md) - Performance tracking dashboard
 - [Deep Linking](./features/deep-linking.md) - LTI content integration
 - [FAQ System](./features/faq.md) - Semantic search knowledge base
-- [Learner DNA](./features/learner-dna.md) - Synthetic data generation framework
+- [Learner DNA](./features/learner-dna.md) - Cognitive profiling & predictive intelligence
 
 ### [API Reference](./api/)
 
