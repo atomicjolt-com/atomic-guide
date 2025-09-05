@@ -550,30 +550,33 @@ describe('PreferencesSync', () => {
 
   describe('Periodic Sync', () => {
     it('should sync periodically when online', async () => {
-      // Set up fake timers for this test
-      vi.useFakeTimers();
-      
       // Ensure we're online
       const navigator = window.navigator;
       navigator.onLine = true;
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ success: true }),
+        json: () => Promise.resolve({ success: true, data: null }),
       });
+
+      // Clear any previous fetch calls
+      mockFetch.mockClear();
 
       // Advance timer to trigger periodic sync
       vi.advanceTimersByTime(30000);
+
+      // Wait for async operations to complete
+      await vi.runAllTimersAsync();
 
       expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining(`/api/preferences/sync/${userId}`), expect.any(Object));
     });
 
     it('should not sync when offline', () => {
-      // Set up fake timers for this test
-      vi.useFakeTimers();
-      
       const navigator = window.navigator;
       navigator.onLine = false;
+
+      // Clear any previous fetch calls
+      mockFetch.mockClear();
 
       vi.advanceTimersByTime(30000);
 

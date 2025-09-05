@@ -239,7 +239,12 @@ export class AdvancedPatternRecognizer {
       const elapsedTime = Date.now() - startTime;
       console.error(`Struggle prediction failed after ${elapsedTime}ms:`, error);
       
-      // Return safe fallback result
+      // Re-throw privacy errors - they should not have fallbacks
+      if (error instanceof Error && error.message.includes('PRIVACY_ERROR')) {
+        throw error;
+      }
+      
+      // Return safe fallback result for other errors
       const now = new Date();
       return {
         riskLevel: 0.5, // Neutral risk when prediction fails

@@ -65,13 +65,48 @@ export function createMockServices(): ServiceContainer {
  * Create mock environment bindings
  */
 export function createMockEnv(): AnalyticsEnv {
+  const mockDbResult = {
+    results: [],
+    success: true,
+    meta: {},
+  };
+
   return {
     DB: {
       prepare: vi.fn().mockReturnThis(),
       bind: vi.fn().mockReturnThis(),
-      first: vi.fn(),
-      all: vi.fn(),
-      run: vi.fn(),
+      first: vi.fn().mockResolvedValue({
+        total_students: 5,
+        average_mastery: 0.78,
+        at_risk_count: 1
+      }),
+      all: vi.fn().mockResolvedValue({
+        results: [
+          { 
+            student_id: 'student-1',
+            overall_mastery: 0.75,
+            last_calculated: '2024-01-01',
+            name: 'Test Student',
+            last_active: '2024-01-01',
+            concept_name: 'arrays',
+            struggling_count: 3,
+            id: 'alert-1',
+            alert_type: 'low_performance',
+            priority: 'medium',
+            student_ids: '["student-1", "student-2"]',
+            alert_data: '{"reason": "low_mastery", "score": 0.45}',
+            created_at: '2024-01-01',
+            acknowledged: 0,
+            content_id: 'content-1',
+            average_time: 300,
+            struggling_students: 2,
+            total_students: 10
+          }
+        ],
+        success: true,
+        meta: {}
+      }),
+      run: vi.fn().mockResolvedValue(mockDbResult),
     } as unknown as D1Database,
     ANALYTICS_QUEUE: {
       send: vi.fn().mockResolvedValue(undefined),
@@ -91,7 +126,7 @@ export function setupAnalyticsTest(tenantId: string = 'test-tenant') {
   const mockEnv = createMockEnv();
   
   // Create a factory that returns our mock services
-  const mockFactory: ServiceFactory = vi.fn(() => mockServices);
+  const mockFactory: ServiceFactory = vi.fn((env: any, tenantId: string) => mockServices);
   
   // Create the app with our mock factory
   const app = new Hono();

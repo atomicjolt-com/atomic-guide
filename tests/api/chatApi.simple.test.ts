@@ -51,9 +51,10 @@ vi.mock('../../src/services/ContextEnricher', () => ({
 }));
 
 vi.mock('../../src/services/FAQKnowledgeBase', () => ({
-  FAQKnowledgeBase: vi.fn().mockImplementation(() => ({
-    searchSimilarFAQs: vi.fn().mockResolvedValue([]),
-  })),
+  FAQKnowledgeBase: class {
+    constructor() {}
+    searchSimilarFAQs = vi.fn().mockResolvedValue([]);
+  },
 }));
 
 vi.mock('../../src/services/SuggestionEngine', () => ({
