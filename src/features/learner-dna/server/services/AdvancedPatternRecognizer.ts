@@ -741,7 +741,6 @@ export class AdvancedPatternRecognizer {
       cognitiveLoadIncrease: Math.max(0, (currentFeatures.cognitiveLoadEstimate - baselineFeatures.cognitiveLoadEstimate) / Math.max(baselineFeatures.cognitiveLoadEstimate, 0.1))
     };
 
-
     // Apply simple linear model with feature weights
     const riskScore = Math.min(1.0, 
       deviations.responseTimeIncrease * this.STRUGGLE_FEATURE_WEIGHTS.responseTimeIncrease +

@@ -850,12 +850,11 @@ describe('AdvancedPatternRecognizer', () => {
         .rejects
         .toThrow('PRIVACY_ERROR');
 
-      // Test behavioral analysis separately (might return fallback)
+      // Test behavioral analysis should also throw error when no consent
       mockValidateDataCollectionPermission.mockResolvedValue(false);
-      const behavioralResult = await recognizer.analyzeRealTimeBehavioralSignals('tenant-1', 'user-1', 'course-1');
-      expect(behavioralResult).toBeDefined();
-      expect(behavioralResult.cognitiveLoad).toBe(0.5);
-      expect(behavioralResult.attentionLevel).toBe(0.5);
+      await expect(recognizer.analyzeRealTimeBehavioralSignals('tenant-1', 'user-1', 'course-1'))
+        .rejects
+        .toThrow('PRIVACY_ERROR');
     });
 
     it('should only process consented data', async () => {

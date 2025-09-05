@@ -882,12 +882,18 @@ export class PredictiveInterventionEngine {
       }
     }
 
-    // Adjust based on cognitive load
+    // Adjust based on cognitive load with proportional scaling for extreme values
     if (behavioralAnalysis?.cognitiveLoad !== undefined) {
-      if (behavioralAnalysis.cognitiveLoad > 0.8) {
-        adjustment -= 0.1; // Reduce difficulty
-      } else if (behavioralAnalysis.cognitiveLoad < 0.4) {
-        adjustment += 0.1; // Increase difficulty
+      const cognitiveLoad = behavioralAnalysis.cognitiveLoad;
+      if (cognitiveLoad > 1.5) {
+        // Extreme cognitive load - significant reduction
+        adjustment -= 0.3;
+      } else if (cognitiveLoad > 0.8) {
+        // High cognitive load - moderate reduction
+        adjustment -= 0.1;
+      } else if (cognitiveLoad < 0.4) {
+        // Low cognitive load - can increase difficulty
+        adjustment += 0.1;
       }
     }
 

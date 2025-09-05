@@ -127,7 +127,28 @@ export function setupAnalyticsTest(tenantId: string = 'test-tenant') {
   const mockEnv = createMockEnv();
   
   // Create a factory that returns our mock services
-  const mockFactory: ServiceFactory = vi.fn((env: any, tenantId: string) => mockServices);
+  const mockFactory: ServiceFactory = vi.fn((env: any, tenantId: string) => {
+    // Ensure the services have proper method implementations
+    return {
+      analytics: {
+        ...mockServices.analytics,
+        getStudentAnalytics: mockServices.analytics.getStudentAnalytics,
+        queueAnalyticsTask: mockServices.analytics.queueAnalyticsTask,
+        getClassWideAnalytics: mockServices.analytics.getClassWideAnalytics,
+        updateRecommendationStatus: mockServices.analytics.updateRecommendationStatus
+      } as any,
+      privacy: {
+        ...mockServices.privacy,
+        validatePrivacyConsent: mockServices.privacy.validatePrivacyConsent,
+        auditDataAccess: mockServices.privacy.auditDataAccess,
+        getAnonymizedBenchmark: mockServices.privacy.getAnonymizedBenchmark
+      } as any,
+      adaptive: {
+        ...mockServices.adaptive,
+        generateAdaptiveRecommendations: mockServices.adaptive.generateAdaptiveRecommendations
+      } as any
+    };
+  });
   
   // Create the app with our mock factory
   const app = new Hono();
@@ -140,7 +161,9 @@ export function setupAnalyticsTest(tenantId: string = 'test-tenant') {
     mockFactory,
     // Helper to make requests
     request: (path: string, options?: RequestInit) => {
-      return app.request(path, options, mockEnv);
+      return app.request(path, {
+        ...options,
+      }, mockEnv);
     },
     // Helper to reset all mocks
     resetMocks: () => {

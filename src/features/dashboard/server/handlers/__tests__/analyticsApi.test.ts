@@ -3,8 +3,16 @@
  * @module features/dashboard/server/handlers/__tests__/analyticsApi.test
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setupAnalyticsTest, type AnalyticsTestContext } from './testHelpers';
+import { PerformanceAnalyticsService } from '../services/PerformanceAnalyticsService';
+import { PrivacyPreservingAnalytics } from '../services/PrivacyPreservingAnalytics';
+import { AdaptiveLearningService } from '../services/AdaptiveLearningService';
+
+// Mock the service classes
+vi.mock('../services/PerformanceAnalyticsService');
+vi.mock('../services/PrivacyPreservingAnalytics');  
+vi.mock('../services/AdaptiveLearningService');
 
 describe('Analytics API Handlers', () => {
   let testContext: AnalyticsTestContext;
