@@ -923,7 +923,14 @@ export class AdvancedPatternRecognizer {
   // Additional helper methods for cognitive assessment
 
   private assessCognitiveLoad(features: BehavioralFeatures): number {
-    // Simple cognitive load assessment based on behavioral indicators
+    // If we have direct cognitive load measurements from patterns, use them
+    // when they indicate extreme load
+    if (features.cognitiveLoadEstimate !== undefined && features.cognitiveLoadEstimate > 1.0) {
+      // Use the direct measurement for extreme cognitive load scenarios
+      return features.cognitiveLoadEstimate;
+    }
+    
+    // Otherwise, calculate cognitive load from behavioral indicators
     const loadFactors = [
       features.responseTimeVariability, // Higher variability indicates load
       features.errorRate * 2, // Errors strongly indicate cognitive overload  
@@ -931,7 +938,14 @@ export class AdvancedPatternRecognizer {
       Math.max(0, (features.sessionDuration - 60) / 60), // Sessions >60min increase load
     ];
 
-    return Math.min(1.0, loadFactors.reduce((sum, factor) => sum + factor, 0) / loadFactors.length);
+    const calculatedLoad = loadFactors.reduce((sum, factor) => sum + factor, 0) / loadFactors.length;
+    
+    // Use the higher of calculated load or direct estimate if available
+    const finalLoad = features.cognitiveLoadEstimate !== undefined 
+      ? Math.max(calculatedLoad, features.cognitiveLoadEstimate)
+      : calculatedLoad;
+      
+    return Math.min(1.0, finalLoad);
   }
 
   private assessAttentionLevel(features: BehavioralFeatures): number {

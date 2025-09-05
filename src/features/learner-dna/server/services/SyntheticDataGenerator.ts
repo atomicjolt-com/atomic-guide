@@ -601,7 +601,12 @@ export class SyntheticDataGenerator {
       const baseTime = profile.interactionTiming.baseResponseTime;
       const complexity = this.rng() * profile.interactionTiming.complexityMultiplier;
       const variability = this.normalRandom(1, profile.interactionTiming.responseVariability);
-      const responseTime = Math.round(baseTime * complexity * Math.max(0.1, variability));
+      
+      // Apply anxiety effect to make anxious students consistently slower
+      // Research shows anxiety increases response times by 10-30%
+      const anxietyMultiplier = 1 + (profile.strugglePatterns.anxietySensitivity * 0.3);
+      
+      const responseTime = Math.round(baseTime * complexity * Math.max(0.1, variability) * anxietyMultiplier);
       responseTimesMs.push(Math.max(100, responseTime));
     }
 
