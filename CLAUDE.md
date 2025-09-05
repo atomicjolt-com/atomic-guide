@@ -70,6 +70,99 @@ Use PlayWright MCP to visit this url for testing
 - Lint code: `npx eslint .`
 - Type check: `tsc` or `npm run check`
 
+## Database Architecture (MANDATORY REPOSITORY PATTERN)
+
+### STRICT Database Access Rules
+
+**NEVER access the database directly from handlers or services.** Always use the repository pattern:
+
+```
+Handler → Service → Repository → DatabaseService → D1 Database
+```
+
+#### Repository Pattern Rules (MANDATORY)
+
+1. **Handlers** (`handlers/`) MUST NEVER make database calls
+   - Only handle HTTP request/response
+   - Call service methods for business logic
+   - Never import DatabaseService directly
+
+2. **Services** (`services/`) MUST NEVER call `this.db.getDb()`
+   - Use injected repositories for data access
+   - Focus on business logic orchestration
+   - Never bypass repositories
+
+3. **Repositories** (`repositories/`) MUST handle all database operations
+   - One repository per domain entity
+   - Use DatabaseService for connection management
+   - Contain feature-specific queries and data transformations
+
+4. **DatabaseService** provides connection utilities only
+   - Basic CRUD helpers
+   - Connection management
+   - Transaction support
+
+#### Repository Structure (MANDATORY)
+
+```
+features/[feature-name]/server/repositories/
+├── BaseRepository.ts                 # Common CRUD operations
+├── [Entity]Repository.ts            # Domain-specific data access
+├── index.ts                         # Export all repositories
+```
+
+#### Example Implementation
+
+```typescript
+// ❌ FORBIDDEN: Direct database access in handler
+class ApiHandler {
+  async getUser(c: Context) {
+    const user = await this.db.get('SELECT * FROM users WHERE id = ?', [id]);
+    return c.json(user);
+  }
+}
+
+// ❌ FORBIDDEN: Service bypassing repository
+class UserService {
+  async getUser(id: string) {
+    return this.db.getDb().prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+  }
+}
+
+// ✅ CORRECT: Repository pattern implementation
+class UserHandler {
+  constructor(private userService: UserService) {}
+  
+  async getUser(c: Context) {
+    const user = await this.userService.getUser(id);
+    return c.json(user);
+  }
+}
+
+class UserService {
+  constructor(private userRepository: UserRepository) {}
+  
+  async getUser(id: string) {
+    return this.userRepository.findById(id);
+  }
+}
+
+class UserRepository extends BaseRepository {
+  async findById(id: string) {
+    return this.db.get<User>('SELECT * FROM users WHERE id = ?', [id]);
+  }
+}
+```
+
+#### Repository Testing Strategy
+
+- **Handler Tests**: Mock services only
+- **Service Tests**: Mock repositories only  
+- **Repository Tests**: Test actual database operations
+- **Integration Tests**: Test full stack
+
+This pattern ensures clean separation of concerns and maintainable, testable code.
+
 ## Architecture Overview
 
 This application is built on [Atomic LTI Worker](https://github.com/atomicjolt-com/atomic-lti-worker) which provides a complete foundation for working with LTI Applications.

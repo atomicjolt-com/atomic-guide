@@ -101,49 +101,391 @@ export async function createConfigHandler(c: Context) {
 
 ## Database Architecture
 
-### Data Access Layer
+### Repository Pattern (MANDATORY)
+
+**All database access must follow the Repository Pattern with strict layer separation:**
+
+- **Handlers** → **Services** → **Repositories** → **Database**
+- Handlers MUST NOT make direct database calls
+- Services MUST NOT call `db.getDb()` directly
+- All SQL queries MUST be contained within Repository classes
+
+#### Architecture Flow
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Handler   │───▶│   Service   │───▶│ Repository  │───▶│  Database   │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+     │                     │                     │              │
+     │                     │                     │              │
+     ▼                     ▼                     ▼              ▼
+  • Validation         • Business logic      • SQL queries   • D1 Storage
+  • Request/Response   • Data transformation • Data mapping   • Transactions
+  • Error handling     • Service coordination• Query building • Persistence
+```
+
+#### Base Repository Class
 
 ```typescript
-// Repository pattern for database access
-export class ConversationRepository {
-  constructor(private db: D1Database) {}
+import { DatabaseService } from '@shared/server/services/database';
+import { z } from 'zod';
 
-  async create(conversation: Omit<Conversation, 'id'>): Promise<Conversation> {
+/**
+ * Base repository providing common CRUD operations and database access patterns.
+ * 
+ * All feature repositories MUST extend this class and follow the established patterns.
+ */
+export abstract class BaseRepository<TEntity, TEntityId = string> {
+  protected readonly tableName: string;
+  protected readonly entitySchema: z.ZodSchema<TEntity>;
+  
+  constructor(
+    protected readonly databaseService: DatabaseService,
+    tableName: string,
+    entitySchema: z.ZodSchema<TEntity>
+  ) {
+    this.tableName = tableName;
+    this.entitySchema = entitySchema;
+  }
+
+  /**
+   * Get database connection - centralized access point
+   */
+  protected getDb(): D1Database {
+    return this.databaseService.getDb();
+  }
+
+  /**
+   * Validate entity data before database operations
+   */
+  protected validateEntity(data: unknown): TEntity {
+    return this.entitySchema.parse(data);
+  }
+
+  /**
+   * Generic create operation
+   */
+  async create(entity: Omit<TEntity, 'id'>): Promise<TEntity> {
     const id = crypto.randomUUID();
-    const result = await this.db
-      .prepare(
-        `
+    const validated = this.validateEntity({ ...entity, id });
+    
+    // Derived classes implement specific SQL
+    return await this.performCreate(validated);
+  }
+
+  /**
+   * Generic find by ID operation
+   */
+  async findById(id: TEntityId): Promise<TEntity | null> {
+    const result = await this.getDb()
+      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+      .bind(id)
+      .first();
+
+    if (!result) return null;
+    return this.validateEntity(result);
+  }
+
+  /**
+   * Generic update operation
+   */
+  async update(id: TEntityId, updates: Partial<TEntity>): Promise<TEntity> {
+    // Derived classes implement specific SQL
+    return await this.performUpdate(id, updates);
+  }
+
+  /**
+   * Generic delete operation
+   */
+  async delete(id: TEntityId): Promise<void> {
+    await this.getDb()
+      .prepare(`DELETE FROM ${this.tableName} WHERE id = ?`)
+      .bind(id)
+      .run();
+  }
+
+  // Abstract methods for derived classes
+  protected abstract performCreate(entity: TEntity): Promise<TEntity>;
+  protected abstract performUpdate(id: TEntityId, updates: Partial<TEntity>): Promise<TEntity>;
+}
+```
+
+#### Feature-Specific Repository Implementation
+
+```typescript
+import { BaseRepository } from '@shared/server/repositories/BaseRepository';
+import { DatabaseService } from '@shared/server/services/database';
+import { conversationSchema, type Conversation } from '../shared/schemas/conversation';
+
+/**
+ * Repository for conversation data access operations.
+ * 
+ * Handles all database operations for conversations following the established
+ * repository pattern and maintaining proper data validation.
+ */
+export class ConversationRepository extends BaseRepository<Conversation> {
+  constructor(databaseService: DatabaseService) {
+    super(databaseService, 'conversations', conversationSchema);
+  }
+
+  protected async performCreate(conversation: Conversation): Promise<Conversation> {
+    await this.getDb()
+      .prepare(`
         INSERT INTO conversations
-        (id, assessment_config_id, user_id, course_id, status, metadata)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `
-      )
+        (id, assessment_config_id, user_id, course_id, status, metadata, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `)
       .bind(
-        id,
+        conversation.id,
         conversation.assessment_config_id,
         conversation.user_id,
         conversation.course_id,
         'active',
-        JSON.stringify(conversation.metadata || {})
+        JSON.stringify(conversation.metadata || {}),
+        new Date().toISOString()
       )
       .run();
 
-    return { id, ...conversation, status: 'active' };
+    return conversation;
   }
 
-  async findById(id: string): Promise<Conversation | null> {
-    const result = await this.db.prepare('SELECT * FROM conversations WHERE id = ?').bind(id).first();
-
-    if (!result) return null;
-
-    return {
-      ...result,
-      metadata: JSON.parse(result.metadata as string),
-    } as Conversation;
+  protected async performUpdate(id: string, updates: Partial<Conversation>): Promise<Conversation> {
+    // Build dynamic update query based on provided fields
+    const updateFields: string[] = [];
+    const values: unknown[] = [];
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        updateFields.push(`${key} = ?`);
+        values.push(typeof value === 'object' ? JSON.stringify(value) : value);
+      }
+    });
+    
+    values.push(id); // Add ID for WHERE clause
+    
+    await this.getDb()
+      .prepare(`UPDATE conversations SET ${updateFields.join(', ')} WHERE id = ?`)
+      .bind(...values)
+      .run();
+      
+    const updated = await this.findById(id);
+    if (!updated) throw new Error(`Conversation ${id} not found after update`);
+    
+    return updated;
   }
 
-  async updateMastery(id: string, score: number): Promise<void> {
-    await this.db.prepare('UPDATE conversations SET mastery_score = ? WHERE id = ?').bind(score, id).run();
+  /**
+   * Find conversations by user ID with pagination
+   */
+  async findByUserId(userId: string, limit: number = 50, offset: number = 0): Promise<Conversation[]> {
+    const results = await this.getDb()
+      .prepare(`
+        SELECT * FROM conversations 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT ? OFFSET ?
+      `)
+      .bind(userId, limit, offset)
+      .all();
+
+    return results.results.map(result => this.validateEntity(result));
+  }
+
+  /**
+   * Update mastery score for specific conversation
+   */
+  async updateMasteryScore(id: string, score: number): Promise<void> {
+    await this.getDb()
+      .prepare('UPDATE conversations SET mastery_score = ?, updated_at = ? WHERE id = ?')
+      .bind(score, new Date().toISOString(), id)
+      .run();
+  }
+
+  /**
+   * Find active conversations for a course
+   */
+  async findActiveByCourse(courseId: string): Promise<Conversation[]> {
+    const results = await this.getDb()
+      .prepare(`
+        SELECT * FROM conversations 
+        WHERE course_id = ? AND status = 'active'
+        ORDER BY updated_at DESC
+      `)
+      .bind(courseId)
+      .all();
+
+    return results.results.map(result => this.validateEntity(result));
+  }
+}
+```
+
+#### Service Integration Pattern
+
+```typescript
+/**
+ * Service layer integrating repositories and business logic.
+ * 
+ * Services coordinate between repositories and contain business rules,
+ * while repositories handle pure data access operations.
+ */
+export class ConversationService {
+  constructor(
+    private readonly conversationRepository: ConversationRepository,
+    private readonly userRepository: UserRepository,
+    private readonly assessmentRepository: AssessmentRepository
+  ) {}
+
+  /**
+   * Create new conversation with validation and business rules
+   */
+  async createConversation(request: CreateConversationRequest): Promise<Conversation> {
+    // Business logic: Verify user exists
+    const user = await this.userRepository.findById(request.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Business logic: Verify assessment configuration exists
+    const assessment = await this.assessmentRepository.findById(request.assessmentConfigId);
+    if (!assessment) {
+      throw new Error('Assessment configuration not found');
+    }
+
+    // Business logic: Check if user already has active conversation
+    const existing = await this.conversationRepository.findActiveByCourse(request.courseId);
+    const userConversation = existing.find(conv => conv.user_id === request.userId);
+    
+    if (userConversation) {
+      return userConversation; // Return existing instead of creating duplicate
+    }
+
+    // Repository call: Create new conversation
+    return await this.conversationRepository.create({
+      assessment_config_id: request.assessmentConfigId,
+      user_id: request.userId,
+      course_id: request.courseId,
+      status: 'active',
+      metadata: {
+        created_via: 'api',
+        initial_context: request.context
+      }
+    });
+  }
+
+  /**
+   * Update conversation mastery with business validation
+   */
+  async updateMastery(conversationId: string, score: number, userId: string): Promise<void> {
+    // Business logic: Validate score range
+    if (score < 0 || score > 100) {
+      throw new Error('Mastery score must be between 0 and 100');
+    }
+
+    // Business logic: Verify conversation belongs to user
+    const conversation = await this.conversationRepository.findById(conversationId);
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    if (conversation.user_id !== userId) {
+      throw new Error('Unauthorized: Conversation belongs to different user');
+    }
+
+    // Repository call: Update mastery score
+    await this.conversationRepository.updateMasteryScore(conversationId, score);
+  }
+}
+```
+
+#### Handler Integration Pattern
+
+```typescript
+/**
+ * Handler integrating services for API endpoint processing.
+ * 
+ * Handlers focus on HTTP concerns (request/response, validation, error handling)
+ * and delegate business logic to services.
+ */
+export class ConversationHandler {
+  constructor(
+    private readonly conversationService: ConversationService
+  ) {}
+
+  /**
+   * Create conversation endpoint
+   */
+  async createConversation(c: Context): Promise<Response> {
+    try {
+      // Extract and validate request
+      const body = await c.req.json();
+      const validation = createConversationSchema.safeParse(body);
+      
+      if (!validation.success) {
+        return c.json({ error: validation.error.flatten() }, 400);
+      }
+
+      // Get LTI context from middleware
+      const ltiContext = c.get('ltiContext');
+
+      // Service call: Create conversation with business logic
+      const conversation = await this.conversationService.createConversation({
+        ...validation.data,
+        userId: ltiContext.user_id,
+        courseId: ltiContext.course_id
+      });
+
+      // Return HTTP response
+      return c.json(conversation, 201);
+    } catch (error) {
+      console.error('Conversation creation error:', error);
+      
+      if (error instanceof Error && error.message.includes('not found')) {
+        return c.json({ error: error.message }, 404);
+      }
+      
+      return c.json({ error: 'Failed to create conversation' }, 500);
+    }
+  }
+
+  /**
+   * Update mastery endpoint
+   */
+  async updateMastery(c: Context): Promise<Response> {
+    try {
+      const conversationId = c.req.param('id');
+      const { score } = await c.req.json();
+      const ltiContext = c.get('ltiContext');
+
+      // Input validation
+      if (typeof score !== 'number') {
+        return c.json({ error: 'Score must be a number' }, 400);
+      }
+
+      // Service call: Update with business validation
+      await this.conversationService.updateMastery(
+        conversationId, 
+        score, 
+        ltiContext.user_id
+      );
+
+      return c.json({ success: true });
+    } catch (error) {
+      console.error('Mastery update error:', error);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Unauthorized')) {
+          return c.json({ error: error.message }, 403);
+        }
+        if (error.message.includes('not found')) {
+          return c.json({ error: error.message }, 404);
+        }
+        if (error.message.includes('score must be')) {
+          return c.json({ error: error.message }, 400);
+        }
+      }
+      
+      return c.json({ error: 'Failed to update mastery score' }, 500);
+    }
   }
 }
 ```
