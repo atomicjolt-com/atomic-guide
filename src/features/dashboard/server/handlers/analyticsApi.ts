@@ -10,15 +10,12 @@ import type { D1Database, Queue, Ai } from '@cloudflare/workers-types';
 import { PerformanceAnalyticsService } from '../services/PerformanceAnalyticsService';
 import { PrivacyPreservingAnalytics } from '../services/PrivacyPreservingAnalytics';
 import { AdaptiveLearningService } from '../services/AdaptiveLearningService';
+import { createServices, type ServiceFactory, type AnalyticsEnv as EnvType, type ServiceContainer } from './serviceFactory';
 
 /**
- * Environment interface for analytics API
+ * Re-export the environment interface for backwards compatibility
  */
-interface AnalyticsEnv {
-  DB: D1Database;
-  ANALYTICS_QUEUE: Queue;
-  AI: Ai;
-}
+type AnalyticsEnv = EnvType;
 
 /**
  * Request validation schemas
@@ -58,27 +55,27 @@ const AdaptiveRecommendationsSchema = z.object({
  * Create analytics API router with all endpoints
  *
  * @param tenantId - Tenant identifier for multi-tenancy
+ * @param serviceFactory - Optional factory for creating services (useful for testing)
  * @returns Hono router with analytics endpoints
  */
-export function createAnalyticsApi(tenantId: string): Hono<{ Bindings: AnalyticsEnv }> {
+export function createAnalyticsApi(
+  tenantId: string,
+  serviceFactory?: ServiceFactory
+): Hono<{ Bindings: AnalyticsEnv }> {
   const api = new Hono<{ Bindings: AnalyticsEnv }>();
+  const factory = serviceFactory || createServices;
 
   // Middleware to initialize services
   api.use('*', async (c, next) => {
-    const analyticsService = new PerformanceAnalyticsService(c.env.DB, c.env.ANALYTICS_QUEUE, tenantId);
-
-    const privacyService = new PrivacyPreservingAnalytics(c.env.DB, tenantId);
-
-    const adaptiveLearningService = new AdaptiveLearningService(
-      c.env.DB,
-      c.env.AI,
-      tenantId,
-      true // Enable AI enhancement
-    );
-
-    c.set('analyticsService', analyticsService);
-    c.set('privacyService', privacyService);
-    c.set('adaptiveLearningService', adaptiveLearningService);
+    const services = factory(c.env, tenantId);
+    
+    // Set individual services for backwards compatibility
+    c.set('analyticsService', services.analytics);
+    c.set('privacyService', services.privacy);
+    c.set('adaptiveLearningService', services.adaptive);
+    
+    // Also set the container for easier access
+    c.set('services', services);
 
     await next();
   });
