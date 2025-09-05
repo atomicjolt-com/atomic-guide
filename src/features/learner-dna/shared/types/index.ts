@@ -707,6 +707,124 @@ export interface ABTestConfig {
   powerLevel: number; // e.g., 0.8
 }
 
+/**
+ * Story 4.2 Advanced Pattern Recognition Types
+ */
+
+/**
+ * Struggle prediction result with confidence and explanations
+ */
+export interface StrugglePrediction {
+  riskLevel: number; // 0-1 probability of struggle
+  confidence: number; // 0-1 confidence in prediction
+  timeToStruggle: number; // Estimated minutes until struggle
+  contributingFactors: string[];
+  recommendations: string[];
+  explainability: string; // Human-readable explanation
+  predictedAt: Date;
+  validUntil: Date;
+}
+
+/**
+ * Learning velocity forecast with personalized recommendations
+ */
+export interface LearningVelocityForecast {
+  estimatedMasteryTime: number; // Minutes to concept mastery
+  confidence: number; // 0-1 confidence in estimate
+  accelerationFactors: string[];
+  riskFactors: string[];
+  personalizedStrategies: string[];
+  explainability: string;
+  forecastedAt: Date;
+  validUntil: Date;
+}
+
+/**
+ * Real-time behavioral signal analysis
+ */
+export interface BehavioralSignalAnalysis {
+  cognitiveLoad: number; // 0-2+ current cognitive load
+  attentionLevel: number; // 0-1 current attention level
+  engagementScore: number; // 0-1 current engagement
+  fatigueLevel: number; // 0-1 current fatigue level
+  optimalInterventionTiming: boolean; // Whether now is optimal for intervention
+  recommendations: string[]; // Real-time recommendations
+  analyzedAt?: Date;
+}
+
+/**
+ * Behavioral features extracted for ML models
+ */
+export interface BehavioralFeatures {
+  // Interaction timing patterns
+  avgResponseTime: number;
+  responseTimeVariability: number;
+  sessionDuration: number;
+  breakFrequency: number;
+
+  // Learning engagement patterns  
+  helpRequestRate: number;
+  errorRate: number;
+  progressVelocity: number;
+  attentionScore: number;
+
+  // Cognitive load indicators
+  taskSwitchingFrequency: number;
+  cognitiveLoadEstimate: number;
+  fatigueIndicators: number;
+  
+  // Context information
+  timeOfDay: number; // 0-23 hour
+  dayOfWeek: number; // 0-6
+  courseProgress: number; // 0-1 completion percentage
+}
+
+/**
+ * Time series data point for temporal pattern analysis
+ */
+export interface TimeSeriesDataPoint {
+  timestamp: Date;
+  value: number;
+  context: string;
+  confidence: number;
+}
+
+/**
+ * Prediction result storage for effectiveness tracking
+ */
+export interface PredictionResult {
+  id: string;
+  tenantId: string;
+  userId: string;
+  courseId: string;
+  predictionType: 'struggle_prediction' | 'velocity_forecast' | 'behavioral_analysis';
+  predictionData: Record<string, any>;
+  confidenceScore: number;
+  actualOutcome?: Record<string, any>;
+  accuracyScore?: number;
+  createdAt: Date;
+  validatedAt?: Date;
+}
+
+/**
+ * Learning intervention recommendation
+ */
+export interface LearningIntervention {
+  id: string;
+  userId: string;
+  interventionType: 'proactive_help' | 'difficulty_adjustment' | 'study_strategy' | 'early_warning';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  triggerPattern: string;
+  recommendedAction: string;
+  targetCognitiveAttribute: string;
+  expectedOutcome: string;
+  measurementCriteria: string[];
+  deliveryTimestamp: Date;
+  studentResponse?: 'accepted' | 'dismissed' | 'ignored';
+  effectivenessScore?: number;
+  followUpRequired?: boolean;
+}
+
 // Utility type guards
 export function isLearnerDNAStudentId(value: string): value is LearnerDNAStudentId {
   return typeof value === 'string' && value.length > 0;

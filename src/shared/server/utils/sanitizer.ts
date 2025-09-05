@@ -34,7 +34,7 @@ const CONTENT_WHITELIST = {
   },
   stripIgnoreTag: true,
   stripIgnoreTagBody: ['script', 'style'],
-  onIgnoreTagAttr: function (tag: string, name: string, value: string) {
+  onIgnoreTagAttr: function(tag: string, name: string, value: string) {
     // Allow class attributes for styling but strip dangerous event handlers
     if (name === 'class') {
       // Sanitize class names to prevent injection

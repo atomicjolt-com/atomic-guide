@@ -482,7 +482,7 @@ export class LearnerDNAEngine {
   }
 
   private async getBehavioralPatterns(tenantId: string, userId: string): Promise<BehavioralPattern[]> {
-    const results = await this.db
+    const queryResult = await this.db
       .getDb()
       .prepare(
         `SELECT * FROM behavioral_patterns 
@@ -492,7 +492,9 @@ export class LearnerDNAEngine {
       .bind(tenantId, userId)
       .all<any>();
 
-    return (results.results || []).map((row) => ({
+    // Handle both D1 production format and test format
+    const results = queryResult?.results || queryResult || [];
+    return results.map((row) => ({
       id: row.id,
       tenantId: row.tenant_id,
       userId: row.user_id,

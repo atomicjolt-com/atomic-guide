@@ -550,6 +550,9 @@ describe('PreferencesSync', () => {
 
   describe('Periodic Sync', () => {
     it('should sync periodically when online', async () => {
+      // Set up fake timers for this test
+      vi.useFakeTimers();
+      
       // Ensure we're online
       const navigator = window.navigator;
       navigator.onLine = true;
@@ -566,6 +569,9 @@ describe('PreferencesSync', () => {
     });
 
     it('should not sync when offline', () => {
+      // Set up fake timers for this test
+      vi.useFakeTimers();
+      
       const navigator = window.navigator;
       navigator.onLine = false;
 

@@ -1,8 +1,41 @@
-import { vi } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
 
 // Set JWT_SECRET for tests
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret';
+
+// Global test cleanup to ensure test isolation
+beforeEach(() => {
+  // Clear all mocks before each test
+  vi.clearAllMocks();
+  
+  // Reset DOM state
+  if (typeof window !== 'undefined') {
+    // Clear localStorage
+    window.localStorage.clear();
+    // Clear sessionStorage
+    window.sessionStorage.clear();
+    // Reset navigator to default state
+    Object.defineProperty(window, 'navigator', {
+      value: { onLine: true },
+      writable: true,
+      configurable: true
+    });
+    
+    // Reset global fetch to prevent mock pollution
+    if (globalThis.fetch && globalThis.fetch.mockReset) {
+      globalThis.fetch.mockReset();
+    }
+  }
+});
+
+afterEach(() => {
+  // Clear timers first
+  vi.useRealTimers();
+  
+  // Restore all mocks after each test
+  vi.restoreAllMocks();
+});
 
 // Mock scrollIntoView for tests
 if (typeof window !== 'undefined') {

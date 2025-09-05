@@ -7,12 +7,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Hono } from 'hono';
 import { createAnalyticsApi } from '../analyticsApi';
 import type { D1Database, Queue, Ai } from '@cloudflare/workers-types';
-import { PerformanceAnalyticsService } from '@features/dashboard/server/services/PerformanceAnalyticsService';
-import { PrivacyPreservingAnalytics } from '@features/dashboard/server/services/PrivacyPreservingAnalytics';
-import { AdaptiveLearningService } from '@features/dashboard/server/services/AdaptiveLearningService';
+import { PerformanceAnalyticsService } from '../../services/PerformanceAnalyticsService';
+import { PrivacyPreservingAnalytics } from '../../services/PrivacyPreservingAnalytics';
+import { AdaptiveLearningService } from '../../services/AdaptiveLearningService';
 
 // Mock the service classes
-vi.mock('@features/dashboard/server/services/PerformanceAnalyticsService', () => ({
+vi.mock('../../services/PerformanceAnalyticsService', () => ({
   PerformanceAnalyticsService: vi.fn().mockImplementation(() => ({
     getStudentAnalytics: vi.fn().mockResolvedValue({
       profile: {
@@ -30,7 +30,7 @@ vi.mock('@features/dashboard/server/services/PerformanceAnalyticsService', () =>
   }))
 }));
 
-vi.mock('@features/dashboard/server/services/PrivacyPreservingAnalytics', () => ({
+vi.mock('../../services/PrivacyPreservingAnalytics', () => ({
   PrivacyPreservingAnalytics: vi.fn().mockImplementation(() => ({
     validatePrivacyConsent: vi.fn().mockResolvedValue({ 
       isAllowed: true, 
@@ -43,7 +43,7 @@ vi.mock('@features/dashboard/server/services/PrivacyPreservingAnalytics', () => 
   }))
 }));
 
-vi.mock('@features/dashboard/server/services/AdaptiveLearningService', () => ({
+vi.mock('../../services/AdaptiveLearningService', () => ({
   AdaptiveLearningService: vi.fn().mockImplementation(() => ({
     generateAdaptiveRecommendations: vi.fn().mockResolvedValue([
       { id: 'rec-1', type: 'review', priority: 'high', conceptId: 'arrays' }
