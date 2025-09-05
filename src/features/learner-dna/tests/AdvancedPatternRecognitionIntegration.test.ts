@@ -22,17 +22,24 @@ import type {
 } from '../shared/types';
 
 // Mock database for integration testing
+const mockFirst = vi.fn();
+const mockAll = vi.fn();
+const mockRun = vi.fn();
+const mockBind = vi.fn(() => ({
+  first: mockFirst,
+  all: mockAll,
+  run: mockRun
+}));
+const mockPrepare = vi.fn(() => ({
+  bind: mockBind
+}));
+const mockGetDb = vi.fn(() => ({
+  prepare: mockPrepare,
+  exec: vi.fn()
+}));
+
 const mockDb = {
-  getDb: vi.fn(() => ({
-    prepare: vi.fn(() => ({
-      bind: vi.fn(() => ({
-        first: vi.fn(),
-        all: vi.fn(),
-        run: vi.fn()
-      }))
-    })),
-    exec: vi.fn()
-  })),
+  getDb: mockGetDb,
   run: vi.fn(),
   get: vi.fn()
 } as unknown as DatabaseService;
@@ -162,6 +169,13 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset all our individual mock functions
+    mockFirst.mockReset();
+    mockAll.mockReset();
+    mockRun.mockReset();
+    mockBind.mockReset();
+    mockPrepare.mockReset();
+    mockGetDb.mockReset();
   });
 
   afterEach(() => {
@@ -175,30 +189,34 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       const learnerProfile = createIntegrationProfile();
       const historicalPatterns = createHistoricalBehavioralPatterns(30); // 10 days of patterns
       
-      // Mock privacy service
-      vi.mocked(privacyService.getActiveConsent).mockResolvedValue(validConsent);
-      vi.mocked(privacyService.validateDataCollectionPermission).mockResolvedValue(true);
+      // Mock privacy service methods directly since they're class methods
+      const mockValidatePermission = vi.fn().mockResolvedValue(true);
+      const mockGetActiveConsent = vi.fn().mockResolvedValue(validConsent);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
+      privacyService.getActiveConsent = mockGetActiveConsent;
       
-      // Mock database responses for pattern recognition
-      vi.mocked(mockDb.getDb().prepare().bind().all)
-        .mockResolvedValueOnce({ 
-          results: historicalPatterns.slice(-10).map(p => ({ // Recent patterns
-            id: p.id,
-            aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
-            collected_at: p.collectedAt?.toISOString(),
-            consent_verified: 1
-          }))
-        })
-        .mockResolvedValueOnce({ 
-          results: historicalPatterns.map(p => ({ // Historical baseline
-            aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
-            collected_at: p.collectedAt?.toISOString(),
-            consent_verified: 1
-          }))
-        });
+      // Mock database responses for pattern recognition - provide sufficient data
+      // Service makes multiple calls, need to provide data for all of them
+      mockAll.mockResolvedValue({ 
+        results: historicalPatterns.map(p => ({ // Use all 30 patterns for all calls
+          id: p.id,
+          tenant_id: p.tenantId,
+          user_id: p.userId,
+          session_id: p.sessionId,
+          pattern_type: p.patternType,
+          context_type: p.contextType,
+          aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
+          confidence_level: p.confidenceLevel,
+          course_id: p.courseId,
+          content_id: p.contentId,
+          collected_at: p.collectedAt?.toISOString(),
+          privacy_level: p.privacyLevel,
+          consent_verified: p.consentVerified ? 1 : 0
+        }))
+      });
 
       // Mock learner profile retrieval
-      vi.mocked(mockDb.getDb().prepare().bind().first).mockResolvedValue({
+      mockFirst.mockResolvedValue({
         id: learnerProfile.id,
         tenant_id: learnerProfile.tenantId,
         user_id: learnerProfile.userId,
@@ -217,7 +235,7 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       });
 
       // Mock intervention storage
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockResolvedValue({ success: true });
+      mockRun.mockResolvedValue({ success: true });
 
       // Act: Execute complete pipeline
       const startTime = Date.now();
@@ -288,7 +306,8 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
 
     it('should handle privacy consent withdrawal gracefully', async () => {
       // Arrange: User with withdrawn consent
-      vi.mocked(privacyService.validateDataCollectionPermission).mockResolvedValue(false);
+      const mockValidatePermission = vi.fn().mockResolvedValue(false);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
       
       // Act: Attempt to run pipeline without consent
       const results = await Promise.allSettled([
@@ -308,15 +327,16 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       // Arrange: Multiple concurrent users
       const users = Array.from({ length: 10 }, (_, i) => `user-concurrent-${i}`);
       
-      vi.mocked(privacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      const mockValidatePermission = vi.fn().mockResolvedValue(true);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
+      mockAll.mockResolvedValue({
         results: createHistoricalBehavioralPatterns(5).map(p => ({
           aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
           collected_at: p.collectedAt?.toISOString(),
           consent_verified: 1
         }))
       });
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockResolvedValue({ success: true });
+      mockRun.mockResolvedValue({ success: true });
 
       // Act: Concurrent pattern recognition for multiple users
       const startTime = Date.now();
@@ -347,8 +367,9 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       const validConsent = createValidConsent();
       const strugglingPatterns = createHistoricalBehavioralPatterns(15).slice(-5); // Recent struggling patterns
       
-      vi.mocked(privacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all)
+      const mockValidatePermission = vi.fn().mockResolvedValue(true);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
+      mockAll
         .mockResolvedValueOnce({ results: [] }) // No recent interventions (rate limiting)
         .mockResolvedValueOnce({ 
           results: strugglingPatterns.map(p => ({
@@ -365,7 +386,7 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
           }))
         });
 
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockResolvedValue({ success: true });
+      mockRun.mockResolvedValue({ success: true });
 
       // Act: Generate recommendations for chat interface
       const recommendations = await interventionEngine.generateProactiveRecommendations(
@@ -402,7 +423,7 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
 
       const learnerProfile = createIntegrationProfile();
 
-      vi.mocked(mockDb.getDb().prepare().bind().first).mockResolvedValue({
+      mockFirst.mockResolvedValue({
         learning_velocity_value: learnerProfile.learningVelocityValue,
         struggle_threshold_value: learnerProfile.struggleThresholdValue,
         created_at: learnerProfile.createdAt.toISOString(),
@@ -410,7 +431,7 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
         last_analyzed_at: learnerProfile.lastAnalyzedAt.toISOString()
       });
 
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockAll.mockResolvedValue({
         results: highLoadPatterns.map(p => ({
           aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
           collected_at: p.collectedAt?.toISOString(),
@@ -441,13 +462,14 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       const learnerProfile = createIntegrationProfile();
       
       let storedRecords: any[] = [];
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockImplementation((data) => {
+      mockRun.mockImplementation((data) => {
         storedRecords.push(data);
         return Promise.resolve({ success: true });
       });
 
-      vi.mocked(privacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      const mockValidatePermission = vi.fn().mockResolvedValue(true);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
+      mockAll.mockResolvedValue({
         results: behavioralPatterns.map(p => ({
           aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
           collected_at: p.collectedAt?.toISOString(),
@@ -470,8 +492,9 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
 
     it('should handle database failures gracefully', async () => {
       // Arrange: Database failure scenario
-      vi.mocked(privacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockRejectedValue(new Error('Database connection failed'));
+      const mockValidatePermission = vi.fn().mockResolvedValue(true);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
+      mockAll.mockRejectedValue(new Error('Database connection failed'));
 
       // Act: Should not crash on database failure
       const prediction = await patternRecognizer.predictStruggle(testTenantId, testUserId, testCourseId);
@@ -490,8 +513,9 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
       const largeHistoricalDataset = createHistoricalBehavioralPatterns(100); // 30+ days of data
       const learnerProfile = createIntegrationProfile();
       
-      vi.mocked(privacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all)
+      const mockValidatePermission = vi.fn().mockResolvedValue(true);
+      privacyService.validateDataCollectionPermission = mockValidatePermission;
+      mockAll
         .mockResolvedValueOnce({
           results: largeHistoricalDataset.slice(-20).map(p => ({ // Recent patterns
             aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
@@ -507,14 +531,14 @@ describe('Advanced Pattern Recognition Integration Tests', () => {
           }))
         });
 
-      vi.mocked(mockDb.getDb().prepare().bind().first).mockResolvedValue({
+      mockFirst.mockResolvedValue({
         learning_velocity_value: learnerProfile.learningVelocityValue,
         created_at: learnerProfile.createdAt.toISOString(),
         updated_at: learnerProfile.updatedAt.toISOString(),
         last_analyzed_at: learnerProfile.lastAnalyzedAt.toISOString()
       });
 
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockResolvedValue({ success: true });
+      mockRun.mockResolvedValue({ success: true });
 
       // Act: Execute all major operations with realistic data
       const operations = [

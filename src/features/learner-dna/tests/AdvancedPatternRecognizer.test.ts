@@ -23,24 +23,36 @@ import type {
   BehavioralSignalAnalysis
 } from '../shared/types';
 
-// Mock services
+// Mock database for testing
+const mockFirst = vi.fn();
+const mockAll = vi.fn();
+const mockRun = vi.fn();
+const mockBind = vi.fn(() => ({
+  first: mockFirst,
+  all: mockAll,
+  run: mockRun
+}));
+const mockPrepare = vi.fn(() => ({
+  bind: mockBind
+}));
+const mockGetDb = vi.fn(() => ({
+  prepare: mockPrepare,
+  exec: vi.fn()
+}));
+
 const mockDb = {
-  getDb: vi.fn(() => ({
-    prepare: vi.fn(() => ({
-      bind: vi.fn(() => ({
-        first: vi.fn(),
-        all: vi.fn(),
-        run: vi.fn()
-      }))
-    }))
-  }))
+  getDb: mockGetDb,
+  run: vi.fn(),
+  get: vi.fn()
 } as unknown as DatabaseService;
 
 const mockDataCollector = {} as CognitiveDataCollector;
 
+const mockValidateDataCollectionPermission = vi.fn();
+const mockGetActiveConsent = vi.fn();
 const mockPrivacyService = {
-  validateDataCollectionPermission: vi.fn(),
-  getActiveConsent: vi.fn()
+  validateDataCollectionPermission: mockValidateDataCollectionPermission,
+  getActiveConsent: mockGetActiveConsent
 } as unknown as PrivacyControlService;
 
 // Test data generators
@@ -120,6 +132,16 @@ describe('AdvancedPatternRecognizer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset all our individual mock functions
+    mockFirst.mockReset();
+    mockAll.mockReset();
+    mockRun.mockReset();
+    mockBind.mockReset();
+    mockPrepare.mockReset();
+    mockGetDb.mockReset();
+    mockValidateDataCollectionPermission.mockReset();
+    mockGetActiveConsent.mockReset();
+    
     recognizer = new AdvancedPatternRecognizer(mockDb, mockDataCollector, mockPrivacyService);
   });
 
@@ -130,7 +152,7 @@ describe('AdvancedPatternRecognizer', () => {
   describe('Struggle Prediction (AC 1)', () => {
     it('should predict struggle with 70%+ accuracy target', async () => {
       // Arrange: Mock consent and data
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
       
       const mockPatterns = [
         createMockBehavioralPattern({
@@ -164,8 +186,8 @@ describe('AdvancedPatternRecognizer', () => {
         consent_verified: p.consentVerified ? 1 : 0
       })) };
 
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue(mockDbResult);
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockResolvedValue({ success: true });
+      mockAll.mockResolvedValue(mockDbResult);
+      mockRun.mockResolvedValue({ success: true });
 
       // Act: Generate struggle prediction
       const startTime = Date.now();
@@ -195,8 +217,8 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should handle insufficient historical data gracefully', async () => {
       // Arrange: Mock consent but insufficient data
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({ results: [] });
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockAll.mockResolvedValue({ results: [] });
 
       // Act
       const result = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
@@ -209,7 +231,7 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should respect privacy consent requirements', async () => {
       // Arrange: Mock no consent
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(false);
+      mockValidateDataCollectionPermission.mockResolvedValue(false);
 
       // Act
       const result = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
@@ -222,8 +244,8 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should provide fallback prediction on error', async () => {
       // Arrange: Mock consent but database error
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockRejectedValue(new Error('Database error'));
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockAll.mockRejectedValue(new Error('Database error'));
 
       // Act: Should not throw but return safe fallback
       const prediction = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
@@ -236,7 +258,7 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should generate contextually appropriate explanations', async () => {
       // Arrange: Mock different struggle scenarios
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
 
       const scenarios = [
         {
@@ -273,7 +295,7 @@ describe('AdvancedPatternRecognizer', () => {
           consent_verified: 1
         })) };
 
-        vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue(mockDbResult);
+        mockAll.mockResolvedValue(mockDbResult);
 
         // Act
         const prediction = await recognizer.predictStruggle('tenant-1', 'user-1', 'course-1');
@@ -291,14 +313,14 @@ describe('AdvancedPatternRecognizer', () => {
   describe('Learning Velocity Forecasting (AC 2)', () => {
     it('should forecast learning velocity with realistic time estimates', async () => {
       // Arrange
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
       
       const mockProfile = createMockLearnerProfile({
         learningVelocityValue: 1.5, // Fast learner
         learningVelocityConfidence: 0.8
       });
 
-      vi.mocked(mockDb.getDb().prepare().bind().first).mockResolvedValue({
+      mockFirst.mockResolvedValue({
         id: mockProfile.id,
         tenant_id: mockProfile.tenantId,
         user_id: mockProfile.userId,
@@ -344,7 +366,7 @@ describe('AdvancedPatternRecognizer', () => {
     });
 
     it('should adjust estimates based on cognitive profile', async () => {
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
 
       const profiles = [
         createMockLearnerProfile({ learningVelocityValue: 0.8 }), // Slow learner
@@ -354,7 +376,7 @@ describe('AdvancedPatternRecognizer', () => {
       const forecasts: LearningVelocityForecast[] = [];
 
       for (const profile of profiles) {
-        vi.mocked(mockDb.getDb().prepare().bind().first).mockResolvedValue({
+        mockFirst.mockResolvedValue({
           learning_velocity_value: profile.learningVelocityValue,
           learning_velocity_confidence: 0.8,
           created_at: profile.createdAt.toISOString(),
@@ -377,8 +399,8 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should require learner DNA profile', async () => {
       // Arrange: Mock consent but no profile
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().first).mockResolvedValue(null);
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockFirst.mockResolvedValue(null);
 
       // Act & Assert
       await expect(recognizer.forecastLearningVelocity('tenant-1', 'user-1', 'course-1', 'concept-1'))
@@ -388,8 +410,8 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should provide fallback forecast on error', async () => {
       // Arrange: Mock consent but error condition
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().first).mockRejectedValue(new Error('Profile error'));
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockFirst.mockRejectedValue(new Error('Profile error'));
 
       // Act
       const forecast = await recognizer.forecastLearningVelocity(
@@ -420,7 +442,7 @@ describe('AdvancedPatternRecognizer', () => {
         })
       ];
 
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockAll.mockResolvedValue({
         results: mockPatterns.map(p => ({
           aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
           collected_at: new Date().toISOString()
@@ -455,7 +477,7 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should handle no recent data gracefully', async () => {
       // Arrange: No recent patterns
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({ results: [] });
+      mockAll.mockResolvedValue({ results: [] });
 
       // Act
       const analysis = await recognizer.analyzeRealTimeBehavioralSignals(
@@ -485,7 +507,7 @@ describe('AdvancedPatternRecognizer', () => {
         })
       ];
 
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockAll.mockResolvedValue({
         results: optimalPatterns.map(p => ({
           aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
           collected_at: new Date().toISOString()
@@ -529,7 +551,7 @@ describe('AdvancedPatternRecognizer', () => {
       ];
 
       for (const scenario of scenarios) {
-        vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+        mockAll.mockResolvedValue({
           results: scenario.patterns.map(p => ({
             aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
             collected_at: new Date().toISOString()
@@ -551,13 +573,13 @@ describe('AdvancedPatternRecognizer', () => {
   describe('Performance and Reliability', () => {
     it('should meet prediction generation performance targets', async () => {
       // Arrange
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
       
       const mockPatterns = Array.from({ length: 50 }, (_, i) => 
         createMockBehavioralPattern({ id: `pattern-${i}` })
       );
 
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockAll.mockResolvedValue({
         results: mockPatterns.map(p => ({
           aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
           collected_at: new Date().toISOString(),
@@ -588,8 +610,8 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should handle concurrent prediction requests', async () => {
       // Arrange
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockAll.mockResolvedValue({
         results: [{ aggregated_metrics: JSON.stringify({}), collected_at: new Date().toISOString(), consent_verified: 1 }]
       });
 
@@ -614,7 +636,7 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should maintain accuracy under data quality variations', async () => {
       // Arrange: Test with various data quality scenarios
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
 
       const dataQualityScenarios = [
         {
@@ -641,7 +663,7 @@ describe('AdvancedPatternRecognizer', () => {
       ];
 
       for (const scenario of dataQualityScenarios) {
-        vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+        mockAll.mockResolvedValue({
           results: scenario.patterns.map(p => ({
             aggregated_metrics: JSON.stringify(p.aggregatedMetrics),
             confidence_level: p.confidenceLevel,
@@ -669,8 +691,8 @@ describe('AdvancedPatternRecognizer', () => {
   describe('Error Handling and Edge Cases', () => {
     it('should handle malformed behavioral data gracefully', async () => {
       // Arrange: Mock consent but malformed data
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockAll.mockResolvedValue({
         results: [{
           aggregated_metrics: 'invalid-json',
           collected_at: new Date().toISOString(),
@@ -688,8 +710,8 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should handle database connection failures', async () => {
       // Arrange: Mock database failure
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare).mockImplementation(() => {
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockPrepare.mockImplementation(() => {
         throw new Error('Database connection failed');
       });
 
@@ -730,7 +752,7 @@ describe('AdvancedPatternRecognizer', () => {
 
       for (const method of methods) {
         // Arrange: No consent
-        vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(false);
+        mockValidateDataCollectionPermission.mockResolvedValue(false);
 
         // Act
         const result = await method();
@@ -743,8 +765,8 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should only process consented data', async () => {
       // Arrange: Mixed consent data
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockAll.mockResolvedValue({
         results: [
           { consent_verified: 1, aggregated_metrics: JSON.stringify({}), collected_at: new Date().toISOString() },
           { consent_verified: 0, aggregated_metrics: JSON.stringify({}), collected_at: new Date().toISOString() }
@@ -760,13 +782,13 @@ describe('AdvancedPatternRecognizer', () => {
 
     it('should not store sensitive data in predictions', async () => {
       // Arrange
-      vi.mocked(mockPrivacyService.validateDataCollectionPermission).mockResolvedValue(true);
-      vi.mocked(mockDb.getDb().prepare().bind().all).mockResolvedValue({
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+      mockAll.mockResolvedValue({
         results: [{ aggregated_metrics: JSON.stringify({}), collected_at: new Date().toISOString(), consent_verified: 1 }]
       });
 
       const storeCalls: any[] = [];
-      vi.mocked(mockDb.getDb().prepare().bind().run).mockImplementation((...args) => {
+      mockRun.mockImplementation((...args) => {
         storeCalls.push(args);
         return Promise.resolve({ success: true });
       });
