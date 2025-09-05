@@ -1,135 +1,72 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with this repository.
 
-## Development Commands
+## 📖 Documentation Links
 
-### Core Development
+For detailed information, refer to:
 
-- `npm run dev` - Start local development server with Vite
-- `npm run preview` - Build and preview production build locally
-- `npm run build` - Build production bundle with TypeScript compilation and manifest injection
-- `npm run check` - Validate TypeScript, build, and do a dry-run deployment
-- `npm run deploy` - Build and deploy to Cloudflare Workers
-- `npm test` - Run Vitest test suite
-- `npm run test:integration` - Run integration tests
-- `npm run lint` - Run ESLint on .ts,.tsx,.js,.jsx files
-- `npm run lint-fix` - Run ESLint with automatic fixes
-- `npm run tail` - Stream live logs from deployed worker
-- `npm run types` - Generate Wrangler types
+- **[Architecture Documentation](./docs/architecture/)** - System design and patterns
+- **[Development Guide](./docs/development/)** - Setup, testing, debugging
+- **[React Guidelines](./docs/development/react-guidelines.md)** - React 19 development standards
+- **[API Reference](./docs/api/)** - Endpoints and integration
+- **[Vertical Slice Architecture](./docs/architecture/vertical-slice-refactoring.md)** - Code organization
 
-### Database Management
+## Quick Reference
 
+### Development Commands
 ```bash
-npm run db:create          # Create atomic-guide-db D1 database
-npm run db:destroy         # Delete atomic-guide-db D1 database
-npm run db:reset           # Destroy, create, migrate and seed database
-npm run db:migrate         # Run database migrations locally
-npm run db:migrate:remote  # Run migrations on remote database
-npm run db:rollback        # Rollback database to previous version
-npm run db:status          # Check migration status
-npm run db:query           # Interactive SQL console for D1 database
-npm run db:list            # List all database tables
-npm run db:seed            # Seed database with test data (local)
-npm run db:seed:remote     # Seed remote database
-npm run db:setup           # Create D1 database and update wrangler.jsonc
-npm run db:export          # Export database to backup.sql
-npm run db:local           # Execute commands on local database
+npm run dev          # Start development (http://localhost:5988/test)
+npm run build        # Build for production
+npm run deploy       # Deploy to Cloudflare Workers
+npm test             # Run tests
+npm run lint         # Lint code
+npm run tail         # View live logs
+npm run check        # Validate TypeScript + dry-run deploy
 ```
 
-### Infrastructure Setup
-
+### Database Commands
 ```bash
-npm run db:setup      # Create D1 database and update wrangler.jsonc
-npm run kv:setup      # Create all KV namespaces
-npm run kv:destroy    # Clean up KV namespaces
+npm run db:migrate         # Run local migrations
+npm run db:migrate:remote  # Run remote migrations
+npm run db:seed           # Seed local database
+npm run db:query          # Interactive SQL console
+npm run db:reset          # Destroy, create, migrate and seed
 ```
 
-### Testing Commands
-
+### Code Quality
 ```bash
-npm test                      # Run all tests
-npm test -- --watch          # Run tests in watch mode
-npm test -- StreamButton.test.tsx  # Run specific test file
-npm run test:integration     # Run integration tests
+npx prettier --write .     # Format code
+npx eslint .              # Lint code
+tsc                       # Type check
 ```
 
 ### Testing
-
 - Run all tests: `npm test`
 - Run tests in watch mode: `npm test -- --watch`
-- Run a specific test file: `npm test -- path/to/test.ts`
+- Run specific test: `npm test -- path/to/test.ts`
+- **Use Playwright MCP** to visit `http://localhost:5988/test` for testing
 
-The application can be viewed by visiting `http://localhost:5988/test`.
-Use PlayWright MCP to visit this url for testing
+## ⚠️ MANDATORY Architecture Rules
 
-### Code Quality
-
-- Format code: `npx prettier --write .`
-- Check formatting: `npx prettier --check .`
-- Lint code: `npx eslint .`
-- Type check: `tsc` or `npm run check`
-
-## Database Architecture (MANDATORY REPOSITORY PATTERN)
-
-### STRICT Database Access Rules
-
-**NEVER access the database directly from handlers or services.** Always use the repository pattern:
-
+### Repository Pattern (STRICT ENFORCEMENT)
 ```
 Handler → Service → Repository → DatabaseService → D1 Database
 ```
 
-#### Repository Pattern Rules (MANDATORY)
+**NEVER**:
+- Access database directly from handlers/services
+- Use `this.db.getDb()` in services
+- Bypass repositories
 
-1. **Handlers** (`handlers/`) MUST NEVER make database calls
-   - Only handle HTTP request/response
-   - Call service methods for business logic
-   - Never import DatabaseService directly
+**ALWAYS**:
+- One repository per domain entity
+- Test handlers with mocked services
+- Test services with mocked repositories
 
-2. **Services** (`services/`) MUST NEVER call `this.db.getDb()`
-   - Use injected repositories for data access
-   - Focus on business logic orchestration
-   - Never bypass repositories
-
-3. **Repositories** (`repositories/`) MUST handle all database operations
-   - One repository per domain entity
-   - Use DatabaseService for connection management
-   - Contain feature-specific queries and data transformations
-
-4. **DatabaseService** provides connection utilities only
-   - Basic CRUD helpers
-   - Connection management
-   - Transaction support
-
-#### Repository Structure (MANDATORY)
-
-```
-features/[feature-name]/server/repositories/
-├── BaseRepository.ts                 # Common CRUD operations
-├── [Entity]Repository.ts            # Domain-specific data access
-├── index.ts                         # Export all repositories
-```
-
-#### Example Implementation
-
+### Example Implementation
 ```typescript
-// ❌ FORBIDDEN: Direct database access in handler
-class ApiHandler {
-  async getUser(c: Context) {
-    const user = await this.db.get('SELECT * FROM users WHERE id = ?', [id]);
-    return c.json(user);
-  }
-}
-
-// ❌ FORBIDDEN: Service bypassing repository
-class UserService {
-  async getUser(id: string) {
-    return this.db.getDb().prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
-  }
-}
-
-// ✅ CORRECT: Repository pattern implementation
+// ✅ CORRECT: Repository pattern
 class UserHandler {
   constructor(private userService: UserService) {}
   
@@ -139,1075 +76,180 @@ class UserHandler {
   }
 }
 
-class UserService {
-  constructor(private userRepository: UserRepository) {}
-  
-  async getUser(id: string) {
-    return this.userRepository.findById(id);
-  }
-}
-
-class UserRepository extends BaseRepository {
-  async findById(id: string) {
-    return this.db.get<User>('SELECT * FROM users WHERE id = ?', [id]);
+// ❌ FORBIDDEN: Direct database access
+class ApiHandler {
+  async getUser(c: Context) {
+    const user = await this.db.get('SELECT * FROM users WHERE id = ?', [id]);
   }
 }
 ```
 
-#### Repository Testing Strategy
-
-- **Handler Tests**: Mock services only
-- **Service Tests**: Mock repositories only  
-- **Repository Tests**: Test actual database operations
-- **Integration Tests**: Test full stack
-
-This pattern ensures clean separation of concerns and maintainable, testable code.
-
-## Architecture Overview
-
-This application is built on [Atomic LTI Worker](https://github.com/atomicjolt-com/atomic-lti-worker) which provides a complete foundation for working with LTI Applications.
-
-This is a Cloudflare Workers-based LTI 1.3 tool implementation using a serverless edge architecture:
-
-This LTI tool is designed as a single page application (SPA).
-
-If you need/want to make changes to the code that handles the LTI launch or if you need to store or modify values server side look at the code in:
-`src/index.ts`
-
-The client code can be found in:
-`client/app.tsx`
-
-This is the entry point for the client side React application.
-
-The server will pass settings to the client using `window.LAUNCH_SETTINGS` which by default is of type `LaunchSettings`. If you need to pass additonal data to the client LaunchSettings can be extended to include any additional required information. The most useful values provided by `window.LAUNCH_SETTINGS` will be `window.LAUNCH_SETTINGS.jwt` and ``window.LAUNCH_SETTINGS.deepLinking`. API calls back to the server will require the jwt be passed in the Authorization header. Examples of how to use `window.LAUNCH_SETTINGS` can be seen in client/app.tsx. The React application is wrapped in ">LtiLaunchCheck>". This code should not be changed.
-
-### Technology Stack
-
-This project is build using vite, specifically `@cloudflare/vite-plugin` which handles both server and client side code.
-
-- **Runtime**: Cloudflare Workers (Edge compute platform)
-- **Database**: Cloudflare D1 (SQLite at the edge)
-- **Real-time**: Durable Objects (WebSocket state management)
-- **AI Services**: Workers AI (allows for interactions with modules)
-- **Vector Search**: Cloudflare Vectorize (https://developers.cloudflare.com/vectorize/)
-- **Frontend**: React 19 + TypeScript
-
-### Project Structure (Vertical Slice Architecture)
-
-> **Note**: This project uses a vertical slice architecture, organizing code by features rather than technical layers. See [vertical-slice-refactoring.md](docs/architecture/vertical-slice-refactoring.md) for detailed documentation.
-
+### Project Structure (Vertical Slice)
 ```
-/Users/jbasdf/projects/atomic-guide/
-├── src/
-│   ├── features/             # Feature-based vertical slices
-│   │   ├── chat/            # Chat feature domain
-│   │   ├── assessment/      # Assessment & deep linking
-│   │   ├── content/         # Content extraction
-│   │   ├── dashboard/       # Analytics & insights
-│   │   ├── lti/            # LTI protocol
-│   │   ├── settings/        # User preferences
-│   │   └── faq/            # Knowledge base
-│   └── shared/              # Cross-feature shared code
-│       ├── client/          # Shared client code
-│       ├── server/          # Shared server code
-│       ├── schemas/         # Shared data schemas
-│       └── types/          # Common TypeScript types
-├── client/                   # Legacy client entry points (being migrated)
-├── tests/                    # Test suite organization
-├── docs/                     # Comprehensive project documentation
-├── scripts/                  # Database and infrastructure scripts
-├── migrations/               # D1 database schema migrations
-├── seeds/                    # Database seed data
-├── public/                   # Static assets and build output
-└── Configuration files
+src/
+├── features/           # Feature-based vertical slices
+│   └── [feature]/
+│       ├── client/     # React components, hooks, store
+│       ├── server/     # Handlers, services, repositories
+│       └── shared/     # Types, schemas
+└── shared/            # Cross-feature code
 ```
 
-#### Feature-Based Architecture
+## LTI Architecture Overview
 
-Each feature follows a consistent structure:
+This is a **Cloudflare Workers-based LTI 1.3 tool** built on [Atomic LTI Worker](https://github.com/atomicjolt-com/atomic-lti-worker).
 
-```
-features/[feature-name]/
-├── client/                   # Client-side code
-│   ├── components/          # React components
-│   ├── hooks/              # Feature-specific hooks
-│   ├── store/              # Redux slices & RTK Query
-│   └── services/           # Client services
-├── server/                   # Server-side code
-│   ├── handlers/           # API route handlers
-│   ├── services/           # Business logic
-│   └── durable-objects/    # Stateful objects
-├── shared/                   # Feature-internal shared code
-│   ├── types/              # TypeScript types
-│   └── schemas/            # Zod schemas
-└── tests/                    # Feature tests
+### Key LTI Components
 
-```
+**Server-side**: `src/index.ts` - Hono app handling all LTI routes and services
+**Client-side**: `client/app.tsx` - React SPA launched via LTI
+**LTI Data**: `window.LAUNCH_SETTINGS` - Server passes settings to client
 
-#### Shared Module (`src/shared/`)
+### LTI Integration Points
+- Dynamic registration: `/lti/register` endpoint
+- Deep linking: Client-side with server JWT signing at `/lti/sign_deep_link`
+- Names and roles: `/lti/names_and_roles` for roster retrieval
 
-The shared module contains cross-cutting concerns used by multiple features:
+### Important LTI Context
+- The server passes data via `window.LAUNCH_SETTINGS` (type `LaunchSettings`)
+- Most useful values: `window.LAUNCH_SETTINGS.jwt` and `window.LAUNCH_SETTINGS.deepLinking`
+- API calls require JWT in Authorization header
+- React app is wrapped in `<LtiLaunchCheck>` - **DO NOT CHANGE**
 
-- **`shared/client/`** - Shared client-side code:
-  - `components/` - Reusable UI components (Button, Modal, ErrorBoundary)
-  - `hooks/` - Common React hooks (useAuth, useDebounce)
-  - `store/` - Base store configuration
-  - `utils/` - Client utilities
-- **`shared/server/`** - Shared server-side code:
-  - `services/` - Core services (AIService, DatabaseService)
-  - `middleware/` - Common middleware
-  - `db/` - Database utilities
-  - `utils/` - Server utilities (sanitizer, tokenizer)
-- **`shared/schemas/`** - Common Zod schemas
-- **`shared/types/`** - Shared TypeScript types
+## Technology Stack
 
-#### Import Pattern Examples
-
-```typescript
-// Importing from shared modules
-import { AIService } from '@shared/server/services';
-import { Button } from '@shared/client/components';
-import { useAuth } from '@shared/client/hooks';
-
-// Importing within a feature
-import { ChatWindow } from './components';
-import { chatApi } from './store';
-
-// Cross-feature types (when necessary)
-import type { ChatMessage } from '@features/chat/shared/types';
-```
-
-#### Testing Organization (`tests/`)
-
-Comprehensive test coverage organized by concern:
-
-- **`tests/api/`** - API endpoint testing
-- **`tests/components/`** - React component tests
-- **`tests/services/`** - Business logic service tests
-- **`tests/store/`** - Redux state management tests
-- **`tests/integration/`** - End-to-end integration tests
-- **`tests/performance/`** - Performance benchmarks
-- **`tests/security/`** - Security validation tests
-
-#### Key Configuration Files
-
-- **`package.json`** - Project dependencies and comprehensive npm scripts
-- **`wrangler.jsonc`** - Cloudflare Workers configuration with KV namespaces, D1 database, Durable Objects, AI binding, and Vectorize index
-- **`vite.config.ts`** - Build configuration with multiple entry points (app, appInit, home)
-- **`definitions.ts`** - Central constants for LTI paths, application name, and service URLs
-- **`tsconfig.*.json`** - TypeScript configurations for different build targets (app, worker, node)
-- **`eslint.config.js`** - ESLint configuration for code quality
-- **`vitest.config.ts`** - Test framework configuration
-
-#### Database and Infrastructure
-
-- **`migrations/`** - SQL schema migrations for D1 database
-- **`seeds/`** - Database seed data for development and testing
-- **`scripts/`** - Automation scripts:
-  - Database management (create, migrate, seed, query)
-  - KV namespace setup and cleanup
-  - Manifest injection for cache busting
-  - D1 database setup automation
-
-#### Static Assets (`public/`)
-
-- **`public/assets/`** - Vite-built application bundles with cache-busted filenames
-- **`public/images/`** - Brand assets and icons
-- **Favicons and PWA manifests** - Complete icon set for different platforms
-
-#### Documentation (`docs/`)
-
-Extensive documentation organized by concern:
-
-- **`docs/architecture/`** - Technical architecture documentation
-- **`docs/branding/`** - Design principles and style guide
-- **`docs/prd/`** - Product requirements and specifications
-- **`docs/qa/`** - Quality assurance gates and assessments
-- **`docs/stories/`** - User story definitions
-
-#### Notable Patterns and Conventions
-
-1. **Vertical Slice Architecture**: Features organized by business domain, not technical layers
-2. **Shared Module Pattern**: Cross-cutting concerns extracted to prevent duplication
-3. **Feature Cohesion**: All code for a feature lives together (client, server, tests)
-4. **Entry Point Strategy**: Multiple Vite entry points for different application modes (LTI launch, home page, OIDC init)
-5. **Service Architecture**: Modular service layer with dependency injection patterns
-6. **Type Safety**: Comprehensive TypeScript configuration with strict typing
-7. **Testing Strategy**: Multi-layered testing approach (unit, integration, performance, security)
-8. **Infrastructure as Code**: Automated scripts for database and KV namespace management
-9. **LTI Compliance**: Built on Atomic Jolt's LTI foundation with standard endpoint patterns
-10. **Edge Computing**: Leverages Cloudflare's edge platform (Workers, D1, Durable Objects, AI, Vectorize)
-
-### Core Components
-
-1. **Server-Side (Cloudflare Worker)**
-   - Entry point: `src/index.ts` - Hono app handling all LTI routes and services
-   - LTI endpoints managed via `@atomicjolt/lti-endpoints` package
-   - State management through Cloudflare KV namespaces and Durable Objects
-   - Dynamic registration support with configurable tool settings
-
-2. **Client-Side (SPA)**
-   - Entry points: `client/app.tsx` (LTI launch), `client/home.ts` (home page), `client/app-init.ts` (OIDC init)
-   - Built with Vite, deployed as static assets
-   - Handles post-launch interactions including deep linking and names/roles services
-
-3. **Configuration**
-   - `definitions.ts`: Central constants for paths, names, and URLs
-   - `src/config.ts`: Tool configuration for dynamic registration
-   - `wrangler.jsonc`: Cloudflare Workers deployment configuration
+- **Runtime**: Cloudflare Workers + D1 Database + Durable Objects
+- **Framework**: Vite + React 19 + TypeScript (uses `@cloudflare/vite-plugin`)
+- **LTI**: Built on Atomic LTI Worker
+- **AI**: Workers AI + Vectorize
+- **Assets**: Vite-built files served from `public/` with manifest injection
 
 ### Key Service Bindings
-
 - `DB`: D1 database for persistent storage
 - `VIDEO_STORAGE`: R2 bucket for video files
 - `AI`: Workers AI for transcription and embeddings
 - `VIDEO_QUEUE`: Queue for async video processing
 - `FAQ_INDEX`: Vector index for semantic search
 
-### LTI 1.3 Integration
+## 🔒 TypeScript Requirements (STRICT)
 
-The application implements full LTI 1.3 support with:
+**MANDATORY**:
+- Never use `any` - use `unknown`
+- Explicit return types on all functions
+- Use `z.infer<typeof schema>` for types
+- Validate all external data with Zod
+- Use branded types for IDs
 
-- Dynamic registration at `/lti/register`
-- OIDC authentication flow
-- JWT validation with platform JWKS
-- Names and Role Provisioning Service (NRPS)
-- Assignment and Grade Services (AGS)
-- Deep Linking support
-
-Key LTI endpoints are defined in `/src/index.ts` and use the `@atomicjolt/lti-*` packages.
-
-#### Storage Architecture (Cloudflare KV)
-
-These are used by the LTI launch process and should not be modified or deleted
-
-- `KEY_SETS`: Tool's RSA key pairs for JWT signing
-- `REMOTE_JWKS`: Cached platform JWK sets
-- `CLIENT_AUTH_TOKENS`: OAuth client credentials
-- `PLATFORMS`: Platform configurations from dynamic registration
-- `OIDC_STATE` (Durable Object): Manages OIDC state during authentication flow
-
-#### LTI Flow
-
-1. Platform initiates at `/lti/init` with OIDC authentication request
-2. Worker validates and redirects to platform's auth endpoint
-3. Platform returns to `/lti/redirect` with auth response
-4. Worker validates JWT and redirects to `/lti/launch` with state
-5. Launch page validates and loads client application
-
-#### Key LTI Integration Points
-
-- Dynamic registration: `/lti/register` endpoint for automatic platform setup
-- Deep linking: Client-side handling with server JWT signing at `/lti/sign_deep_link`
-- Names and roles service: `/lti/names_and_roles` for roster retrieval
-
-### Key Integration Points
-
-- Dynamic registration: `/lti/register` endpoint for automatic platform setup
-- Deep linking: Client-side handling with server JWT signing at `/lti/sign_deep_link`
-- Names and roles service: `/lti/names_and_roles` for roster retrieval
-- Asset serving: Vite-built files served from `public/` with manifest injection
-- The entry point for the front end, React application that is launched via LTI can be found in client/app.tsx
-- The entry point for the application home page is client/home.ts
-
-## Initial Setup
-
-### KV Namespace Creation
-
-If deploying manually (not using one-click deploy), create required KV namespaces:
-
-```bash
-# Tool key pairs
-npx wrangler kv:namespace create KEY_SETS
-npx wrangler kv:namespace create KEY_SETS --preview
-
-# Platform JWK sets cache
-npx wrangler kv:namespace create REMOTE_JWKS
-npx wrangler kv:namespace create REMOTE_JWKS --preview
-
-# Client auth tokens
-npx wrangler kv:namespace create CLIENT_AUTH_TOKENS
-npx wrangler kv:namespace create CLIENT_AUTH_TOKENS --preview
-
-# Platform configurations
-npx wrangler kv:namespace create PLATFORMS
-npx wrangler kv:namespace create PLATFORMS --preview
-```
-
-Update `wrangler.jsonc` with the returned IDs.
-
-### Dynamic Registration
-
-- Registration URL: `https://yourdomain.com/lti/register`
-- Tool configuration: `src/config.ts`
-- Platform response handling: `src/register.ts`
-- Tool definitions (names, URLs): `definitions.ts`
-
-## TypeScript Configuration (STRICT REQUIREMENTS) Assume strict requirements even if project settings are looser
-
-### MUST follow These Compiler Options
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "allowJs": false
-  }
-}
-```
-
-### MANDATORY Type Requirements
-
-- **NEVER use `any` type** - use `unknown` if type is truly unknown
-- **MUST have explicit return types** for all functions and components
-- **MUST use proper generic constraints** for reusable components
-- **MUST use type inference from Zod schemas** using `z.infer<typeof schema>`
-- **NEVER use `@ts-ignore`** or `@ts-expect-error` - fix the type issue properly
-
-### Type Safety Hierarchy (STRICT ORDER)
-
-1. **Specific Types**: Always prefer specific types when possible
-2. **Generic Constraints**: Use generic constraints for reusable code
-3. **Unknown**: Use `unknown` for truly unknown data that will be validated
-4. **Never `any`**: The only exception is library declaration merging (must be commented)
-
-### TypeScript Project Structure (MANDATORY)
-
-- **App Code**: `tsconfig.app.json` - covers src/ directory
-- **Node Config**: `tsconfig.node.json` - MUST include vite.config.ts, vitest.config.ts
-- **ESLint Integration**: MUST reference both in parserOptions.project
-
-### Branded Type Safety (MANDATORY)
-
-- **MUST use Schema.parse() to convert plain types to branded types**
-- **NEVER assume external data matches branded types**
-- **Always validate at system boundaries**
-
+### Branded Types Example
 ```typescript
-// ✅ CORRECT: Convert plain types to branded types
-const cvId = CVIdSchema.parse(numericId);
-
-// ❌ FORBIDDEN: Assuming type without validation
-const cvId: CVId = numericId; // Type assertion without validation
-```
-
-### ExactOptionalPropertyTypes Compliance (MANDATORY)
-
-- **MUST handle `undefined` vs `null` properly** in API interfaces
-- **MUST use conditional spreads** instead of passing `undefined` to optional props
-- **MUST convert `undefined` to `null`** for API body types
-
-```typescript
-// ✅ CORRECT: Handle exactOptionalPropertyTypes properly
-const apiCall = async (data?: string) => {
-  return fetch('/api', {
-    method: 'POST',
-    body: data ? JSON.stringify({ data }) : null,  // null, not undefined
-  });
-};
-
-// Conditional prop spreading for optional properties
-<Input
-  label="Email"
-  error={errors.email?.message}
-  {...(showHelper ? { helperText: "Enter valid email" } : {})}  // Conditional spread
-/>
-
-// ❌ FORBIDDEN: Passing undefined to optional properties
-<Input
-  label="Email"
-  error={errors.email?.message}
-  helperText={showHelper ? "Enter valid email" : undefined}  // undefined not allowed
-/>
-```
-
-## Assets
-
-- Asset serving: Vite-built files served from `public/` with manifest injection
-- images, css and other static assets should be placed in `public/`
-
-## 🎨 React
-
-### Component Structure (MANDATORY)
-
-- **MAXIMUM 200 lines** per component file
-- **Single responsibility** principle - one component, one purpose
-- **Co-locate related files** - styles, tests, types in same folder
-- **Export one component** per file as default
-- **Name files** matching the component name
-
-### Component Integration (STRICT REQUIREMENTS)
-
-- **MUST verify actual prop names** before using components
-- **MUST use exact callback parameter types** from component interfaces
-- **NEVER assume prop names match semantic expectations**
-- **MUST import proper types** for callback parameters
-
-```typescript
-// ✅ CORRECT: Verify component interface and use exact prop names
-import { EducationList } from './EducationList';
-import { EducationSummary } from './schemas';
-
-<EducationList
-  cvId={cvId}
-  onSelectEducation={(education: EducationSummary) => handleEdit(education.id)}
-  onCreateEducation={() => handleCreate()}
-  showCreateButton={showActions}  // Verified actual prop name
-/>
-
-// ❌ FORBIDDEN: Assuming prop names without verification
-<EducationList
-  onEditEducation={(education) => handleEdit(education.id)}  // Wrong prop name
-  onAddEducation={() => handleCreate()}  // Wrong prop name
-/>
-```
-
-### Performance Guidelines
-
-#### React 19 Optimizations
-
-- **Trust the compiler** - avoid manual memoization
-- **Use Suspense** for data fetching boundaries
-- **Implement code splitting** at route level
-- **Lazy load** heavy components
-
-#### Bundle Optimization
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'form-vendor': ['react-hook-form', 'zod'],
-        },
-      },
-    },
-  },
-});
-```
-
-#### Performance by Default
-
-With React 19's compiler, manual optimizations are largely unnecessary. Focus on clean, readable code and let the compiler handle performance optimizations.
-
-#### Design Principles (MUST FOLLOW)
-
-- **Vertical Slice Architecture**: MUST organize by features, not layers
-- **Composition Over Inheritance**: MUST use React's composition model
-
-### 🚀 React 19 Key Features
-
-#### Automatic Optimizations
-
-- **React Compiler**: Eliminates need for `useMemo`, `useCallback`, and `React.memo`
-- Let the compiler handle performance - write clean, readable code
-
-#### Core Features
-
-- **Server Components**: Use for data fetching and static content
-- **Actions**: Handle async operations with built-in pending states
-- **use() API**: Simplified data fetching and context consumption
-- **Document Metadata**: Native support for SEO tags
-- **Enhanced Suspense**: Better loading states and error boundaries
-
-#### React 19 TypeScript Integration (MANDATORY)
-
-- **MUST use `ReactElement` instead of `JSX.Element`** for return types
-- **MUST import `ReactElement` from 'react'** explicitly
-- **NEVER use `JSX.Element` namespace** - use React types directly
-
-```typescript
-// ✅ CORRECT: Modern React 19 typing
-import { ReactElement } from 'react';
-
-function MyComponent(): ReactElement {
-  return <div>Content</div>;
-}
-
-const renderHelper = (): ReactElement | null => {
-  return condition ? <span>Helper</span> : null;
-};
-
-// ❌ FORBIDDEN: Legacy JSX namespace
-function MyComponent(): JSX.Element {
-  // Cannot find namespace 'JSX'
-  return <div>Content</div>;
-}
-```
-
-#### State Management Example
-
-```typescript
-/**
- * @fileoverview User list with proper state management hierarchy
- */
-
-// 1. Local state for UI
-const [selectedTab, setSelectedTab] = useState<'active' | 'archived'>('active');
-
-// 2. Context for feature settings
-const { viewMode } = useListContext();
-
-// 3. Server state for data
-const { data: users, isLoading } = useQuery({
-  queryKey: ['users', selectedTab],
-  queryFn: () => fetchUsers(selectedTab),
-});
-
-// 4. Global state for auth (if needed)
-const { currentUser } = useAuthStore();
-
-// 5. URL state for filters
-const [searchParams] = useSearchParams();
-const filter = searchParams.get('filter');
-```
-
-#### Actions Example (WITH MANDATORY DOCUMENTATION)
-
-````typescript
-/**
- * @fileoverview Contact form using React 19 Actions API
- * @module features/contact/components/ContactForm
- */
-
-import { useActionState, ReactElement } from 'react';
-
-/**
- * Contact form component using React 19 Actions.
- *
- * Leverages the Actions API for automatic pending state management
- * and error handling. Form data is validated with Zod before submission.
- *
- * @component
- * @example
- * ```tsx
- * <ContactForm onSuccess={() => router.push('/thank-you')} />
- * ```
- */
-function ContactForm(): ReactElement {
-  /**
-   * Form action handler with built-in state management.
-   *
-   * @param previousState - Previous form state (unused in this implementation)
-   * @param formData - Raw form data from submission
-   * @returns Promise resolving to success or error state
-   */
-  const [state, submitAction, isPending] = useActionState(async (previousState: any, formData: FormData) => {
-    // Extract and validate form data
-    const result = contactSchema.safeParse({
-      email: formData.get('email'),
-      message: formData.get('message'),
-    });
-
-    if (!result.success) {
-      return { error: result.error.flatten() };
-    }
-
-    // Process validated data
-    await sendEmail(result.data);
-    return { success: true };
-  }, null);
-
-  return (
-    <form action={submitAction}>
-      <button disabled={isPending}>{isPending ? 'Sending...' : 'Send'}</button>
-    </form>
-  );
-}
-````
-
-#### Instant UI Patterns
-
-- Use Suspense boundaries for ALL async operations
-- Leverage Server Components for data fetching
-- Use the new Actions API for form handling
-- Let React Compiler handle optimization
-
-#### Component Templates
-
-````typescript
-// Quick component with all states
-export function FeatureComponent(): ReactElement {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['feature'],
-    queryFn: fetchFeature
-  });
-
-  if (isLoading) return <Skeleton />;
-  if (error) return <ErrorBoundary error={error} />;
-  if (!data) return <EmptyState />;
-
-  return <FeatureContent data={data} />;
-}
-
-## 🛡️ Data Validation with Zod (MANDATORY FOR ALL EXTERNAL DATA)
-
-### MUST Follow These Validation Rules
-- **MUST validate ALL external data**: API responses, form inputs, URL params, environment variables
-- **MUST use branded types**: For all IDs and domain-specific values
-- **MUST fail fast**: Validate at system boundaries, throw errors immediately
-- **MUST use type inference**: Always derive TypeScript types from Zod schemas
-- **NEVER trust external data** without validation
-- **MUST validate before using** any data from outside the application
-
-### Schema Example (MANDATORY PATTERNS)
-```typescript
-import { z } from 'zod';
-
-// MUST use branded types for ALL IDs
 const UserIdSchema = z.string().uuid().brand<'UserId'>();
-type UserId = z.infer<typeof UserIdSchema>;
 
-// MUST include validation for ALL fields
-export const userSchema = z.object({
-  id: UserIdSchema,
-  email: z.string().email(),
-  username: z.string()
-    .min(3)
-    .max(20)
-    .regex(/^[a-zA-Z0-9_]+$/),
-  age: z.number().min(18).max(100),
-  role: z.enum(['admin', 'user', 'guest']),
-  metadata: z.object({
-    lastLogin: z.string().datetime(),
-    preferences: z.record(z.unknown()).optional(),
-  }),
-});
+// ✅ CORRECT: Validate and convert
+const userId = UserIdSchema.parse(rawId);
 
-export type User = z.infer<typeof userSchema>;
+// ❌ FORBIDDEN: Type assertion without validation  
+const userId: UserId = rawId as UserId;
+```
 
-// MUST validate ALL API responses
-export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
-  z.object({
-    success: z.boolean(),
-    data: dataSchema,
-    error: z.string().optional(),
-    timestamp: z.string().datetime(),
-  });
-````
+## ⚛️ React Guidelines
 
-#### Form Validation with React Hook Form
+For comprehensive guidelines, see **[React Guidelines](./docs/development/react-guidelines.md)**.
+
+**Component Rules**:
+- Max 200 lines per file
+- Single responsibility
+- Use `ReactElement` return type (not `JSX.Element`)
+- Co-locate tests with components
+
+**State Hierarchy**:
+1. Local state (useState)
+2. Context (feature-level)
+3. Server state (TanStack Query)
+4. Global state (Zustand) - only when needed
+5. URL state (search params)
+
+## 🛡️ Data Validation (Zod)
+
+**MUST validate ALL external data**: API responses, form inputs, URL params
 
 ```typescript
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+// API responses
+const validated = userSchema.parse(await response.json());
 
-function UserForm(): ReactElement {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<User>({
-    resolver: zodResolver(userSchema),
-    mode: 'onBlur',
-  });
-
-  const onSubmit = async (data: User): Promise<void> => {
-    // Handle validated data
-  };
-
-  return <form onSubmit={handleSubmit(onSubmit)}>{/* Form fields */}</form>;
-}
+// Branded IDs
+const CVIdSchema = z.number().positive().brand<'CVId'>();
 ```
 
-### 🔄 React State Management Hierarchy
+## 🧪 Testing Requirements
 
-#### MUST Follow This State Hierarchy (STRICT ORDER)
-
-1. **Local State (useState)**
-   - Component-specific UI state
-   - Form field values before submission
-   - Toggle states, modal visibility
-
-   ```typescript
-   const [isOpen, setIsOpen] = useState(false);
-   ```
-
-2. **Context (Feature-level)**
-   - Cross-component state within a single feature
-   - Theme preferences, user settings
-   - Feature-specific configuration
-
-   ```typescript
-   const ThemeContext = createContext<Theme>('light');
-   ```
-
-3. **Server State (TanStack Query)**
-   - ALL API data fetching and caching
-   - Optimistic updates
-   - Background refetching
-
-   ```typescript
-   const { data, isLoading } = useQuery({
-     queryKey: ['user', id],
-     queryFn: fetchUser,
-     staleTime: 5 * 60 * 1000,
-   });
-   ```
-
-4. **Global State (Zustand)**
-   - ONLY when truly needed app-wide
-   - User authentication state
-   - App-wide notifications
-
-   ```typescript
-   const useAuthStore = create((set) => ({
-     user: null,
-     login: (user) => set({ user }),
-     logout: () => set({ user: null }),
-   }));
-   ```
-
-5. **URL State (Search Params)**
-   - Shareable application state
-   - Filters, pagination, search queries
-   - Navigation state
-   ```typescript
-   const [searchParams, setSearchParams] = useSearchParams();
-   const page = searchParams.get('page') || '1';
-   ```
-
-## 🧪 Testing Strategy
-
-### Testing Requirements
-
-- **Minimum 80% code coverage** - NO EXCEPTIONS
-- **Co-locate tests** in `__tests__` folders next to components
-- **Use React Testing Library** for all component tests
-- **Test user behavior**, not implementation details
-- **Mock external dependencies** appropriately
-- **NEVER skip tests** for new features or bug fixes
-
-### Test Execution
-
-```bash
-npm test                    # Run all tests
-npm test -- --watch        # Watch mode
-npm test -- --coverage     # Coverage report
-npm run test:coverage      # Full coverage analysis
-```
-
-### Test Example
-
-```typescript
-/**
- * @fileoverview Tests for UserProfile component
- * @module features/user/__tests__/UserProfile.test
- */
-
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, userEvent } from '@testing-library/react';
-
-describe('UserProfile', () => {
-  it('should update user name on form submission', async () => {
-    const user = userEvent.setup();
-    const onUpdate = vi.fn();
-
-    render(<UserProfile onUpdate={onUpdate} />);
-
-    const input = screen.getByLabelText(/name/i);
-    await user.type(input, 'John Doe');
-    await user.click(screen.getByRole('button', { name: /save/i }));
-
-    expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({ name: 'John Doe' }));
-  });
-});
-```
-
-## 📊 Code Quality Standards
-
-### SonarQube Quality Gates (MUST PASS)
-
-- **Cognitive Complexity**: MAX 15 per function
-- **Cyclomatic Complexity**: MAX 10 per function
-- **Duplicated Lines**: MAX 3%
-- **Technical Debt Ratio**: MAX 5%
-- **Critical Issues**: ZERO tolerance
-
-### Component Requirements
-
-- **MAX 200 lines** per component file
-- **Single responsibility** principle
-- **Handle ALL states**: loading, error, empty, success
-- **Include ARIA labels** for accessibility
-
-### ESLint Rules (MANDATORY)
-
-```javascript
-{
-  "rules": {
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/explicit-function-return-type": "error",
-    "no-console": ["error", { "allow": ["warn", "error"] }],
-    "sonarjs/cognitive-complexity": ["error", 15],
-    "sonarjs/no-duplicate-string": ["error", 3]
-  }
-}
-```
+- **Minimum 80% coverage** - No exceptions
+- Use React Testing Library for components
+- Test behavior, not implementation
+- Co-locate tests in `__tests__` folders
 
 ## 📝 Documentation Standards
 
-### JSDoc Requirements (MANDATORY)
-
-- **Document ALL exports** with full JSDoc
-- **Include @fileoverview** for each module
-- **Add @param** for every parameter with description
-- **Add @returns** with description (unless void)
-- **Include @throws** for any thrown errors
-- **Include @example** for complex functions
-- **Document component props** with descriptions
-- **Use @deprecated** with migration path when deprecating
-- **NEVER use single-line comments** for documentation
-
-### Documentation Example
-
-````typescript
-/**
- * @fileoverview User authentication service handling login, logout, and session management.
- * @module features/auth/services/authService
- */
-
-/**
- * Calculates the discount price for a product.
- *
- * This method applies a percentage discount to the original price,
- * ensuring the final price doesn't go below the minimum threshold.
- *
- * @param originalPrice - The original price of the product in cents (must be positive)
- * @param discountPercent - The discount percentage (0-100)
- * @param minPrice - The minimum allowed price after discount in cents
- * @returns The calculated discount price in cents
- * @throws {ValidationError} If any parameter is invalid
- *
- * @example
- * ```typescript
- * const discountedPrice = calculateDiscount(10000, 25, 1000);
- * console.log(discountedPrice); // 7500
- * ```
- */
-export function calculateDiscount(originalPrice: number, discountPercent: number, minPrice: number): number {
-  if (originalPrice <= 0) {
-    throw new ValidationError('Original price must be positive');
-  }
-  const discountAmount = originalPrice * (discountPercent / 100);
-  const discountedPrice = originalPrice - discountAmount;
-  return Math.max(discountedPrice, minPrice);
-}
-````
-
-### Component Documentation
-
-````typescript
-/**
- * Button component with multiple variants and sizes.
- *
- * Provides a reusable button with consistent styling and behavior
- * across the application. Supports keyboard navigation and screen readers.
- *
- * @component
- * @example
- * ```tsx
- * <Button
- *   variant="primary"
- *   size="medium"
- *   onClick={handleSubmit}
- * >
- *   Submit Form
- * </Button>
- * ```
- */
-interface ButtonProps {
-  /** Visual style variant of the button */
-  variant: 'primary' | 'secondary';
-
-  /** Size of the button @default 'medium' */
-  size?: 'small' | 'medium' | 'large';
-
-  /** Click handler for the button */
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-
-  /** Content to be rendered inside the button */
-  children: React.ReactNode;
-
-  /** Whether the button is disabled @default false */
-  disabled?: boolean;
-}
-````
+- JSDoc for all exports
+- Include `@fileoverview` for modules
+- Document all parameters and returns
+- Include `@example` for complex functions
 
 ## 🔐 Security Requirements
 
-### Input Validation (MUST IMPLEMENT ALL)
+- Validate ALL external data with Zod
+- Never trust user input
+- No sensitive data in logs (passwords, tokens, PII)
+- Use parameterized queries for database
+- Validate JWT tokens before processing
 
-- **MUST sanitize ALL user inputs** with Zod before processing
-- **MUST validate file uploads**: type, size, and content
-- **MUST prevent XSS** with proper escaping
-- **MUST implement CSP headers** in production
-- **NEVER use dangerouslySetInnerHTML** without sanitization
-- **NEVER trust external data** without validation
+## 🎨 Design & QA
 
-### API Security
-
-- **MUST validate ALL API responses** with Zod schemas
-- **MUST handle errors gracefully** without exposing internals
-- **NEVER log sensitive data** (passwords, tokens, PII)
-- **MUST use HTTPS** for all external API calls
-- **MUST implement rate limiting** for public endpoints
-- **MUST validate JWT tokens** before processing requests
-
-### Secure Coding Practices
-
-```typescript
-// ✅ CORRECT: Validate and sanitize user input
-const handleUserInput = async (input: unknown): Promise<void> => {
-  const validated = userInputSchema.parse(input);
-  // Process validated data
-};
-
-// ❌ FORBIDDEN: Direct use of untrusted data
-const handleUserInput = async (input: any): Promise<void> => {
-  await db.query(`SELECT * FROM users WHERE id = ${input.id}`);
-};
-
-// ✅ CORRECT: Safe error handling
-try {
-  await performOperation();
-} catch (error) {
-  console.error('Operation failed', {
-    type: error instanceof Error ? error.name : 'Unknown',
-    timestamp: new Date().toISOString(),
-  });
-  throw new UserFacingError('Operation could not be completed');
-}
-```
-
-## Troubleshooting
-
-### Common Issues
-
-- **KV namespace errors**: Ensure IDs in `wrangler.jsonc` match created namespaces
-- **JWKS endpoint failures**: Check platform configuration and network access
-- **LTI launch failures**: Verify platform JWT validation and redirect URLs
-- **Build failures**: Run `tsc` to check TypeScript errors before deployment
-- **Asset loading issues**: Check manifest.json injection and public/ directory
-
-### Debugging
-
-- View logs: `npm run tail` or `npx wrangler tail`
-- Check deployment: `npm run check` (dry-run deploy with validation)
-- Test locally: `npm run dev` (http://localhost:5988)
-
-## Important Context
-
-- All LTI protocol handling is abstracted through `@atomicjolt/lti-*` packages
-- Client scripts are injected dynamically based on manifest.json for cache busting
-- Frame options are set to ALLOWALL for LMS iframe embedding
-- TypeScript strict mode enforced - run `tsc` before deploying
-
-## QA
-
-## Visual Development
-
-### Design Principles
-
-- Comprehensive design checklist in `/ai_docs/branding/design-principles.md`
-- Brand style guide in `/ai_docs/branding/style-guide.md`
-- When making visual (front-end, UI/UX) changes, always refer to these files for guidance
+- Design principles: `/docs/branding/design-principles.md`
+- Style guide: `/docs/branding/style-guide.md`
+- Use Playwright MCP for visual testing
 
 ### Quick Visual Check
+After UI changes:
+1. Navigate to affected pages
+2. Verify against design docs
+3. Take screenshots for evidence
+4. Check console for errors
 
-IMMEDIATELY after implementing any front-end change:
+## 🔧 Key Files
 
-1. **Identify what changed** - Review the modified components/pages
-2. **Navigate to affected pages** - Use `mcp__playwright__browser_navigate` to visit each changed view
-3. **Verify design compliance** - Compare against `/docs/branding/design-principles.md` and `/docs/branding/style-guide.md`
-4. **Validate feature implementation** - Ensure the change fulfills the user's specific request
-5. **Check acceptance criteria** - Review any provided context files or requirements
-6. **Capture evidence** - Take full page screenshot at desktop viewport (1440px) of each changed view
-7. **Check for errors** - Run `mcp__playwright__browser_console_messages`
+- `definitions.ts` - LTI paths and constants
+- `wrangler.jsonc` - Cloudflare configuration  
+- `vite.config.ts` - Build configuration
+- `window.LAUNCH_SETTINGS` - Client-side LTI data
+- `public/` - Static assets (images, css) with manifest injection
 
-This verification ensures changes meet design standards and user requirements.
+## 🔍 Search Commands
 
-### Comprehensive Design Review
+**Always use `rg` (ripgrep) instead of `grep` or `find`:**
+```bash
+rg "pattern"              # Instead of: grep -r "pattern"
+rg --files -g "*.tsx"    # Instead of: find . -name "*.tsx"
+```
 
-Invoke the `@agent-design-review` subagent for thorough design validation when:
+## ✅ Sanity Check
 
-- Completing significant UI/UX features
-- Before finalizing PRs with visual changes
-- Needing comprehensive accessibility and responsiveness testing
+After making changes, verify the app works:
+```
+https://guide.atomicjolt.xyz/embed
+```
 
-### Deployment Process
-
-1. **Pre-deployment**: Run `npm run check` to verify build and types
-2. **Database migrations**: Apply with `npm run db:migrate:remote`
-3. **Deploy**: Use `npm run deploy` for production deployment
-4. **Monitor**: Check logs with `npm run tail`
-5. **Rollback**: Database supports versioned rollbacks via migration system
-
-## Context Awareness
-
-- When implementing features, always check existing patterns first
-- Prefer composition over inheritance in all designs
-- Use existing utilities before creating new ones
-- Check for similar functionality in other domains/features
-
-## Common Pitfalls to Avoid
+## 🚨 Common Pitfalls
 
 - Creating duplicate functionality
-- Overwriting existing tests
-- Modifying core frameworks without explicit instruction
-- Adding dependencies without checking existing alternatives
+- Direct database access in handlers/services
+- Using `any` type
+- Forgetting to validate external data
+- Not running lint/typecheck before commit
+- Modifying `<LtiLaunchCheck>` wrapper
 
-## Workflow Patterns
+## 📚 Additional Resources
 
-- Prefferably create tests BEFORE implementation (TDD)
-- Use "think hard" for architecture decisions
-- Break complex tasks into smaller, testable units
-- Validate understanding before implementation
-
-## Search Command Requirements
-
-**CRITICAL**: Always use `rg` (ripgrep) instead of traditional `grep` and `find` commands:
-
-```bash
-# ❌ Don't use grep
-grep -r "pattern" .
-
-# ✅ Use rg instead
-rg "pattern"
-
-# ❌ Don't use find with name
-find . -name "*.tsx"
-
-# ✅ Use rg with file filtering
-rg --files | rg "\.tsx$"
-# or
-rg --files -g "*.tsx"
-```
-
-**Enforcement Rules:**
-
-```
-(
-    r"^grep\b(?!.*\|)",
-    "Use 'rg' (ripgrep) instead of 'grep' for better performance and features",
-),
-(
-    r"^find\s+\S+\s+-name\b",
-    "Use 'rg --files | rg pattern' or 'rg --files -g pattern' instead of 'find -name' for better performance",
-),
-```
-
-\*\* Sanity check
-Whenever changes are made and before finishing a request use playwright mcp to check the url:
-https://guide.atomicjolt.xyz/embed
-just to make sure the application still functions
+- [LTI Developer Guide](./docs/lti-developer-guide.md)
+- [Coding Standards](./docs/architecture/coding-standards-and-conventions.md)
+- [Testing Strategy](./docs/architecture/testing-strategy.md)
+- [Security Integration](./docs/architecture/security-integration.md)
