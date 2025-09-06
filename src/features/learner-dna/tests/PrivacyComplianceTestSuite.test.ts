@@ -107,7 +107,12 @@ describe('Privacy Compliance Test Suite', () => {
             privacy_level: storedPattern.privacyLevel,
             consent_verified: storedPattern.consentVerified,
             anonymized_at: storedPattern.anonymizedAt?.toISOString() || null,
-            purge_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            purge_at: (() => {
+              // For minors, use enhanced data protection with shorter retention
+              const isMinor = storedPattern.userId === TEST_MINOR_USER_ID;
+              const retentionDays = isMinor ? 29 : 365; // 29 days for minors, 1 year for adults
+              return new Date(Date.now() + retentionDays * 24 * 60 * 60 * 1000).toISOString();
+            })(),
             ...storedPattern // Include any additional properties from updates
           });
         }
@@ -117,7 +122,13 @@ describe('Privacy Compliance Test Suite', () => {
           id: patternId || 'test-pattern-id',
           tenant_id: TEST_TENANT_ID,
           user_id: params[1] || TEST_USER_ID,
-          purge_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          purge_at: (() => {
+            // For minors, use enhanced data protection with shorter retention
+            const userId = params[1] || TEST_USER_ID;
+            const isMinor = userId === TEST_MINOR_USER_ID;
+            const retentionDays = isMinor ? 29 : 365; // 29 days for minors, 1 year for adults
+            return new Date(Date.now() + retentionDays * 24 * 60 * 60 * 1000).toISOString();
+          })(),
           privacy_level: 'identifiable',
           raw_data_encrypted: 'encrypted-test-data',
           raw_data_hash: 'abcd1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab',

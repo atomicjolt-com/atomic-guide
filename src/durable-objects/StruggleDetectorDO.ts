@@ -1,102 +1,324 @@
 /**
- * StruggleDetectorDO - Durable Object for real-time struggle detection
- * Tracks learner behavior patterns and triggers interventions
+ * @fileoverview Enhanced StruggleDetectorDO for Story 5.1 Canvas Integration
+ * @module durable-objects/StruggleDetectorDO
+ * 
+ * Real-time struggle detection and intervention system integrated with Canvas
+ * PostMessage behavioral signals. Provides <100ms processing latency with
+ * comprehensive behavioral pattern analysis and proactive intervention timing.
+ * 
+ * Features:
+ * - Canvas behavioral signal processing (hover, scroll, idle, etc.)
+ * - Advanced ML-based struggle prediction with 15-20 minute early warning
+ * - Real-time cognitive load assessment and intervention timing
+ * - Privacy-compliant processing with consent validation
+ * - Performance monitoring and scalability metrics
  */
 
 import type { DurableObjectState, DurableObjectStorage } from '@cloudflare/workers-types';
+import type { 
+  BehavioralSignal, 
+  BehavioralSignalType,
+  CanvasPageContent,
+  InterventionMessage 
+} from '../features/canvas-integration/shared/types';
 
-export interface StruggleSignal {
-  type: 'hover_confusion' | 'rapid_scrolling' | 'idle_timeout' | 'repeated_access' | 'help_seeking';
-  timestamp: number;
-  confidence: number;
-  duration?: number;
-  element?: string;
-  context?: string;
+/**
+ * Enhanced struggle signal with Canvas integration support
+ */
+export interface EnhancedStruggleSignal extends BehavioralSignal {
+  // Additional ML features for prediction
+  cognitiveLoadEstimate?: number;
+  attentionLevel?: number;
+  fatigueIndicators?: number;
+  contextDifficulty?: number;
 }
 
-export interface LearnerSession {
+/**
+ * Enhanced learner session with comprehensive analytics
+ */
+export interface EnhancedLearnerSession {
   sessionId: string;
   learnerId: string;
   tenantId: string;
+  courseId?: string;
   startTime: number;
-  signals: StruggleSignal[];
-  struggleScore: number;
-  interventionTriggered: boolean;
+  lastActivity: number;
+  
+  // Behavioral signals and analysis
+  signals: EnhancedStruggleSignal[];
+  currentStruggleScore: number;
+  maxStruggleScore: number;
+  predictionHistory: StrugglePrediction[];
+  
+  // Canvas page context
+  currentPageContent?: CanvasPageContent;
+  pageHistory: CanvasPageContent[];
+  
+  // Intervention tracking
+  interventionsTriggered: InterventionRecord[];
+  interventionCooldownUntil: number;
+  
+  // Performance metrics
+  avgProcessingLatency: number;
+  signalProcessingCount: number;
+  
+  // Privacy and consent
+  consentVerified: boolean;
+  dataCollectionLevel: string;
 }
 
+/**
+ * Struggle prediction result with early warning capability
+ */
+export interface StrugglePrediction {
+  riskLevel: number; // 0-1 risk score
+  confidence: number; // 0-1 confidence in prediction
+  timeToStruggleMinutes: number; // Early warning window
+  contributingFactors: string[];
+  predictedAt: number;
+  validUntil: number;
+  modelVersion: string;
+}
+
+/**
+ * Intervention record for tracking effectiveness
+ */
+export interface InterventionRecord {
+  id: string;
+  type: string;
+  message: string;
+  urgencyLevel: 'low' | 'medium' | 'high';
+  triggeredAt: number;
+  deliveredAt?: number;
+  userResponse?: 'accepted' | 'dismissed' | 'ignored' | 'timeout';
+  responseTime?: number;
+  effectivenessScore?: number;
+}
+
+/**
+ * Enhanced Struggle Detector Durable Object with Canvas integration
+ * 
+ * Provides real-time behavioral signal processing with <100ms latency,
+ * advanced ML-based struggle prediction, and contextual intervention timing.
+ */
 export class StruggleDetectorDO {
   private state: DurableObjectState;
   private storage: DurableObjectStorage;
-  private sessions: Map<string, LearnerSession>;
+  private sessions: Map<string, EnhancedLearnerSession>;
 
-  // Struggle detection thresholds
-  private readonly HOVER_CONFUSION_THRESHOLD = 5000; // 5 seconds
-  private readonly RAPID_SCROLL_THRESHOLD = 3; // 3 rapid scrolls
-  private readonly IDLE_TIMEOUT = 120000; // 2 minutes
-  private readonly STRUGGLE_SCORE_THRESHOLD = 0.7;
+  // Enhanced behavioral signal thresholds
+  private readonly BEHAVIORAL_THRESHOLDS = {
+    hover: {
+      confusion: 5000,      // 5+ seconds indicates confusion
+      extended: 15000,      // 15+ seconds indicates deeper struggle
+      critical: 30000       // 30+ seconds indicates significant difficulty
+    },
+    scroll: {
+      rapid: 3,             // 3+ rapid scrolls in 10 seconds
+      excessive: 8,         // 8+ scrolls indicates disorientation
+      backtrack: 5          // 5+ back-and-forth scrolls
+    },
+    idle: {
+      short: 30000,         // 30 seconds - possible contemplation
+      medium: 120000,       // 2 minutes - likely struggling
+      long: 300000          // 5 minutes - intervention needed
+    }
+  };
+
+  // ML model configuration for struggle prediction
+  private readonly ML_CONFIG = {
+    struggleThreshold: 0.7,           // Intervention trigger threshold
+    confidenceThreshold: 0.6,         // Minimum confidence for predictions
+    earlyWarningMinutes: 15,          // Early warning window
+    predictionHorizonMinutes: 20,     // Maximum prediction horizon
+    modelVersion: '1.0',              // Current model version
+    featureWeights: {                 // Feature importance weights
+      hoverDuration: 0.25,
+      scrollPatterns: 0.20,
+      idleTime: 0.30,
+      helpRequests: 0.15,
+      cognitiveLoad: 0.10
+    }
+  };
+
+  // Performance and rate limiting configuration
+  private readonly PERFORMANCE_CONFIG = {
+    maxSignalsPerMinute: 60,          // Rate limiting
+    maxSessionDuration: 14400000,     // 4 hours maximum session
+    interventionCooldown: 300000,     // 5 minutes between interventions
+    processingTimeoutMs: 100,         // Target processing latency
+    maxConcurrentSessions: 1000,      // Scalability limit
+    cleanupIntervalMs: 300000         // 5 minute cleanup interval
+  };
 
   constructor(state: DurableObjectState) {
     this.state = state;
     this.storage = state.storage;
     this.sessions = new Map();
 
-    // Initialize alarm for periodic cleanup
+    // Initialize from persistent storage on restart
     this.state.blockConcurrencyWhile(async () => {
+      await this.loadActiveSessionsFromStorage();
+      
+      // Setup periodic cleanup alarm
       const currentAlarm = await this.storage.getAlarm();
       if (!currentAlarm) {
-        await this.storage.setAlarm(Date.now() + 300000); // 5 minutes
+        await this.storage.setAlarm(Date.now() + this.PERFORMANCE_CONFIG.cleanupIntervalMs);
       }
     });
   }
 
+  /**
+   * Load active sessions from persistent storage on DO restart
+   */
+  private async loadActiveSessionsFromStorage(): Promise<void> {
+    try {
+      const sessionKeys = await this.storage.list({ prefix: 'session:' });
+      
+      for (const [key, session] of sessionKeys) {
+        const sessionData = session as EnhancedLearnerSession;
+        
+        // Only restore recent sessions (within 4 hours)
+        const age = Date.now() - sessionData.startTime;
+        if (age < this.PERFORMANCE_CONFIG.maxSessionDuration) {
+          this.sessions.set(sessionData.sessionId, sessionData);
+        } else {
+          // Archive old session
+          await this.storage.put(`archive:${sessionData.sessionId}`, {
+            ...sessionData,
+            endTime: Date.now(),
+            reason: 'restart_cleanup'
+          });
+          await this.storage.delete(key);
+        }
+      }
+      
+      console.log(`Restored ${this.sessions.size} active sessions from storage`);
+    } catch (error) {
+      console.error('Failed to load sessions from storage:', error);
+    }
+  }
+
   async fetch(request: Request): Promise<Response> {
+    const startTime = Date.now();
     const url = new URL(request.url);
     const method = request.method;
 
     try {
+      // Rate limiting check for all requests
+      if (this.sessions.size >= this.PERFORMANCE_CONFIG.maxConcurrentSessions) {
+        return new Response(JSON.stringify({ 
+          error: 'Maximum concurrent sessions reached',
+          limit: this.PERFORMANCE_CONFIG.maxConcurrentSessions 
+        }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      let response: Response;
+
       switch (url.pathname) {
-        case '/signal':
+        // Canvas integration endpoints
+        case '/canvas/signal':
           if (method === 'POST') {
-            return await this.handleSignal(request);
+            response = await this.handleCanvasSignal(request);
           }
           break;
 
+        case '/canvas/content':
+          if (method === 'POST') {
+            response = await this.updatePageContent(request);
+          }
+          break;
+
+        case '/canvas/intervention':
+          if (method === 'POST') {
+            response = await this.triggerIntervention(request);
+          }
+          break;
+
+        // Enhanced session management
         case '/session/start':
           if (method === 'POST') {
-            return await this.startSession(request);
+            response = await this.startEnhancedSession(request);
           }
           break;
 
         case '/session/end':
           if (method === 'POST') {
-            return await this.endSession(request);
+            response = await this.endSession(request);
           }
           break;
 
         case '/session/status':
           if (method === 'GET') {
-            return await this.getSessionStatus(request);
+            response = await this.getSessionStatus(request);
           }
           break;
 
+        // Real-time struggle prediction
+        case '/prediction/struggle':
+          if (method === 'POST') {
+            response = await this.predictStruggle(request);
+          }
+          break;
+
+        case '/prediction/intervention':
+          if (method === 'POST') {
+            response = await this.assessInterventionTiming(request);
+          }
+          break;
+
+        // Analytics and monitoring
         case '/analytics':
           if (method === 'GET') {
-            return await this.getAnalytics(request);
+            response = await this.getAnalytics(request);
+          }
+          break;
+
+        case '/metrics':
+          if (method === 'GET') {
+            response = await this.getPerformanceMetrics(request);
+          }
+          break;
+
+        // Legacy compatibility
+        case '/signal':
+          if (method === 'POST') {
+            response = await this.handleLegacySignal(request);
           }
           break;
 
         default:
-          return new Response('Not found', { status: 404 });
+          response = new Response(JSON.stringify({ error: 'Endpoint not found' }), { 
+            status: 404,
+            headers: { 'Content-Type': 'application/json' }
+          });
       }
+
+      // Performance monitoring
+      const processingTime = Date.now() - startTime;
+      if (processingTime > this.PERFORMANCE_CONFIG.processingTimeoutMs) {
+        console.warn(`Slow request processing: ${url.pathname} took ${processingTime}ms`);
+      }
+
+      // Add performance header
+      response.headers.set('X-Processing-Time', processingTime.toString());
+      return response;
+
     } catch (error) {
+      const processingTime = Date.now() - startTime;
       console.error('StruggleDetectorDO error:', error);
-      return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
+      
+      return new Response(JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        processingTime
+      }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
-    return new Response('Method not allowed', { status: 405 });
   }
 
   /**

@@ -184,7 +184,18 @@ export class AdvancedPatternRecognizer {
       );
 
       if (historicalBaseline.sessionCount < this.MIN_HISTORICAL_SESSIONS) {
-        throw new Error(`INSUFFICIENT_DATA: Need at least ${this.MIN_HISTORICAL_SESSIONS} historical sessions for reliable prediction`);
+        // Return fallback prediction when insufficient data
+        const now = new Date();
+        return {
+          riskLevel: 0.5, // Neutral risk level
+          confidence: 0.0, // No confidence due to insufficient data
+          timeToStruggle: null,
+          contributingFactors: ['prediction_unavailable'],
+          recommendations: ['Continue monitoring learning patterns for better predictions'],
+          explainability: 'Prediction unavailable - insufficient historical data for reliable analysis',
+          predictedAt: now,
+          validUntil: new Date(now.getTime() + this.PREDICTION_HORIZON_MINUTES * 60 * 1000)
+        };
       }
 
       // Extract behavioral features for ML model
