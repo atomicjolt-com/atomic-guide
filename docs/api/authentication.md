@@ -4,13 +4,50 @@ This document describes the authentication mechanisms used in Atomic Guide's API
 
 ## Overview
 
-Atomic Guide uses JWT (JSON Web Token) based authentication for API requests. The authentication system is built on top of LTI 1.3 security standards and integrates with Cloudflare Workers security features.
+Atomic Guide supports two authentication methods:
+1. **Standalone Authentication** - Email/password and OAuth (Google/GitHub)
+2. **LTI 1.3 Authentication** - For LMS integration
 
-## Authentication Flow
+Both methods use JWT (JSON Web Token) based authentication for API requests.
 
-### 1. LTI Launch Authentication
+## Authentication Methods
 
-The primary authentication method is through LTI 1.3 launch:
+### 1. Standalone Authentication (NEW)
+
+#### Email/Password Registration
+```bash
+POST /api/auth/signup
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "name": "John Doe"
+}
+```
+
+#### Email/Password Login
+```bash
+POST /api/auth/login
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+#### OAuth Authentication
+- **Google**: Navigate to `/api/auth/oauth/google`
+- **GitHub**: Navigate to `/api/auth/oauth/github`
+
+The OAuth flow:
+1. User clicks OAuth provider button
+2. Redirected to provider for authorization
+3. Provider redirects back with code
+4. System exchanges code for user info
+5. User account created/logged in automatically
+6. JWT token issued
+
+### 2. LTI Launch Authentication
+
+For LMS integration through LTI 1.3:
 
 1. Platform initiates OIDC flow at `/lti/init`
 2. User is redirected to platform's authorization endpoint

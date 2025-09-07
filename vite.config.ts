@@ -20,6 +20,7 @@ export default defineConfig({
         app: '/client/app.tsx',
         appInit: '/client/app-init.ts',
         home: '/client/home.ts',
+        auth: '/client/auth.tsx',
       },
       external: ['@cloudflare/ai'],
     },

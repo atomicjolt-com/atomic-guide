@@ -17,7 +17,7 @@ For detailed information, refer to:
 ### Development Commands
 
 ```bash
-npm run dev          # Start development (http://localhost:5988/test)
+npm run dev          # Start development (http://localhost:5989/embed)
 npm run build        # Build for production
 npm run deploy       # Deploy to Cloudflare Workers
 npm test             # Run tests

@@ -33,13 +33,36 @@ npm run db:migrate
 npm run dev
 ```
 
-✅ **Application is now running at** `http://localhost:5988/test`
+✅ **Application is now running!** 
+
+Access the app at `http://localhost:5990/embed` after authentication.
+
+## 🔐 Authentication Setup
+
+The application requires authentication. You have three options:
+
+### Option 1: Email/Password
+1. Visit `http://localhost:5990/auth/signup` to create an account
+2. Fill in email, password, and name
+3. Login at `http://localhost:5990/auth/login`
+4. Access the app at `http://localhost:5990/embed`
+
+### Option 2: OAuth Providers  
+1. Configure OAuth (see [OAuth Setup Guide](../authentication/oauth-setup.md))
+2. Visit `http://localhost:5990/auth/login`
+3. Click "Continue with Google" or "Continue with GitHub"
+4. Access the app at `http://localhost:5990/embed`
+
+### Option 3: LTI Launch (for LMS integration)
+Launch directly from your configured LMS.
 
 ## 🎯 Try These Features
 
+Once authenticated, try these features:
+
 ### 1. AI Chat Assistant
 
-Navigate to the test page and try:
+In the application, try:
 
 - Ask a math question: "Explain the quadratic formula"
 - Request code help: "Show me a Python fibonacci function"
@@ -88,17 +111,23 @@ Moodle: https://sandbox.moodledemo.net
 
 ## 📝 Common Tasks
 
-### Add a Test User
+### View Database Content
 
 ```bash
 npm run db:query
 ```
 
-Then run:
+Query examples:
 
 ```sql
-INSERT INTO users (id, email, name, role)
-VALUES ('test-1', 'test@example.com', 'Test User', 'student');
+-- View registered users
+SELECT id, email, name, created_at FROM users;
+
+-- View active sessions
+SELECT user_id, expires_at FROM sessions WHERE expires_at > datetime('now');
+
+-- View authentication tokens
+SELECT user_id, type, expires_at FROM auth_tokens;
 ```
 
 ### View Logs

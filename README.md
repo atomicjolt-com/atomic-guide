@@ -24,7 +24,14 @@ npm run db:seed
 npm run dev
 ```
 
-Visit `http://localhost:5988/test` to see the application.
+Visit `http://localhost:5989/embed` to see the application.
+
+**Authentication**: The application requires authentication. You can:
+1. **Email/Password**: Sign up at `http://localhost:5990/auth/signup`
+2. **OAuth Providers**: Sign in with Google or GitHub at `http://localhost:5990/auth/login`
+3. Access the application at `http://localhost:5990/embed`
+
+**OAuth Setup**: See [OAuth Setup Guide](./docs/authentication/oauth-setup.md) for configuring Google and GitHub authentication.
 
 **Live Demo**: [https://guide.atomicjolt.xyz](https://guide.atomicjolt.xyz)
 **LTI Registration**: `https://guide.atomicjolt.xyz/lti/register`
@@ -48,6 +55,8 @@ For complete documentation, see the [docs](./docs/) directory or start with:
 - **📚 Content Intelligence** - Semantic search across course materials
 - **🔌 LTI 1.3 Integration** - Seamless LMS integration
 - **⚡ Edge Performance** - Sub-50ms response times globally
+- **🔐 Authentication System** - Secure login with OAuth (Google/GitHub) support
+- **🎯 Struggle Detection** - Real-time learning difficulty detection with proactive interventions
 
 ### 🧬 NEW: Learner DNA & Predictive Intelligence (v1.4+)
 - **🎯 Cognitive Profiling** - Privacy-first learning pattern recognition that builds personalized student profiles

@@ -59,7 +59,7 @@ Required environment variables:
 ```bash
 NODE_ENV=development
 LOG_LEVEL=debug
-PORT=5988
+PORT=5990
 ```
 
 ### 4. Cloudflare Setup
@@ -257,13 +257,60 @@ npm run db:migrate -- --watch
 Use the REST Client extension or curl:
 
 ```bash
-# Test API endpoint
-curl http://localhost:5988/api/health
+# Test health endpoint (no auth required)
+curl http://localhost:5990/api/health
 
 # Test with authentication
 curl -H "Authorization: Bearer TOKEN" \
-     http://localhost:5988/api/chat
+     http://localhost:5990/api/chat
 ```
+
+### 4. Authentication Testing
+
+#### Test Authentication Flow
+
+```bash
+# 1. Register a new user
+curl -X POST http://localhost:5990/api/auth/signup \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "test@example.com",
+       "password": "TestPassword123!",
+       "name": "Test User"
+     }'
+
+# 2. Login to get JWT token  
+curl -X POST http://localhost:5990/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "test@example.com", 
+       "password": "TestPassword123!"
+     }'
+
+# 3. Use token for authenticated requests
+curl -H "Authorization: Bearer <jwt-token>" \
+     -H "Content-Type: application/json" \
+     http://localhost:5990/api/chat/history
+```
+
+#### Browser Testing
+
+1. **Email/Password Flow**:
+   - Visit `http://localhost:5990/auth/signup`
+   - Create test account with email/password
+   - Login at `http://localhost:5990/auth/login`
+   - Access app at `http://localhost:5990/embed`
+
+2. **OAuth Flow** (requires setup):
+   - Configure OAuth providers (see [OAuth Setup Guide](../authentication/oauth-setup.md))
+   - Test Google: Click "Continue with Google" button
+   - Test GitHub: Click "Continue with GitHub" button
+   - Verify user creation and session handling
+
+3. **Session Management**:
+   - Test logout functionality
+   - Verify session expiration
+   - Test "remember me" functionality
 
 ## Browser Setup
 
@@ -351,7 +398,7 @@ MOCK_AI=true
 npm install -D lighthouse chrome-launcher
 
 # Run performance audit
-npx lighthouse http://localhost:5988 --view
+npx lighthouse http://localhost:5990 --view
 ```
 
 ### Memory Profiling
@@ -439,7 +486,7 @@ server: {
 
 ```bash
 # Find process using port
-lsof -i :5988
+lsof -i :5990
 
 # Kill process
 kill -9 <PID>

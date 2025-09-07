@@ -4,6 +4,7 @@ import { HTTPException } from 'hono/http-exception';
 import { etag } from 'hono/etag';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { getCookie } from 'hono/cookie';
 import {
   handleInit,
   handleJwks,
@@ -48,6 +49,8 @@ import {
 } from './features/dashboard/server/handlers/dashboard';
 import { createAnalyticsApi } from './features/dashboard/server/handlers/analyticsApi';
 import { createPreferencesApi } from './features/dashboard/server/handlers/preferencesApi';
+import { createAuthHandlers, requireAuth } from './features/auth/server/handlers/auth.handler';
+import { createOAuthHandlers } from './features/auth/server/handlers/oauth.handler';
 import faqHandler from './features/faq/server/handlers/faq';
 import richMediaHandler from './features/chat/server/handlers/richMedia';
 import suggestionHandler from './features/chat/server/handlers/suggestions';
@@ -138,9 +141,74 @@ app.get('/assets/*', async (c) => {
 // Home page
 app.get('/', (c) => c.html(indexHtml(homeScriptName)));
 
-// Embed endpoint - allows Atomic Guide to be embedded in external webpages
-app.get('/embed', (c) => {
-  // Available in all environments for embedding functionality
+// Auth pages
+app.get('/auth/login', (c) => {
+  const authScriptName = getClientAssetPath('client/auth.tsx');
+  return c.html(authPageHtml(authScriptName, 'login'));
+});
+
+app.get('/auth/signup', (c) => {
+  const authScriptName = getClientAssetPath('client/auth.tsx');
+  return c.html(authPageHtml(authScriptName, 'signup'));
+});
+
+// Helper function for auth pages
+function authPageHtml(scriptName: string, mode: 'login' | 'signup'): string {
+  return `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Atomic Guide - ${mode === 'login' ? 'Sign In' : 'Sign Up'}</title>
+      <link href="/styles.css" rel="stylesheet">
+      <script type="text/javascript">
+        window.AUTH_MODE = '${mode}';
+        window.API_BASE_URL = window.location.origin;
+      </script>
+    </head>
+    <body>
+      <div id="root"></div>
+      <script type="module" src="/${scriptName}"></script>
+    </body>
+    </html>`;
+}
+
+// Embed endpoint - allows Atomic Guide to be embedded in external webpages (with auth)
+app.get('/embed', async (c) => {
+  // Check for auth token in Authorization header or cookie
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : getCookie(c, 'auth_token');
+  
+  if (!token) {
+    // No token, redirect to login page
+    return c.redirect('/auth/login?returnUrl=/embed');
+  }
+  
+  if (token) {
+    // Verify token
+    try {
+      const authHandlers = createAuthHandlers(c.env as any);
+      // Simple check - just verify the token is valid
+      const { AuthService } = await import('./features/auth/server/services/auth.service');
+      const { UserRepository } = await import('./features/auth/server/repositories/user.repository');
+      const { EmailService } = await import('./features/auth/server/services/email.service');
+      
+      const userRepository = new UserRepository(c.env.DB);
+      const emailService = new EmailService({ appUrl: c.env.APP_URL || 'http://localhost:5989' });
+      const authService = new AuthService(userRepository, emailService, c.env.JWT_SECRET || 'dev-secret');
+      
+      const user = await authService.checkSession(token);
+      if (!user) {
+        // Invalid token, redirect to login
+        return c.redirect('/auth/login?returnUrl=/embed');
+      }
+    } catch (error) {
+      console.error('Token verification error:', error);
+      return c.redirect('/auth/login?returnUrl=/embed');
+    }
+  }
+  
+  // Valid auth, return embed page
   return c.html(embedHtml(launchScriptName));
 });
 
@@ -179,7 +247,59 @@ app.post(LTI_SIGN_DEEP_LINK_PATH, (c) => handleSignDeepLink(c));
 // Mount database test routes (development only)
 app.route('/db', dbTestApp);
 
-// API routes
+// Authentication routes (Epic 0: Developer Experience & Testing Infrastructure)
+app.post('/api/auth/login', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.login(c);
+});
+app.post('/api/auth/signup', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.signup(c);
+});
+app.post('/api/auth/logout', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.logout(c);
+});
+app.post('/api/auth/forgot-password', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.forgotPassword(c);
+});
+app.post('/api/auth/reset-password', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.resetPassword(c);
+});
+app.post('/api/auth/verify-email', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.verifyEmail(c);
+});
+app.get('/api/auth/session', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.checkSession(c);
+});
+app.post('/api/auth/refresh', (c) => {
+  const authHandlers = createAuthHandlers(c.env as any);
+  return authHandlers.refreshToken(c);
+});
+
+// OAuth routes (Epic 0: OAuth Provider Integration)
+app.get('/api/auth/oauth/google', (c) => {
+  const oauthHandlers = createOAuthHandlers(c.env as any);
+  return oauthHandlers.googleAuth(c);
+});
+app.get('/api/auth/oauth/google/callback', (c) => {
+  const oauthHandlers = createOAuthHandlers(c.env as any);
+  return oauthHandlers.googleCallback(c);
+});
+app.get('/api/auth/oauth/github', (c) => {
+  const oauthHandlers = createOAuthHandlers(c.env as any);
+  return oauthHandlers.githubAuth(c);
+});
+app.get('/api/auth/oauth/github/callback', (c) => {
+  const oauthHandlers = createOAuthHandlers(c.env as any);
+  return oauthHandlers.githubCallback(c);
+});
+
+// API routes (TODO: Add requireAuth middleware after testing)
 app.post('/api/chat/message', (c) => handleChatMessage(c));
 app.post('/api/chat/stream', (c) => handleChatStream(c));
 app.get('/api/chat/search', (c) => searchChatHistory(c));

@@ -789,52 +789,174 @@ export class MetadataDesign {
 
 ## Authentication and Authorization
 
-### Auth Flow
+Atomic Guide supports **Standalone Authentication** (email/password + OAuth) and **LTI 1.3 Authentication**.
+
+### Dual Authentication Architecture
 
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Worker
-    participant KV
-    participant Canvas
+    participant Worker  
+    participant D1 as D1 Database
+    participant OAuth as OAuth Provider
+    participant LMS as LMS Platform
 
-    Client->>Worker: Request with JWT
-    Worker->>Worker: Validate JWT signature
-    Worker->>KV: Get platform keys
-    KV-->>Worker: Public key
-    Worker->>Worker: Verify claims
-    Worker->>Canvas: Validate token (if needed)
-    Canvas-->>Worker: Token valid
-    Worker-->>Client: Authorized response
+    Note over Client,LMS: Two Authentication Paths
+
+    %% Standalone Authentication
+    Client->>Worker: POST /api/auth/login
+    Worker->>D1: Validate credentials
+    D1-->>Worker: User data
+    Worker->>Worker: Generate JWT + Session
+    Worker-->>Client: JWT token + cookie
+
+    %% OAuth Authentication
+    Client->>OAuth: OAuth redirect flow
+    OAuth-->>Worker: User profile data
+    Worker->>D1: Create/update user
+    Worker-->>Client: JWT + redirect to /embed
+
+    %% LTI Authentication
+    LMS->>Worker: LTI launch with JWT
+    Worker->>LMS: Validate LTI JWT
+    Worker-->>Client: Embed with LTI context
 ```
 
-### Middleware/Guards
+### Authentication Database Schema
+
+```sql
+-- Users table for standalone authentication
+CREATE TABLE users (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  name TEXT,
+  email_verified BOOLEAN DEFAULT FALSE,
+  provider TEXT DEFAULT 'email', -- 'email', 'google', 'github'
+  provider_id TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Sessions for token management
+CREATE TABLE sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Authentication tokens (password reset, email verification)
+CREATE TABLE auth_tokens (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('password_reset', 'email_verification')),
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Authentication Services
+
+#### Standalone Auth Service
 
 ```typescript
-// LTI authentication middleware (extends existing)
-export async function ltiAuthMiddleware(c: Context, next: Next) {
+export class AuthService {
+  constructor(
+    private userRepository: UserRepository,
+    private sessionRepository: SessionRepository
+  ) {}
+
+  async signup(email: Email, password: string, name?: string): Promise<AuthResponse> {
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await this.userRepository.create({
+      email, passwordHash, name, emailVerified: false
+    });
+    return this.createAuthSession(user);
+  }
+
+  async login(email: Email, password: string): Promise<AuthResponse> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user || !await bcrypt.compare(password, user.passwordHash)) {
+      throw new AuthenticationError('Invalid credentials');
+    }
+    return this.createAuthSession(user);
+  }
+
+  private async createAuthSession(user: User): Promise<AuthResponse> {
+    const sessionId = crypto.randomUUID();
+    const token = await this.generateJWT({
+      sub: user.id, sessionId, type: 'standalone'
+    });
+    
+    await this.sessionRepository.create({
+      id: sessionId, userId: user.id,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    });
+    
+    return { token, user: { id: user.id, email: user.email, name: user.name } };
+  }
+}
+```
+
+#### OAuth Service
+
+```typescript
+export class OAuthService {
+  async handleGoogleCallback(code: string): Promise<AuthResponse> {
+    const userInfo = await this.exchangeCodeForUserInfo('google', code);
+    const user = await this.userRepository.findOrCreateByEmail({
+      email: userInfo.email, name: userInfo.name, 
+      provider: 'google', providerId: userInfo.id
+    });
+    return this.authService.createAuthSession(user);
+  }
+
+  async handleGitHubCallback(code: string): Promise<AuthResponse> {
+    const userInfo = await this.exchangeCodeForUserInfo('github', code);
+    const user = await this.userRepository.findOrCreateByEmail({
+      email: userInfo.email, name: userInfo.name,
+      provider: 'github', providerId: userInfo.id
+    });
+    return this.authService.createAuthSession(user);
+  }
+}
+```
+
+### Unified Authentication Middleware
+
+```typescript
+export async function authMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return c.json({ error: 'Missing authorization' }, 401);
   }
 
   const token = authHeader.substring(7);
-
   try {
-    // Verify JWT using existing LTI service
-    const claims = await ltiService.verifyJWT(token);
-
-    // Add claims to context
-    c.set('ltiContext', {
-      user_id: claims.sub,
-      platform_id: claims.iss,
-      course_id: claims['https://purl.imsglobal.org/spec/lti/claim/context'].id,
-      roles: claims['https://purl.imsglobal.org/spec/lti/claim/roles'],
-      is_instructor: claims['https://purl.imsglobal.org/spec/lti/claim/roles'].includes(
-        'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'
-      ),
-    });
-
+    const payload = await verifyJWT(token);
+    
+    if (payload.type === 'standalone') {
+      // Standalone authentication
+      c.set('auth', {
+        userId: payload.sub,
+        sessionId: payload.sessionId,
+        type: 'standalone'
+      });
+    } else {
+      // LTI authentication
+      c.set('ltiContext', {
+        user_id: payload.sub,
+        platform_id: payload.iss,
+        course_id: payload['https://purl.imsglobal.org/spec/lti/claim/context']?.id,
+        roles: payload['https://purl.imsglobal.org/spec/lti/claim/roles'] || [],
+        is_instructor: payload['https://purl.imsglobal.org/spec/lti/claim/roles']?.includes(
+          'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'
+        ) || false,
+        type: 'lti'
+      });
+    }
     await next();
   } catch (error) {
     return c.json({ error: 'Invalid token' }, 401);
