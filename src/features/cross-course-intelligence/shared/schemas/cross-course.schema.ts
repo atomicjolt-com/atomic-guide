@@ -73,7 +73,8 @@ export const CrossCoursePerformanceCorrelationSchema = z.object({
   message: "Correlation matrix dimensions must match course sequence length"
 });
 
-export const CrossCourseConsentSchema = z.object({
+// Base schema without refinements for .omit() operations
+const CrossCourseConsentBaseSchema = z.object({
   id: NonEmptyString,
   studentId: NonEmptyString,
   sourceCourse: NonEmptyString,
@@ -83,7 +84,10 @@ export const CrossCourseConsentSchema = z.object({
   consentDate: z.date(),
   expirationDate: z.date().optional(),
   withdrawnAt: z.date().optional()
-}).refine(data => {
+});
+
+// Refined schema with validations
+export const CrossCourseConsentSchema = CrossCourseConsentBaseSchema.refine(data => {
   // If withdrawn, withdrawnAt should be provided
   return !data.withdrawnAt || !data.consentGranted;
 }, {
@@ -126,7 +130,8 @@ export const ImpactPredictionSchema = z.object({
   confidence: PercentageScore
 });
 
-export const CrossCourseGapAlertSchema = z.object({
+// Base schema without refinements for .omit() operations
+const CrossCourseGapAlertBaseSchema = z.object({
   id: NonEmptyString,
   studentId: NonEmptyString,
   studentName: NonEmptyString,
@@ -147,7 +152,10 @@ export const CrossCourseGapAlertSchema = z.object({
   resolvedAt: z.date().optional(),
   createdAt: z.date(),
   updatedAt: z.date()
-}).refine(data => {
+});
+
+// Refined schema with validations
+export const CrossCourseGapAlertSchema = CrossCourseGapAlertBaseSchema.refine(data => {
   // If acknowledged, acknowledgedAt and acknowledgedBy should be provided
   return data.status !== 'acknowledged' || (data.acknowledgedAt && data.acknowledgedBy);
 }, {
@@ -337,13 +345,13 @@ export const CreateKnowledgeDependencySchema = KnowledgeDependencySchema.omit({
 
 export const UpdateKnowledgeDependencySchema = CreateKnowledgeDependencySchema.partial();
 
-export const CreateCrossCourseConsentSchema = CrossCourseConsentSchema.omit({
+export const CreateCrossCourseConsentSchema = CrossCourseConsentBaseSchema.omit({
   id: true,
   consentDate: true,
   withdrawnAt: true
 });
 
-export const CreateGapAlertSchema = CrossCourseGapAlertSchema.omit({
+export const CreateGapAlertSchema = CrossCourseGapAlertBaseSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
