@@ -139,63 +139,21 @@ export function ProactiveChatTrigger({
   testId = 'proactive-chat-trigger'
 }: ProactiveChatTriggerProps): React.ReactElement | null {
   
-  // Security validation
-  const securityValidation = validateInterventionSecurity(intervention);
-  if (!securityValidation.isValid) {
-    console.error('Intervention failed security validation:', securityValidation.errors);
-    logInterventionEvent('security_validation_failed', intervention.id, {
-      errors: securityValidation.errors,
-      warnings: securityValidation.warnings
-    });
-    return null;
-  }
-  
-  // Use sanitized intervention data
-  const sanitizedIntervention = securityValidation.sanitizedData!;
-  
-  // Component state
+  // Component state - MUST be called unconditionally
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showSnoozeOptions, setShowSnoozeOptions] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(DEFAULT_CONFIG.autoTimeoutMs);
   
-  // Refs for accessibility and cleanup
+  // Refs for accessibility and cleanup - MUST be called unconditionally
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Handle visibility changes with animation
-  useEffect(() => {
-    if (visible && !isVisible) {
-      setIsVisible(true);
-      if (animation.enabled) {
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), animation.duration);
-      }
-      
-      // Start auto-timeout countdown
-      startAutoTimeout();
-      
-      // Focus for accessibility
-      if (accessibility.focusOnAppear) {
-        setTimeout(() => {
-          triggerRef.current?.focus();
-        }, animation.enabled ? animation.duration : 0);
-      }
-      
-      // Announce to screen readers
-      if (accessibility.announceToScreenReader) {
-        announceToScreenReader(
-          `Proactive help offer: ${intervention.message}. Use Tab to navigate options.`
-        );
-      }
-      
-    } else if (!visible && isVisible) {
-      handleClose('programmatic');
-    }
-  }, [visible, isVisible, animation, accessibility, intervention.message]);
-
-  // Auto-timeout management
+  // Integration with intervention management hook - MUST be called unconditionally
+  const { acceptIntervention, dismissIntervention, snoozeIntervention, timeoutIntervention } = useProactiveInterventions();
+  
+  // Auto-timeout management - MUST be defined before useEffect
   const startAutoTimeout = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -221,7 +179,7 @@ export function ProactiveChatTrigger({
     timeoutRef.current = setTimeout(() => {
       handleTimeout();
     }, DEFAULT_CONFIG.autoTimeoutMs);
-  }, []);
+  }, [handleTimeout]);
 
   const clearAutoTimeout = useCallback(() => {
     if (timeoutRef.current) {
@@ -233,66 +191,6 @@ export function ProactiveChatTrigger({
       countdownRef.current = null;
     }
   }, []);
-
-  // Integration with intervention management hook
-  const { acceptIntervention, dismissIntervention, snoozeIntervention, timeoutIntervention } = useProactiveInterventions();
-  
-  // Event handlers
-  const handleAccept = useCallback(() => {
-    // Validate user action rate limit
-    const rateLimitResult = validateUserActionRateLimit();
-    if (!rateLimitResult.allowed) {
-      console.warn('User action rate limit exceeded:', rateLimitResult.reason);
-      return;
-    }
-    
-    clearAutoTimeout();
-    acceptIntervention(sanitizedIntervention.id);
-    onAccept(sanitizedIntervention.id);
-    logInterventionEvent('intervention_accepted', sanitizedIntervention.id);
-    handleClose('accepted');
-  }, [sanitizedIntervention.id, onAccept, clearAutoTimeout, acceptIntervention]);
-
-  const handleDismiss = useCallback((reason?: string) => {
-    // Validate user action rate limit
-    const rateLimitResult = validateUserActionRateLimit();
-    if (!rateLimitResult.allowed) {
-      console.warn('User action rate limit exceeded:', rateLimitResult.reason);
-      return;
-    }
-    
-    clearAutoTimeout();
-    dismissIntervention(sanitizedIntervention.id, reason);
-    onDismiss(sanitizedIntervention.id, reason);
-    logInterventionEvent('intervention_dismissed', sanitizedIntervention.id, { reason });
-    handleClose('dismissed');
-  }, [sanitizedIntervention.id, onDismiss, clearAutoTimeout, dismissIntervention]);
-
-  const handleSnooze = useCallback((duration: number) => {
-    // Validate user action rate limit
-    const rateLimitResult = validateUserActionRateLimit();
-    if (!rateLimitResult.allowed) {
-      console.warn('User action rate limit exceeded:', rateLimitResult.reason);
-      return;
-    }
-    
-    clearAutoTimeout();
-    snoozeIntervention(sanitizedIntervention.id, duration);
-    if (onSnooze) {
-      onSnooze(sanitizedIntervention.id, duration);
-    }
-    logInterventionEvent('intervention_snoozed', sanitizedIntervention.id, { duration });
-    setShowSnoozeOptions(false);
-    handleClose('snoozed');
-  }, [sanitizedIntervention.id, onSnooze, clearAutoTimeout, snoozeIntervention]);
-
-  const handleTimeout = useCallback(() => {
-    clearAutoTimeout();
-    timeoutIntervention(sanitizedIntervention.id);
-    onTimeout(sanitizedIntervention.id);
-    logInterventionEvent('intervention_timeout', sanitizedIntervention.id);
-    handleClose('timeout');
-  }, [sanitizedIntervention.id, onTimeout, clearAutoTimeout, timeoutIntervention]);
 
   const handleClose = useCallback((reason: string) => {
     if (animation.enabled) {
@@ -315,6 +213,67 @@ export function ProactiveChatTrigger({
       timeShown: DEFAULT_CONFIG.autoTimeoutMs - timeRemaining
     });
   }, [animation, intervention.id, intervention.urgencyLevel, timeRemaining]);
+
+  const handleTimeout = useCallback(() => {
+    const sanitizedIntervention = validateInterventionSecurity(intervention).sanitizedData || intervention;
+    clearAutoTimeout();
+    timeoutIntervention(sanitizedIntervention.id);
+    onTimeout(sanitizedIntervention.id);
+    logInterventionEvent('intervention_timeout', sanitizedIntervention.id);
+    handleClose('timeout');
+  }, [intervention, onTimeout, clearAutoTimeout, timeoutIntervention, handleClose]);
+
+  // Event handlers - MUST be defined before useEffect
+  const handleAccept = useCallback(() => {
+    const sanitizedIntervention = validateInterventionSecurity(intervention).sanitizedData || intervention;
+    // Validate user action rate limit
+    const rateLimitResult = validateUserActionRateLimit();
+    if (!rateLimitResult.allowed) {
+      console.warn('User action rate limit exceeded:', rateLimitResult.reason);
+      return;
+    }
+    
+    clearAutoTimeout();
+    acceptIntervention(sanitizedIntervention.id);
+    onAccept(sanitizedIntervention.id);
+    logInterventionEvent('intervention_accepted', sanitizedIntervention.id);
+    handleClose('accepted');
+  }, [intervention, onAccept, clearAutoTimeout, acceptIntervention, handleClose]);
+
+  const handleDismiss = useCallback((reason?: string) => {
+    const sanitizedIntervention = validateInterventionSecurity(intervention).sanitizedData || intervention;
+    // Validate user action rate limit
+    const rateLimitResult = validateUserActionRateLimit();
+    if (!rateLimitResult.allowed) {
+      console.warn('User action rate limit exceeded:', rateLimitResult.reason);
+      return;
+    }
+    
+    clearAutoTimeout();
+    dismissIntervention(sanitizedIntervention.id, reason);
+    onDismiss(sanitizedIntervention.id, reason);
+    logInterventionEvent('intervention_dismissed', sanitizedIntervention.id, { reason });
+    handleClose('dismissed');
+  }, [intervention, onDismiss, clearAutoTimeout, dismissIntervention, handleClose]);
+
+  const handleSnooze = useCallback((duration: number) => {
+    const sanitizedIntervention = validateInterventionSecurity(intervention).sanitizedData || intervention;
+    // Validate user action rate limit
+    const rateLimitResult = validateUserActionRateLimit();
+    if (!rateLimitResult.allowed) {
+      console.warn('User action rate limit exceeded:', rateLimitResult.reason);
+      return;
+    }
+    
+    clearAutoTimeout();
+    snoozeIntervention(sanitizedIntervention.id, duration);
+    if (onSnooze) {
+      onSnooze(sanitizedIntervention.id, duration);
+    }
+    logInterventionEvent('intervention_snoozed', sanitizedIntervention.id, { duration });
+    setShowSnoozeOptions(false);
+    handleClose('snoozed');
+  }, [intervention, onSnooze, clearAutoTimeout, snoozeIntervention, handleClose]);
 
   // Enhanced keyboard event handling for accessibility
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
@@ -359,12 +318,59 @@ export function ProactiveChatTrigger({
     }
   }, [accessibility.keyboardDismissible, handleDismiss, handleAccept, showSnoozeOptions]);
 
+  // Security validation
+  const securityValidation = validateInterventionSecurity(intervention);
+  
+  // Use sanitized intervention data or fallback to original intervention
+  const sanitizedIntervention = securityValidation.sanitizedData || intervention;
+  
+  // Handle visibility changes with animation
+  useEffect(() => {
+    if (visible && !isVisible) {
+      setIsVisible(true);
+      if (animation.enabled) {
+        setIsAnimating(true);
+        setTimeout(() => setIsAnimating(false), animation.duration);
+      }
+      
+      // Start auto-timeout countdown
+      startAutoTimeout();
+      
+      // Focus for accessibility
+      if (accessibility.focusOnAppear) {
+        setTimeout(() => {
+          triggerRef.current?.focus();
+        }, animation.enabled ? animation.duration : 0);
+      }
+      
+      // Announce to screen readers
+      if (accessibility.announceToScreenReader) {
+        announceToScreenReader(
+          `Proactive help offer: ${intervention.message}. Use Tab to navigate options.`
+        );
+      }
+      
+    } else if (!visible && isVisible) {
+      handleClose('programmatic');
+    }
+  }, [visible, isVisible, animation, accessibility, intervention.message, startAutoTimeout, handleClose]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearAutoTimeout();
     };
   }, [clearAutoTimeout]);
+  
+  // Early return for security validation failures
+  if (!securityValidation.isValid) {
+    console.error('Intervention failed security validation:', securityValidation.errors);
+    logInterventionEvent('security_validation_failed', intervention.id, {
+      errors: securityValidation.errors,
+      warnings: securityValidation.warnings
+    });
+    return null;
+  }
 
   // Don't render if not visible
   if (!isVisible) {
@@ -587,10 +593,6 @@ function getAcceptButtonText(type: string): string {
   return buttonTexts[type as keyof typeof buttonTexts] || 'Accept';
 }
 
-function adjustColor(color: string, amount: number): string {
-  // Simple color adjustment - in production would use a proper color manipulation library
-  return color;
-}
 
 function announceToScreenReader(message: string): void {
   const announcement = document.createElement('div');

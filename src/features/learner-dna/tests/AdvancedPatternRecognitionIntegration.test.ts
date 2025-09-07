@@ -9,6 +9,8 @@
  * - Cross-feature compatibility with existing systems
  */
 
+/* eslint-disable no-console */
+
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import { DatabaseService } from '@shared/server/services';
 import { AdvancedPatternRecognizer } from '../server/services/AdvancedPatternRecognizer';

@@ -51,6 +51,7 @@ import { createAnalyticsApi } from './features/dashboard/server/handlers/analyti
 import { createPreferencesApi } from './features/dashboard/server/handlers/preferencesApi';
 import { createAuthHandlers, requireAuth } from './features/auth/server/handlers/auth.handler';
 import { createOAuthHandlers } from './features/auth/server/handlers/oauth.handler';
+import { createCrossCourseApi, createInstructorCrossCourseApi } from './features/cross-course-intelligence/server/handlers/createCrossCourseApi';
 import faqHandler from './features/faq/server/handlers/faq';
 import richMediaHandler from './features/chat/server/handlers/richMedia';
 import suggestionHandler from './features/chat/server/handlers/suggestions';
@@ -334,6 +335,14 @@ app.route('/api/analytics', analyticsApi);
 // Mount preferences API routes
 const preferencesApi = createPreferencesApi('default'); // TODO: Get tenant ID from context
 app.route('/api/preferences', preferencesApi);
+
+// Mount cross-course intelligence API routes (Story 6.1)
+const crossCourseApi = createCrossCourseApi('default'); // TODO: Get tenant ID from context
+app.route('/api/cross-course', crossCourseApi);
+
+// Mount instructor cross-course intelligence API routes (Story 6.1)
+const instructorCrossCourseApi = createInstructorCrossCourseApi('default'); // TODO: Get tenant ID from context
+app.route('/api/instructor/cross-course', instructorCrossCourseApi);
 
 // Error handling
 app.onError((err: Error, c) => {
