@@ -101,7 +101,7 @@ export class UserRepository {
    */
   async getPasswordHash(email: string): Promise<string | null> {
     const result = await this.db
-      .prepare(`SELECT password_hash FROM users WHERE email = ?`)
+      .prepare('SELECT password_hash FROM users WHERE email = ?')
       .bind(email.toLowerCase())
       .first();
 
@@ -114,7 +114,7 @@ export class UserRepository {
   async markEmailVerified(userId: UserId): Promise<void> {
     await this.db
       .prepare(
-        `UPDATE users SET email_verified = TRUE, updated_at = ? WHERE id = ?`
+        'UPDATE users SET email_verified = TRUE, updated_at = ? WHERE id = ?'
       )
       .bind(new Date().toISOString(), userId)
       .run();
@@ -126,7 +126,7 @@ export class UserRepository {
   async updatePassword(userId: UserId, passwordHash: string): Promise<void> {
     await this.db
       .prepare(
-        `UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?`
+        'UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?'
       )
       .bind(passwordHash, new Date().toISOString(), userId)
       .run();
@@ -211,7 +211,7 @@ export class UserRepository {
   async updateSessionAccess(sessionId: SessionId): Promise<void> {
     await this.db
       .prepare(
-        `UPDATE user_sessions SET last_accessed = ? WHERE id = ?`
+        'UPDATE user_sessions SET last_accessed = ? WHERE id = ?'
       )
       .bind(new Date().toISOString(), sessionId)
       .run();
@@ -222,7 +222,7 @@ export class UserRepository {
    */
   async deleteSession(sessionId: SessionId): Promise<void> {
     await this.db
-      .prepare(`DELETE FROM user_sessions WHERE id = ?`)
+      .prepare('DELETE FROM user_sessions WHERE id = ?')
       .bind(sessionId)
       .run();
   }
@@ -232,7 +232,7 @@ export class UserRepository {
    */
   async deleteUserSessions(userId: UserId): Promise<void> {
     await this.db
-      .prepare(`DELETE FROM user_sessions WHERE user_id = ?`)
+      .prepare('DELETE FROM user_sessions WHERE user_id = ?')
       .bind(userId)
       .run();
   }
@@ -284,7 +284,7 @@ export class UserRepository {
    */
   async markPasswordResetTokenUsed(token: string): Promise<void> {
     await this.db
-      .prepare(`UPDATE password_reset_tokens SET used = TRUE WHERE token = ?`)
+      .prepare('UPDATE password_reset_tokens SET used = TRUE WHERE token = ?')
       .bind(token)
       .run();
   }
@@ -336,7 +336,7 @@ export class UserRepository {
    */
   async markEmailVerificationTokenUsed(token: string): Promise<void> {
     await this.db
-      .prepare(`UPDATE email_verification_tokens SET used = TRUE WHERE token = ?`)
+      .prepare('UPDATE email_verification_tokens SET used = TRUE WHERE token = ?')
       .bind(token)
       .run();
   }
@@ -349,19 +349,19 @@ export class UserRepository {
     
     // Clean up expired sessions
     await this.db
-      .prepare(`DELETE FROM user_sessions WHERE expires_at < ?`)
+      .prepare('DELETE FROM user_sessions WHERE expires_at < ?')
       .bind(now)
       .run();
 
     // Clean up expired password reset tokens
     await this.db
-      .prepare(`DELETE FROM password_reset_tokens WHERE expires_at < ?`)
+      .prepare('DELETE FROM password_reset_tokens WHERE expires_at < ?')
       .bind(now)
       .run();
 
     // Clean up expired email verification tokens
     await this.db
-      .prepare(`DELETE FROM email_verification_tokens WHERE expires_at < ?`)
+      .prepare('DELETE FROM email_verification_tokens WHERE expires_at < ?')
       .bind(now)
       .run();
   }

@@ -9,7 +9,7 @@
  * and technical feasibility is confirmed. See test design document blockers.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it } from 'vitest';
 import { z } from 'zod';
 
 // Test configuration schema
@@ -309,7 +309,7 @@ export class SyntheticCrossCourseDataGenerator {
    * Generates synthetic multi-course learning scenarios
    * BLOCKED: Cannot implement until measurement methodologies defined
    */
-  generateCourseSequences(count: number): KnowledgeDependencyTestData[] {
+  generateCourseSequences(_count: number): KnowledgeDependencyTestData[] {
     throw new Error('BLOCKED: Ground truth validation framework required');
   }
 
@@ -317,7 +317,7 @@ export class SyntheticCrossCourseDataGenerator {
    * Generates realistic student performance data
    * BLOCKED: Cannot implement until performance correlation approach defined
    */
-  generateStudentPerformanceData(count: number): CrossCoursePerformanceTestData[] {
+  generateStudentPerformanceData(_count: number): CrossCoursePerformanceTestData[] {
     throw new Error('BLOCKED: Performance correlation measurement required');
   }
 
@@ -325,7 +325,7 @@ export class SyntheticCrossCourseDataGenerator {
    * Generates privacy compliance test scenarios
    * BLOCKED: Cannot implement until cross-course privacy framework extended
    */
-  generatePrivacyTestScenarios(count: number): PrivacyComplianceTestData[] {
+  generatePrivacyTestScenarios(_count: number): PrivacyComplianceTestData[] {
     throw new Error('BLOCKED: Cross-course privacy framework required');
   }
 }
@@ -336,7 +336,7 @@ export class CrossCoursePerformanceTester {
    * Load testing for cross-course analytics generation
    * BLOCKED: Cannot implement until performance targets validated
    */
-  async testAnalyticsPerformance(config: CrossCourseTestConfig): Promise<void> {
+  async testAnalyticsPerformance(_config: CrossCourseTestConfig): Promise<void> {
     throw new Error('BLOCKED: Performance target validation required');
   }
 
@@ -344,7 +344,7 @@ export class CrossCoursePerformanceTester {
    * Scalability testing for concurrent multi-course analysis
    * BLOCKED: Cannot implement until system capacity assessed
    */
-  async testConcurrentAnalysis(studentCount: number, coursesPerStudent: number): Promise<void> {
+  async testConcurrentAnalysis(_studentCount: number, _coursesPerStudent: number): Promise<void> {
     throw new Error('BLOCKED: System capacity assessment required');
   }
 }

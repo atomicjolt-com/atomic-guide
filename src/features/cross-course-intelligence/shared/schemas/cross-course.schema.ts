@@ -70,7 +70,7 @@ export const CrossCoursePerformanceCorrelationSchema = z.object({
   return data.correlationMatrix.length === n && 
          data.correlationMatrix.every(row => row.length === n);
 }, {
-  message: "Correlation matrix dimensions must match course sequence length"
+  message: 'Correlation matrix dimensions must match course sequence length'
 });
 
 // Base schema without refinements for .omit() operations
@@ -91,12 +91,12 @@ export const CrossCourseConsentSchema = CrossCourseConsentBaseSchema.refine(data
   // If withdrawn, withdrawnAt should be provided
   return !data.withdrawnAt || !data.consentGranted;
 }, {
-  message: "Withdrawn consent cannot be granted"
+  message: 'Withdrawn consent cannot be granted'
 }).refine(data => {
   // Expiration date should be in the future if provided
   return !data.expirationDate || data.expirationDate > data.consentDate;
 }, {
-  message: "Expiration date must be after consent date"
+  message: 'Expiration date must be after consent date'
 });
 
 // ============================================================================
@@ -159,12 +159,12 @@ export const CrossCourseGapAlertSchema = CrossCourseGapAlertBaseSchema.refine(da
   // If acknowledged, acknowledgedAt and acknowledgedBy should be provided
   return data.status !== 'acknowledged' || (data.acknowledgedAt && data.acknowledgedBy);
 }, {
-  message: "Acknowledged alerts must have acknowledgedAt and acknowledgedBy"
+  message: 'Acknowledged alerts must have acknowledgedAt and acknowledgedBy'
 }).refine(data => {
   // If resolved, resolvedAt should be provided
   return data.status !== 'resolved' || data.resolvedAt;
 }, {
-  message: "Resolved alerts must have resolvedAt"
+  message: 'Resolved alerts must have resolvedAt'
 });
 
 export const KnowledgeTransferOpportunitySchema = z.object({
@@ -253,7 +253,7 @@ export const ConsentUpdateRequestSchema = z.object({
   // If granting consent with expiration, expiration must be in future
   return !data.consentGranted || !data.expirationDate || data.expirationDate > new Date();
 }, {
-  message: "Expiration date must be in the future when granting consent"
+  message: 'Expiration date must be in the future when granting consent'
 });
 
 export const GapAnalysisRequestSchema = z.object({

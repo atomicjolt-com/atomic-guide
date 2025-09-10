@@ -72,8 +72,14 @@ interface LearningAnalyticsData {
   studentId: string;
   enrollments: CourseEnrollmentData[];
   performanceHistory: TimeSeriesDataPoint[];
-  learningPatterns: any; // From learner DNA
-  strugglesHistory: any[]; // From struggle detection
+  learningPatterns: Record<string, unknown>; // From learner DNA - pattern data structure
+  strugglesHistory: Array<{
+    timestamp: Date;
+    type: string;
+    severity: number;
+    courseId: string;
+    resolved: boolean;
+  }>; // From struggle detection
   engagementMetrics: EngagementMetrics;
 }
 

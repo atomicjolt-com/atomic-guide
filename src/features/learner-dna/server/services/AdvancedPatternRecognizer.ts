@@ -902,17 +902,17 @@ export class AdvancedPatternRecognizer {
       cognitiveAttributes: (() => {
         try {
           return JSON.parse(result.cognitive_attributes || '{}');
-        } catch { return {}; }
+        } catch {return {};}
       })(),
       comprehensionStyles: (() => {
         try {
           return JSON.parse(result.comprehension_styles || '[]');
-        } catch { return []; }
+        } catch {return [];}
       })(),
       preferredModalities: (() => {
         try {
           return JSON.parse(result.preferred_modalities || '[]');
-        } catch { return []; }
+        } catch {return [];}
       })(),
       profileConfidence: result.profile_confidence,
       totalDataPoints: result.total_data_points,
@@ -920,7 +920,7 @@ export class AdvancedPatternRecognizer {
       crossCoursePatterns: (() => {
         try {
           return JSON.parse(result.cross_course_patterns || '{}');
-        } catch { return {}; }
+        } catch {return {};}
       })(),
       multiContextConfidence: result.multi_context_confidence,
       dataCollectionLevel: result.data_collection_level,

@@ -2,6 +2,62 @@
 
 ## Service Architecture
 
+### Shared Services Layer
+
+The application implements a comprehensive shared services layer providing cross-feature functionality:
+
+#### Core AI Services
+
+**AIService** (`src/shared/server/services/AIService.ts`)
+
+- Unified interface for all AI operations
+- Model selection and fallback strategies
+- Token management and rate limiting
+- Streaming response handling with Server-Sent Events
+- Error recovery and retry logic
+
+**ModelRegistry** (`src/shared/server/services/ModelRegistry.ts`)
+
+- Dynamic model selection based on task complexity
+- Performance metrics tracking
+- Cost optimization through model routing
+- Fallback chains for reliability
+- A/B testing support for model evaluation
+
+**PromptBuilder** (`src/shared/server/services/PromptBuilder.ts`)
+
+- Context-aware prompt generation
+- Template management with variable substitution
+- Token-efficient prompt compression
+- Multi-shot example injection
+- System prompt optimization
+
+#### Infrastructure Services
+
+**StorageFallback** (`src/shared/server/services/StorageFallback.ts`)
+
+- Resilient storage abstraction layer
+- Automatic failover between KV, D1, and R2
+- Caching strategies with TTL management
+- Data consistency guarantees
+- Migration utilities for storage backend changes
+
+**DatabaseService** (`src/shared/server/services/database.ts`)
+
+- D1 database operations abstraction
+- Connection pooling and retry logic
+- Query builder with type safety
+- Transaction support with rollback
+- Migration management
+
+**DeepLinkingService** (`src/shared/client/services/deepLinkingService.ts`)
+
+- LTI Deep Linking 2.0 implementation
+- Content item message creation
+- JWT signing and verification
+- Platform-specific adaptations
+- State management for multi-step flows
+
 ### Function Organization
 
 ```
@@ -101,391 +157,49 @@ export async function createConfigHandler(c: Context) {
 
 ## Database Architecture
 
-### Repository Pattern (MANDATORY)
-
-**All database access must follow the Repository Pattern with strict layer separation:**
-
-- **Handlers** → **Services** → **Repositories** → **Database**
-- Handlers MUST NOT make direct database calls
-- Services MUST NOT call `db.getDb()` directly
-- All SQL queries MUST be contained within Repository classes
-
-#### Architecture Flow
-
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Handler   │───▶│   Service   │───▶│ Repository  │───▶│  Database   │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-     │                     │                     │              │
-     │                     │                     │              │
-     ▼                     ▼                     ▼              ▼
-  • Validation         • Business logic      • SQL queries   • D1 Storage
-  • Request/Response   • Data transformation • Data mapping   • Transactions
-  • Error handling     • Service coordination• Query building • Persistence
-```
-
-#### Base Repository Class
+### Data Access Layer
 
 ```typescript
-import { DatabaseService } from '@shared/server/services/database';
-import { z } from 'zod';
+// Repository pattern for database access
+export class ConversationRepository {
+  constructor(private db: D1Database) {}
 
-/**
- * Base repository providing common CRUD operations and database access patterns.
- * 
- * All feature repositories MUST extend this class and follow the established patterns.
- */
-export abstract class BaseRepository<TEntity, TEntityId = string> {
-  protected readonly tableName: string;
-  protected readonly entitySchema: z.ZodSchema<TEntity>;
-  
-  constructor(
-    protected readonly databaseService: DatabaseService,
-    tableName: string,
-    entitySchema: z.ZodSchema<TEntity>
-  ) {
-    this.tableName = tableName;
-    this.entitySchema = entitySchema;
-  }
-
-  /**
-   * Get database connection - centralized access point
-   */
-  protected getDb(): D1Database {
-    return this.databaseService.getDb();
-  }
-
-  /**
-   * Validate entity data before database operations
-   */
-  protected validateEntity(data: unknown): TEntity {
-    return this.entitySchema.parse(data);
-  }
-
-  /**
-   * Generic create operation
-   */
-  async create(entity: Omit<TEntity, 'id'>): Promise<TEntity> {
+  async create(conversation: Omit<Conversation, 'id'>): Promise<Conversation> {
     const id = crypto.randomUUID();
-    const validated = this.validateEntity({ ...entity, id });
-    
-    // Derived classes implement specific SQL
-    return await this.performCreate(validated);
-  }
-
-  /**
-   * Generic find by ID operation
-   */
-  async findById(id: TEntityId): Promise<TEntity | null> {
-    const result = await this.getDb()
-      .prepare(`SELECT * FROM ${this.tableName} WHERE id = ?`)
-      .bind(id)
-      .first();
-
-    if (!result) return null;
-    return this.validateEntity(result);
-  }
-
-  /**
-   * Generic update operation
-   */
-  async update(id: TEntityId, updates: Partial<TEntity>): Promise<TEntity> {
-    // Derived classes implement specific SQL
-    return await this.performUpdate(id, updates);
-  }
-
-  /**
-   * Generic delete operation
-   */
-  async delete(id: TEntityId): Promise<void> {
-    await this.getDb()
-      .prepare(`DELETE FROM ${this.tableName} WHERE id = ?`)
-      .bind(id)
-      .run();
-  }
-
-  // Abstract methods for derived classes
-  protected abstract performCreate(entity: TEntity): Promise<TEntity>;
-  protected abstract performUpdate(id: TEntityId, updates: Partial<TEntity>): Promise<TEntity>;
-}
-```
-
-#### Feature-Specific Repository Implementation
-
-```typescript
-import { BaseRepository } from '@shared/server/repositories/BaseRepository';
-import { DatabaseService } from '@shared/server/services/database';
-import { conversationSchema, type Conversation } from '../shared/schemas/conversation';
-
-/**
- * Repository for conversation data access operations.
- * 
- * Handles all database operations for conversations following the established
- * repository pattern and maintaining proper data validation.
- */
-export class ConversationRepository extends BaseRepository<Conversation> {
-  constructor(databaseService: DatabaseService) {
-    super(databaseService, 'conversations', conversationSchema);
-  }
-
-  protected async performCreate(conversation: Conversation): Promise<Conversation> {
-    await this.getDb()
-      .prepare(`
+    const result = await this.db
+      .prepare(
+        `
         INSERT INTO conversations
-        (id, assessment_config_id, user_id, course_id, status, metadata, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `)
+        (id, assessment_config_id, user_id, course_id, status, metadata)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `
+      )
       .bind(
-        conversation.id,
+        id,
         conversation.assessment_config_id,
         conversation.user_id,
         conversation.course_id,
         'active',
-        JSON.stringify(conversation.metadata || {}),
-        new Date().toISOString()
+        JSON.stringify(conversation.metadata || {})
       )
       .run();
 
-    return conversation;
+    return { id, ...conversation, status: 'active' };
   }
 
-  protected async performUpdate(id: string, updates: Partial<Conversation>): Promise<Conversation> {
-    // Build dynamic update query based on provided fields
-    const updateFields: string[] = [];
-    const values: unknown[] = [];
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value !== undefined) {
-        updateFields.push(`${key} = ?`);
-        values.push(typeof value === 'object' ? JSON.stringify(value) : value);
-      }
-    });
-    
-    values.push(id); // Add ID for WHERE clause
-    
-    await this.getDb()
-      .prepare(`UPDATE conversations SET ${updateFields.join(', ')} WHERE id = ?`)
-      .bind(...values)
-      .run();
-      
-    const updated = await this.findById(id);
-    if (!updated) throw new Error(`Conversation ${id} not found after update`);
-    
-    return updated;
+  async findById(id: string): Promise<Conversation | null> {
+    const result = await this.db.prepare('SELECT * FROM conversations WHERE id = ?').bind(id).first();
+
+    if (!result) return null;
+
+    return {
+      ...result,
+      metadata: JSON.parse(result.metadata as string),
+    } as Conversation;
   }
 
-  /**
-   * Find conversations by user ID with pagination
-   */
-  async findByUserId(userId: string, limit: number = 50, offset: number = 0): Promise<Conversation[]> {
-    const results = await this.getDb()
-      .prepare(`
-        SELECT * FROM conversations 
-        WHERE user_id = ? 
-        ORDER BY created_at DESC 
-        LIMIT ? OFFSET ?
-      `)
-      .bind(userId, limit, offset)
-      .all();
-
-    return results.results.map(result => this.validateEntity(result));
-  }
-
-  /**
-   * Update mastery score for specific conversation
-   */
-  async updateMasteryScore(id: string, score: number): Promise<void> {
-    await this.getDb()
-      .prepare('UPDATE conversations SET mastery_score = ?, updated_at = ? WHERE id = ?')
-      .bind(score, new Date().toISOString(), id)
-      .run();
-  }
-
-  /**
-   * Find active conversations for a course
-   */
-  async findActiveByCourse(courseId: string): Promise<Conversation[]> {
-    const results = await this.getDb()
-      .prepare(`
-        SELECT * FROM conversations 
-        WHERE course_id = ? AND status = 'active'
-        ORDER BY updated_at DESC
-      `)
-      .bind(courseId)
-      .all();
-
-    return results.results.map(result => this.validateEntity(result));
-  }
-}
-```
-
-#### Service Integration Pattern
-
-```typescript
-/**
- * Service layer integrating repositories and business logic.
- * 
- * Services coordinate between repositories and contain business rules,
- * while repositories handle pure data access operations.
- */
-export class ConversationService {
-  constructor(
-    private readonly conversationRepository: ConversationRepository,
-    private readonly userRepository: UserRepository,
-    private readonly assessmentRepository: AssessmentRepository
-  ) {}
-
-  /**
-   * Create new conversation with validation and business rules
-   */
-  async createConversation(request: CreateConversationRequest): Promise<Conversation> {
-    // Business logic: Verify user exists
-    const user = await this.userRepository.findById(request.userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Business logic: Verify assessment configuration exists
-    const assessment = await this.assessmentRepository.findById(request.assessmentConfigId);
-    if (!assessment) {
-      throw new Error('Assessment configuration not found');
-    }
-
-    // Business logic: Check if user already has active conversation
-    const existing = await this.conversationRepository.findActiveByCourse(request.courseId);
-    const userConversation = existing.find(conv => conv.user_id === request.userId);
-    
-    if (userConversation) {
-      return userConversation; // Return existing instead of creating duplicate
-    }
-
-    // Repository call: Create new conversation
-    return await this.conversationRepository.create({
-      assessment_config_id: request.assessmentConfigId,
-      user_id: request.userId,
-      course_id: request.courseId,
-      status: 'active',
-      metadata: {
-        created_via: 'api',
-        initial_context: request.context
-      }
-    });
-  }
-
-  /**
-   * Update conversation mastery with business validation
-   */
-  async updateMastery(conversationId: string, score: number, userId: string): Promise<void> {
-    // Business logic: Validate score range
-    if (score < 0 || score > 100) {
-      throw new Error('Mastery score must be between 0 and 100');
-    }
-
-    // Business logic: Verify conversation belongs to user
-    const conversation = await this.conversationRepository.findById(conversationId);
-    if (!conversation) {
-      throw new Error('Conversation not found');
-    }
-
-    if (conversation.user_id !== userId) {
-      throw new Error('Unauthorized: Conversation belongs to different user');
-    }
-
-    // Repository call: Update mastery score
-    await this.conversationRepository.updateMasteryScore(conversationId, score);
-  }
-}
-```
-
-#### Handler Integration Pattern
-
-```typescript
-/**
- * Handler integrating services for API endpoint processing.
- * 
- * Handlers focus on HTTP concerns (request/response, validation, error handling)
- * and delegate business logic to services.
- */
-export class ConversationHandler {
-  constructor(
-    private readonly conversationService: ConversationService
-  ) {}
-
-  /**
-   * Create conversation endpoint
-   */
-  async createConversation(c: Context): Promise<Response> {
-    try {
-      // Extract and validate request
-      const body = await c.req.json();
-      const validation = createConversationSchema.safeParse(body);
-      
-      if (!validation.success) {
-        return c.json({ error: validation.error.flatten() }, 400);
-      }
-
-      // Get LTI context from middleware
-      const ltiContext = c.get('ltiContext');
-
-      // Service call: Create conversation with business logic
-      const conversation = await this.conversationService.createConversation({
-        ...validation.data,
-        userId: ltiContext.user_id,
-        courseId: ltiContext.course_id
-      });
-
-      // Return HTTP response
-      return c.json(conversation, 201);
-    } catch (error) {
-      console.error('Conversation creation error:', error);
-      
-      if (error instanceof Error && error.message.includes('not found')) {
-        return c.json({ error: error.message }, 404);
-      }
-      
-      return c.json({ error: 'Failed to create conversation' }, 500);
-    }
-  }
-
-  /**
-   * Update mastery endpoint
-   */
-  async updateMastery(c: Context): Promise<Response> {
-    try {
-      const conversationId = c.req.param('id');
-      const { score } = await c.req.json();
-      const ltiContext = c.get('ltiContext');
-
-      // Input validation
-      if (typeof score !== 'number') {
-        return c.json({ error: 'Score must be a number' }, 400);
-      }
-
-      // Service call: Update with business validation
-      await this.conversationService.updateMastery(
-        conversationId, 
-        score, 
-        ltiContext.user_id
-      );
-
-      return c.json({ success: true });
-    } catch (error) {
-      console.error('Mastery update error:', error);
-      
-      if (error instanceof Error) {
-        if (error.message.includes('Unauthorized')) {
-          return c.json({ error: error.message }, 403);
-        }
-        if (error.message.includes('not found')) {
-          return c.json({ error: error.message }, 404);
-        }
-        if (error.message.includes('score must be')) {
-          return c.json({ error: error.message }, 400);
-        }
-      }
-      
-      return c.json({ error: 'Failed to update mastery score' }, 500);
-    }
+  async updateMastery(id: string, score: number): Promise<void> {
+    await this.db.prepare('UPDATE conversations SET mastery_score = ? WHERE id = ?').bind(score, id).run();
   }
 }
 ```
@@ -789,174 +503,52 @@ export class MetadataDesign {
 
 ## Authentication and Authorization
 
-Atomic Guide supports **Standalone Authentication** (email/password + OAuth) and **LTI 1.3 Authentication**.
-
-### Dual Authentication Architecture
+### Auth Flow
 
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Worker  
-    participant D1 as D1 Database
-    participant OAuth as OAuth Provider
-    participant LMS as LMS Platform
+    participant Worker
+    participant KV
+    participant Canvas
 
-    Note over Client,LMS: Two Authentication Paths
-
-    %% Standalone Authentication
-    Client->>Worker: POST /api/auth/login
-    Worker->>D1: Validate credentials
-    D1-->>Worker: User data
-    Worker->>Worker: Generate JWT + Session
-    Worker-->>Client: JWT token + cookie
-
-    %% OAuth Authentication
-    Client->>OAuth: OAuth redirect flow
-    OAuth-->>Worker: User profile data
-    Worker->>D1: Create/update user
-    Worker-->>Client: JWT + redirect to /embed
-
-    %% LTI Authentication
-    LMS->>Worker: LTI launch with JWT
-    Worker->>LMS: Validate LTI JWT
-    Worker-->>Client: Embed with LTI context
+    Client->>Worker: Request with JWT
+    Worker->>Worker: Validate JWT signature
+    Worker->>KV: Get platform keys
+    KV-->>Worker: Public key
+    Worker->>Worker: Verify claims
+    Worker->>Canvas: Validate token (if needed)
+    Canvas-->>Worker: Token valid
+    Worker-->>Client: Authorized response
 ```
 
-### Authentication Database Schema
-
-```sql
--- Users table for standalone authentication
-CREATE TABLE users (
-  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  name TEXT,
-  email_verified BOOLEAN DEFAULT FALSE,
-  provider TEXT DEFAULT 'email', -- 'email', 'google', 'github'
-  provider_id TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Sessions for token management
-CREATE TABLE sessions (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Authentication tokens (password reset, email verification)
-CREATE TABLE auth_tokens (
-  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token_hash TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('password_reset', 'email_verification')),
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Authentication Services
-
-#### Standalone Auth Service
+### Middleware/Guards
 
 ```typescript
-export class AuthService {
-  constructor(
-    private userRepository: UserRepository,
-    private sessionRepository: SessionRepository
-  ) {}
-
-  async signup(email: Email, password: string, name?: string): Promise<AuthResponse> {
-    const passwordHash = await bcrypt.hash(password, 12);
-    const user = await this.userRepository.create({
-      email, passwordHash, name, emailVerified: false
-    });
-    return this.createAuthSession(user);
-  }
-
-  async login(email: Email, password: string): Promise<AuthResponse> {
-    const user = await this.userRepository.findByEmail(email);
-    if (!user || !await bcrypt.compare(password, user.passwordHash)) {
-      throw new AuthenticationError('Invalid credentials');
-    }
-    return this.createAuthSession(user);
-  }
-
-  private async createAuthSession(user: User): Promise<AuthResponse> {
-    const sessionId = crypto.randomUUID();
-    const token = await this.generateJWT({
-      sub: user.id, sessionId, type: 'standalone'
-    });
-    
-    await this.sessionRepository.create({
-      id: sessionId, userId: user.id,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-    });
-    
-    return { token, user: { id: user.id, email: user.email, name: user.name } };
-  }
-}
-```
-
-#### OAuth Service
-
-```typescript
-export class OAuthService {
-  async handleGoogleCallback(code: string): Promise<AuthResponse> {
-    const userInfo = await this.exchangeCodeForUserInfo('google', code);
-    const user = await this.userRepository.findOrCreateByEmail({
-      email: userInfo.email, name: userInfo.name, 
-      provider: 'google', providerId: userInfo.id
-    });
-    return this.authService.createAuthSession(user);
-  }
-
-  async handleGitHubCallback(code: string): Promise<AuthResponse> {
-    const userInfo = await this.exchangeCodeForUserInfo('github', code);
-    const user = await this.userRepository.findOrCreateByEmail({
-      email: userInfo.email, name: userInfo.name,
-      provider: 'github', providerId: userInfo.id
-    });
-    return this.authService.createAuthSession(user);
-  }
-}
-```
-
-### Unified Authentication Middleware
-
-```typescript
-export async function authMiddleware(c: Context, next: Next) {
+// LTI authentication middleware (extends existing)
+export async function ltiAuthMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return c.json({ error: 'Missing authorization' }, 401);
   }
 
   const token = authHeader.substring(7);
+
   try {
-    const payload = await verifyJWT(token);
-    
-    if (payload.type === 'standalone') {
-      // Standalone authentication
-      c.set('auth', {
-        userId: payload.sub,
-        sessionId: payload.sessionId,
-        type: 'standalone'
-      });
-    } else {
-      // LTI authentication
-      c.set('ltiContext', {
-        user_id: payload.sub,
-        platform_id: payload.iss,
-        course_id: payload['https://purl.imsglobal.org/spec/lti/claim/context']?.id,
-        roles: payload['https://purl.imsglobal.org/spec/lti/claim/roles'] || [],
-        is_instructor: payload['https://purl.imsglobal.org/spec/lti/claim/roles']?.includes(
-          'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'
-        ) || false,
-        type: 'lti'
-      });
-    }
+    // Verify JWT using existing LTI service
+    const claims = await ltiService.verifyJWT(token);
+
+    // Add claims to context
+    c.set('ltiContext', {
+      user_id: claims.sub,
+      platform_id: claims.iss,
+      course_id: claims['https://purl.imsglobal.org/spec/lti/claim/context'].id,
+      roles: claims['https://purl.imsglobal.org/spec/lti/claim/roles'],
+      is_instructor: claims['https://purl.imsglobal.org/spec/lti/claim/roles'].includes(
+        'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'
+      ),
+    });
+
     await next();
   } catch (error) {
     return c.json({ error: 'Invalid token' }, 401);

@@ -8,7 +8,7 @@
  * Validates data protection, anonymization, and right-to-be-forgotten implementations.
  */
 
-/* eslint-disable no-console, no-undef */
+ 
 
 import { describe, it, expect, beforeEach, afterEach, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
 import { DatabaseService } from '@shared/server/services';

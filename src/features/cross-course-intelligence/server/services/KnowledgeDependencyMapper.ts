@@ -451,7 +451,7 @@ export class KnowledgeDependencyMapper {
     cognitivePatterns: Array<{
       learningStyle: string;
       processingSpeed: number;
-      memoryStrength: any;
+      memoryStrength: number;
     }>
   ): number {
     // MVP: Simple heuristic based on pattern diversity

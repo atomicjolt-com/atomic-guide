@@ -359,7 +359,7 @@ export class CrossCoursePerformanceTestRunner {
    * Runs knowledge dependency mapping performance tests
    * BLOCKED: Knowledge graph query optimization approach undefined
    */
-  async runKnowledgeDependencyTests(config: PerformanceTestConfig): Promise<PerformanceResult> {
+  async runKnowledgeDependencyTests(_config: PerformanceTestConfig): Promise<PerformanceResult> {
     throw new Error('BLOCKED: Knowledge graph performance testing requires query optimization framework');
   }
 
@@ -367,7 +367,7 @@ export class CrossCoursePerformanceTestRunner {
    * Runs cross-course analytics generation performance tests
    * BLOCKED: Analytics generation infrastructure not implemented
    */
-  async runAnalyticsGenerationTests(config: PerformanceTestConfig): Promise<PerformanceResult> {
+  async runAnalyticsGenerationTests(_config: PerformanceTestConfig): Promise<PerformanceResult> {
     throw new Error('BLOCKED: Analytics generation performance testing requires implementation infrastructure');
   }
 
@@ -375,7 +375,7 @@ export class CrossCoursePerformanceTestRunner {
    * Runs real-time gap detection performance tests
    * BLOCKED: Real-time processing architecture not designed
    */
-  async runGapDetectionTests(config: PerformanceTestConfig): Promise<PerformanceResult> {
+  async runGapDetectionTests(_config: PerformanceTestConfig): Promise<PerformanceResult> {
     throw new Error('BLOCKED: Gap detection performance testing requires real-time architecture implementation');
   }
 
@@ -383,7 +383,7 @@ export class CrossCoursePerformanceTestRunner {
    * Runs cross-course chat integration performance tests
    * BLOCKED: Chat integration performance optimization undefined
    */
-  async runChatIntegrationTests(config: PerformanceTestConfig): Promise<PerformanceResult> {
+  async runChatIntegrationTests(_config: PerformanceTestConfig): Promise<PerformanceResult> {
     throw new Error('BLOCKED: Chat integration performance testing requires optimization framework');
   }
 
@@ -391,7 +391,7 @@ export class CrossCoursePerformanceTestRunner {
    * Runs privacy compliance performance impact tests
    * BLOCKED: Privacy control performance impact unknown
    */
-  async runPrivacyComplianceTests(config: PerformanceTestConfig): Promise<PerformanceResult> {
+  async runPrivacyComplianceTests(_config: PerformanceTestConfig): Promise<PerformanceResult> {
     throw new Error('BLOCKED: Privacy compliance performance testing requires privacy framework implementation');
   }
 
@@ -467,7 +467,7 @@ export class PerformanceMonitor {
    * Analyzes performance trends over time
    * BLOCKED: Trend analysis framework not defined
    */
-  analyzePerformanceTrends(timeWindow: string): Promise<Record<string, any>> {
+  analyzePerformanceTrends(_timeWindow: string): Promise<Record<string, unknown>> {
     throw new Error('BLOCKED: Performance trend analysis requires historical data collection');
   }
 
@@ -480,11 +480,11 @@ export class PerformanceMonitor {
   }
 }
 
-// Export all performance testing utilities
+// Export all performance testing utilities - fix duplicate exports
 export {
-  CROSS_COURSE_PERFORMANCE_TESTS,
-  CrossCoursePerformanceTestRunner,
-  PerformanceMonitor
+  CROSS_COURSE_PERFORMANCE_TESTS as PerformanceTests,
+  CrossCoursePerformanceTestRunner as TestRunner,
+  PerformanceMonitor as Monitor
 };
 
 export default {

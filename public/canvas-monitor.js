@@ -730,11 +730,11 @@
   window.CanvasMonitor = {
     getState: () => ({ ...state, metrics }),
     getConfig: () => ({ ...CONFIG }),
-    startMonitoring: () => { state.isMonitoring = true; },
-    stopMonitoring: () => { state.isMonitoring = false; },
+    startMonitoring: () => {state.isMonitoring = true;},
+    stopMonitoring: () => {state.isMonitoring = false;},
     flushSignals: flushSignalBatch,
-    enableDebug: () => { CONFIG.debugMode = true; },
-    disableDebug: () => { CONFIG.debugMode = false; }
+    enableDebug: () => {CONFIG.debugMode = true;},
+    disableDebug: () => {CONFIG.debugMode = false;}
   };
 
 })();

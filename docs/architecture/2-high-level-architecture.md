@@ -27,7 +27,8 @@ src/
 │   ├── dashboard/     # Analytics & insights
 │   ├── lti/          # LTI protocol handling
 │   ├── settings/      # User preferences
-│   └── faq/          # Knowledge base
+│   ├── faq/          # Knowledge base
+│   └── site/         # Embedding & landing pages
 └── shared/            # Cross-feature shared code
     ├── client/        # Shared UI components, hooks
     ├── server/        # Shared services, utilities

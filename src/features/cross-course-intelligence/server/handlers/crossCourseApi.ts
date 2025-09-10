@@ -278,7 +278,7 @@ export class CrossCourseApiHandlers {
       }
 
       const result = await this.db.query(
-        `SELECT * FROM cross_course_consent WHERE student_id = ? ORDER BY consent_date DESC`,
+        'SELECT * FROM cross_course_consent WHERE student_id = ? ORDER BY consent_date DESC',
         [studentId]
       );
 
@@ -337,17 +337,17 @@ export class CrossCourseApiHandlers {
       const params = [alertQuery.instructorId];
 
       if (alertQuery.courseId) {
-        sql += ` AND course_id = ?`;
+        sql += ' AND course_id = ?';
         params.push(alertQuery.courseId);
       }
 
       if (alertQuery.status) {
-        sql += ` AND status = ?`;
+        sql += ' AND status = ?';
         params.push(alertQuery.status);
       }
 
       if (alertQuery.priority) {
-        sql += ` AND priority = ?`;
+        sql += ' AND priority = ?';
         params.push(alertQuery.priority);
       }
 
@@ -361,7 +361,7 @@ export class CrossCourseApiHandlers {
       sql += ` ORDER BY ${orderColumn} ${alertQuery.sortOrder}`;
 
       // Add pagination
-      sql += ` LIMIT ? OFFSET ?`;
+      sql += ' LIMIT ? OFFSET ?';
       params.push(alertQuery.limit, alertQuery.offset);
 
       const result = await this.db.query(sql, params);

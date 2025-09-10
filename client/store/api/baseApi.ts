@@ -6,7 +6,22 @@ export const baseApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: '/api',
     prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).jwt?.token;
+      // First try to get LTI JWT from Redux store
+      let token = (getState() as RootState).jwt?.token;
+      
+      // If no LTI token, try to get auth token from Zustand store (persisted in localStorage)
+      if (!token) {
+        try {
+          const authStorage = localStorage.getItem('auth-storage');
+          if (authStorage) {
+            const authState = JSON.parse(authStorage);
+            token = authState.state?.token;
+          }
+        } catch (error) {
+          console.error('Failed to get auth token from localStorage:', error);
+        }
+      }
+      
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }

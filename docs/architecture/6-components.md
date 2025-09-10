@@ -650,3 +650,56 @@ graph LR
     Canvas --> KV
     MCP --> D1
 ```
+
+## Site Embedding Service
+
+**Responsibility:** Enable embedding of Atomic Guide in external websites and manage embedded sessions
+
+**Key Interfaces:**
+
+- `GET /embed` - Serve embeddable interface HTML
+- `POST /api/embed/initialize` - Initialize embedded session with configuration
+- `GET /api/embed/config` - Retrieve embedding configuration
+- `POST /api/embed/validate-origin` - Validate embedding origin permissions
+
+**Dependencies:** Origin validation service, Session management, PostMessage handler
+
+**Technology Stack:** TypeScript, iframe sandboxing, Content Security Policy
+
+**Implementation Details:**
+
+```typescript
+interface EmbeddingService {
+  // Embedding configuration
+  generateEmbedCode(config: EmbedConfig): string;
+  validateOrigin(origin: string): boolean;
+
+  // Session management
+  initializeEmbeddedSession(config: EmbedConfig): Promise<EmbedSession>;
+  validateEmbedToken(token: string): Promise<boolean>;
+
+  // Communication
+  handlePostMessage(message: MessageEvent): Promise<void>;
+  sendToParent(data: any): void;
+
+  // Security
+  generateCSPHeaders(origin: string): Headers;
+  validateFrameAncestors(origin: string): boolean;
+}
+```
+
+**Embedding Usage:**
+
+```html
+<!-- Embed Atomic Guide in any webpage -->
+<iframe src="https://guide.atomicjolt.xyz/embed" width="100%" height="600px" sandbox="allow-scripts allow-same-origin"> </iframe>
+```
+
+**Security Considerations:**
+
+- Strict origin validation against whitelist
+- Content Security Policy with frame-ancestors directive
+- Sandboxed iframe attributes
+- Rate limiting per origin
+- Token-based session validation
+- PostMessage origin verification

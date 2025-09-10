@@ -56,3 +56,4 @@ This architecture document combines:
 | 2025-08-21 | 1.5     | Integrated UI/UX specification with design system and personas              | Winston |
 | 2025-08-22 | 2.0     | Merged comprehensive fullstack and brownfield architectures                 | Winston |
 | 2025-12-29 | 3.0     | Refactored to vertical slice architecture with feature-based organization   | Claude  |
+| 2025-01-01 | 3.1     | Fixed section numbering, added site feature, documented shared services     | Winston |

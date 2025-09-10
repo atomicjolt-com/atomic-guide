@@ -142,7 +142,7 @@ export class KnowledgeGraphRepository {
   async getKnowledgeDependencyById(id: string): Promise<CrossCourseResult<KnowledgeDependency>> {
     try {
       const result = await this.db.query(
-        `SELECT * FROM knowledge_dependencies WHERE id = ?`,
+        'SELECT * FROM knowledge_dependencies WHERE id = ?',
         [id]
       );
 
@@ -188,41 +188,41 @@ export class KnowledgeGraphRepository {
 
       // Apply filters
       if (query.prerequisiteCourse) {
-        sql += ` AND prerequisite_course = ?`;
+        sql += ' AND prerequisite_course = ?';
         params.push(query.prerequisiteCourse);
       }
 
       if (query.dependentCourse) {
-        sql += ` AND dependent_course = ?`;
+        sql += ' AND dependent_course = ?';
         params.push(query.dependentCourse);
       }
 
       if (query.concept) {
-        sql += ` AND (prerequisite_concept LIKE ? OR dependent_concept LIKE ?)`;
+        sql += ' AND (prerequisite_concept LIKE ? OR dependent_concept LIKE ?)';
         params.push(`%${query.concept}%`, `%${query.concept}%`);
       }
 
       if (query.minDependencyStrength) {
-        sql += ` AND dependency_strength >= ?`;
+        sql += ' AND dependency_strength >= ?';
         params.push(query.minDependencyStrength);
       }
 
       if (query.minSampleSize) {
-        sql += ` AND sample_size >= ?`;
+        sql += ' AND sample_size >= ?';
         params.push(query.minSampleSize);
       }
 
       // Order by dependency strength
-      sql += ` ORDER BY dependency_strength DESC`;
+      sql += ' ORDER BY dependency_strength DESC';
 
       // Apply pagination
       if (query.limit) {
-        sql += ` LIMIT ?`;
+        sql += ' LIMIT ?';
         params.push(query.limit);
       }
 
       if (query.offset) {
-        sql += ` OFFSET ?`;
+        sql += ' OFFSET ?';
         params.push(query.offset);
       }
 
@@ -344,7 +344,7 @@ export class KnowledgeGraphRepository {
   async deleteKnowledgeDependency(id: string): Promise<CrossCourseResult<boolean>> {
     try {
       const result = await this.db.query(
-        `DELETE FROM knowledge_dependencies WHERE id = ?`,
+        'DELETE FROM knowledge_dependencies WHERE id = ?',
         [id]
       );
 
@@ -695,11 +695,11 @@ export class KnowledgeGraphRepository {
       const params = [studentId];
 
       if (status) {
-        sql += ` AND status = ?`;
+        sql += ' AND status = ?';
         params.push(status);
       }
 
-      sql += ` ORDER BY opportunity_strength DESC, created_at DESC`;
+      sql += ' ORDER BY opportunity_strength DESC, created_at DESC';
 
       const result = await this.db.query(sql, params);
 

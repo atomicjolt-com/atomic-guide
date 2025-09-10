@@ -8,6 +8,8 @@
  * Mapping and Performance Correlation feature.
  */
 
+/* eslint-env node */
+
 console.log('🚀 STORY 6.1 QUALITY GATE VALIDATION SYSTEM');
 console.log('══════════════════════════════════════════════════════════════════');
 console.log('Executing comprehensive quality gate validation for:');

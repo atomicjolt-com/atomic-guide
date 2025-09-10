@@ -300,19 +300,19 @@ app.get('/api/auth/oauth/github/callback', (c) => {
   return oauthHandlers.githubCallback(c);
 });
 
-// API routes (TODO: Add requireAuth middleware after testing)
-app.post('/api/chat/message', (c) => handleChatMessage(c));
-app.post('/api/chat/stream', (c) => handleChatStream(c));
-app.get('/api/chat/search', (c) => searchChatHistory(c));
-app.get('/api/chat/conversation/:conversationId', (c) => getChatConversation(c));
-app.delete('/api/chat/conversation/:conversationId', (c) => deleteChatConversation(c));
-app.get('/api/user/export', (c) => exportUserData(c));
+// API routes (with auth protection)
+app.post('/api/chat/message', requireAuth, (c) => handleChatMessage(c));
+app.post('/api/chat/stream', requireAuth, (c) => handleChatStream(c));
+app.get('/api/chat/search', requireAuth, (c) => searchChatHistory(c));
+app.get('/api/chat/conversation/:conversationId', requireAuth, (c) => getChatConversation(c));
+app.delete('/api/chat/conversation/:conversationId', requireAuth, (c) => deleteChatConversation(c));
+app.get('/api/user/export', requireAuth, (c) => exportUserData(c));
 
 // Dashboard API routes
-app.get('/api/dashboard/conversations', (c) => getConversations(c));
-app.get('/api/dashboard/insights', (c) => getLearningInsights(c));
-app.post('/api/learner/learning-style', (c) => updateLearningStyle(c));
-app.get('/api/dashboard/summary/:conversationId', (c) => getConversationSummary(c));
+app.get('/api/dashboard/conversations', requireAuth, (c) => getConversations(c));
+app.get('/api/dashboard/insights', requireAuth, (c) => getLearningInsights(c));
+app.post('/api/learner/learning-style', requireAuth, (c) => updateLearningStyle(c));
+app.get('/api/dashboard/summary/:conversationId', requireAuth, (c) => getConversationSummary(c));
 
 // Rich Media and FAQ API routes (Story 2.2)
 app.route('/api/chat/faq', faqHandler);

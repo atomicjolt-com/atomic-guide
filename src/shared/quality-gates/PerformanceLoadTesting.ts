@@ -280,7 +280,7 @@ export class PerformanceLoadTester {
       await this.sleep(rampUpInterval);
     }
     
-    console.log(`   📈 All users ramped up`);
+    console.log('   📈 All users ramped up');
   }
 
   /**
@@ -303,14 +303,14 @@ export class PerformanceLoadTester {
       await this.sleep(monitoringInterval);
     }
     
-    console.log(`   🏁 Sustained load phase completed`);
+    console.log('   🏁 Sustained load phase completed');
   }
 
   /**
    * Execute ramp-down phase
    */
   private async executeRampDownPhase(users: VirtualUser[], scenario: LoadTestScenario): Promise<void> {
-    console.log(`   📉 Ramp-down phase...`);
+    console.log('   📉 Ramp-down phase...');
     
     const rampDownTime = scenario.rampUpTimeSeconds * 0.5; // Half of ramp-up time
     const rampDownInterval = (rampDownTime * 1000) / users.length;
@@ -320,14 +320,14 @@ export class PerformanceLoadTester {
       await this.sleep(rampDownInterval);
     }
     
-    console.log(`   📉 All users ramped down`);
+    console.log('   📉 All users ramped down');
   }
 
   /**
    * Cleanup virtual users
    */
   private async cleanupVirtualUsers(users: VirtualUser[]): Promise<void> {
-    console.log(`   🧹 Cleaning up virtual users...`);
+    console.log('   🧹 Cleaning up virtual users...');
     
     await Promise.all(users.map(user => user.cleanup()));
   }

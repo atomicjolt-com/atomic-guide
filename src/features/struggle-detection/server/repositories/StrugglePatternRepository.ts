@@ -293,7 +293,7 @@ export class StrugglePatternRepository {
 
       // Performance optimization: always add LIMIT
       const limit = Math.min(query.limit || 1000, this.QUERY_PERFORMANCE_TARGETS.maxResultsPerQuery);
-      sql += ` ORDER BY timestamp DESC LIMIT ?`;
+      sql += ' ORDER BY timestamp DESC LIMIT ?';
       params.push(limit);
 
       if (query.offset) {
@@ -443,7 +443,7 @@ export class StrugglePatternRepository {
       }
 
       const limit = Math.min(query.limit || 100, 1000);
-      sql += ` ORDER BY detected_at DESC LIMIT ?`;
+      sql += ' ORDER BY detected_at DESC LIMIT ?';
       params.push(limit);
 
       if (query.offset) {

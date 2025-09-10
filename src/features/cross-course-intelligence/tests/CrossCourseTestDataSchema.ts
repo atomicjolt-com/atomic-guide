@@ -437,7 +437,7 @@ export class SyntheticCrossCourseDataGenerator {
    * Validates generated data quality and realism
    * BLOCKED: Data quality validation metrics undefined
    */
-  validateDataQuality(data: any): boolean {
+  validateDataQuality(_data: unknown): boolean {
     throw new Error('BLOCKED: Data quality validation requires statistical realism metrics');
   }
 }

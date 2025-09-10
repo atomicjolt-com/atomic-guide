@@ -153,7 +153,52 @@ export function ProactiveChatTrigger({
   // Integration with intervention management hook - MUST be called unconditionally
   const { acceptIntervention, dismissIntervention, snoozeIntervention, timeoutIntervention } = useProactiveInterventions();
   
-  // Auto-timeout management - MUST be defined before useEffect
+  // Clear auto-timeout helper
+  const clearAutoTimeout = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+  }, []);
+
+  // Handle close with animation
+  const handleClose = useCallback((reason: string) => {
+    if (animation.enabled) {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setIsVisible(false);
+        setIsAnimating(false);
+        setShowSnoozeOptions(false);
+      }, animation.duration);
+    } else {
+      setIsVisible(false);
+      setShowSnoozeOptions(false);
+    }
+    
+    // Analytics tracking
+    trackInteractionEvent('intervention_closed', {
+      interventionId: intervention.id,
+      reason,
+      urgencyLevel: intervention.urgencyLevel,
+      timeShown: DEFAULT_CONFIG.autoTimeoutMs - timeRemaining
+    });
+  }, [animation, intervention.id, intervention.urgencyLevel, timeRemaining]);
+
+  // Handle timeout - MUST be defined before startAutoTimeout
+  const handleTimeout = useCallback(() => {
+    const sanitizedIntervention = validateInterventionSecurity(intervention).sanitizedData || intervention;
+    clearAutoTimeout();
+    timeoutIntervention(sanitizedIntervention.id);
+    onTimeout(sanitizedIntervention.id);
+    logInterventionEvent('intervention_timeout', sanitizedIntervention.id);
+    handleClose('timeout');
+  }, [intervention, onTimeout, clearAutoTimeout, timeoutIntervention, handleClose]);
+  
+  // Auto-timeout management - MUST be defined after handleTimeout
   const startAutoTimeout = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -180,48 +225,6 @@ export function ProactiveChatTrigger({
       handleTimeout();
     }, DEFAULT_CONFIG.autoTimeoutMs);
   }, [handleTimeout]);
-
-  const clearAutoTimeout = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-      countdownRef.current = null;
-    }
-  }, []);
-
-  const handleClose = useCallback((reason: string) => {
-    if (animation.enabled) {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setIsVisible(false);
-        setIsAnimating(false);
-        setShowSnoozeOptions(false);
-      }, animation.duration);
-    } else {
-      setIsVisible(false);
-      setShowSnoozeOptions(false);
-    }
-    
-    // Analytics tracking
-    trackInteractionEvent('intervention_closed', {
-      interventionId: intervention.id,
-      reason,
-      urgencyLevel: intervention.urgencyLevel,
-      timeShown: DEFAULT_CONFIG.autoTimeoutMs - timeRemaining
-    });
-  }, [animation, intervention.id, intervention.urgencyLevel, timeRemaining]);
-
-  const handleTimeout = useCallback(() => {
-    const sanitizedIntervention = validateInterventionSecurity(intervention).sanitizedData || intervention;
-    clearAutoTimeout();
-    timeoutIntervention(sanitizedIntervention.id);
-    onTimeout(sanitizedIntervention.id);
-    logInterventionEvent('intervention_timeout', sanitizedIntervention.id);
-    handleClose('timeout');
-  }, [intervention, onTimeout, clearAutoTimeout, timeoutIntervention, handleClose]);
 
   // Event handlers - MUST be defined before useEffect
   const handleAccept = useCallback(() => {

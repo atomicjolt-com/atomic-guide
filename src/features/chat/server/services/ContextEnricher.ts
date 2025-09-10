@@ -23,6 +23,19 @@ export interface LTIContext {
   userName?: string;
 }
 
+export interface CrossCourseContext {
+  courseName: string;
+  courseCode: string;
+  relevanceScore: number; // 0-1 relevance to current question
+  description: string;
+  connectionType: 'prerequisite' | 'dependent' | 'parallel' | 'transfer';
+  knowledgeGaps?: Array<{
+    concept: string;
+    gapSeverity: number;
+    remediationPriority: string;
+  }>;
+}
+
 export interface EnrichedContext {
   page: PageContext;
   lti: LTIContext;
@@ -31,6 +44,19 @@ export interface EnrichedContext {
   extractedContent: string;
   keywords: string[];
   topics: string[];
+  crossCourseContext?: CrossCourseContext[];
+  prerequisiteLinks?: Array<{
+    concept: string;
+    course: string;
+    explanation: string;
+    masteryLevel: number;
+  }>;
+  knowledgeTransferOpportunities?: Array<{
+    sourceCourse: string;
+    targetCourse: string;
+    transferType: string;
+    recommendation: string;
+  }>;
 }
 
 export class ContextEnricher {
@@ -50,6 +76,11 @@ export class ContextEnricher {
       pageContext.courseName = ltiContext.contextTitle;
     }
 
+    // Fetch cross-course context if available
+    const crossCourseContext = await this.fetchCrossCourseContext(ltiContext.userId, pageContext.courseId, topics);
+    const prerequisiteLinks = await this.fetchPrerequisiteLinks(ltiContext.userId, topics);
+    const knowledgeTransferOpportunities = await this.fetchKnowledgeTransferOpportunities(ltiContext.userId, pageContext.courseId);
+
     return {
       page: pageContext,
       lti: ltiContext,
@@ -58,6 +89,9 @@ export class ContextEnricher {
       extractedContent,
       keywords,
       topics,
+      crossCourseContext,
+      prerequisiteLinks,
+      knowledgeTransferOpportunities,
     };
   }
 
@@ -285,5 +319,137 @@ export class ContextEnricher {
 
     // Include if significant overlap
     return matches >= 3;
+  }
+
+  /**
+   * Fetch cross-course context information for enhanced chat responses
+   */
+  private async fetchCrossCourseContext(studentId: string, currentCourseId: string, topics: string[]): Promise<CrossCourseContext[]> {
+    try {
+      // This would connect to the cross-course intelligence services
+      // For now, return mock data structure to maintain type safety
+      const mockContext: CrossCourseContext[] = [];
+      
+      // In full implementation, this would:
+      // 1. Query CrossCourseAnalyticsEngine for related courses
+      // 2. Use KnowledgeDependencyMapper to find prerequisite relationships
+      // 3. Calculate relevance scores based on topic overlap
+      // 4. Include knowledge gaps from PrerequisiteGapAnalyzer
+      
+      return mockContext;
+    } catch (error) {
+      console.error('Failed to fetch cross-course context:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch prerequisite concept links for the current topics
+   */
+  private async fetchPrerequisiteLinks(studentId: string, topics: string[]): Promise<Array<{
+    concept: string;
+    course: string;
+    explanation: string;
+    masteryLevel: number;
+  }>> {
+    try {
+      // This would connect to prerequisite gap analysis
+      const mockLinks: Array<{
+        concept: string;
+        course: string;
+        explanation: string;
+        masteryLevel: number;
+      }> = [];
+
+      // In full implementation, this would:
+      // 1. Query KnowledgeDependencyMapper for prerequisite concepts
+      // 2. Get mastery levels from learner profile
+      // 3. Generate explanations for gaps
+      
+      return mockLinks;
+    } catch (error) {
+      console.error('Failed to fetch prerequisite links:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch knowledge transfer opportunities between courses
+   */
+  private async fetchKnowledgeTransferOpportunities(studentId: string, currentCourseId: string): Promise<Array<{
+    sourceCourse: string;
+    targetCourse: string;
+    transferType: string;
+    recommendation: string;
+  }>> {
+    try {
+      // This would connect to knowledge transfer analysis
+      const mockOpportunities: Array<{
+        sourceCourse: string;
+        targetCourse: string;
+        transferType: string;
+        recommendation: string;
+      }> = [];
+
+      // In full implementation, this would:
+      // 1. Query CrossCourseAnalyticsEngine for transfer opportunities
+      // 2. Generate recommendations based on correlation analysis
+      
+      return mockOpportunities;
+    } catch (error) {
+      console.error('Failed to fetch knowledge transfer opportunities:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Generate enhanced context summary including cross-course information
+   */
+  generateEnhancedContextSummary(enrichedContext: EnrichedContext): string {
+    const parts: string[] = [];
+
+    // Base context
+    const baseContext = this.generateContextSummary(enrichedContext);
+    if (baseContext) {
+      parts.push(baseContext);
+    }
+
+    // Cross-course context
+    if (enrichedContext.crossCourseContext && enrichedContext.crossCourseContext.length > 0) {
+      const relatedCourses = enrichedContext.crossCourseContext
+        .filter(ctx => ctx.relevanceScore > 0.5)
+        .map(ctx => `${ctx.courseName} (${ctx.connectionType})`)
+        .join(', ');
+      
+      if (relatedCourses) {
+        parts.push(`Related Courses: ${relatedCourses}`);
+      }
+    }
+
+    // Knowledge gaps
+    if (enrichedContext.crossCourseContext) {
+      const gaps = enrichedContext.crossCourseContext
+        .flatMap(ctx => ctx.knowledgeGaps || [])
+        .filter(gap => gap.gapSeverity > 0.5)
+        .map(gap => gap.concept);
+      
+      if (gaps.length > 0) {
+        parts.push(`Knowledge Gaps: ${gaps.join(', ')}`);
+      }
+    }
+
+    // Prerequisite concepts
+    if (enrichedContext.prerequisiteLinks && enrichedContext.prerequisiteLinks.length > 0) {
+      const weakConcepts = enrichedContext.prerequisiteLinks
+        .filter(link => link.masteryLevel < 0.7)
+        .map(link => `${link.concept} (${link.course})`)
+        .join(', ');
+      
+      if (weakConcepts) {
+        parts.push(`Weak Prerequisites: ${weakConcepts}`);
+      }
+    }
+
+    return parts.join(' | ');
   }
 }
