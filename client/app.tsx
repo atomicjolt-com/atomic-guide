@@ -69,7 +69,7 @@ function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactEleme
       <main className="app-content">
         {activeView === 'chat' ? (
           <div className="chat-container">
-            <h1>Learning Assistant</h1>
+            <h1>Atomic Guide</h1>
             <ChatFAB />
             <ChatWindow />
           </div>
