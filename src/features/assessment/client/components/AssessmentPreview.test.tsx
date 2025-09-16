@@ -3,14 +3,13 @@
  * @module features/assessment/client/components/AssessmentPreview.test
  */
 
-import { describe, it, expect, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi } from '@/tests/infrastructure';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AssessmentPreview } from './AssessmentPreview';
 import { defaultAssessmentConfig } from '../../shared/schemas/assessment.schema';
 import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('AssessmentPreview', () => {
   const defaultProps = {
     config: defaultAssessmentConfig,

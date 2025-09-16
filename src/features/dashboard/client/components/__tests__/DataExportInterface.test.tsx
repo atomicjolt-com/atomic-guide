@@ -3,12 +3,11 @@
  * @module features/dashboard/client/components/__tests__/DataExportInterface.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi, beforeEach, afterEach } from '@/tests/infrastructure';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DataExportInterface from '../DataExportInterface';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

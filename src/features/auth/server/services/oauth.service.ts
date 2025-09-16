@@ -42,7 +42,7 @@ export class OAuthService {
    */
   getAuthorizationUrl(provider: 'google' | 'github'): string {
     switch (provider) {
-      case 'google':
+      case 'google': {
         if (!this.config.google) throw new Error('Google OAuth not configured');
         const googleParams = new URLSearchParams({
           client_id: this.config.google.clientId,
@@ -53,8 +53,9 @@ export class OAuthService {
           prompt: 'consent'
         });
         return `https://accounts.google.com/o/oauth2/v2/auth?${googleParams}`;
+      }
       
-      case 'github':
+      case 'github': {
         if (!this.config.github) throw new Error('GitHub OAuth not configured');
         const githubParams = new URLSearchParams({
           client_id: this.config.github.clientId,
@@ -62,6 +63,7 @@ export class OAuthService {
           scope: 'user:email'
         });
         return `https://github.com/login/oauth/authorize?${githubParams}`;
+      }
       
       default:
         throw new Error(`Unsupported OAuth provider: ${provider}`);
@@ -73,9 +75,9 @@ export class OAuthService {
    */
   async exchangeCodeForToken(provider: 'google' | 'github', code: string): Promise<string> {
     switch (provider) {
-      case 'google':
+      case 'google': {
         if (!this.config.google) throw new Error('Google OAuth not configured');
-        
+
         const googleTokenResponse = await fetch('https://oauth2.googleapis.com/token', {
           method: 'POST',
           headers: {
@@ -89,17 +91,18 @@ export class OAuthService {
             grant_type: 'authorization_code'
           })
         });
-        
+
         if (!googleTokenResponse.ok) {
           throw new Error('Failed to exchange code for Google token');
         }
-        
+
         const googleData = await googleTokenResponse.json();
         return googleData.access_token;
+      }
       
-      case 'github':
+      case 'github': {
         if (!this.config.github) throw new Error('GitHub OAuth not configured');
-        
+
         const githubTokenResponse = await fetch('https://github.com/login/oauth/access_token', {
           method: 'POST',
           headers: {
@@ -113,13 +116,14 @@ export class OAuthService {
             redirect_uri: this.config.github.redirectUri
           })
         });
-        
+
         if (!githubTokenResponse.ok) {
           throw new Error('Failed to exchange code for GitHub token');
         }
-        
+
         const githubData = await githubTokenResponse.json();
         return githubData.access_token;
+      }
       
       default:
         throw new Error(`Unsupported OAuth provider: ${provider}`);
@@ -131,17 +135,17 @@ export class OAuthService {
    */
   async getUserInfo(provider: 'google' | 'github', accessToken: string): Promise<OAuthUserInfo> {
     switch (provider) {
-      case 'google':
+      case 'google': {
         const googleUserResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }
         });
-        
+
         if (!googleUserResponse.ok) {
           throw new Error('Failed to get Google user info');
         }
-        
+
         const googleUser = await googleUserResponse.json();
         return {
           id: googleUser.id,
@@ -150,8 +154,9 @@ export class OAuthService {
           picture: googleUser.picture,
           provider: 'google'
         };
+      }
       
-      case 'github':
+      case 'github': {
         // Get user info
         const githubUserResponse = await fetch('https://api.github.com/user', {
           headers: {
@@ -159,13 +164,13 @@ export class OAuthService {
             'Accept': 'application/vnd.github.v3+json'
           }
         });
-        
+
         if (!githubUserResponse.ok) {
           throw new Error('Failed to get GitHub user info');
         }
-        
+
         const githubUser = await githubUserResponse.json();
-        
+
         // Get primary email
         const githubEmailResponse = await fetch('https://api.github.com/user/emails', {
           headers: {
@@ -173,14 +178,14 @@ export class OAuthService {
             'Accept': 'application/vnd.github.v3+json'
           }
         });
-        
+
         if (!githubEmailResponse.ok) {
           throw new Error('Failed to get GitHub user email');
         }
-        
+
         const githubEmails = await githubEmailResponse.json();
         const primaryEmail = githubEmails.find((e: any) => e.primary)?.email || githubUser.email;
-        
+
         return {
           id: githubUser.id.toString(),
           email: primaryEmail,
@@ -188,6 +193,7 @@ export class OAuthService {
           picture: githubUser.avatar_url,
           provider: 'github'
         };
+      }
       
       default:
         throw new Error(`Unsupported OAuth provider: ${provider}`);

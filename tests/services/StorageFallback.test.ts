@@ -4,11 +4,10 @@
  * Story 1.1 Requirement: Test fallback activates on D1 timeout
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, vi, afterEach } from '@/tests/infrastructure';
 import { StorageFallbackService } from '../../src/services/StorageFallback';
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock KV Namespace
 const createMockKV = () => {
   const store = new Map<string, any>();

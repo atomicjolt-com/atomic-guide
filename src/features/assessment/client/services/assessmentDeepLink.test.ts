@@ -10,7 +10,7 @@ vi.mock('@shared/client/services/deepLinkingService', () => ({
   signDeepLink: vi.fn(),
 }));
 
-import { describe, it, expect, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, afterEach } from '@/tests/infrastructure';
 import {
   createAssessmentDeepLink,
   submitAssessmentDeepLink,
@@ -21,7 +21,6 @@ import {
 } from './assessmentDeepLink';
 import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock fetch globally
 global.fetch = vi.fn();
 

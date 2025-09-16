@@ -19,6 +19,7 @@ export default [
       'worker-configuration.d.ts',
       'types.d.ts',
       '.*/**', // Ignore all hidden directories
+      '*.mjs', // Ignore .mjs Node.js script files
     ],
   },
   js.configs.recommended,

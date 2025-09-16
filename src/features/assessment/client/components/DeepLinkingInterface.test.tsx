@@ -14,14 +14,13 @@ vi.mock('@shared/client/services/deepLinkingService', () => ({
   setupDeepLinkingButton: vi.fn(),
 }));
 
-import { describe, it, expect, beforeEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach } from '@/tests/infrastructure';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DeepLinkingInterface } from './DeepLinkingInterface';
 import * as assessmentDeepLink from '../services/assessmentDeepLink';
 import type { LaunchSettings } from '@atomicjolt/lti-client';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 
 describe('DeepLinkingInterface', () => {
   const mockLaunchSettings: LaunchSettings = {

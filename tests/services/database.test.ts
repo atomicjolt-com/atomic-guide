@@ -4,11 +4,10 @@
  * Story 1.1 Requirement: Verify tenant isolation cannot be bypassed
  */
 
-import { describe, it, expect, beforeEach, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, vi } from '@/tests/infrastructure';
 import { DatabaseService } from '../../src/services/database';
 import type { D1Database } from '@cloudflare/workers-types';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 // Mock D1 Database
 const createMockD1 = () => {
   const mockResults = new Map<string, any>();

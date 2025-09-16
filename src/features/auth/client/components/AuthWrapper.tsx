@@ -19,7 +19,7 @@ export function AuthWrapper({ children, requireAuth = false }: AuthWrapperProps)
   useEffect(() => {
     // Check session on mount
     checkSession();
-  }, []);
+  }, [checkSession]);
 
   useEffect(() => {
     // Redirect to login if auth is required but user is not authenticated

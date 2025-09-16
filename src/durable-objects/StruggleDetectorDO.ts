@@ -15,11 +15,9 @@
  */
 
 import type { DurableObjectState, DurableObjectStorage } from '@cloudflare/workers-types';
-import type { 
-  BehavioralSignal, 
-  BehavioralSignalType,
-  CanvasPageContent,
-  InterventionMessage 
+import type {
+  BehavioralSignal,
+  CanvasPageContent
 } from '../features/canvas-integration/shared/types';
 
 /**

@@ -3,14 +3,13 @@
  * @module features/assessment/client/components/AssessmentBuilder.test
  */
 
-import { describe, it, expect, vi, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, vi } from '@/tests/infrastructure';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AssessmentBuilder } from './AssessmentBuilder';
 import { defaultAssessmentConfig } from '../../shared/schemas/assessment.schema';
 import type { AssessmentConfig } from '../../shared/schemas/assessment.schema';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('AssessmentBuilder', () => {
   const defaultProps = {
     config: defaultAssessmentConfig,

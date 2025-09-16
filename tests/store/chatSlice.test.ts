@@ -1,4 +1,4 @@
-import { describe, it, expect, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect } from '@/tests/infrastructure';
 import chatReducer, {
   toggleChat,
   openChat,
@@ -12,7 +12,6 @@ import chatReducer, {
   clearMessages,
 } from '@features/chat/client/store/chatSlice';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
 describe('chatSlice', () => {
   const initialState = {
     isOpen: false,

@@ -205,6 +205,111 @@ export class ContentExtractionError extends CanvasIntegrationError {
 }
 
 /**
+ * Canvas content reference for persistent storage
+ */
+export const CanvasContentReferenceSchema = z.object({
+  id: z.string().uuid(),
+  studentId: z.string(),
+  courseId: z.string(),
+  contentType: z.enum(['assignment', 'quiz', 'discussion', 'page', 'module', 'file']),
+  contentId: z.string(),
+  contentTitle: z.string().optional(),
+  contentUrl: z.string().url().optional(),
+  extractedAt: z.date(),
+  metadata: z.object({
+    learningObjectives: z.array(z.string()).optional(),
+    concepts: z.array(z.string()).optional(),
+    difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+    estimatedDuration: z.number().positive().optional(),
+    prerequisites: z.array(z.string()).optional(),
+  }),
+  privacy: z.object({
+    retentionExpires: z.date(),
+    consentRequired: z.boolean(),
+    anonymized: z.boolean(),
+  }),
+});
+
+export type CanvasContentReference = z.infer<typeof CanvasContentReferenceSchema>;
+
+/**
+ * Canvas context state for real-time tracking
+ */
+export const CanvasContextStateSchema = z.object({
+  id: z.string().uuid(),
+  sessionId: z.string(),
+  studentId: z.string(),
+  currentContent: CanvasContentReferenceSchema.optional(),
+  navigationHistory: z.array(z.object({
+    contentId: z.string(),
+    timestamp: z.date(),
+    duration: z.number().min(0),
+  })),
+  activeAssessments: z.array(z.string()),
+  lastUpdated: z.date(),
+});
+
+export type CanvasContextState = z.infer<typeof CanvasContextStateSchema>;
+
+/**
+ * PostMessage security configuration
+ */
+export const PostMessageSecuritySchema = z.object({
+  messageId: z.string().uuid(),
+  timestamp: z.date(),
+  origin: CanvasOriginSchema,
+  signature: z.string(),
+  payload: z.unknown(),
+  validated: z.boolean(),
+  rateLimitKey: z.string(),
+});
+
+export type PostMessageSecurity = z.infer<typeof PostMessageSecuritySchema>;
+
+/**
+ * Canvas environment configuration
+ */
+export interface CanvasEnvironmentConfig {
+  canvasBaseUrl: string;
+  allowedOrigins: string[];
+  apiVersion: string;
+  features: {
+    postMessageEnabled: boolean;
+    contentExtractionEnabled: boolean;
+    mobileSupported: boolean;
+  };
+  security: {
+    requireHttps: boolean;
+    hmacAlgorithm: string;
+    maxMessageSize: number;
+    rateLimitWindow: number;
+  };
+}
+
+/**
+ * Content analysis result from AI processing
+ */
+export interface ContentAnalysisResult {
+  concepts: string[];
+  learningObjectives: string[];
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  estimatedDuration: number;
+  prerequisites: string[];
+  confidence: number;
+  analysisTimestamp: Date;
+}
+
+/**
+ * HMAC key management interface
+ */
+export interface HMACKeyManager {
+  getCurrentKey(): Promise<string>;
+  rotateKey(): Promise<string>;
+  validateKey(keyId: string): Promise<boolean>;
+  getKeyHistory(): Promise<Array<{ id: string; created: Date; expires: Date }>>;
+}
+
+/**
  * Performance monitoring metrics
  */
 export interface CanvasIntegrationMetrics {
