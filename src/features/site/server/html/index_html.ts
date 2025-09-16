@@ -213,14 +213,6 @@ export default function indexHtml(scriptName: string) {
         <a href="/" class="header__logo">
           <img src="/images/atomicjolt_name.png" alt="atomic jolt logo icon" class="logo-icon">
         </a>
-        <div style="margin-left: auto; display: flex; gap: 1rem;">
-          <a href="/auth/login" class="aj-btn" style="background-color: transparent; color: #fff; border-color: #fff;">
-            Login
-          </a>
-          <a href="/auth/signup" class="aj-btn" style="background-color: rgb(255, 221, 0); color: #000; border-color: rgb(255, 221, 0);">
-            Sign Up
-          </a>
-        </div>
       </div>
     </header>
 
