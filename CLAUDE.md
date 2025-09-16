@@ -222,16 +222,22 @@ const CVIdSchema = z.number().positive().brand<'CVId'>();
 
 - Design principles: `/docs/branding/design-principles.md`
 - Style guide: `/docs/branding/style-guide.md`
-- Use Playwright MCP for visual testing
+- **ALWAYS use Playwright MCP to view and test UI changes**
 
-### Quick Visual Check
+### UI Change Workflow (MANDATORY)
 
-After UI changes:
+**When making ANY UI changes, you MUST:**
 
-1. Navigate to affected pages
-2. Verify against design docs
-3. Take screenshots for evidence
-4. Check console for errors
+1. Use Playwright MCP to navigate to the affected pages
+2. Visually verify the changes render correctly
+3. Check for console errors
+4. Take screenshots as evidence of the changes
+5. Verify against design docs
+
+**Playwright Setup:**
+1. Login at `https://atomicjolt.instructure.com/` (credentials in .dev.vars)
+2. Navigate to `https://atomicjolt.instructure.com/courses/253/external_tools/24989`
+3. The app loads in an iframe after LTI launch
 
 ## 🔧 Key Files
 
