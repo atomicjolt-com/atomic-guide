@@ -57,6 +57,14 @@ import richMediaHandler from './features/chat/server/handlers/richMedia';
 import suggestionHandler from './features/chat/server/handlers/suggestions';
 import contentHandler from './features/content/server/handlers/content';
 import embedHtml from './features/site/server/html/embed_html';
+import { AssessmentHandler } from './features/ai-assessment/server/handlers/AssessmentHandler';
+import { ConversationalAssessmentEngine } from './features/ai-assessment/server/services/ConversationalAssessmentEngine';
+import { AssessmentAIService } from './features/ai-assessment/server/services/AssessmentAIService';
+import { AssessmentSessionRepository } from './features/ai-assessment/server/repositories/AssessmentSessionRepository';
+import { CanvasGradePassbackService } from './features/ai-assessment/server/services/CanvasGradePassbackService';
+import { AssessmentContentGenerator } from './features/ai-assessment/server/services/AssessmentContentGenerator';
+import { createDeepLinkingHandler } from './features/deep-linking/server/handlers/DeepLinkingHandler';
+import { handleAssessmentLaunch, handleAssessmentSubmission, getAssessmentHistory } from './api/handlers/assessmentLaunch';
 
 // Export durable objects
 export { OIDCStateDurableObject } from '@atomicjolt/lti-endpoints';
@@ -343,6 +351,99 @@ app.route('/api/cross-course', crossCourseApi);
 // Mount instructor cross-course intelligence API routes (Story 6.1)
 const instructorCrossCourseApi = createInstructorCrossCourseApi('default'); // TODO: Get tenant ID from context
 app.route('/api/instructor/cross-course', instructorCrossCourseApi);
+
+// Create AI Assessment handler and dependencies
+async function createAssessmentHandler(env: Env): Promise<AssessmentHandler> {
+  const sessionRepository = new AssessmentSessionRepository(env.DB);
+  const aiService = new AssessmentAIService(env.AI, env);
+  const gradePassbackService = new CanvasGradePassbackService();
+  const contentGenerator = new AssessmentContentGenerator(env.AI, env);
+  const assessmentEngine = new ConversationalAssessmentEngine(
+    sessionRepository,
+    aiService,
+    env
+  );
+
+  return new AssessmentHandler(
+    assessmentEngine,
+    aiService,
+    sessionRepository,
+    gradePassbackService,
+    contentGenerator
+  );
+}
+
+// AI Assessment API routes (Story 7.1)
+app.post('/api/ai-assessment/sessions', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.createSession(c);
+});
+
+app.get('/api/ai-assessment/sessions/:sessionId', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.getSession(c);
+});
+
+app.post('/api/ai-assessment/sessions/:sessionId/respond', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.submitResponse(c);
+});
+
+app.post('/api/ai-assessment/sessions/:sessionId/retry', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.retryResponse(c);
+});
+
+app.post('/api/ai-assessment/sessions/:sessionId/grade', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.calculateGrade(c);
+});
+
+app.get('/api/ai-assessment/sessions', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.listSessions(c);
+});
+
+app.post('/api/ai-assessment/generate-content', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.generateContent(c);
+});
+
+app.get('/api/ai-assessment/analytics', requireAuth, async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.getAnalytics(c);
+});
+
+app.get('/api/ai-assessment/health', async (c) => {
+  const handler = await createAssessmentHandler(c.env);
+  return handler.healthCheck(c);
+});
+
+// Deep Linking API routes (Story 7.2)
+app.post('/lti/deep-link/request', async (c) => {
+  const handler = createDeepLinkingHandler(c.env.DB, c.env.AI, c.env);
+  return handler.handleDeepLinkingRequest(c);
+});
+
+app.get('/lti/deep-link/configure/:sessionId', async (c) => {
+  const handler = createDeepLinkingHandler(c.env.DB, c.env.AI, c.env);
+  return handler.serveConfigurationInterface(c);
+});
+
+app.post('/lti/deep-link/submit', async (c) => {
+  const handler = createDeepLinkingHandler(c.env.DB, c.env.AI, c.env);
+  return handler.processConfigurationSubmission(c);
+});
+
+app.get('/lti/deep-link/validate/:sessionId', async (c) => {
+  const handler = createDeepLinkingHandler(c.env.DB, c.env.AI, c.env);
+  return handler.validateLTIAccess(c);
+});
+
+// Assessment Launch API routes (Legacy support)
+app.post('/api/assessment/launch', requireAuth, handleAssessmentLaunch);
+app.post('/api/assessment/submit/:attempt_id', requireAuth, handleAssessmentSubmission);
+app.get('/api/assessment/history', requireAuth, getAssessmentHistory);
 
 // Error handling
 app.onError((err: Error, c) => {

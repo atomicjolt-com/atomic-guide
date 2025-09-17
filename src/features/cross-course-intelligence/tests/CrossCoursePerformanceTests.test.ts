@@ -121,7 +121,7 @@ export type PerformanceResult = z.infer<typeof PerformanceResultSchema>;
 export const CROSS_COURSE_PERFORMANCE_TESTS = {
   // Knowledge dependency mapping performance
   knowledgeDependencyAnalysis: {
-    name: 'Knowledge Dependency Mapping Performance',
+    testName: 'Knowledge Dependency Mapping Performance',
     description: 'Tests performance of cross-course concept correlation analysis',
     category: 'load' as const,
     environment: 'production_like' as const,
@@ -165,7 +165,7 @@ export const CROSS_COURSE_PERFORMANCE_TESTS = {
 
   // Cross-course analytics generation
   analyticsGeneration: {
-    name: 'Cross-Course Analytics Generation',
+    testName: 'Cross-Course Analytics Generation',
     description: 'Tests multi-course performance dashboard and risk assessment generation',
     category: 'stress' as const,
     environment: 'production_like' as const,
@@ -209,7 +209,7 @@ export const CROSS_COURSE_PERFORMANCE_TESTS = {
 
   // Real-time gap detection performance
   realTimeGapDetection: {
-    name: 'Real-Time Gap Detection Performance',
+    testName: 'Real-Time Gap Detection Performance',
     description: 'Tests performance of continuous prerequisite gap monitoring',
     category: 'endurance' as const,
     environment: 'production_like' as const,
@@ -253,7 +253,7 @@ export const CROSS_COURSE_PERFORMANCE_TESTS = {
 
   // Cross-course chat integration performance
   chatIntegrationPerformance: {
-    name: 'Cross-Course Chat Integration Performance',
+    testName: 'Cross-Course Chat Integration Performance',
     description: 'Tests performance of context-aware chat responses with cross-course data',
     category: 'spike' as const,
     environment: 'production_like' as const,
@@ -297,7 +297,7 @@ export const CROSS_COURSE_PERFORMANCE_TESTS = {
 
   // Privacy compliance performance impact
   privacyCompliancePerformance: {
-    name: 'Privacy Compliance Performance Impact',
+    testName: 'Privacy Compliance Performance Impact',
     description: 'Tests performance impact of privacy controls and data anonymization',
     category: 'volume' as const,
     environment: 'production_like' as const,
@@ -460,7 +460,7 @@ export class PerformanceMonitor {
    * BLOCKED: Performance monitoring infrastructure not implemented
    */
   collectMetrics(): Promise<Record<string, number>> {
-    throw new Error('BLOCKED: Performance monitoring requires infrastructure implementation');
+    return Promise.reject(new Error('BLOCKED: Performance monitoring requires infrastructure implementation'));
   }
 
   /**
@@ -468,7 +468,7 @@ export class PerformanceMonitor {
    * BLOCKED: Trend analysis framework not defined
    */
   analyzePerformanceTrends(_timeWindow: string): Promise<Record<string, unknown>> {
-    throw new Error('BLOCKED: Performance trend analysis requires historical data collection');
+    return Promise.reject(new Error('BLOCKED: Performance trend analysis requires historical data collection'));
   }
 
   /**
@@ -476,7 +476,7 @@ export class PerformanceMonitor {
    * BLOCKED: Alerting system not configured for cross-course features
    */
   configurePerformanceAlerts(): Promise<void> {
-    throw new Error('BLOCKED: Performance alerting requires monitoring system configuration');
+    return Promise.reject(new Error('BLOCKED: Performance alerting requires monitoring system configuration'));
   }
 }
 

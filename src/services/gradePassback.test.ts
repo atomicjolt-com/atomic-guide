@@ -15,7 +15,7 @@ import { GradePassbackService, GradePassbackError, createGradePassbackService } 
 import { getLtiToken } from '@atomicjolt/lti-server';
 import type { Env } from '../types';
 
-import type { MockQueue } from '@/tests/infrastructure/types/mocks';
+import type { MockQueue, MockD1Database } from '@/tests/infrastructure/types/mocks';
 
 // Mock environment
 const mockEnv: Partial<Env> = {
@@ -41,13 +41,6 @@ describe('GradePassbackService', () => {
   let service: GradePassbackService;
 
   beforeEach(async () => {
-    // Setup test infrastructure - testing GradePassbackService
-    const harness = ServiceTestHarness.withDefaults(GradePassbackService, {
-      database: true,
-      kvStore: true,
-      queue: false,
-    }).build();
-
     service = new GradePassbackService(mockEnv as Env);
   });
 

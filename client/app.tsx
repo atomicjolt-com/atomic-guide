@@ -13,6 +13,7 @@ import { ChatFAB, ChatWindow } from '@features/chat/client/components';
 import { Dashboard } from '@features/dashboard/client/components';
 import { DeepLinkingInterface } from '@features/assessment/client/components';
 import { CrossCourseAnalyticsDashboard } from '../src/features/cross-course-intelligence/client/components';
+import { AssessmentWrapper } from '../src/features/ai-assessment/client/components/AssessmentWrapper';
 import { LtiLaunchCheck } from '@atomicjolt/lti-components';
 import '@features/dashboard/styles/atomic-jolt-dashboard.css';
 import '../src/features/cross-course-intelligence/client/components/cross-course-analytics.css';
@@ -33,7 +34,7 @@ import '../src/features/cross-course-intelligence/client/components/cross-course
  * ```
  */
 function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactElement {
-  const [activeView, setActiveView] = useState<'chat' | 'dashboard' | 'cross-course'>('chat');
+  const [activeView, setActiveView] = useState<'chat' | 'dashboard' | 'cross-course' | 'ai-assessment'>('chat');
 
   if (launchSettings.deepLinking) {
     // Deep linking mode - show assessment builder interface
@@ -64,6 +65,13 @@ function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactEleme
         >
           Cross-Course Intelligence
         </button>
+        <button
+          className={`nav-button ${activeView === 'ai-assessment' ? 'active' : ''}`}
+          onClick={() => setActiveView('ai-assessment')}
+          aria-current={activeView === 'ai-assessment' ? 'page' : undefined}
+        >
+          AI Assessment
+        </button>
       </nav>
 
       <main className="app-content">
@@ -75,8 +83,10 @@ function App({ launchSettings }: { launchSettings: LaunchSettings }): ReactEleme
           </div>
         ) : activeView === 'dashboard' ? (
           <Dashboard launchSettings={launchSettings} />
-        ) : (
+        ) : activeView === 'cross-course' ? (
           <CrossCourseAnalyticsDashboard launchSettings={launchSettings} />
+        ) : (
+          <AssessmentWrapper launchSettings={launchSettings} />
         )}
       </main>
     </div>
