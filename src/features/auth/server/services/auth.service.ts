@@ -21,8 +21,6 @@ import {
 } from '../../shared/schemas/auth.schema';
 import type {
   User,
-  UserSession,
-  AuthResponse,
   LoginResponse,
   SignupResponse,
   RefreshTokenResponse,
@@ -87,7 +85,7 @@ export class AuthService {
     try {
       const { payload } = await jwtVerify(token, this.JWT_SECRET);
       return payload as unknown as JWTPayload;
-    } catch (error) {
+    } catch {
       throw new Error(AuthError.TOKEN_INVALID);
     }
   }

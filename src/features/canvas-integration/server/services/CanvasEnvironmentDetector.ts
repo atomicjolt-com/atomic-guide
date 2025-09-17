@@ -8,8 +8,7 @@
  */
 
 import {
-  CanvasEnvironmentConfig,
-  CanvasOrigin
+  CanvasEnvironmentConfig
 } from '../../shared/types';
 
 /**
@@ -243,7 +242,7 @@ export class CanvasEnvironmentDetector {
 
       // Additional validation for custom domains
       return this.validateCustomCanvasOrigin(origin);
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -433,13 +432,13 @@ export class CanvasEnvironmentDetector {
               build: response.headers.get('X-Canvas-Build') || 'unknown'
             };
           }
-        } catch (error) {
+        } catch {
           // Continue to next endpoint
         }
       }
 
       return { version: 'unknown', build: 'unknown' };
-    } catch (error) {
+    } catch {
       return { version: 'unknown', build: 'unknown' };
     }
   }
@@ -476,7 +475,7 @@ export class CanvasEnvironmentDetector {
         if (v2Response.ok || v2Response.status === 401) {
           features.apiVersions.push('v2');
         }
-      } catch (error) {
+      } catch {
         // v2 not available
       }
 
@@ -486,7 +485,7 @@ export class CanvasEnvironmentDetector {
         features.mobileAppSupported = false; // Often limited in self-hosted
       }
 
-    } catch (error) {
+    } catch {
       // Use defaults on error
     }
 
@@ -509,7 +508,7 @@ export class CanvasEnvironmentDetector {
   /**
    * Detect Canvas limits
    */
-  private async detectCanvasLimits(baseUrl: string): Promise<CanvasEnvironmentInfo['limits']> {
+  private async detectCanvasLimits(_baseUrl: string): Promise<CanvasEnvironmentInfo['limits']> {
     // Default limits - in production, these might be discovered via API
     return {
       maxApiRequestsPerSecond: 10, // Conservative default
@@ -648,7 +647,7 @@ export class CanvasEnvironmentDetector {
       }
 
       return [...new Set(permissions)]; // Remove duplicates
-    } catch (error) {
+    } catch {
       return [];
     }
   }

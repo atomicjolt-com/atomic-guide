@@ -10,12 +10,12 @@ vi.mock('@atomicjolt/lti-server', () => ({
   getLtiToken: vi.fn(),
 }));
 
-import { describe, it, expect, beforeEach, afterEach, MockFactory, TestDataFactory, ServiceTestHarness } from '@/tests/infrastructure';
+import { describe, it, expect, beforeEach, afterEach } from '@/tests/infrastructure';
 import { GradePassbackService, GradePassbackError, createGradePassbackService } from './gradePassback';
 import { getLtiToken } from '@atomicjolt/lti-server';
 import type { Env } from '../types';
 
-import type { MockD1Database, MockKVNamespace, MockQueue } from '@/tests/infrastructure/types/mocks';
+import type { MockQueue } from '@/tests/infrastructure/types/mocks';
 
 // Mock environment
 const mockEnv: Partial<Env> = {

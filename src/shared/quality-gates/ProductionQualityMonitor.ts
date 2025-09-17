@@ -8,7 +8,7 @@
  * This monitor ensures ongoing quality validation beyond deployment.
  */
 
-import { AlertThreshold, MONITORING_ALERT_THRESHOLDS } from './QualityGateConfig';
+import { MONITORING_ALERT_THRESHOLDS } from './QualityGateConfig';
 
 // Metrics collection interfaces
 interface MetricValue {
@@ -448,7 +448,7 @@ export class ProductionQualityMonitor {
   /**
    * Get recent predictions for accuracy measurement
    */
-  private async getRecentPredictions(count: number): Promise<any[]> {
+  private async getRecentPredictions(_count: number): Promise<any[]> {
     // Implementation would query recent predictions from database
     return [];
   }
@@ -456,7 +456,7 @@ export class ProductionQualityMonitor {
   /**
    * Get ground truth labels for predictions
    */
-  private async getGroundTruthLabels(predictions: any[]): Promise<any[]> {
+  private async getGroundTruthLabels(_predictions: any[]): Promise<any[]> {
     // Implementation would get validated outcomes
     return [];
   }
@@ -464,7 +464,7 @@ export class ProductionQualityMonitor {
   /**
    * Calculate accuracy between predictions and ground truth
    */
-  private calculateAccuracy(predictions: any[], groundTruth: any[]): number {
+  private calculateAccuracy(_predictions: any[], _groundTruth: any[]): number {
     // Implementation would calculate accuracy metrics
     return 0.75; // Placeholder
   }
@@ -472,7 +472,7 @@ export class ProductionQualityMonitor {
   /**
    * Get user satisfaction feedback
    */
-  private async getUserSatisfactionFeedback(timeWindow: string): Promise<number[]> {
+  private async getUserSatisfactionFeedback(_timeWindow: string): Promise<number[]> {
     // Implementation would query user feedback ratings
     return [4.2, 4.5, 3.8, 4.1, 4.3]; // Placeholder
   }
@@ -518,7 +518,7 @@ export class MetricsCollector {
     series.values.push({ value, timestamp, metadata });
   }
 
-  async getLatencyMetrics(metric: string, timeWindow: string): Promise<{ p50: number; p95: number; p99: number }> {
+  async getLatencyMetrics(_metric: string, _timeWindow: string): Promise<{ p50: number; p95: number; p99: number }> {
     // Implementation would query latency metrics
     return { p50: 45, p95: 95, p99: 180 }; // Placeholder
   }

@@ -749,7 +749,7 @@ export class CanvasMessageChannel {
   /**
    * Handle content request
    */
-  private async handleContentRequest(message: any): Promise<void> {
+  private async handleContentRequest(_message: any): Promise<void> {
     await this.extractCurrentPageContent();
   }
 

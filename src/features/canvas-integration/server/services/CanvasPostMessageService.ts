@@ -29,8 +29,6 @@ import {
   CanvasPageContent,
   CanvasPageContentSchema,
   CanvasOrigin,
-  CanvasOriginSchema,
-  CanvasMonitoringConfig,
   SecurityValidationResult,
   CanvasIntegrationResult,
   CanvasIntegrationMetrics,
@@ -219,12 +217,12 @@ export class CanvasPostMessageService {
 
       // Record successful processing
       this.metrics.totalSignalsProcessed += processedCount;
-      const processingTime = Date.now() - startTime;
-      this.metrics.signalProcessingLatency.push(processingTime);
+      const _processingTime = Date.now() - startTime;
+      this.metrics.signalProcessingLatency.push(_processingTime);
 
       // Performance monitoring
-      if (processingTime > this.SIGNAL_PROCESSING_TIMEOUT_MS) {
-        console.warn(`Signal processing exceeded target: ${processingTime}ms`);
+      if (_processingTime > this.SIGNAL_PROCESSING_TIMEOUT_MS) {
+        console.warn(`Signal processing exceeded target: ${_processingTime}ms`);
       }
 
       return {
@@ -237,7 +235,7 @@ export class CanvasPostMessageService {
       };
 
     } catch (error) {
-      const processingTime = Date.now() - startTime;
+      const _processingTime = Date.now() - startTime;
       console.error('Behavioral signal processing failed:', error);
       
       this.recordError(error instanceof Error ? error.constructor.name : 'UNKNOWN_ERROR');
@@ -296,8 +294,8 @@ export class CanvasPostMessageService {
         content = this.createFallbackContent(pageUrl);
       }
 
-      const processingTime = Date.now() - startTime;
-      this.metrics.contentExtractionLatency.push(processingTime);
+      const _processingTime = Date.now() - startTime;
+      this.metrics.contentExtractionLatency.push(_processingTime);
 
       // Store extracted content for struggle detection
       await this.storeExtractedContent(content, tenantId, sessionId);
@@ -305,7 +303,7 @@ export class CanvasPostMessageService {
       return content;
 
     } catch (error) {
-      const processingTime = Date.now() - startTime;
+      const _processingTime = Date.now() - startTime;
       console.error('Content extraction failed:', error);
       
       this.recordError(error instanceof Error ? error.constructor.name : 'CONTENT_EXTRACTION_ERROR');
@@ -580,7 +578,7 @@ export class CanvasPostMessageService {
     payload: unknown,
     tenantId: string,
     userId: string,
-    sessionId: string
+    _sessionId: string
   ): Promise<number> {
     // Parse behavioral signals from payload
     let signals: BehavioralSignal[];
@@ -671,8 +669,8 @@ export class CanvasPostMessageService {
    * Extracts content via Canvas API (when available)
    */
   private async extractViaCanvasAPI(
-    pageUrl: string,
-    tenantId: string
+    _pageUrl: string,
+    _tenantId: string
   ): Promise<CanvasPageContent | null> {
     // This would implement Canvas API calls for content extraction
     // For MVP, return null to force DOM fallback
@@ -682,7 +680,7 @@ export class CanvasPostMessageService {
   /**
    * Creates fallback content when extraction fails
    */
-  private createFallbackContent(pageUrl: string): CanvasPageContent {
+  private createFallbackContent(_pageUrl: string): CanvasPageContent {
     return {
       pageType: 'unknown',
       contentText: 'Content extraction unavailable',

@@ -11,8 +11,7 @@ import { CanvasMessageChannel } from '../services/CanvasMessageChannel';
 import {
   CanvasPageContent,
   BehavioralSignal,
-  InterventionMessage,
-  CanvasContentReference
+  InterventionMessage
 } from '../../shared/types';
 
 /**
@@ -312,7 +311,7 @@ export const CanvasContextProvider: React.FC<CanvasContextProviderProps> = ({
       clearInterval(trackingIntervalRef.current);
       trackingIntervalRef.current = null;
     }
-  }, []);
+  }, [startBehavioralTracking]);
 
   /**
    * Extract current content

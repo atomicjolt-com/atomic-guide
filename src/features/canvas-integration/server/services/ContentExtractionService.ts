@@ -9,10 +9,8 @@
 
 import {
   CanvasPageContent,
-  CanvasPageContentSchema,
   CanvasContentReference,
   ContentExtractionError,
-  ContentExtractionFallback,
   ContentAnalysisResult
 } from '../../shared/types';
 import { ContentReferenceRepository } from '../repositories/ContentReferenceRepository';
@@ -301,26 +299,30 @@ export class ContentExtractionService {
     let contentId = '';
 
     switch (pageType) {
-      case 'assignment':
+      case 'assignment': {
         const assignmentMatch = url.pathname.match(/\/assignments\/(\d+)/) ||
                                url.search.match(/assignment_id=(\d+)/);
         contentId = assignmentMatch ? assignmentMatch[1] : '';
         break;
-      case 'quiz':
+      }
+      case 'quiz': {
         const quizMatch = url.pathname.match(/\/quizzes\/(\d+)/) ||
                          url.search.match(/quiz_id=(\d+)/);
         contentId = quizMatch ? quizMatch[1] : '';
         break;
-      case 'discussion':
+      }
+      case 'discussion': {
         const discussionMatch = url.pathname.match(/\/discussion_topics\/(\d+)/) ||
                                url.search.match(/discussion_topic_id=(\d+)/);
         contentId = discussionMatch ? discussionMatch[1] : '';
         break;
-      case 'module':
+      }
+      case 'module': {
         const moduleMatch = url.pathname.match(/\/modules\/(\d+)/) ||
                            url.search.match(/context_module_id=(\d+)/);
         contentId = moduleMatch ? moduleMatch[1] : '';
         break;
+      }
       case 'page':
         const pageMatch = url.pathname.match(/\/pages\/([^/?]+)/) ||
                          url.search.match(/wiki_page_id=([^&]+)/);

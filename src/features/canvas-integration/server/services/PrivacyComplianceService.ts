@@ -43,22 +43,6 @@ interface PrivacyConsent {
   dataCategories: string[];
 }
 
-/**
- * Access control record
- */
-interface AccessControl {
-  resourceId: string;
-  resourceType: 'content_reference' | 'behavioral_data' | 'analytics';
-  allowedUsers: string[];
-  allowedRoles: string[];
-  restrictionLevel: PrivacyLevel;
-  accessLog: Array<{
-    userId: string;
-    timestamp: Date;
-    action: string;
-    approved: boolean;
-  }>;
-}
 
 /**
  * Data anonymization result
@@ -473,7 +457,7 @@ export class PrivacyComplianceService {
    */
   private getCollectionRestrictions(
     consents: PrivacyConsent[],
-    contentType: CanvasContentReference['contentType']
+    _contentType: CanvasContentReference['contentType']
   ): string[] {
     const restrictions: string[] = [];
 

@@ -441,7 +441,7 @@ export class PostMessageSecurityService implements HMACKeyManager {
       }
 
       return true;
-    } catch (error) {
+    } catch {
       // If we can't parse the payload, consider it unsafe
       return false;
     }

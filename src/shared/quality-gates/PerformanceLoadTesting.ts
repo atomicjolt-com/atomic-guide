@@ -697,7 +697,7 @@ class VirtualUser {
       // Simulate behavioral signal API call
       await this.simulateApiCall();
       this.requestCount++;
-    } catch (error) {
+    } catch {
       // Handle error - would be tracked in performance metrics
     }
   }

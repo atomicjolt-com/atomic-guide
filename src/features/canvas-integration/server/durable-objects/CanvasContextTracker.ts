@@ -10,8 +10,7 @@
 import {
   CanvasContextState,
   CanvasContextStateSchema,
-  CanvasContentReference,
-  CanvasContentReferenceSchema
+  CanvasContentReference
 } from '../../shared/types';
 
 /**
@@ -25,17 +24,6 @@ interface NavigationEntry {
   url?: string;
 }
 
-/**
- * Context update event
- */
-interface ContextUpdateEvent {
-  type: 'navigation' | 'content_change' | 'assessment_start' | 'assessment_end' | 'session_end';
-  sessionId: string;
-  studentId: string;
-  contentId?: string;
-  metadata?: Record<string, unknown>;
-  timestamp: Date;
-}
 
 /**
  * Canvas Context Tracker Durable Object
@@ -178,13 +166,14 @@ export class CanvasContextTracker implements DurableObject {
         case 'heartbeat':
           await this.updateSessionActivity(sessionId);
           break;
-        case 'context_request':
+        case 'context_request': {
           const contextState = await this.getContextState(sessionId);
           this.broadcastToSession(sessionId, {
             type: 'context_state',
             data: contextState
           });
           break;
+        }
         default:
           console.warn('Unknown WebSocket message type:', message.type);
       }
@@ -218,7 +207,7 @@ export class CanvasContextTracker implements DurableObject {
   /**
    * Get all active sessions
    */
-  private async handleGetSessions(request: Request): Promise<Response> {
+  private async handleGetSessions(_request: Request): Promise<Response> {
     const sessions = Array.from(this.contextStates.keys());
     return new Response(JSON.stringify({ sessions }), {
       headers: { 'Content-Type': 'application/json' }
@@ -469,7 +458,7 @@ export class CanvasContextTracker implements DurableObject {
       sockets.forEach(socket => {
         try {
           socket.close();
-        } catch (error) {
+        } catch {
           // Ignore close errors
         }
       });
@@ -494,7 +483,7 @@ export class CanvasContextTracker implements DurableObject {
     sockets.forEach(socket => {
       try {
         socket.send(messageString);
-      } catch (error) {
+      } catch {
         // Remove failed WebSocket
         this.removeWebSocketFromSession(sessionId, socket);
       }

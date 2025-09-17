@@ -8,14 +8,10 @@
  * measurable acceptance criteria validation.
  */
 
-import { 
-  QualityGate, 
-  QualityGateResult, 
-  STORY_5_1_QUALITY_GATES,
-  LoadTestScenario,
-  LOAD_TEST_SCENARIOS,
-  CanvasEnvironmentConfig,
-  CANVAS_TEST_ENVIRONMENTS
+import {
+  QualityGate,
+  QualityGateResult,
+  STORY_5_1_QUALITY_GATES
 } from './QualityGateConfig';
 
 // Performance monitoring interfaces
@@ -519,12 +515,12 @@ export class QualityGateValidator {
   // Additional validation methods would continue here...
   // For brevity, I'll provide the structure for the remaining methods
 
-  private async validateInputSanitization(gate: QualityGate, baseResult: Partial<QualityGateResult>): Promise<QualityGateResult> {
+  private async validateInputSanitization(_gate: QualityGate, _baseResult: Partial<QualityGateResult>): Promise<QualityGateResult> {
     // Implementation for input sanitization validation
     throw new Error('Method not implemented yet');
   }
 
-  private async validateReplayProtection(gate: QualityGate, baseResult: Partial<QualityGateResult>): Promise<QualityGateResult> {
+  private async validateReplayProtection(_gate: QualityGate, _baseResult: Partial<QualityGateResult>): Promise<QualityGateResult> {
     // Implementation for replay attack protection validation
     throw new Error('Method not implemented yet');
   }

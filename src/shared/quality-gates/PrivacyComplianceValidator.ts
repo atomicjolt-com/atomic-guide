@@ -718,7 +718,7 @@ export class PrivacyComplianceValidator {
     console.log(`Running retention cleanup for ${policy.dataType}`);
   }
 
-  private async checkDataStatus(dataId: string, dataType: string): Promise<'retained' | 'deleted' | 'anonymized'> {
+  private async checkDataStatus(_dataId: string, _dataType: string): Promise<'retained' | 'deleted' | 'anonymized'> {
     // Mock data status check
     const ageSimulation = Math.random();
     if (ageSimulation < 0.1) return 'deleted';
@@ -783,12 +783,12 @@ export class PrivacyComplianceValidator {
     return executions;
   }
 
-  private async checkAuditLogExists(execution: any): Promise<boolean> {
+  private async checkAuditLogExists(_execution: any): Promise<boolean> {
     // Mock audit log existence check
     return Math.random() > 0.05; // 95% of operations are logged
   }
 
-  private async validateAuditLogCompleteness(execution: any): Promise<{
+  private async validateAuditLogCompleteness(_execution: any): Promise<{
     complete: boolean;
     missingFields: string[];
   }> {

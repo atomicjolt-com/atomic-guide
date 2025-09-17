@@ -3,7 +3,6 @@
  * Epic 0: Developer Experience & Testing Infrastructure
  */
 
-import { z } from 'zod';
 
 // Brand types for type safety
 export type UserId = string & { readonly brand: unique symbol };

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story 7.2 Components Test - Atomic Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #FFFDF0;
+            color: #333;
+            line-height: 1.6;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-header {
+            background: linear-gradient(135deg, #FFDD00, #EBCB00);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #FFDD00;
+            border: 1px solid #EBCB00;
+            color: #333;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 8px;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #EBCB00;
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid #D1D5DB;
+            color: #666;
+        }
+        .btn-outline:hover {
+            background: #F9FAFB;
+        }
+        .component-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .component-card {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 16px;
+            background: white;
+        }
+        .component-card h3 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        .component-card p {
+            margin: 0 0 12px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-implemented {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        .status-testing {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🎯 Story 7.2: Deep Linking Configuration Interface</h1>
+            <p>UI/UX Design Review - Assessment Checkpoint Embedding Components</p>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Component Testing Interface</h2>
+            <p>This page provides access to test the individual components implemented for Story 7.2. Each component can be tested in isolation to evaluate UI/UX implementation, accessibility, and responsive design.</p>
+
+            <div style="margin: 20px 0;">
+                <button class="btn" onclick="testFullModal()">
+                    🎯 Test Complete Assessment Configuration Modal
+                </button>
+                <button class="btn btn-outline" onclick="testResponsive()">
+                    📱 Test Responsive Design
+                </button>
+                <button class="btn btn-outline" onclick="testAccessibility()">
+                    ♿ Test Accessibility Features
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Component Implementation Status</h2>
+            <div class="component-list">
+                <div class="component-card">
+                    <h3>AssessmentConfigurationModal</h3>
+                    <p>Main instructor configuration interface with 4-step workflow</p>
+                    <span class="status-indicator status-implemented">✅ Implemented</span>
+                </div>
+                <div class="component-card">
+                    <h3>ContentPlacementSelector</h3>
+                    <p>Visual assessment checkpoint placement interface</p>
+                    <span class="status-indicator status-implemented">✅ Implemented</span>
+                </div>
+                <div class="component-card">
+                    <h3>AssessmentTypeConfigurator</h3>
+                    <p>Assessment settings and type configuration</p>
+                    <span class="status-indicator status-implemented">✅ Implemented</span>
+                </div>
+                <div class="component-card">
+                    <h3>AIQuestionReviewer</h3>
+                    <p>Question review and approval interface</p>
+                    <span class="status-indicator status-implemented">✅ Implemented</span>
+                </div>
+                <div class="component-card">
+                    <h3>ConfigurationProgress</h3>
+                    <p>Workflow progress tracking component</p>
+                    <span class="status-indicator status-implemented">✅ Implemented</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎨 Design Requirements Checklist</h2>
+            <ul>
+                <li>✅ Canvas assignment context display</li>
+                <li>🔄 Interactive assessment placement selection</li>
+                <li>🔄 Comprehensive assessment type configuration</li>
+                <li>🔄 AI question generation and review workflow</li>
+                <li>🔄 4-step configuration progress tracking</li>
+                <li>⏳ Responsive design (desktop, tablet, mobile)</li>
+                <li>⏳ WCAG AA+ accessibility compliance</li>
+                <li>⏳ Canvas integration visual consistency</li>
+                <li>⏳ User workflow efficiency validation</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🔗 Integration Testing</h2>
+            <p>To test the complete deep linking workflow in Canvas environment:</p>
+            <ol>
+                <li>Access Canvas at: <a href="https://atomicjolt.instructure.com/" target="_blank">https://atomicjolt.instructure.com/</a></li>
+                <li>Navigate to: <a href="https://atomicjolt.instructure.com/courses/253/external_tools/24989" target="_blank">Course 253 External Tools</a></li>
+                <li>Launch Atomic Guide LTI tool in deep linking mode</li>
+                <li>Test the complete assessment configuration workflow</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Modal container for testing -->
+    <div id="modal-root"></div>
+
+    <script>
+        // Mock data for testing components
+        const mockCanvasContext = {
+            sessionId: "test-session-123",
+            csrfToken: "test-csrf-token",
+            instructorId: "test-instructor-456",
+            courseId: "test-course-789",
+            assignmentId: "test-assignment-101",
+            returnUrl: "https://atomicjolt.instructure.com/courses/253/assignments",
+            platformOrigin: "https://atomicjolt.instructure.com"
+        };
+
+        const mockDeepLinkingSettings = {
+            acceptedTypes: ["ltiResourceLink"],
+            acceptMultiple: false
+        };
+
+        function testFullModal() {
+            alert("Complete Modal Test:\n\n" +
+                  "This will test the full AssessmentConfigurationModal component with:\n" +
+                  "• Canvas assignment context loading\n" +
+                  "• 4-step workflow navigation\n" +
+                  "• Assessment placement selection\n" +
+                  "• AI question generation and review\n" +
+                  "• Final deployment to Canvas\n\n" +
+                  "Note: Full integration requires LTI launch from Canvas.");
+        }
+
+        function testResponsive() {
+            alert("Responsive Design Test:\n\n" +
+                  "Testing viewport requirements:\n" +
+                  "• Desktop: 1440px (primary development target)\n" +
+                  "• Tablet: 768px (layout adaptation)\n" +
+                  "• Mobile: 375px (touch optimization)\n" +
+                  "• No horizontal scrolling\n" +
+                  "• Touch-friendly interface elements");
+        }
+
+        function testAccessibility() {
+            alert("Accessibility Test (WCAG AA+):\n\n" +
+                  "Testing requirements:\n" +
+                  "• Complete keyboard navigation\n" +
+                  "• Visible focus states\n" +
+                  "• Screen reader compatibility\n" +
+                  "• Color contrast ratios (4.5:1 minimum)\n" +
+                  "• Semantic HTML structure\n" +
+                  "• Form labels and associations");
+        }
+
+        // Load page information
+        console.log("Story 7.2 Component Test Page Loaded");
+        console.log("Mock Canvas Context:", mockCanvasContext);
+        console.log("Mock Deep Linking Settings:", mockDeepLinkingSettings);
+    </script>
+</body>
+</html>

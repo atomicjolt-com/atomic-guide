@@ -532,12 +532,12 @@ export class MLModelAccuracyValidator {
   }
 
   // Helper methods for metric calculations
-  private calculateROCAUC(predictions: StrugglePrediction[], groundTruth: StruggleTestScenario[]): number {
+  private calculateROCAUC(_predictions: StrugglePrediction[], _groundTruth: StruggleTestScenario[]): number {
     // Simplified ROC AUC calculation - in practice would use proper ROC curve calculation
     return 0.85; // Placeholder
   }
 
-  private calculatePRAUC(predictions: StrugglePrediction[], groundTruth: StruggleTestScenario[]): number {
+  private calculatePRAUC(_predictions: StrugglePrediction[], _groundTruth: StruggleTestScenario[]): number {
     // Simplified PR AUC calculation
     return 0.82; // Placeholder
   }

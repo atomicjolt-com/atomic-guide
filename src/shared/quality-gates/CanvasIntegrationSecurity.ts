@@ -433,8 +433,8 @@ export class CanvasIntegrationSecurityTester {
    * Test message integrity for a specific message
    */
   private async testMessageIntegrity(
-    testMessage: any, 
-    environment: CanvasEnvironmentConfig
+    testMessage: any,
+    _environment: CanvasEnvironmentConfig
   ): Promise<{
     messageType: string;
     tampered: boolean;
@@ -637,7 +637,7 @@ export class CanvasIntegrationSecurityTester {
     return messages;
   }
 
-  private async sendMessage(message: any, environment: CanvasEnvironmentConfig): Promise<{
+  private async sendMessage(message: any, _environment: CanvasEnvironmentConfig): Promise<{
     accepted: boolean;
     reason?: string;
   }> {

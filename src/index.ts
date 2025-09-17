@@ -188,7 +188,7 @@ app.get('/embed', async (c) => {
   if (token) {
     // Verify token
     try {
-      const authHandlers = createAuthHandlers(c.env as any);
+      const _authHandlers = createAuthHandlers(c.env as any);
       // Simple check - just verify the token is valid
       const { AuthService } = await import('./features/auth/server/services/auth.service');
       const { UserRepository } = await import('./features/auth/server/repositories/user.repository');

@@ -5,7 +5,6 @@
 
 import { UserRepository } from '../repositories/user.repository';
 import { AuthService } from './auth.service';
-import { EmailService } from './email.service';
 import { UserIdSchema } from '../../shared/schemas/auth.schema';
 import type { User } from '../../shared/types/auth.types';
 
