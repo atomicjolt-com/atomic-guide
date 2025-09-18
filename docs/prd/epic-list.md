@@ -21,20 +21,20 @@ Create knowledge dependency mapping, prerequisite gap analysis, and performance 
 **Epic 7: Faculty Tools + Chat Analytics**
 Build faculty dashboard showing aggregate chat interactions, common confusion points, and learning bottlenecks. Enable faculty to customize chat responses and add course-specific explanations. This creates faculty buy-in and improves content.
 
-**Epic 8: MCP/AI Enhancement**
-Implement Model Context Protocol endpoints, enable Learner DNA delivery to AI clients (Claude, ChatGPT), and create portable profile management. This expands the platform beyond institutional boundaries.
-
-**Epic 9: Advanced Analytics & Optimization**
+**Epic 8: Advanced Analytics & Optimization**
 Build sophisticated analytics for academic success coaches, advanced chat effectiveness metrics, A/B testing framework for response strategies, and algorithm optimization based on real usage data. This refines and optimizes based on lessons learned.
 
-**Epic 10: Instructor Productivity Suite**
+**Epic 9: Instructor Productivity Suite**
 Deliver comprehensive instructor support tools including AI-powered syllabus builder, course logistics assistant for exam scheduling, AI grading assistant for feedback generation, cross-course content builder, and anonymous question analytics dashboard. This dramatically reduces instructor administrative burden.
 
-**Epic 11: Advanced Interactive Learning Activities**
+**Epic 10: Advanced Interactive Learning Activities**
 Expand beyond basic assessments to include drag-and-drop concept matching, interactive timeline builders, student-built concept maps, H5P-style interactive elements, and smart video micro-learning with timestamp navigation. This creates engaging, varied learning experiences.
 
-**Epic 12: Cognitive Optimization & Anti-Cramming System**
+**Epic 11: Cognitive Optimization & Anti-Cramming System**
 Implement the anti-cramming learning companion with proactive micro-learning scheduling, cognitive load optimization engine, and personalized learning curation. This transforms learning from effortful to effortless while maximizing retention.
 
-**Epic 13: Template Library & Collaboration Platform**
+**Epic 12: Template Library & Collaboration Platform**
 Build department-wide template sharing system for successful assessment configurations, enable cross-institutional best practice sharing, and create collaborative content improvement workflows. This accelerates adoption through network effects.
+
+**Epic 13: MCP/AI Client Integration**
+Implement Model Context Protocol endpoints using Cloudflare's native OAuth Provider, enable Learner DNA delivery to AI clients (Claude, ChatGPT), and create portable profile management. This expands the platform beyond institutional boundaries when the core platform is mature and proven.
