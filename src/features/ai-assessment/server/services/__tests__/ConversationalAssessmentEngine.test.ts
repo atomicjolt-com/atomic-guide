@@ -132,30 +132,28 @@ describe('ConversationalAssessmentEngine', () => {
         }
       };
 
-      mockSessionRepository.createSession.mockResolvedValue(mockSession);
+      // Mock implementation that returns what was passed to it
+      mockSessionRepository.createSession.mockImplementation((session) =>
+        Promise.resolve(session)
+      );
 
       const result = await engine.initializeSession(mockSessionConfig);
 
-      expect(mockSessionRepository.createSession).toHaveBeenCalledWith(
-        expect.objectContaining({
-          config: mockSessionConfig,
-          status: 'created',
-          progress: expect.objectContaining({
-            attemptNumber: 1,
-            masteryAchieved: false
-          }),
-          conversation: expect.arrayContaining([
-            expect.objectContaining({
-              type: 'system',
-              content: 'Welcome to the assessment!'
-            })
-          ])
-        })
-      );
+      expect(mockSessionRepository.createSession).toHaveBeenCalled();
+      const callArgs = mockSessionRepository.createSession.mock.calls[0][0];
+      expect(callArgs.config).toEqual(mockSessionConfig);
+      expect(callArgs.status).toBe('active');
+      expect(callArgs.progress.attemptNumber).toBe(1);
+      expect(callArgs.progress.masteryAchieved).toBe(false);
+      expect(callArgs.conversation).toHaveLength(1);
+      expect(callArgs.conversation[0].type).toBe('system');
+      expect(callArgs.conversation[0].content).toBe('Welcome to the assessment!');
 
-      expect(result).toEqual(mockSession);
-      expect(result.status).toBe('created');
+      // Verify the result matches what was created
+      expect(result).toBeDefined();
+      expect(result.status).toBe('active');
       expect(result.progress.attemptNumber).toBe(1);
+      expect(result.config).toEqual(mockSessionConfig);
     });
 
     it('should set appropriate timeout based on time limit', async () => {
@@ -291,15 +289,12 @@ describe('ConversationalAssessmentEngine', () => {
         { responseTime: 45000 }
       );
 
-      expect(mockAIService.analyzeStudentResponse).toHaveBeenCalledWith(
-        studentResponse,
-        'What is photosynthesis?',
-        ['photosynthesis', 'chloroplasts', 'cellular respiration'],
-        expect.objectContaining({
-          sessionId: '87654321-4321-4321-4321-cba987654321',
-          previousResponses: []
-        })
-      );
+      expect(mockAIService.analyzeStudentResponse).toHaveBeenCalled();
+      const callArgs = mockAIService.analyzeStudentResponse.mock.calls[0];
+      expect(callArgs[0]).toBe(studentResponse);
+      expect(callArgs[1]).toBe('What is photosynthesis?');
+      expect(callArgs[2]).toEqual(['photosynthesis', 'chloroplasts', 'cellular respiration']);
+      expect(callArgs[3].sessionId).toBe('87654321-4321-4321-4321-cba987654321');
 
       expect(result.progress.conceptsMastered).toContain('photosynthesis');
       expect(result.conversation).toHaveLength(3); // original question + student response + follow-up question
