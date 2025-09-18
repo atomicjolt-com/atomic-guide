@@ -320,7 +320,15 @@ export class AdvancedPatternRecognizer {
       // Get learner DNA profile for cognitive attributes
       const learnerProfile = await this.getLearnerDNAProfile(tenantId, userId);
       if (!learnerProfile) {
-        throw new Error('PROFILE_REQUIRED: Learner DNA profile needed for velocity forecasting');
+        // Return fallback estimate when no profile exists
+        return {
+          estimatedMasteryTime: 120, // 2 hour default estimate
+          confidence: 0.0,
+          accelerationFactors: [],
+          riskFactors: ['prediction_unavailable'],
+          personalizedStrategies: ['Continue regular practice', 'Seek help when needed'],
+          explainability: 'Velocity forecast temporarily unavailable. Using conservative time estimate.'
+        };
       }
 
       // Get historical learning velocity patterns

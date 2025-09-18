@@ -49,7 +49,19 @@ tsc                       # Type check
 - Run all tests: `npm test`
 - Run tests in watch mode: `npm test -- --watch`
 - Run specific test: `npm test -- path/to/test.ts`
+- Run integration tests: `npm run test:integration` (if configured)
 - **Use Playwright MCP** 1. Login at `https://atomicjolt.instructure.com/` Use CANVAS_USER_NAME and CANVAS_PASSOWORD from .dev.vars. 2. Visit `https://atomicjolt.instructure.com/courses/253/external_tools/24989` for testing, UIX validation and to ensure the application is working. Atomic Guide will be found in an iframe after the LTI launch is complete.
+
+## 📁 Path Aliases (TypeScript/Vite)
+
+When importing, use these configured aliases:
+- `@/` → project root
+- `@features/` → `src/features/`
+- `@shared/` → `src/shared/`
+- `@/types` → `src/shared/types/`
+- `@/schemas` → `src/shared/schemas/`
+- `client/` → `client/`
+- `src/` → `src/`
 
 ## ⚠️ MANDATORY Architecture Rules
 
@@ -137,11 +149,13 @@ This is a **Cloudflare Workers-based LTI 1.3 tool** built on [Atomic LTI Worker]
 
 ### Key Service Bindings
 
-- `DB`: D1 database for persistent storage
-- `VIDEO_STORAGE`: R2 bucket for video files
-- `AI`: Workers AI for transcription and embeddings
-- `VIDEO_QUEUE`: Queue for async video processing
-- `FAQ_INDEX`: Vector index for semantic search
+- `DB`: D1 database (atomic-guide-db)
+- `AI`: Workers AI for embeddings and inference
+- `FAQ_INDEX`: Vectorize index for semantic search
+- `ANALYTICS_QUEUE`: Queue for analytics processing
+- `KEY_SETS`, `REMOTE_JWKS`, `CLIENT_AUTH_TOKENS`, `PLATFORMS`: KV namespaces
+- `OIDC_STATE`, `STRUGGLE_DETECTOR`, `CHAT_CONVERSATIONS`: Durable Objects
+- `ASSETS`: Static file serving from `public/`
 
 ## 🔒 TypeScript Requirements (STRICT)
 
@@ -239,13 +253,17 @@ const CVIdSchema = z.number().positive().brand<'CVId'>();
 2. Navigate to `https://atomicjolt.instructure.com/courses/253/external_tools/24989`
 3. The app loads in an iframe after LTI launch
 
-## 🔧 Key Files
+## 🔧 Key Files & Entry Points
 
+- `src/index.ts` - Main server entry point (Hono app)
+- `client/app.tsx` - React app entry point
 - `definitions.ts` - LTI paths and constants
 - `wrangler.jsonc` - Cloudflare configuration
-- `vite.config.ts` - Build configuration
+- `vite.config.ts` - Build configuration with path aliases
+- `vitest.config.ts` - Test configuration
 - `window.LAUNCH_SETTINGS` - Client-side LTI data
 - `public/` - Static assets (images, css) with manifest injection
+- `scripts/inject-manifest.js` - Build-time manifest injection
 
 ## 🔍 Search Commands
 
@@ -272,6 +290,23 @@ https://guide.atomicjolt.xyz/embed
 - Forgetting to validate external data
 - Not running lint/typecheck before commit
 - Modifying `<LtiLaunchCheck>` wrapper
+
+## 🔄 Environment Setup
+
+**Required environment variables (.dev.vars):**
+- `JWT_SECRET` - Required for JWT token signing
+- `CANVAS_USER_NAME` - Canvas login for Playwright testing
+- `CANVAS_PASSWORD` - Canvas password for Playwright testing
+- Additional OAuth credentials if using Google/GitHub auth
+
+**Initial Setup:**
+```bash
+npm install
+npm run db:setup     # Create D1 database
+npm run kv:setup      # Create KV namespaces
+npm run db:migrate    # Run migrations
+npm run db:seed       # Seed test data
+```
 
 ## 📚 Additional Resources
 

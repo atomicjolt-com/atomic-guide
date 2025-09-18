@@ -326,6 +326,188 @@ export const DataQualityMetricsSchema = z.object({
 export type DataQualityMetrics = z.infer<typeof DataQualityMetricsSchema>;
 
 /**
+ * Schema for MCP client registration
+ */
+export const mcpClientRegistrySchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string(),
+
+  // Client identification
+  clientName: z.string().min(1).max(100),
+  clientType: z.enum(['ai_assistant', 'analytics_tool', 'research_platform', 'tutoring_system']),
+  clientDescription: z.string().min(1).max(500),
+  clientVersion: z.string().default('1.0'),
+
+  // Authentication and authorization
+  clientSecretHash: z.string(),
+  apiKeyPrefix: z.string(),
+  authorizedScopes: z.array(z.string()).default([]),
+  rateLimitPerMinute: z.number().int().min(1).max(1000).default(60),
+
+  // Privacy and compliance
+  privacyPolicyUrl: z.string().url().optional(),
+  dataRetentionDays: z.number().int().min(0).default(0),
+  anonymizationRequired: z.boolean().default(true),
+  auditLoggingEnabled: z.boolean().default(true),
+
+  // Client metadata
+  contactEmail: z.string().email(),
+  organization: z.string().optional(),
+  certificationLevel: z.enum(['basic', 'enterprise', 'research']).optional(),
+
+  // Status and temporal tracking
+  status: z.enum(['pending', 'approved', 'suspended', 'revoked']).default('pending'),
+  approvedBy: z.string().optional(),
+  approvedAt: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+  lastAccessAt: z.date().optional(),
+});
+
+/**
+ * Schema for MCP data scopes
+ */
+export const mcpDataScopeSchema = z.object({
+  id: z.string().uuid(),
+  scopeName: z.string().min(1),
+  scopeCategory: z.enum(['profile', 'behavioral', 'assessment', 'real_time', 'aggregated']),
+
+  // Scope details
+  description: z.string().min(1),
+  dataSensitivityLevel: z.enum(['low', 'medium', 'high', 'critical']),
+  requiresExplicitConsent: z.boolean().default(true),
+
+  // Privacy implications
+  privacyImpactScore: z.number().min(0).max(1),
+  gdprArticleApplicable: z.string().optional(),
+  coppaParentalConsentRequired: z.boolean().default(false),
+
+  // Data access patterns
+  dataTablesAccessed: z.array(z.string()),
+  anonymizationPossible: z.boolean().default(true),
+  realTimeAccessAllowed: z.boolean().default(false),
+
+  // Compliance and audit
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+  complianceReviewDue: z.date().optional(),
+});
+
+/**
+ * Schema for MCP active sessions
+ */
+export const mcpActiveSessionSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string(),
+  userId: z.string(),
+  clientId: z.string().uuid(),
+
+  // Session details
+  sessionToken: z.string(),
+  grantedScopes: z.array(z.string()).default([]),
+  sessionType: z.enum(['api_access', 'real_time_stream', 'batch_analysis']),
+
+  // Access patterns
+  dataAccessedCount: z.number().int().min(0).default(0),
+  lastDataAccessAt: z.date().optional(),
+  rateLimitExceededCount: z.number().int().min(0).default(0),
+
+  // Privacy and security
+  consentVersion: z.string(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+  encryptionLevel: z.string().default('AES-256'),
+
+  // Session lifecycle
+  startedAt: z.date().default(() => new Date()),
+  lastHeartbeatAt: z.date().default(() => new Date()),
+  expiresAt: z.date(),
+  revokedAt: z.date().optional(),
+  revocationReason: z.string().optional(),
+
+  // Compliance tracking
+  auditEventsCount: z.number().int().min(0).default(0),
+  privacyViolationsCount: z.number().int().min(0).default(0),
+});
+
+/**
+ * Schema for MCP consent revocation queue
+ */
+export const mcpConsentRevocationQueueSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string(),
+  userId: z.string(),
+
+  // Revocation details
+  revocationType: z.enum(['full_withdrawal', 'scope_specific', 'client_specific', 'emergency_stop']),
+  affectedScopes: z.array(z.string()).default([]),
+  affectedClients: z.array(z.string()).default([]),
+
+  // Processing status
+  status: z.enum(['pending', 'processing', 'completed', 'failed']).default('pending'),
+  priorityLevel: z.number().int().min(1).max(10).default(5),
+
+  // Revocation metadata
+  requestedAt: z.date().default(() => new Date()),
+  processedAt: z.date().optional(),
+  completedAt: z.date().optional(),
+  processingDurationMs: z.number().int().optional(),
+
+  // Audit and compliance
+  revocationReason: z.string().optional(),
+  initiatedBy: z.enum(['user', 'parent', 'admin', 'system', 'compliance']),
+  complianceFramework: z.enum(['COPPA', 'GDPR', 'FERPA']).optional(),
+
+  // Results tracking
+  sessionsRevokedCount: z.number().int().min(0).default(0),
+  dataPurgedTables: z.array(z.string()).default([]),
+  notificationSent: z.boolean().default(false),
+});
+
+/**
+ * Schema for MCP parental controls
+ */
+export const mcpParentalControlsSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string(),
+  userId: z.string(),
+  parentEmail: z.string().email(),
+
+  // Control settings
+  externalAiAccessAllowed: z.boolean().default(false),
+  allowedClientTypes: z.array(z.enum(['ai_assistant', 'analytics_tool', 'research_platform', 'tutoring_system'])).default([]),
+  maxSessionDurationMinutes: z.number().int().min(1).max(480).default(30),
+  allowedTimeWindows: z.array(z.object({
+    start: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+    end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+    days: z.array(z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']))
+  })).default([]),
+
+  // Notification preferences
+  notifyOnAccessRequest: z.boolean().default(true),
+  notifyOnDataSharing: z.boolean().default(true),
+  notifyOnPrivacyChanges: z.boolean().default(true),
+  notificationFrequency: z.enum(['immediate', 'daily', 'weekly']).default('immediate'),
+
+  // Override capabilities
+  emergencyContactPhone: z.string().optional(),
+  canOverrideAiAccess: z.boolean().default(true),
+  canViewChildData: z.boolean().default(true),
+  canExportChildData: z.boolean().default(true),
+
+  // Compliance tracking
+  coppaVerificationMethod: z.enum(['email', 'phone', 'postal', 'credit_card']),
+  verificationCompletedAt: z.date(),
+  verificationDocumentId: z.string().optional(),
+
+  // Temporal tracking
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+  lastNotificationSentAt: z.date().optional(),
+  nextReviewDue: z.date().optional(),
+});
+
+/**
  * Schema for Learner DNA privacy consent
  */
 export const learnerDnaPrivacyConsentSchema = z.object({
@@ -340,6 +522,12 @@ export const learnerDnaPrivacyConsentSchema = z.object({
   chatInteractionsConsent: z.boolean().default(false),
   crossCourseCorrelationConsent: z.boolean().default(false),
   anonymizedAnalyticsConsent: z.boolean().default(true),
+
+  // MCP-specific external AI access consent
+  externalAiAccessConsent: z.boolean().default(false),
+  mcpClientScopes: z.array(z.string()).default([]),
+  realTimeRevocationEnabled: z.boolean().default(true),
+  externalClientRestrictions: z.record(z.any()).default({}),
 
   // Data collection level
   dataCollectionLevel: z.enum(['minimal', 'standard', 'comprehensive']).default('minimal'),
@@ -370,6 +558,13 @@ export const privacyConsentUpdateSchema = z.object({
   chatInteractionsConsent: z.boolean().optional(),
   crossCourseCorrelationConsent: z.boolean().optional(),
   anonymizedAnalyticsConsent: z.boolean().optional(),
+
+  // MCP-specific consent updates
+  externalAiAccessConsent: z.boolean().optional(),
+  mcpClientScopes: z.array(z.string()).optional(),
+  realTimeRevocationEnabled: z.boolean().optional(),
+  externalClientRestrictions: z.record(z.any()).optional(),
+
   dataCollectionLevel: z.enum(['minimal', 'standard', 'comprehensive']).optional(),
   parentalConsentRequired: z.boolean().optional(),
   parentalConsentGiven: z.boolean().optional(),
@@ -515,4 +710,11 @@ export const LearnerDNASchemas = {
   BehavioralPattern: behavioralPatternSchema,
   LearnerDNAProfile: learnerDnaProfileSchema,
   CognitiveAttribute: cognitiveAttributeSchema,
+
+  // MCP-specific schemas
+  McpClientRegistry: mcpClientRegistrySchema,
+  McpDataScope: mcpDataScopeSchema,
+  McpActiveSession: mcpActiveSessionSchema,
+  McpConsentRevocationQueue: mcpConsentRevocationQueueSchema,
+  McpParentalControls: mcpParentalControlsSchema,
 } as const;

@@ -819,6 +819,9 @@ describe('AdvancedPatternRecognizer', () => {
     });
 
     it('should validate input parameters', async () => {
+      // Ensure privacy consent is granted for this test
+      mockValidateDataCollectionPermission.mockResolvedValue(true);
+
       // Test empty/invalid parameters
       const invalidInputs = [
         ['', 'user-1', 'course-1'],      // Empty tenantId
@@ -828,9 +831,16 @@ describe('AdvancedPatternRecognizer', () => {
 
       for (const [tenantId, userId, courseId] of invalidInputs) {
         // Should handle gracefully or throw appropriate error
-        await expect(async () => {
+        try {
           await recognizer.predictStruggle(tenantId, userId, courseId);
-        }).not.toThrow(/undefined|null/);
+          // If it doesn't throw, that's fine - the method handles it gracefully
+        } catch (error) {
+          // If it throws, make sure it's not an undefined/null error
+          expect(error).toBeInstanceOf(Error);
+          if (error instanceof Error) {
+            expect(error.message).not.toMatch(/undefined|null/);
+          }
+        }
       }
     });
   });

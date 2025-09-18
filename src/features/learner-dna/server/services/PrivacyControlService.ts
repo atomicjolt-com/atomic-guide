@@ -295,14 +295,50 @@ export class PrivacyControlService {
     const result = await this.db
       .getDb()
       .prepare(
-        `SELECT * FROM learner_dna_privacy_consent 
+        `SELECT * FROM learner_dna_privacy_consent
        WHERE tenant_id = ? AND user_id = ? AND withdrawal_requested_at IS NULL
        ORDER BY consent_given_at DESC LIMIT 1`
       )
       .bind(tenantId, userId)
-      .first<LearnerDNAPrivacyConsent>();
+      .first();
 
-    return result || null;
+    if (!result) return null;
+
+    // Map database row to entity with backward compatibility
+    return this.mapDbRowToEntity(result);
+  }
+
+  /**
+   * Helper method to map database row to entity with backward compatibility
+   */
+  private mapDbRowToEntity(row: any): LearnerDNAPrivacyConsent {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      userId: row.user_id,
+      consentVersion: row.consent_version || '1.0',
+      behavioralTimingConsent: Boolean(row.behavioral_timing_consent),
+      assessmentPatternsConsent: Boolean(row.assessment_patterns_consent),
+      chatInteractionsConsent: Boolean(row.chat_interactions_consent),
+      crossCourseCorrelationConsent: Boolean(row.cross_course_correlation_consent),
+      anonymizedAnalyticsConsent: Boolean(row.anonymized_analytics_consent),
+      // Handle NULL values for new MCP fields with safe defaults
+      externalAiAccessConsent: row.external_ai_access_consent !== null ? Boolean(row.external_ai_access_consent) : false,
+      mcpClientScopes: row.mcp_client_scopes !== null ? JSON.parse(row.mcp_client_scopes || '[]') : [],
+      realTimeRevocationEnabled: row.real_time_revocation_enabled !== null ? Boolean(row.real_time_revocation_enabled) : true,
+      externalClientRestrictions: row.external_client_restrictions !== null ? JSON.parse(row.external_client_restrictions || '{}') : {},
+      dataCollectionLevel: row.data_collection_level || 'minimal',
+      parentalConsentRequired: Boolean(row.parental_consent_required),
+      parentalConsentGiven: Boolean(row.parental_consent_given),
+      parentalEmail: row.parental_email,
+      consentGivenAt: new Date(row.consent_given_at),
+      consentUpdatedAt: new Date(row.consent_updated_at),
+      withdrawalRequestedAt: row.withdrawal_requested_at ? new Date(row.withdrawal_requested_at) : undefined,
+      withdrawalReason: row.withdrawal_reason,
+      consentSource: row.consent_source || 'dashboard',
+      ipAddress: row.ip_address,
+      userAgent: row.user_agent,
+    };
   }
 
   /**

@@ -994,8 +994,8 @@ export class PredictiveInterventionEngine {
         lastAnalyzedAt: new Date(result.last_analyzed_at),
       };
     } catch (error) {
-      // Re-throw database errors so they can be caught by the calling method
-      throw new Error(`Failed to retrieve learner profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Let the original error bubble up so the calling method can handle it properly
+      throw error;
     }
   }
 

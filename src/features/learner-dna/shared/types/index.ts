@@ -49,6 +49,675 @@ export interface TimeWindow {
  */
 export type LearningOutcome = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
 
+// ============================================
+// MCP SECURITY ARCHITECTURE TYPES
+// ============================================
+
+/**
+ * MCP Client Registry for external AI client management
+ */
+export interface McpClientRegistry {
+  id: string;
+  tenantId: string;
+  clientName: string;
+  clientType: 'ai_assistant' | 'research_tool' | 'analytics_platform' | 'custom_integration';
+  clientDescription?: string;
+  clientVersion?: string;
+  clientSecretHash: string;
+  apiKeyPrefix?: string;
+  authorizedScopes: string[];
+  rateLimitPerMinute: number;
+  privacyPolicyUrl?: string;
+  dataRetentionDays: number;
+  anonymizationRequired: boolean;
+  auditLoggingEnabled: boolean;
+  contactEmail: string;
+  organization?: string;
+  certificationLevel?: 'basic' | 'verified' | 'enterprise' | 'research';
+  status: 'pending' | 'approved' | 'suspended' | 'revoked';
+  approvedBy?: string;
+  approvedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  lastAccessAt?: Date;
+}
+
+/**
+ * Client reputation and risk scoring system
+ */
+export interface McpClientReputation {
+  id: string;
+  clientId: string;
+  tenantId: string;
+  reputationScore: number; // 0-100
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  totalRequests: number;
+  successfulRequests: number;
+  violationCount: number;
+  lastViolationAt?: Date;
+  consecutiveViolations: number;
+  maxConsecutiveViolations: number;
+  averageRequestSize: number;
+  largestRequestSize: number;
+  suspiciousPatternCount: number;
+  offHoursActivityRatio: number;
+  crossTenantAttempts: number;
+  dataTypeDiversityScore: number;
+  behavioralAnomalyScore: number;
+  complianceViolationCount: number;
+  lastComplianceViolationAt?: Date;
+  automationProbability: number;
+  trustScore: number;
+  createdAt: Date;
+  updatedAt: Date;
+  lastRequestAt?: Date;
+  reputationHistory: Array<{
+    timestamp: Date;
+    score: number;
+    event: string;
+    details?: any;
+  }>;
+}
+
+/**
+ * Data Loss Prevention policy evaluation result
+ */
+export interface McpDlpPolicyResult {
+  allowed: boolean;
+  reason: string;
+  violationType?: string;
+  retryAfterSeconds?: number;
+  reputationImpact?: number;
+  recommendedAction?: string;
+  enhancedMonitoring?: boolean;
+}
+
+/**
+ * Rate limiting configuration per data type and risk level
+ */
+export interface McpRateLimitConfig {
+  id: string;
+  tenantId: string;
+  dataType: string;
+  riskLevel: string;
+  requestsPerMinute: number;
+  windowPeriodMinutes: number;
+  burstAllowance: number;
+  maxConcurrentSessions: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Volume tracking for cumulative data access monitoring
+ */
+export interface McpVolumeTracking {
+  id: string;
+  clientId: string;
+  tenantId: string;
+  userId: string;
+  dataType: string;
+  trackingDate: Date;
+  totalBytes: number;
+  requestCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * DLP violations and policy enforcement records
+ */
+export interface McpDlpViolation {
+  id: string;
+  tenantId: string;
+  clientId: string;
+  userId?: string;
+  violationType: 'rate_limit_exceeded' | 'volume_limit_exceeded' | 'suspicious_pattern_detected' | 'compliance_violation' | 'unauthorized_access' | 'data_exfiltration_attempt' | 'cross_tenant_access' | 'privilege_escalation' | 'evasion_detected';
+  violationDetails: string; // JSON string
+  detectedAt: Date;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  resolved: boolean;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  resolutionNotes?: string;
+  automaticResponse?: string;
+  manualReviewRequired: boolean;
+  complianceImpact?: string;
+  notificationSent: boolean;
+}
+
+/**
+ * Data access logging for forensics and analysis
+ */
+export interface McpDataAccessLog {
+  id: string;
+  tenantId: string;
+  clientId: string;
+  userId: string;
+  dataType: string;
+  dataSizeBytes: number;
+  accessedAt: Date;
+  sessionId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  successful: boolean;
+  errorMessage?: string;
+  processingTimeMs?: number;
+}
+
+/**
+ * Behavioral baselines for normal client activity
+ */
+export interface McpBehavioralBaseline {
+  id: string;
+  clientId: string;
+  tenantId: string;
+  version: number;
+  learningPeriodDays: number;
+  totalSamples: number;
+  averageRequestSize: number;
+  requestSizeStdDev: number;
+  averageRequestsPerHour: number;
+  peakHours: number[];
+  lowActivityHours: number[];
+  weekdayPatterns: Record<string, number>;
+  dataTypeDistribution: Record<string, number>;
+  averageSessionDuration: number;
+  sessionDurationStdDev: number;
+  commonIpRanges: string[];
+  commonUserAgents: string[];
+  confidenceScore: number;
+  createdAt: Date;
+  updatedAt: Date;
+  lastAnalysisAt: Date;
+  nextUpdateDue: Date;
+}
+
+/**
+ * Client activity tracking for behavioral analysis
+ */
+export interface McpClientActivity {
+  id: string;
+  clientId: string;
+  tenantId: string;
+  userId: string;
+  dataType: string;
+  requestSize: number;
+  requestTimestamp: Date;
+  sessionDuration?: number;
+  ipAddress?: string;
+  userAgent?: string;
+  additionalMetadata?: string; // JSON string
+  analysisCompleted: boolean;
+  anomalyScores?: string; // JSON string
+  riskLevel?: 'pending' | 'low' | 'medium' | 'high' | 'critical';
+}
+
+/**
+ * Behavioral anomalies and threat detection
+ */
+export interface McpBehavioralAnomaly {
+  id: string;
+  clientId: string;
+  tenantId: string;
+  userId?: string;
+  anomalyType: 'temporal_anomaly' | 'volume_anomaly' | 'velocity_anomaly' | 'pattern_anomaly' | 'behavioral_deviation' | 'evasion_techniques' | 'coordinated_activity';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  confidence: number;
+  detectedAt: Date;
+  anomalyScores: string; // JSON string
+  detectedPatterns: string[];
+  riskIndicators: string[];
+  automaticResponse?: string;
+  investigationRequired: boolean;
+  resolved: boolean;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  resolutionNotes?: string;
+  falsePositive: boolean;
+  suppressSimilar: boolean;
+}
+
+/**
+ * Security incidents and threat management
+ */
+export interface McpSecurityIncident {
+  id: string;
+  clientId: string;
+  tenantId: string;
+  userId?: string;
+  incidentType: 'behavioral_anomaly' | 'dlp_violation' | 'authentication_failure' | 'privilege_escalation' | 'data_exfiltration' | 'coordinated_attack' | 'compliance_violation' | 'unauthorized_access';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  detectionSource: string;
+  detectedAt: Date;
+  title: string;
+  description: string;
+  status: 'active' | 'investigating' | 'contained' | 'resolved' | 'false_positive';
+  assignedTo?: string;
+  resolvedAt?: Date;
+  resolutionNotes?: string;
+  falsePositive: boolean;
+  suppressSimilar: boolean;
+  relatedIncidents: string[];
+  evidenceCollected: boolean;
+  investigationRequired: boolean;
+  complianceReportingRequired: boolean;
+  estimatedImpact?: string;
+  mitigationSteps: string[];
+  lessonsLearned?: string;
+}
+
+/**
+ * Client isolation and access control
+ */
+export interface McpClientIsolation {
+  id: string;
+  clientId: string;
+  tenantId: string;
+  isolationLevel: 'soft' | 'hard' | 'complete';
+  reason: string;
+  initiatedAt: Date;
+  initiatedBy: string;
+  duration?: number; // minutes
+  expiresAt?: Date;
+  status: 'active' | 'expired' | 'revoked' | 'completed';
+  sessionsTerminated: number;
+  accessPointsBlocked: string[];
+  notificationsSent: number;
+  rollbackProcedureId?: string;
+  manualOverrideRequired: boolean;
+  complianceImpact?: string;
+  auditTrail: Array<{
+    timestamp: Date;
+    action: string;
+    details?: any;
+  }>;
+}
+
+/**
+ * Forensic data capture for investigation
+ */
+export interface McpForensicCapture {
+  id: string;
+  incidentId: string;
+  clientId: string;
+  tenantId: string;
+  userId?: string;
+  captureTimestamp: Date;
+  captureReason: string;
+  dataTypes: string[];
+  retentionPeriod: number; // days
+  accessRestrictions: string[];
+  encryptionLevel: string;
+  integrityHash: string;
+  complianceNotes?: string;
+  investigationStatus: 'pending' | 'active' | 'completed' | 'archived';
+  evidenceChain: Array<{
+    timestamp: Date;
+    action: string;
+    actor: string;
+    details?: any;
+  }>;
+  exportedAt?: Date;
+  purgedAt?: Date;
+}
+
+/**
+ * Data scope definitions for granular access control
+ */
+export interface McpDataScope {
+  id: string;
+  scopeName: string;
+  scopeCategory: 'profile' | 'behavioral' | 'assessment' | 'real_time' | 'aggregated';
+  description: string;
+  dataSensitivityLevel: 'public' | 'internal' | 'confidential' | 'restricted';
+  requiresExplicitConsent: boolean;
+  privacyImpactScore: number; // 1-10
+  gdprArticleApplicable?: string;
+  coppaParentalConsentRequired: boolean;
+  dataTablesAccessed: string[];
+  anonymizationPossible: boolean;
+  realTimeAccessAllowed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  complianceReviewDue?: Date;
+}
+
+/**
+ * Active MCP sessions with enhanced security tracking
+ */
+export interface McpActiveSession {
+  id: string;
+  tenantId: string;
+  userId: string;
+  clientId: string;
+  sessionToken: string;
+  grantedScopes: string[];
+  sessionType: 'api_access' | 'real_time_stream' | 'batch_analysis';
+  dataAccessedCount: number;
+  lastDataAccessAt?: Date;
+  rateLimitExceededCount: number;
+  consentVersion: string;
+  ipAddress?: string;
+  userAgent?: string;
+  encryptionLevel: string;
+  startedAt: Date;
+  lastHeartbeatAt: Date;
+  expiresAt: Date;
+  revokedAt?: Date;
+  revocationReason?: string;
+  auditEventsCount: number;
+  privacyViolationsCount: number;
+}
+
+/**
+ * Consent revocation queue for real-time processing
+ */
+export interface McpConsentRevocationQueue {
+  id: string;
+  tenantId: string;
+  userId: string;
+  revocationType: 'full_withdrawal' | 'scope_specific' | 'client_specific' | 'emergency_stop';
+  affectedScopes: string[];
+  affectedClients: string[];
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  priorityLevel: number; // 1-5
+  requestedAt: Date;
+  processedAt?: Date;
+  completedAt?: Date;
+  processingDurationMs?: number;
+  revocationReason?: string;
+  initiatedBy: 'user' | 'parent' | 'admin' | 'system' | 'compliance';
+  complianceFramework?: string;
+  sessionsRevokedCount: number;
+  dataPurgedTables: string[];
+  notificationSent: boolean;
+}
+
+/**
+ * Parental controls for COPPA compliance
+ */
+export interface McpParentalControls {
+  id: string;
+  tenantId: string;
+  userId: string;
+  parentEmail: string;
+  externalAiAccessAllowed: boolean;
+  allowedClientTypes: string[];
+  maxSessionDurationMinutes: number;
+  allowedTimeWindows: Array<{
+    days: string[];
+    start: string;
+    end: string;
+  }>;
+  notifyOnAccessRequest: boolean;
+  notifyOnDataSharing: boolean;
+  notifyOnPrivacyChanges: boolean;
+  notificationFrequency: 'immediate' | 'daily' | 'weekly';
+  emergencyContactPhone?: string;
+  canOverrideAiAccess: boolean;
+  canViewChildData: boolean;
+  canExportChildData: boolean;
+  coppaVerificationMethod: 'email' | 'phone' | 'postal_mail' | 'credit_card' | 'digital_signature';
+  verificationCompletedAt: Date;
+  verificationDocumentId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastNotificationSentAt?: Date;
+  nextReviewDue?: Date;
+}
+
+/**
+ * Security alerts and notifications
+ */
+export interface McpSecurityAlert {
+  id: string;
+  tenantId: string;
+  alertType: 'dlp_violation' | 'behavioral_anomaly' | 'security_incident' | 'compliance_violation' | 'client_isolation' | 'consent_revocation' | 'system_breach' | 'data_exfiltration';
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  title: string;
+  description: string;
+  sourceService: string;
+  relatedClientId?: string;
+  relatedUserId?: string;
+  relatedIncidentId?: string;
+  alertData?: any;
+  createdAt: Date;
+  acknowledgedAt?: Date;
+  acknowledgedBy?: string;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  resolutionNotes?: string;
+  escalated: boolean;
+  escalationLevel: number;
+  notificationSent: boolean;
+}
+
+// ============================================
+// ANALYSIS AND MONITORING RESULT TYPES
+// ============================================
+
+/**
+ * Session validation result for external AI client access
+ */
+export interface McpSessionValidationResult {
+  isValid: boolean;
+  hasRequiredConsent: boolean;
+  allowedScopes: string[];
+  missingConsents: string[];
+  violations: string[];
+  parentalApprovalRequired: boolean;
+  sessionLimitsEnforced: boolean;
+  expiresAt?: Date;
+}
+
+/**
+ * Client permission validation result
+ */
+export interface McpClientPermissionResult {
+  allowed: boolean;
+  grantedScopes: string[];
+  deniedScopes: string[];
+  reason?: string;
+  requiresAdditionalConsent: boolean;
+  parentalOverrideRequired: boolean;
+}
+
+/**
+ * Anomaly scores for multi-dimensional analysis
+ */
+export interface McpAnomalyScore {
+  temporal: number;
+  volume: number;
+  velocity: number;
+  dataTypePattern: number;
+  sessionBehavior: number;
+  geographic: number;
+  userAgent: number;
+  composite: number;
+  calculatedAt: Date;
+  baselineVersion?: number;
+}
+
+/**
+ * Behavioral pattern detection result
+ */
+export interface McpBehavioralPattern {
+  patternType: string;
+  confidence: number;
+  description: string;
+  firstDetected: Date;
+  occurrenceCount: number;
+  associatedRisks: string[];
+  mitigationRecommendations: string[];
+}
+
+/**
+ * Comprehensive behavioral analysis result
+ */
+export interface McpBehavioralAnalysisResult {
+  clientId: string;
+  tenantId: string;
+  userId: string;
+  analysisTimestamp: Date;
+  isAnomalous: boolean;
+  isCritical: boolean;
+  overallRiskScore: number;
+  anomalyScores: McpAnomalyScore;
+  detectedPatterns: string[];
+  threatIndicators: string[];
+  recommendedActions: string[];
+  anomalyRecord?: McpBehavioralAnomaly;
+  baselineConfidence: number;
+  requiresImmediateAttention: boolean;
+  forensicDataCaptured: boolean;
+}
+
+/**
+ * Client risk assessment result
+ */
+export interface McpClientRiskAssessment {
+  clientId: string;
+  tenantId: string;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  riskScore: number; // 0-1
+  riskFactors: Array<{
+    factor: string;
+    weight: number;
+    score: number;
+    description: string;
+  }>;
+  recommendedActions: string[];
+  assessmentTimestamp: Date;
+  validUntil: Date;
+}
+
+/**
+ * Incident response action
+ */
+export interface McpResponseAction {
+  actionType: string;
+  executedAt: Date;
+  result: 'success' | 'failed' | 'partial';
+  details?: string;
+  duration?: number; // minutes
+  reversible: boolean;
+  automatedExecution: boolean;
+}
+
+/**
+ * Incident classification result
+ */
+export interface McpIncidentClassification {
+  incidentId: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  complexity: 'low' | 'medium' | 'high';
+  threatLevel: 'low' | 'medium' | 'high' | 'critical';
+  dataCompromiseRisk: 'low' | 'medium' | 'high';
+  complianceImpact: string;
+  businessImpact: string;
+  technicalImpact: string;
+  attackVector: string;
+  attackerProfile: string;
+  mitigationStrategy: string;
+  recoveryComplexity: 'low' | 'medium' | 'high';
+  legalImplications: string;
+  classifiedAt: Date;
+  classificationConfidence: number;
+  reviewRequired: boolean;
+}
+
+/**
+ * Incident response summary
+ */
+export interface McpIncidentResponse {
+  incidentId: string;
+  responseActions: McpResponseAction[];
+  isolationApplied: boolean;
+  escalationTriggered: boolean;
+  forensicsCaptured: boolean;
+  estimatedResolutionTime: Date;
+  nextReviewRequired: Date;
+}
+
+/**
+ * Escalation rule configuration
+ */
+export interface McpEscalationRule {
+  id: string;
+  tenantId?: string;
+  level: number;
+  triggerConditions: {
+    severity?: string[];
+    incidentType?: string[];
+    riskScore?: number;
+    timeThreshold?: number; // minutes
+  };
+  stakeholders: string[];
+  timeThreshold: number; // minutes
+  autoEscalate: boolean;
+}
+
+/**
+ * Notification configuration
+ */
+export interface McpNotificationConfig {
+  securityTeamImmediate: boolean;
+  complianceOfficerThreshold: string;
+  executiveThreshold: string;
+  userNotificationRequired: boolean;
+}
+
+/**
+ * Recovery procedure definition
+ */
+export interface McpRecoveryProcedure {
+  id: string;
+  incidentId: string;
+  procedureType: string;
+  steps: Array<{
+    order: number;
+    description: string;
+    automated: boolean;
+    completed: boolean;
+    completedAt?: Date;
+  }>;
+  estimatedDuration: number; // minutes
+  requiredApprovals: string[];
+  rollbackPossible: boolean;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+}
+
+/**
+ * Threat indicator for correlation analysis
+ */
+export interface McpThreatIndicator {
+  id: string;
+  indicatorType: string;
+  value: string;
+  confidence: number;
+  source: string;
+  firstSeen: Date;
+  lastSeen: Date;
+  associatedThreats: string[];
+  severity: 'low' | 'medium' | 'high' | 'critical';
+}
+
+/**
+ * Real-time monitoring configuration
+ */
+export interface McpRealTimeMonitoringConfig {
+  enabled: boolean;
+  samplingRate: number; // 0-1
+  alertThresholds: {
+    anomalyScore: number;
+    violationRate: number;
+    reputationScore: number;
+  };
+  monitoringInterval: number; // seconds
+  retentionPeriod: number; // days
+}
+
 /**
  * Difficulty levels for learning content
  */
@@ -199,6 +868,12 @@ export interface LearnerDNAPrivacyConsent {
   crossCourseCorrelationConsent: boolean;
   anonymizedAnalyticsConsent: boolean;
 
+  // MCP-specific external AI access consent
+  externalAiAccessConsent: boolean;
+  mcpClientScopes: string[];
+  realTimeRevocationEnabled: boolean;
+  externalClientRestrictions: Record<string, any>;
+
   // Data collection level
   dataCollectionLevel: 'minimal' | 'standard' | 'comprehensive';
 
@@ -228,6 +903,13 @@ export interface PrivacyConsentUpdate {
   chatInteractionsConsent?: boolean;
   crossCourseCorrelationConsent?: boolean;
   anonymizedAnalyticsConsent?: boolean;
+
+  // MCP-specific consent updates
+  externalAiAccessConsent?: boolean;
+  mcpClientScopes?: string[];
+  realTimeRevocationEnabled?: boolean;
+  externalClientRestrictions?: Record<string, any>;
+
   dataCollectionLevel?: 'minimal' | 'standard' | 'comprehensive';
   parentalConsentRequired?: boolean;
   parentalConsentGiven?: boolean;
@@ -855,4 +1537,219 @@ export function isValidTimeWindow(timeWindow: TimeWindow): boolean {
 export function isValidLearningState(state: LearningState): boolean {
   const values = [state.engagement, state.frustration, state.confusion, state.confidence, state.motivation];
   return values.every((v) => v >= 0 && v <= 1) && state.cognitiveLoad >= 0 && state.cognitiveLoad <= 2;
+}
+
+/**
+ * MCP-specific type definitions for external AI client integration
+ */
+
+/**
+ * MCP Client registry for managing external AI clients
+ */
+export interface McpClientRegistry {
+  id: string;
+  tenantId: string;
+
+  // Client identification
+  clientName: string;
+  clientType: 'ai_assistant' | 'analytics_tool' | 'research_platform' | 'tutoring_system';
+  clientDescription: string;
+  clientVersion: string;
+
+  // Authentication and authorization
+  clientSecretHash: string;
+  apiKeyPrefix: string;
+  authorizedScopes: string[];
+  rateLimitPerMinute: number;
+
+  // Privacy and compliance
+  privacyPolicyUrl?: string;
+  dataRetentionDays: number;
+  anonymizationRequired: boolean;
+  auditLoggingEnabled: boolean;
+
+  // Client metadata
+  contactEmail: string;
+  organization?: string;
+  certificationLevel?: 'basic' | 'enterprise' | 'research';
+
+  // Status and temporal tracking
+  status: 'pending' | 'approved' | 'suspended' | 'revoked';
+  approvedBy?: string;
+  approvedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  lastAccessAt?: Date;
+}
+
+/**
+ * MCP Data Scope definitions for granular permissions
+ */
+export interface McpDataScope {
+  id: string;
+  scopeName: string;
+  scopeCategory: 'profile' | 'behavioral' | 'assessment' | 'real_time' | 'aggregated';
+
+  // Scope details
+  description: string;
+  dataSensitivityLevel: 'low' | 'medium' | 'high' | 'critical';
+  requiresExplicitConsent: boolean;
+
+  // Privacy implications
+  privacyImpactScore: number;
+  gdprArticleApplicable?: string;
+  coppaParentalConsentRequired: boolean;
+
+  // Data access patterns
+  dataTablesAccessed: string[];
+  anonymizationPossible: boolean;
+  realTimeAccessAllowed: boolean;
+
+  // Compliance and audit
+  createdAt: Date;
+  updatedAt: Date;
+  complianceReviewDue?: Date;
+}
+
+/**
+ * MCP Active Session for real-time session management
+ */
+export interface McpActiveSession {
+  id: string;
+  tenantId: string;
+  userId: string;
+  clientId: string;
+
+  // Session details
+  sessionToken: string;
+  grantedScopes: string[];
+  sessionType: 'api_access' | 'real_time_stream' | 'batch_analysis';
+
+  // Access patterns
+  dataAccessedCount: number;
+  lastDataAccessAt?: Date;
+  rateLimitExceededCount: number;
+
+  // Privacy and security
+  consentVersion: string;
+  ipAddress?: string;
+  userAgent?: string;
+  encryptionLevel: string;
+
+  // Session lifecycle
+  startedAt: Date;
+  lastHeartbeatAt: Date;
+  expiresAt: Date;
+  revokedAt?: Date;
+  revocationReason?: string;
+
+  // Compliance tracking
+  auditEventsCount: number;
+  privacyViolationsCount: number;
+}
+
+/**
+ * MCP Consent Revocation Queue for real-time processing
+ */
+export interface McpConsentRevocationQueue {
+  id: string;
+  tenantId: string;
+  userId: string;
+
+  // Revocation details
+  revocationType: 'full_withdrawal' | 'scope_specific' | 'client_specific' | 'emergency_stop';
+  affectedScopes: string[];
+  affectedClients: string[];
+
+  // Processing status
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  priorityLevel: number;
+
+  // Revocation metadata
+  requestedAt: Date;
+  processedAt?: Date;
+  completedAt?: Date;
+  processingDurationMs?: number;
+
+  // Audit and compliance
+  revocationReason?: string;
+  initiatedBy: 'user' | 'parent' | 'admin' | 'system' | 'compliance';
+  complianceFramework?: 'COPPA' | 'GDPR' | 'FERPA';
+
+  // Results tracking
+  sessionsRevokedCount: number;
+  dataPurgedTables: string[];
+  notificationSent: boolean;
+}
+
+/**
+ * MCP Parental Controls for COPPA compliance
+ */
+export interface McpParentalControls {
+  id: string;
+  tenantId: string;
+  userId: string;
+  parentEmail: string;
+
+  // Control settings
+  externalAiAccessAllowed: boolean;
+  allowedClientTypes: Array<'ai_assistant' | 'analytics_tool' | 'research_platform' | 'tutoring_system'>;
+  maxSessionDurationMinutes: number;
+  allowedTimeWindows: Array<{
+    start: string;
+    end: string;
+    days: Array<'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'>;
+  }>;
+
+  // Notification preferences
+  notifyOnAccessRequest: boolean;
+  notifyOnDataSharing: boolean;
+  notifyOnPrivacyChanges: boolean;
+  notificationFrequency: 'immediate' | 'daily' | 'weekly';
+
+  // Override capabilities
+  emergencyContactPhone?: string;
+  canOverrideAiAccess: boolean;
+  canViewChildData: boolean;
+  canExportChildData: boolean;
+
+  // Compliance tracking
+  coppaVerificationMethod: 'email' | 'phone' | 'postal' | 'credit_card';
+  verificationCompletedAt: Date;
+  verificationDocumentId?: string;
+
+  // Temporal tracking
+  createdAt: Date;
+  updatedAt: Date;
+  lastNotificationSentAt?: Date;
+  nextReviewDue?: Date;
+}
+
+/**
+ * MCP Session validation result
+ */
+export interface McpSessionValidationResult {
+  isValid: boolean;
+  hasRequiredConsent: boolean;
+  allowedScopes: string[];
+  missingConsents: string[];
+  violations: string[];
+  parentalApprovalRequired: boolean;
+  sessionLimitsEnforced: boolean;
+  expiresAt?: Date;
+}
+
+/**
+ * MCP Client permission check result
+ */
+export interface McpClientPermissionResult {
+  hasPermission: boolean;
+  grantedScopes: string[];
+  deniedScopes: string[];
+  rateLimitStatus: {
+    remaining: number;
+    resetAt: Date;
+  };
+  complianceIssues: string[];
+  parentalControlsActive: boolean;
 }
