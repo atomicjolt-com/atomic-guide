@@ -26,7 +26,11 @@ const mockAIService = {
   analyzeStudentResponse: vi.fn(),
   generateFollowUpQuestion: vi.fn(),
   generateEncouragement: vi.fn(),
-  validateAcademicIntegrity: vi.fn()
+  validateAcademicIntegrity: vi.fn(),
+  generateWelcomeMessage: vi.fn(),
+  generateResponse: vi.fn(),
+  checkAcademicIntegrity: vi.fn(),
+  generateGradeFeedback: vi.fn()
 };
 
 const mockEnv = {
@@ -41,16 +45,32 @@ describe('ConversationalAssessmentEngine', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Setup default mock implementations
+    mockAIService.generateWelcomeMessage.mockResolvedValue('Welcome to the assessment!');
+    mockAIService.generateResponse.mockResolvedValue('AI response');
+    mockAIService.checkAcademicIntegrity.mockResolvedValue({
+      authenticity: 'verified',
+      similarityFlags: [],
+      aiDetectionScore: 0.1
+    });
+    mockAIService.generateGradeFeedback.mockResolvedValue({
+      strengths: ['Good understanding'],
+      areasForImprovement: ['Continue practicing'],
+      masteryReport: 'Achieved mastery in key concepts'
+    });
+
     engine = new ConversationalAssessmentEngine(
-      mockSessionRepository as any,
       mockAIService as any,
+      mockSessionRepository as any,
+      {} as any, // mock DatabaseService
       mockEnv
     );
 
     mockSessionConfig = {
-      configId: 'config123' as any,
-      studentId: 'student123' as any,
-      courseId: 'course123' as any,
+      configId: '12345678-1234-1234-1234-123456789abc' as any,
+      studentId: 'student-12345678-1234-1234-1234-123456789abc' as any,
+      courseId: 'course-12345678-1234-1234-1234-123456789abc' as any,
       assessmentTitle: 'Photosynthesis Assessment',
       settings: {
         masteryThreshold: 0.8,
@@ -81,7 +101,7 @@ describe('ConversationalAssessmentEngine', () => {
   describe('initializeSession', () => {
     it('should create and initialize a new assessment session', async () => {
       const mockSession: AssessmentSession = {
-        id: 'session123' as any,
+        id: '87654321-4321-4321-4321-cba987654321' as any,
         config: mockSessionConfig,
         status: 'created',
         progress: {
@@ -119,7 +139,17 @@ describe('ConversationalAssessmentEngine', () => {
       expect(mockSessionRepository.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           config: mockSessionConfig,
-          status: 'created'
+          status: 'created',
+          progress: expect.objectContaining({
+            attemptNumber: 1,
+            masteryAchieved: false
+          }),
+          conversation: expect.arrayContaining([
+            expect.objectContaining({
+              type: 'system',
+              content: 'Welcome to the assessment!'
+            })
+          ])
         })
       );
 
@@ -155,7 +185,7 @@ describe('ConversationalAssessmentEngine', () => {
   describe('processStudentResponse', () => {
     it('should process a correct student response and advance to next question', async () => {
       const mockSession: AssessmentSession = {
-        id: 'session123' as any,
+        id: '87654321-4321-4321-4321-cba987654321' as any,
         config: mockSessionConfig,
         status: 'active',
         progress: {
@@ -175,8 +205,8 @@ describe('ConversationalAssessmentEngine', () => {
         },
         conversation: [
           {
-            id: 'msg1',
-            sessionId: 'session123' as any,
+            id: '11111111-1111-1111-1111-111111111111',
+            sessionId: '87654321-4321-4321-4321-cba987654321' as any,
             type: 'question',
             content: 'What is photosynthesis?',
             timestamp: new Date(),
@@ -256,7 +286,7 @@ describe('ConversationalAssessmentEngine', () => {
       const studentResponse = 'Photosynthesis is the process where plants use sunlight, carbon dioxide, and water to create glucose and oxygen in chloroplasts.';
 
       const result = await engine.processStudentResponse(
-        'session123' as AssessmentSessionId,
+        '87654321-4321-4321-4321-cba987654321' as AssessmentSessionId,
         studentResponse,
         { responseTime: 45000 }
       );
@@ -266,7 +296,7 @@ describe('ConversationalAssessmentEngine', () => {
         'What is photosynthesis?',
         ['photosynthesis', 'chloroplasts', 'cellular respiration'],
         expect.objectContaining({
-          sessionId: 'session123',
+          sessionId: '87654321-4321-4321-4321-cba987654321',
           previousResponses: []
         })
       );
@@ -277,7 +307,7 @@ describe('ConversationalAssessmentEngine', () => {
 
     it('should handle misconceptions and provide remediation', async () => {
       const mockSession: AssessmentSession = {
-        id: 'session123' as any,
+        id: '87654321-4321-4321-4321-cba987654321' as any,
         config: mockSessionConfig,
         status: 'active',
         progress: {
@@ -297,8 +327,8 @@ describe('ConversationalAssessmentEngine', () => {
         },
         conversation: [
           {
-            id: 'msg1',
-            sessionId: 'session123' as any,
+            id: '11111111-1111-1111-1111-111111111111',
+            sessionId: '87654321-4321-4321-4321-cba987654321' as any,
             type: 'question',
             content: 'Where does photosynthesis occur in plant cells?',
             timestamp: new Date(),
@@ -373,7 +403,7 @@ describe('ConversationalAssessmentEngine', () => {
       const studentResponse = 'Photosynthesis happens in the mitochondria where plants make energy.';
 
       const result = await engine.processStudentResponse(
-        'session123' as AssessmentSessionId,
+        '87654321-4321-4321-4321-cba987654321' as AssessmentSessionId,
         studentResponse,
         { responseTime: 30000 }
       );
@@ -388,7 +418,7 @@ describe('ConversationalAssessmentEngine', () => {
 
     it('should detect academic integrity violations', async () => {
       const mockSession: AssessmentSession = {
-        id: 'session123' as any,
+        id: '87654321-4321-4321-4321-cba987654321' as any,
         config: mockSessionConfig,
         status: 'active',
         progress: {
@@ -461,7 +491,7 @@ describe('ConversationalAssessmentEngine', () => {
       const suspiciousResponse = 'The intricate process of photosynthesis, a fundamental autotrophic mechanism, operates through the utilization of chlorophyll-containing organelles...';
 
       const result = await engine.processStudentResponse(
-        'session123' as AssessmentSessionId,
+        '87654321-4321-4321-4321-cba987654321' as AssessmentSessionId,
         suspiciousResponse,
         { responseTime: 5000 }
       );
@@ -476,7 +506,7 @@ describe('ConversationalAssessmentEngine', () => {
   describe('calculateFinalGrade', () => {
     it('should calculate grade based on mastery, participation, and improvement', async () => {
       const mockSession: AssessmentSession = {
-        id: 'session123' as any,
+        id: '87654321-4321-4321-4321-cba987654321' as any,
         config: mockSessionConfig,
         status: 'completed',
         progress: {
@@ -496,11 +526,11 @@ describe('ConversationalAssessmentEngine', () => {
         },
         conversation: [
           // Mock conversation with multiple exchanges
-          { id: '1', sessionId: 'session123' as any, type: 'question', content: 'Q1', timestamp: new Date(), contentHash: 'h1', encrypted: false },
-          { id: '2', sessionId: 'session123' as any, type: 'student', content: 'A1', timestamp: new Date(), contentHash: 'h2', encrypted: false },
-          { id: '3', sessionId: 'session123' as any, type: 'feedback', content: 'F1', timestamp: new Date(), contentHash: 'h3', encrypted: false },
-          { id: '4', sessionId: 'session123' as any, type: 'question', content: 'Q2', timestamp: new Date(), contentHash: 'h4', encrypted: false },
-          { id: '5', sessionId: 'session123' as any, type: 'student', content: 'A2', timestamp: new Date(), contentHash: 'h5', encrypted: false }
+          { id: '22222222-2222-2222-2222-222222222222', sessionId: '87654321-4321-4321-4321-cba987654321' as any, type: 'question', content: 'Q1', timestamp: new Date(), contentHash: 'h1', encrypted: false },
+          { id: '33333333-3333-3333-3333-333333333333', sessionId: '87654321-4321-4321-4321-cba987654321' as any, type: 'student', content: 'A1', timestamp: new Date(), contentHash: 'h2', encrypted: false },
+          { id: '44444444-4444-4444-4444-444444444444', sessionId: '87654321-4321-4321-4321-cba987654321' as any, type: 'feedback', content: 'F1', timestamp: new Date(), contentHash: 'h3', encrypted: false },
+          { id: '55555555-5555-5555-5555-555555555555', sessionId: '87654321-4321-4321-4321-cba987654321' as any, type: 'question', content: 'Q2', timestamp: new Date(), contentHash: 'h4', encrypted: false },
+          { id: '66666666-6666-6666-6666-666666666666', sessionId: '87654321-4321-4321-4321-cba987654321' as any, type: 'student', content: 'A2', timestamp: new Date(), contentHash: 'h5', encrypted: false }
         ],
         analytics: {
           engagementScore: 0.8,
@@ -519,9 +549,9 @@ describe('ConversationalAssessmentEngine', () => {
 
       mockSessionRepository.getSession.mockResolvedValue(mockSession);
 
-      const result = await engine.calculateFinalGrade('session123' as AssessmentSessionId);
+      const result = await engine.calculateFinalGrade('87654321-4321-4321-4321-cba987654321' as AssessmentSessionId);
 
-      expect(result.sessionId).toBe('session123');
+      expect(result.sessionId).toBe('87654321-4321-4321-4321-cba987654321');
       expect(result.numericScore).toBeGreaterThan(70); // Should be high due to mastery
       expect(result.components.masteryScore).toBeGreaterThan(80);
       expect(result.components.participationScore).toBeGreaterThan(70);
@@ -531,7 +561,7 @@ describe('ConversationalAssessmentEngine', () => {
 
     it('should handle incomplete sessions appropriately', async () => {
       const incompleteSession: AssessmentSession = {
-        id: 'session123' as any,
+        id: '87654321-4321-4321-4321-cba987654321' as any,
         config: mockSessionConfig,
         status: 'timeout',
         progress: {
@@ -550,8 +580,8 @@ describe('ConversationalAssessmentEngine', () => {
           timeoutAt: new Date(Date.now() - 100000) // Timed out
         },
         conversation: [
-          { id: '1', sessionId: 'session123' as any, type: 'question', content: 'Q1', timestamp: new Date(), contentHash: 'h1', encrypted: false },
-          { id: '2', sessionId: 'session123' as any, type: 'student', content: 'Incomplete answer', timestamp: new Date(), contentHash: 'h2', encrypted: false }
+          { id: '22222222-2222-2222-2222-222222222222', sessionId: '87654321-4321-4321-4321-cba987654321' as any, type: 'question', content: 'Q1', timestamp: new Date(), contentHash: 'h1', encrypted: false },
+          { id: '33333333-3333-3333-3333-333333333333', sessionId: '87654321-4321-4321-4321-cba987654321' as any, type: 'student', content: 'Incomplete answer', timestamp: new Date(), contentHash: 'h2', encrypted: false }
         ],
         analytics: {
           engagementScore: 0.4,
@@ -567,7 +597,7 @@ describe('ConversationalAssessmentEngine', () => {
 
       mockSessionRepository.getSession.mockResolvedValue(incompleteSession);
 
-      const result = await engine.calculateFinalGrade('session123' as AssessmentSessionId);
+      const result = await engine.calculateFinalGrade('87654321-4321-4321-4321-cba987654321' as AssessmentSessionId);
 
       expect(result.numericScore).toBeLessThan(50); // Should be low due to incompletion
       expect(result.feedback.areasForImprovement).toContain('Complete the full assessment');
@@ -578,7 +608,7 @@ describe('ConversationalAssessmentEngine', () => {
   describe('getSession', () => {
     it('should retrieve and validate session', async () => {
       const mockSession: AssessmentSession = {
-        id: 'session123' as any,
+        id: '87654321-4321-4321-4321-cba987654321' as any,
         config: mockSessionConfig,
         status: 'active',
         progress: {
@@ -611,10 +641,10 @@ describe('ConversationalAssessmentEngine', () => {
 
       mockSessionRepository.getSession.mockResolvedValue(mockSession);
 
-      const result = await engine.getSession('session123' as AssessmentSessionId);
+      const result = await engine.getSession('87654321-4321-4321-4321-cba987654321' as AssessmentSessionId);
 
       expect(result).toEqual(mockSession);
-      expect(mockSessionRepository.getSession).toHaveBeenCalledWith('session123');
+      expect(mockSessionRepository.getSession).toHaveBeenCalledWith('87654321-4321-4321-4321-cba987654321');
     });
 
     it('should return null for non-existent sessions', async () => {

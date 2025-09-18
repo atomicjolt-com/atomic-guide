@@ -19,7 +19,7 @@ describe('CanvasGradePassbackService', () => {
     service = new CanvasGradePassbackService();
 
     mockGradeCalculation = {
-      sessionId: 'session123' as any,
+      sessionId: '87654321-4321-4321-4321-cba987654321' as any,
       numericScore: 85,
       letterGrade: 'B',
       components: {
@@ -220,7 +220,7 @@ describe('CanvasGradePassbackService', () => {
 
     it('should reject grades with missing required fields', () => {
       const incompleteGrade = {
-        sessionId: 'session123' as any,
+        sessionId: '87654321-4321-4321-4321-cba987654321' as any,
         numericScore: 85
         // Missing other required fields
       } as GradeCalculation;

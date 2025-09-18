@@ -31,11 +31,11 @@ import {
   AssessmentSessionConfigSchema,
   ResponseAnalysisSchema,
   GradeCalculationSchema
-} from '../../shared/types.ts';
+} from '../../shared/types';
 
-import { AssessmentAIService } from './AssessmentAIService.ts';
-import { AssessmentSessionRepository } from '../repositories/AssessmentSessionRepository.ts';
-import { DatabaseService } from '../../../../shared/services/DatabaseService.ts';
+import { AssessmentAIService } from './AssessmentAIService';
+import { AssessmentSessionRepository } from '../repositories/AssessmentSessionRepository';
+import { DatabaseService } from '../../../../shared/services/DatabaseService';
 
 /**
  * Assessment progression step types
@@ -86,8 +86,13 @@ export class ConversationalAssessmentEngine {
     private readonly aiService: AssessmentAIService,
     private readonly sessionRepository: AssessmentSessionRepository,
     private readonly databaseService: DatabaseService,
-    engineConfig?: Partial<EngineConfig>
+    envOrEngineConfig?: any
   ) {
+    // Handle both env object and engineConfig for backward compatibility
+    const engineConfig = envOrEngineConfig && typeof envOrEngineConfig === 'object' && 'ASSESSMENT_SESSION_TIMEOUT' in envOrEngineConfig
+      ? {} // If it's an env object, use default config
+      : envOrEngineConfig; // Otherwise treat as engineConfig
+
     this.engineConfig = { ...DEFAULT_ENGINE_CONFIG, ...engineConfig };
   }
 
@@ -194,16 +199,22 @@ export class ConversationalAssessmentEngine {
       const studentMessage = this.createStudentMessage(session, studentResponse, metadata);
       session.conversation.push(studentMessage);
 
-      // Perform academic integrity check
-      if (this.engineConfig.academicIntegrityEnabled) {
-        await this.performIntegrityCheck(session, studentMessage);
-      }
-
       // Analyze student response using AI
+      const lastQuestion = session.conversation
+        .filter(msg => msg.type === 'question')
+        .pop()?.content || '';
+
       const analysis = await this.aiService.analyzeStudentResponse(
         studentResponse,
+        lastQuestion,
+        session.config.context.concepts,
         this.buildAnalysisContext(session)
       );
+
+      // Perform academic integrity check using analysis result
+      if (this.engineConfig.academicIntegrityEnabled && analysis.academicIntegrity) {
+        await this.performIntegrityCheckFromAnalysis(session, studentMessage, analysis.academicIntegrity);
+      }
 
       // Update session progress based on analysis
       this.updateSessionProgress(session, analysis);
@@ -240,10 +251,17 @@ export class ConversationalAssessmentEngine {
    * Get current session state
    *
    * @param sessionId - Assessment session ID
-   * @returns Current session state
+   * @returns Current session state or null if not found
    */
-  async getSession(sessionId: AssessmentSessionId): Promise<AssessmentSession> {
-    return this.validateAndGetSession(sessionId);
+  async getSession(sessionId: AssessmentSessionId): Promise<AssessmentSession | null> {
+    try {
+      return await this.validateAndGetSession(sessionId);
+    } catch (error) {
+      if (error instanceof SessionValidationError && error.message.includes('not found')) {
+        return null;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -287,6 +305,11 @@ export class ConversationalAssessmentEngine {
         improvementScore
       });
 
+      // Determine if grade passback is eligible
+      const isEligible = session.config.grading.passbackEnabled &&
+                        !['timeout', 'error'].includes(session.status) &&
+                        session.progress.currentStep > 1; // Must have made some progress
+
       const gradeCalculation: GradeCalculation = {
         sessionId,
         numericScore: Math.round(weightedScore),
@@ -297,7 +320,7 @@ export class ConversationalAssessmentEngine {
         },
         feedback,
         passback: {
-          eligible: session.config.grading.passbackEnabled,
+          eligible: isEligible,
           status: 'pending'
         }
       };
@@ -412,6 +435,14 @@ export class ConversationalAssessmentEngine {
       }
     });
 
+    // Track misconceptions as concepts needing work
+    analysis.understanding.misconceptions?.forEach(misconception => {
+      const conceptNeedsWork = misconception.concept;
+      if (!session.progress.conceptsNeedWork.includes(conceptNeedsWork)) {
+        session.progress.conceptsNeedWork.push(conceptNeedsWork);
+      }
+    });
+
     // Update overall mastery status
     const masteryRate = session.progress.conceptsMastered.length / session.config.context.concepts.length;
     session.progress.masteryAchieved = masteryRate >= session.config.settings.masteryThreshold;
@@ -435,7 +466,15 @@ export class ConversationalAssessmentEngine {
     const responseType = this.determineResponseType(analysis);
     const context = this.buildResponseContext(session, analysis);
 
-    const aiContent = await this.aiService.generateResponse(responseType, context);
+    // Use direct feedback from analysis if available (especially for corrections)
+    let aiContent: string;
+    if (responseType === 'feedback' && analysis.feedback?.corrections?.length > 0) {
+      const encouragement = analysis.feedback.encouragement || 'Let me help clarify.';
+      const corrections = analysis.feedback.corrections.join(' ');
+      aiContent = `${encouragement} ${corrections}`;
+    } else {
+      aiContent = await this.aiService.generateResponse(responseType, context);
+    }
 
     return {
       id: crypto.randomUUID(),
@@ -559,6 +598,32 @@ export class ConversationalAssessmentEngine {
   }
 
   /**
+   * Perform academic integrity check using analysis result
+   */
+  private async performIntegrityCheckFromAnalysis(
+    session: AssessmentSession,
+    message: AssessmentMessage,
+    integrityResult: ResponseAnalysis['academicIntegrity']
+  ): Promise<void> {
+    const checkResult = integrityResult.authenticity === 'verified' ? 'pass' :
+                       integrityResult.authenticity === 'suspicious' ? 'warning' : 'fail';
+
+    session.security.integrityChecks.push({
+      timestamp: new Date(),
+      type: 'academic_integrity',
+      result: checkResult,
+      details: integrityResult.similarityFlags?.join(', ')
+    });
+
+    // Update message integrity data
+    message.integrity = {
+      originalContent: message.content,
+      similarityScore: integrityResult.aiDetectionScore,
+      authenticity: integrityResult.authenticity
+    };
+  }
+
+  /**
    * Perform academic integrity check on student response
    */
   private async performIntegrityCheck(
@@ -570,11 +635,13 @@ export class ConversationalAssessmentEngine {
       session.conversation
     );
 
+    const checkResult = integrityResult.authenticity === 'verified' ? 'pass' :
+                       integrityResult.authenticity === 'suspicious' ? 'warning' : 'fail';
+
     session.security.integrityChecks.push({
       timestamp: new Date(),
-      type: 'response_authenticity',
-      result: integrityResult.authenticity === 'verified' ? 'pass' :
-              integrityResult.authenticity === 'suspicious' ? 'warning' : 'fail',
+      type: 'academic_integrity',
+      result: checkResult,
       details: integrityResult.similarityFlags?.join(', ')
     });
 
@@ -634,7 +701,11 @@ export class ConversationalAssessmentEngine {
    * Calculate mastery score from session progress
    */
   private calculateMasteryScore(session: AssessmentSession): number {
-    const masteryRate = session.progress.conceptsMastered.length / session.config.context.concepts.length;
+    const conceptMasteryRate = session.progress.conceptsMastered.length / session.config.context.concepts.length;
+    const overallScore = session.progress.overallScore || 0;
+
+    // Use the higher of concept mastery rate or overall score
+    const masteryRate = Math.max(conceptMasteryRate, overallScore);
     return Math.round(masteryRate * 100);
   }
 
@@ -670,7 +741,19 @@ export class ConversationalAssessmentEngine {
       conceptsNeedWork: session.progress.conceptsNeedWork
     };
 
-    return this.aiService.generateGradeFeedback(context);
+    const aiFeedback = await this.aiService.generateGradeFeedback(context);
+
+    // Ensure the feedback has all required fields
+    const isIncomplete = ['timeout', 'error'].includes(session.status) || session.progress.currentStep <= 2;
+
+    return {
+      strengths: aiFeedback.strengths || ['Participation in assessment'],
+      areasForImprovement: isIncomplete
+        ? [...(aiFeedback.areasForImprovement || []), 'Complete the full assessment']
+        : aiFeedback.areasForImprovement || ['Continue learning'],
+      recommendations: aiFeedback.recommendations || ['Practice with additional problems'],
+      masteryReport: aiFeedback.masteryReport || 'Assessment completed'
+    };
   }
 
   /**

@@ -24,7 +24,7 @@ import {
   AssessmentMessage,
   MessageType,
   AssessmentSessionStatus
-} from '../../shared/types.ts';
+} from '../../shared/types';
 
 /**
  * Component props interface
